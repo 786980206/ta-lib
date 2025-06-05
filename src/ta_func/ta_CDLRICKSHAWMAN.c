@@ -88,7 +88,7 @@
 /* Generated */ public int cdlRickshawManLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlrickshawman_lookback( /* Generated */ 
+/* Generated */ fn cdlrickshawman_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLRICKSHAWMAN_Lookback( void )
 /* Generated */ 
@@ -147,14 +147,11 @@
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlrickshawman( int    startIdx,
-/* Generated */ 
-/* Generated */                                     int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
- outInteger[],
-)
+/* Generated */ fn cdlrickshawman(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLRICKSHAWMAN( int    startIdx,
 /* Generated */                                          int    endIdx,
@@ -333,9 +330,11 @@ mut outNBElement,
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlrickshawman_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                       int    endIdx,
+/* Generated */ fn cdlrickshawman_s(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     /* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLRICKSHAWMAN( int    startIdx,
 /* Generated */                                 int    endIdx,

@@ -94,7 +94,9 @@
 /* Generated */                        int           optInSignalPeriod )  /* From 1 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macd_lookback( /* Generated */ 
+/* Generated */ fn macd_lookback(optInFastPeriod: i32,
+/* Generated */                  optInSlowPeriod: i32,
+/* Generated */                  optInSignalPeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MACD_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                           int           optInSlowPeriod, /* From 2 to 100000 */
@@ -211,19 +213,17 @@
 /* Generated */                      double        outMACDSignal[],
 /* Generated */                      double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macd( int    startIdx,
-/* Generated */ 
-/* Generated */                           int    endIdx,
-double inReal[],
- optInFastPeriod[],
- optInSlowPeriod[],
- optInSignalPeriod[],
-mut outBegIdx,
-mut outNBElement,
-double outMACD[],
-double outMACDSignal[],
-double outMACDHist[],
-)
+/* Generated */ fn macd(startIdx: i32,
+/* Generated */         endIdx: i32,
+/* Generated */         inReal: &[f64],
+/* Generated */         optInFastPeriod: i32,
+/* Generated */         optInSlowPeriod: i32,
+/* Generated */         optInSignalPeriod: i32,
+/* Generated */         outBegIdx: &mut i32,
+/* Generated */         outNBElement: &mut i32,
+/* Generated */         outMACD: &mut [f64],
+/* Generated */         outMACDSignal: &mut [f64],
+/* Generated */         outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -597,9 +597,17 @@ TA_RetCode TA_PREFIX(INT_MACD)( int    startIdx,
 /* Generated */                      double        outMACDSignal[],
 /* Generated */                      double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macd_s( int    startIdx,
-/* Generated */ 
-/* Generated */                             int    endIdx,
+/* Generated */ fn macd_s(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           inReal: &[f32],
+/* Generated */           optInFastPeriod: i32,
+/* Generated */           optInSlowPeriod: i32,
+/* Generated */           optInSignalPeriod: i32,
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outMACD: &mut [f64],
+/* Generated */           outMACDSignal: &mut [f64],
+/* Generated */           outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MACD( int    startIdx,
 /* Generated */                       int    endIdx,

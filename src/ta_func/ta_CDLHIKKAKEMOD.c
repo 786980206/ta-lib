@@ -88,7 +88,7 @@
 /* Generated */ public int cdlHikkakeModLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhikkakemod_lookback( /* Generated */ 
+/* Generated */ fn cdlhikkakemod_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLHIKKAKEMOD_Lookback( void )
 /* Generated */ 
@@ -145,14 +145,11 @@
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhikkakemod( int    startIdx,
-/* Generated */ 
-/* Generated */                                    int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
- outInteger[],
-)
+/* Generated */ fn cdlhikkakemod(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
 /* Generated */                                         int    endIdx,
@@ -365,9 +362,11 @@ mut outNBElement,
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhikkakemod_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                      int    endIdx,
+/* Generated */ fn cdlhikkakemod_s(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHIKKAKEMOD( int    startIdx,
 /* Generated */                                int    endIdx,

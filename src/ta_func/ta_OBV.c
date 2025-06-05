@@ -91,7 +91,7 @@
 /* Generated */ public int obvLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn obv_lookback( /* Generated */ 
+/* Generated */ fn obv_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_OBV_Lookback( void )
 /* Generated */ 
@@ -144,15 +144,13 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn obv( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
-double inReal[],
- inPriceV[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn obv(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        inReal: &[f64],
+/* Generated */        inVolume: &[f64],
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_OBV( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -256,9 +254,13 @@ double outReal[],
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn obv_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn obv_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal: &[f32],
+/* Generated */          inVolume: &[f32],
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_OBV( int    startIdx,
 /* Generated */                      int    endIdx,

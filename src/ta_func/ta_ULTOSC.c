@@ -92,7 +92,9 @@
 /* Generated */                          int           optInTimePeriod3 )  /* From 1 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ultosc_lookback( /* Generated */ 
+/* Generated */ fn ultosc_lookback(optInTimePeriod1: i32,
+/* Generated */                    optInTimePeriod2: i32,
+/* Generated */                    optInTimePeriod3: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ULTOSC_Lookback( int           optInTimePeriod1, /* From 1 to 100000 */
 /* Generated */                                             int           optInTimePeriod2, /* From 1 to 100000 */
@@ -191,17 +193,14 @@
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ultosc( int    startIdx,
-/* Generated */ 
-/* Generated */                             int    endIdx,
- inPriceHLC[],
- optInTimePeriod1[],
- optInTimePeriod2[],
- optInTimePeriod3[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn ultosc(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           /* Generated */           optInTimePeriod1: i32,
+/* Generated */           optInTimePeriod2: i32,
+/* Generated */           optInTimePeriod3: i32,
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -457,9 +456,14 @@ double outReal[],
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ultosc_s( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
+/* Generated */ fn ultosc_s(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             optInTimePeriod1: i32,
+/* Generated */             optInTimePeriod2: i32,
+/* Generated */             optInTimePeriod3: i32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ULTOSC( int    startIdx,
 /* Generated */                         int    endIdx,

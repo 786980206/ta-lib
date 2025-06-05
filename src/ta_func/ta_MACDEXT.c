@@ -97,7 +97,12 @@
 /* Generated */                           int           optInSignalPeriod, /* From 1 to 100000 */
 /* Generated */                           MAType        optInSignalMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdext_lookback( /* Generated */ 
+/* Generated */ fn macdext_lookback(optInFastPeriod: i32,
+/* Generated */                     optInFastMAType: i32,
+/* Generated */                     optInSlowPeriod: i32,
+/* Generated */                     optInSlowMAType: i32,
+/* Generated */                     optInSignalPeriod: i32,
+/* Generated */                     optInSignalMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MACDEXT_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                              TA_MAType     optInFastMAType,
@@ -243,22 +248,20 @@
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdext( int    startIdx,
-/* Generated */ 
-/* Generated */                              int    endIdx,
-double inReal[],
- optInFastPeriod[],
- optInFastMAType[],
- optInSlowPeriod[],
- optInSlowMAType[],
- optInSignalPeriod[],
- optInSignalMAType[],
-mut outBegIdx,
-mut outNBElement,
-double outMACD[],
-double outMACDSignal[],
-double outMACDHist[],
-)
+/* Generated */ fn macdext(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            inReal: &[f64],
+/* Generated */            optInFastPeriod: i32,
+/* Generated */            optInFastMAType: i32,
+/* Generated */            optInSlowPeriod: i32,
+/* Generated */            optInSlowMAType: i32,
+/* Generated */            optInSignalPeriod: i32,
+/* Generated */            optInSignalMAType: i32,
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outMACD: &mut [f64],
+/* Generated */            outMACDSignal: &mut [f64],
+/* Generated */            outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
 /* Generated */                                   int    endIdx,
@@ -564,9 +567,20 @@ double outMACDHist[],
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdext_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                int    endIdx,
+/* Generated */ fn macdext_s(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal: &[f32],
+/* Generated */              optInFastPeriod: i32,
+/* Generated */              optInFastMAType: i32,
+/* Generated */              optInSlowPeriod: i32,
+/* Generated */              optInSlowMAType: i32,
+/* Generated */              optInSignalPeriod: i32,
+/* Generated */              optInSignalMAType: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outMACD: &mut [f64],
+/* Generated */              outMACDSignal: &mut [f64],
+/* Generated */              outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MACDEXT( int    startIdx,
 /* Generated */                          int    endIdx,

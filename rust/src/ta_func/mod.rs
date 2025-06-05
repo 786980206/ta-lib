@@ -36,6 +36,19 @@
  *   Any modification will be lost on next execution of gen_code.
  */
 
+// Rust-specific types and enumerations
+pub enum RetCode {
+    Success,
+    BadParam,
+    OutOfRangeStartIndex,
+    OutOfRangeEndIndex,
+    AllocErr,
+    InternalError
+}
+
+// Core struct definition
+pub struct core {}
+
 pub use self::mult::*
 pub mod mult;
 

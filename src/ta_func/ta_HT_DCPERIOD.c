@@ -89,7 +89,7 @@
 /* Generated */ public int htDcPeriodLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_dcperiod_lookback( /* Generated */ 
+/* Generated */ fn ht_dcperiod_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_HT_DCPERIOD_Lookback( void )
 /* Generated */ 
@@ -139,14 +139,12 @@
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_dcperiod( int    startIdx,
-/* Generated */ 
-/* Generated */                                  int    endIdx,
-double inReal[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn ht_dcperiod(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                inReal: &[f64],
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_DCPERIOD( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -432,9 +430,12 @@ double outReal[],
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_dcperiod_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                    int    endIdx,
+/* Generated */ fn ht_dcperiod_s(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  inReal: &[f32],
+/* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_DCPERIOD( int    startIdx,
 /* Generated */                              int    endIdx,

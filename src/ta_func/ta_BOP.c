@@ -88,7 +88,7 @@
 /* Generated */ public int bopLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn bop_lookback( /* Generated */ 
+/* Generated */ fn bop_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_BOP_Lookback( void )
 /* Generated */ 
@@ -145,14 +145,11 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn bop( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn bop(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        /* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_BOP( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -260,9 +257,11 @@ double outReal[],
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn bop_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn bop_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          /* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_BOP( int    startIdx,
 /* Generated */                      int    endIdx,

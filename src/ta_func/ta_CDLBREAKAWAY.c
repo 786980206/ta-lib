@@ -88,7 +88,7 @@
 /* Generated */ public int cdlBreakawayLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbreakaway_lookback( /* Generated */ 
+/* Generated */ fn cdlbreakaway_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLBREAKAWAY_Lookback( void )
 /* Generated */ 
@@ -145,14 +145,11 @@
 /* Generated */                              MInteger     outNBElement,
 /* Generated */                              int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbreakaway( int    startIdx,
-/* Generated */ 
-/* Generated */                                   int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
- outInteger[],
-)
+/* Generated */ fn cdlbreakaway(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLBREAKAWAY( int    startIdx,
 /* Generated */                                        int    endIdx,
@@ -325,9 +322,11 @@ mut outNBElement,
 /* Generated */                              MInteger     outNBElement,
 /* Generated */                              int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbreakaway_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                     int    endIdx,
+/* Generated */ fn cdlbreakaway_s(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLBREAKAWAY( int    startIdx,
 /* Generated */                               int    endIdx,

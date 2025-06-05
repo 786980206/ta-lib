@@ -86,7 +86,7 @@
 /* Generated */ public int cosLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cos_lookback( /* Generated */ 
+/* Generated */ fn cos_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_COS_Lookback( void )
 /* Generated */ 
@@ -135,14 +135,12 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cos( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
-double inReal[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn cos(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        inReal: &[f64],
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_COS( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -227,9 +225,12 @@ double outReal[],
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cos_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn cos_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal: &[f32],
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_COS( int    startIdx,
 /* Generated */                      int    endIdx,

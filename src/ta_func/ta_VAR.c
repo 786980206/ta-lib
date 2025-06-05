@@ -91,7 +91,8 @@
 /* Generated */                            double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn var_lookback( /* Generated */ 
+/* Generated */ fn var_lookback(optInTimePeriod: i32,
+/* Generated */                 optInNbDev: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_VAR_Lookback( int           optInTimePeriod, /* From 1 to 100000 */
 /* Generated */                                          double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
@@ -169,16 +170,14 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn var( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
-double inReal[],
- optInTimePeriod[],
-double optInNbDev[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn var(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        inReal: &[f64],
+/* Generated */        optInTimePeriod: i32,
+/* Generated */        optInNbDev: f64,
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -392,9 +391,14 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn var_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn var_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal: &[f32],
+/* Generated */          optInTimePeriod: i32,
+/* Generated */          optInNbDev: f32,
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_VAR( int    startIdx,
 /* Generated */                      int    endIdx,

@@ -89,7 +89,7 @@
 /* Generated */ public int htPhasorLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_phasor_lookback( /* Generated */ 
+/* Generated */ fn ht_phasor_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_HT_PHASOR_Lookback( void )
 /* Generated */ 
@@ -142,15 +142,13 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_phasor( int    startIdx,
-/* Generated */ 
-/* Generated */                                int    endIdx,
-double inReal[],
-mut outBegIdx,
-mut outNBElement,
-double outInPhase[],
-double outQuadrature[],
-)
+/* Generated */ fn ht_phasor(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal: &[f64],
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outInPhase: &mut [f64],
+/* Generated */              outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
 /* Generated */                                     int    endIdx,
@@ -447,9 +445,13 @@ double outQuadrature[],
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_phasor_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                  int    endIdx,
+/* Generated */ fn ht_phasor_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                inReal: &[f32],
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outInPhase: &mut [f64],
+/* Generated */                outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
 /* Generated */                            int    endIdx,

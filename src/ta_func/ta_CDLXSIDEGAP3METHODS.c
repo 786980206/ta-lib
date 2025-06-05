@@ -88,7 +88,7 @@
 /* Generated */ public int cdlXSideGap3MethodsLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlxsidegap3methods_lookback( /* Generated */ 
+/* Generated */ fn cdlxsidegap3methods_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLXSIDEGAP3METHODS_Lookback( void )
 /* Generated */ 
@@ -145,14 +145,11 @@
 /* Generated */                                     MInteger     outNBElement,
 /* Generated */                                     int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlxsidegap3methods( int    startIdx,
-/* Generated */ 
-/* Generated */                                          int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
- outInteger[],
-)
+/* Generated */ fn cdlxsidegap3methods(startIdx: i32,
+/* Generated */                        endIdx: i32,
+/* Generated */                        /* Generated */                        outBegIdx: &mut i32,
+/* Generated */                        outNBElement: &mut i32,
+/* Generated */                        outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLXSIDEGAP3METHODS( int    startIdx,
 /* Generated */                                               int    endIdx,
@@ -307,9 +304,11 @@ mut outNBElement,
 /* Generated */                                     MInteger     outNBElement,
 /* Generated */                                     int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlxsidegap3methods_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                            int    endIdx,
+/* Generated */ fn cdlxsidegap3methods_s(startIdx: i32,
+/* Generated */                          endIdx: i32,
+/* Generated */                          /* Generated */                          outBegIdx: &mut i32,
+/* Generated */                          outNBElement: &mut i32,
+/* Generated */                          outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLXSIDEGAP3METHODS( int    startIdx,
 /* Generated */                                      int    endIdx,

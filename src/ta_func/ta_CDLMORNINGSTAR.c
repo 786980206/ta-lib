@@ -88,7 +88,7 @@
 /* Generated */ public int cdlMorningStarLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningstar_lookback( /* Generated */ 
+/* Generated */ fn cdlmorningstar_lookback(optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLMORNINGSTAR_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
@@ -161,15 +161,12 @@
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningstar( int    startIdx,
-/* Generated */ 
-/* Generated */                                     int    endIdx,
- inPriceOHLC[],
-double optInPenetration[],
-mut outBegIdx,
-mut outNBElement,
- outInteger[],
-)
+/* Generated */ fn cdlmorningstar(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   optInPenetration: f64,
+/* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLMORNINGSTAR( int    startIdx,
 /* Generated */                                          int    endIdx,
@@ -351,9 +348,12 @@ mut outNBElement,
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningstar_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                       int    endIdx,
+/* Generated */ fn cdlmorningstar_s(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     /* Generated */                     optInPenetration: f32,
+/* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLMORNINGSTAR( int    startIdx,
 /* Generated */                                 int    endIdx,

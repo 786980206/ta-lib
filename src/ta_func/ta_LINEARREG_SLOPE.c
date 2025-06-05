@@ -88,7 +88,7 @@
 /* Generated */ public int linearRegSlopeLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn linearreg_slope_lookback( /* Generated */ 
+/* Generated */ fn linearreg_slope_lookback(optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_LINEARREG_SLOPE_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -152,15 +152,13 @@
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn linearreg_slope( int    startIdx,
-/* Generated */ 
-/* Generated */                                      int    endIdx,
-double inReal[],
- optInTimePeriod[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn linearreg_slope(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    inReal: &[f64],
+/* Generated */                    optInTimePeriod: i32,
+/* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE( int    startIdx,
 /* Generated */                                           int    endIdx,
@@ -307,9 +305,13 @@ double outReal[],
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn linearreg_slope_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                        int    endIdx,
+/* Generated */ fn linearreg_slope_s(startIdx: i32,
+/* Generated */                      endIdx: i32,
+/* Generated */                      inReal: &[f32],
+/* Generated */                      optInTimePeriod: i32,
+/* Generated */                      outBegIdx: &mut i32,
+/* Generated */                      outNBElement: &mut i32,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_LINEARREG_SLOPE( int    startIdx,
 /* Generated */                                  int    endIdx,

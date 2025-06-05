@@ -95,7 +95,10 @@
 /* Generated */                            int           optInFastD_Period, /* From 1 to 100000 */
 /* Generated */                            MAType        optInFastD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochrsi_lookback( /* Generated */ 
+/* Generated */ fn stochrsi_lookback(optInTimePeriod: i32,
+/* Generated */                      optInFastK_Period: i32,
+/* Generated */                      optInFastD_Period: i32,
+/* Generated */                      optInFastD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCHRSI_Lookback( int           optInTimePeriod, /* From 2 to 100000 */
 /* Generated */                                               int           optInFastK_Period, /* From 1 to 100000 */
@@ -204,19 +207,17 @@
 /* Generated */                          double        outFastK[],
 /* Generated */                          double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochrsi( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
-double inReal[],
- optInTimePeriod[],
- optInFastK_Period[],
- optInFastD_Period[],
- optInFastD_MAType[],
-mut outBegIdx,
-mut outNBElement,
-double outFastK[],
-double outFastD[],
-)
+/* Generated */ fn stochrsi(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             inReal: &[f64],
+/* Generated */             optInTimePeriod: i32,
+/* Generated */             optInFastK_Period: i32,
+/* Generated */             optInFastD_Period: i32,
+/* Generated */             optInFastD_MAType: i32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outFastK: &mut [f64],
+/* Generated */             outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -433,9 +434,17 @@ double outFastD[],
 /* Generated */                          double        outFastK[],
 /* Generated */                          double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochrsi_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                 int    endIdx,
+/* Generated */ fn stochrsi_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               inReal: &[f32],
+/* Generated */               optInTimePeriod: i32,
+/* Generated */               optInFastK_Period: i32,
+/* Generated */               optInFastD_Period: i32,
+/* Generated */               optInFastD_MAType: i32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outFastK: &mut [f64],
+/* Generated */               outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCHRSI( int    startIdx,
 /* Generated */                           int    endIdx,

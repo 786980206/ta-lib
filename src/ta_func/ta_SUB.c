@@ -86,7 +86,7 @@
 /* Generated */ public int subLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sub_lookback( /* Generated */ 
+/* Generated */ fn sub_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SUB_Lookback( void )
 /* Generated */ 
@@ -138,15 +138,13 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sub( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
-double inReal0[],
-double inReal1[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn sub(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        inReal0: &[f64],
+/* Generated */        inReal1: &[f64],
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SUB( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -237,9 +235,13 @@ double outReal[],
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sub_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn sub_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal0: &[f32],
+/* Generated */          inReal1: &[f32],
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SUB( int    startIdx,
 /* Generated */                      int    endIdx,

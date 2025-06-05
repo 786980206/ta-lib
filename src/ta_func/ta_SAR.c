@@ -98,7 +98,8 @@
 /* Generated */                       double        optInMaximum )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sar_lookback( /* Generated */ 
+/* Generated */ fn sar_lookback(optInAcceleration: f64,
+/* Generated */                 optInMaximum: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAR_Lookback( double        optInAcceleration, /* From 0 to TA_REAL_MAX */
 /* Generated */                                          double        optInMaximum )  /* From 0 to TA_REAL_MAX */
@@ -182,16 +183,13 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sar( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
- inPriceHL[],
-double optInAcceleration[],
-double optInMaximum[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn sar(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        /* Generated */        optInAcceleration: f64,
+/* Generated */        optInMaximum: f64,
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -561,9 +559,13 @@ double outReal[],
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sar_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn sar_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          /* Generated */          optInAcceleration: f32,
+/* Generated */          optInMaximum: f32,
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAR( int    startIdx,
 /* Generated */                      int    endIdx,

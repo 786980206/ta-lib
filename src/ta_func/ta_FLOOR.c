@@ -86,7 +86,7 @@
 /* Generated */ public int floorLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn floor_lookback( /* Generated */ 
+/* Generated */ fn floor_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_FLOOR_Lookback( void )
 /* Generated */ 
@@ -135,14 +135,12 @@
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn floor( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
-double inReal[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn floor(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal: &[f64],
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_FLOOR( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -227,9 +225,12 @@ double outReal[],
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn floor_s( int    startIdx,
-/* Generated */ 
-/* Generated */                              int    endIdx,
+/* Generated */ fn floor_s(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            inReal: &[f32],
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_FLOOR( int    startIdx,
 /* Generated */                        int    endIdx,

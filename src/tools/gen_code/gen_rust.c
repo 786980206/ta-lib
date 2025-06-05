@@ -5,19 +5,52 @@ static void printRustLookbackFunctionSignature(FILE* out,
                                                const TA_FuncInfo* funcInfo)
 {
    char funcNameBuffer[1024]; /* Not safe, but 1024 is realistic, */
+   const TA_OptInputParameterInfo *optInputParamInfo;
+   int i, indent;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
 
    // print lookback function header
-   sprintf(gTempBuf, "%sfn %s_lookback( ",
+   sprintf(gTempBuf, "%sfn %s_lookback(",
            prefix? prefix:"",
            funcNameBuffer);
-
-   // TODO: print input params
-   // TODO: print optional input params
-   // TODO: close function
-   // TODO: print return type
+   
    print(out, gTempBuf);
-   print(out, "\n");
+   
+   // Calculate indent for parameter alignment
+   indent = (unsigned int)strlen(gTempBuf);
+   
+   // Print optional input parameters - only these are needed for lookback
+   for (i = 0; i < funcInfo->nbOptInput; i++)
+   {
+      TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
+      
+      if (i > 0) {
+         fprintf(out, ",\n");
+         printIndent(out, indent);
+      }
+      
+      switch (optInputParamInfo->type)
+      {
+         case TA_OptInput_RealRange:
+            fprintf(out, "%s: f64", optInputParamInfo->paramName);
+            break;
+         case TA_OptInput_IntegerRange:
+            fprintf(out, "%s: i32", optInputParamInfo->paramName);
+            break;
+         case TA_OptInput_IntegerList:
+            fprintf(out, "%s: i32", optInputParamInfo->paramName);
+            break;
+         case TA_OptInput_RealList:
+            fprintf(out, "%s: f64", optInputParamInfo->paramName);
+            break;
+         default:
+            printf("Unknown optional input type for %s\n", funcInfo->name);
+            break;
+      }
+   }
+   
+   // Close function and add return type
+   fprintf(out, ") -> i32\n");
 }
 
 static void printRustDoublePrecisionFunctionSignature(FILE* out,
@@ -29,166 +62,260 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
    const TA_OutputParameterInfo *outputParamInfo;
    const TA_InputParameterInfo *inputParamInfo;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
-   const char* inputDoubleArrayType = "double";
-   const char* inputIntArrayType = "int";
-   const char* outputDoubleArrayType = "double";
-   const char* outputIntArrayType = "int";
-   const char* outputIntParam = "int";
-   const char* arrayBracket = "[]";
-   const char* startIdxString = "startIdx";
-   const char* endIdxString = "endIdx";
-   const char* outNbElementString = "outNBElement";
-   const char* outBegIdxString = "outBegIdx";
-   const char* funcName = funcInfo->name;
-   const char *defaultParamName;
-   const char *typeString;
    int indent, i;
 
-   sprintf(gTempBuf, "%sfn %s( int    %s,\n",
+   // Print function header with idiomatic Rust signature
+   sprintf(gTempBuf, "%sfn %s(",
            prefix? prefix:"",
-           funcNameBuffer,
-           startIdxString);
+           funcNameBuffer);
 
-   indent = (unsigned int)strlen(gTempBuf);
-
-   // TODO: print input params
-   // TODO: print optional input params
-   // TODO: close function
-   // TODO: print return type
    print(out, gTempBuf);
-   print(out, "\n");
+   
+   // Calculate indent for parameter alignment
+   indent = (unsigned int)strlen(gTempBuf);
+   
+   // Start with startIdx and endIdx parameters
+   fprintf(out, "startIdx: i32,\n");
    printIndent(out, indent);
-   fprintf(out, "int    %s,\n", endIdxString);
+   fprintf(out, "endIdx: i32,\n");
 
+   // Print input parameters with proper Rust types
    for (i = 0; i < funcInfo->nbInput; i++)
    {
-      // retCode = TA_GetInputParameterInfo( funcInfo->handle, i, &inputParamInfo );
       TA_GetInputParameterInfo(funcInfo->handle, i, &inputParamInfo);
-
-      // if( retCode != TA_SUCCESS )
-      // {
-      //    printf( "[%s] invalid 'input' information (%d,%d)\n", funcName, i, paramNb );
-      //    return;
-      // }
-
-
-      typeString = "";
-     defaultParamName = "";
+      
+      printIndent(out, indent);
+      
       switch (inputParamInfo->type)
       {
       case TA_Input_Real:
-         typeString = inputDoubleArrayType;
-         defaultParamName = "inReal";
+         fprintf(out, "%s: &[f64],\n", inputParamInfo->paramName);
+         break;
+      case TA_Input_Integer:
+         fprintf(out, "%s: &[i32],\n", inputParamInfo->paramName);
+         break;
+      case TA_Input_Price:
+         // Handle complex price inputs - can have multiple components
+         switch (inputParamInfo->flags)
+         {
+         case TA_IN_PRICE_OPEN:
+            fprintf(out, "%s: &[f64],\n", "inOpen");
+            break;
+         case TA_IN_PRICE_HIGH:
+            fprintf(out, "%s: &[f64],\n", "inHigh");
+            break;
+         case TA_IN_PRICE_LOW:
+            fprintf(out, "%s: &[f64],\n", "inLow");
+            break;
+         case TA_IN_PRICE_CLOSE:
+            fprintf(out, "%s: &[f64],\n", "inClose");
+            break;
+         case TA_IN_PRICE_VOLUME:
+            fprintf(out, "%s: &[f64],\n", "inVolume");
+            break;
+         default:
+            printf("Unsupported price input for %s\n", funcInfo->name);
+            break;
+         }
+         break;
+      default:
+         printf("Unknown input type for %s\n", funcInfo->name);
          break;
       }
-
-
-      // for every input param just do this:
-      fprintf(out, "%-*s %s%s",
-                           0,
-                           typeString,
-                           inputParamInfo->paramName,
-                           arrayBracket);
-      fprintf(out, ",\n");
-
    }
 
-      // optional inputs
-   for( i=0; i < funcInfo->nbOptInput; i++ )
+   // Print optional input parameters
+   for (i = 0; i < funcInfo->nbOptInput; i++)
    {
-      TA_GetOptInputParameterInfo( funcInfo->handle, i, &optInputParamInfo );
-
-      typeString = "";
-     defaultParamName = "";
-      switch( optInputParamInfo->type )
+      TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
+      
+      printIndent(out, indent);
+      
+      switch (optInputParamInfo->type)
       {
       case TA_OptInput_RealRange:
-         typeString = "double";
-         defaultParamName = "optInReal";
+         fprintf(out, "%s: f64,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerRange:
+         fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerList:
+         fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_RealList:
+         fprintf(out, "%s: f64,\n", optInputParamInfo->paramName);
+         break;
+      default:
+         printf("Unknown optional input type for %s\n", funcInfo->name);
          break;
       }
-
-      // for every output param just do this:
-      fprintf(out, "%-*s %s%s",
-                           0,
-                           typeString,
-                           optInputParamInfo->paramName,
-                           arrayBracket);
-      fprintf(out, ",\n");
    }
 
-      // outputs
-      // TODO: outBegIdx should probably be borrowed
-   fprintf(out, "mut outBegIdx,\n");
-      // TODO: outNBElement should probably be borrowed
-   fprintf(out, "mut outNBElement,\n");
+   // Print output parameters with proper Rust mutable references
+   printIndent(out, indent);
+   fprintf(out, "outBegIdx: &mut i32,\n");
+   printIndent(out, indent);
+   fprintf(out, "outNBElement: &mut i32,\n");
 
    for (i = 0; i < funcInfo->nbOutput; i++)
    {
-      // retCode =  TA_GetOutputParameterInfo(funcInfo->handle, i, &outputParamInfo);
       TA_GetOutputParameterInfo(funcInfo->handle, i, &outputParamInfo);
-      typeString = "";
-     defaultParamName = "";
+      printIndent(out, indent);
+      
       switch (outputParamInfo->type)
       {
       case TA_Output_Real:
-         typeString = outputDoubleArrayType;
-         defaultParamName = "outReal";
+         fprintf(out, "%s: &mut [f64]", outputParamInfo->paramName);
+         break;
+      case TA_Output_Integer:
+         fprintf(out, "%s: &mut [i32]", outputParamInfo->paramName);
+         break;
+      default:
+         printf("Unknown output type for %s\n", funcInfo->name);
          break;
       }
-
-      // for every output param just do this:
-      fprintf(out, "%-*s %s%s",
-                           0,
-                           typeString,
-                           outputParamInfo->paramName,
-                           arrayBracket);
-      fprintf(out, ",\n");
+      
+      // Add comma except for the last parameter
+      if (i < funcInfo->nbOutput - 1) {
+         fprintf(out, ",\n");
+      }
    }
 
-   // todo: remove the extra comma and newline from out
-  fprintf(out, ")\n");
-
-
+   // Close parameters and add return type
+   fprintf(out, ") -> RetCode\n");
 }
 
 static void printRustSinglePrecisionFunctionSignature(FILE* out,
                                                       const char* prefix, /* Can be NULL */
                                                       const TA_FuncInfo* funcInfo)
 {
-   const char* inputDoubleArrayType = "const float";
-   const char* inputIntArrayType = "const int";
-   const char* outputDoubleArrayType = "double";
-   const char* outputIntArrayType = "int";
-   const char* outputIntParam = "int";
-   const char* arrayBracket = "[]";
-   const char* startIdxString = "startIdx";
-   const char* endIdxString = "endIdx";
-   const char* outNbElementString = "outNBElement";
-   const char* outBegIdxString = "outBegIdx";
-   const char* funcName = funcInfo->name;
-   int indent;
-
    char funcNameBuffer[1024]; /* Not safe, but 1024 is realistic, */
+   const TA_OptInputParameterInfo *optInputParamInfo;
+   const TA_OutputParameterInfo *outputParamInfo;
+   const TA_InputParameterInfo *inputParamInfo;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
+   int indent, i;
 
-   sprintf(gTempBuf, "%sfn %s_s( int    %s,\n",
+   // Print function header with idiomatic Rust signature for single precision
+   sprintf(gTempBuf, "%sfn %s_s(",
            prefix? prefix:"",
-           funcNameBuffer,
-           startIdxString);
-   indent = (unsigned int)strlen(gTempBuf);
+           funcNameBuffer);
 
-
-   // TODO: print input params
-   // TODO: print optional input params
-   // TODO: close function
-   // TODO: print return type
-   // TODO: handle validation logic
-   // TODO: handle abstract frame logic
    print(out, gTempBuf);
-   print(out, "\n");
+   
+   // Calculate indent for parameter alignment
+   indent = (unsigned int)strlen(gTempBuf);
+   
+   // Start with startIdx and endIdx parameters
+   fprintf(out, "startIdx: i32,\n");
    printIndent(out, indent);
-   fprintf(out, "int    %s,\n", endIdxString);
+   fprintf(out, "endIdx: i32,\n");
+
+   // Print input parameters with proper Rust types (f32 for single precision)
+   for (i = 0; i < funcInfo->nbInput; i++)
+   {
+      TA_GetInputParameterInfo(funcInfo->handle, i, &inputParamInfo);
+      
+      printIndent(out, indent);
+      
+      switch (inputParamInfo->type)
+      {
+      case TA_Input_Real:
+         fprintf(out, "%s: &[f32],\n", inputParamInfo->paramName);
+         break;
+      case TA_Input_Integer:
+         fprintf(out, "%s: &[i32],\n", inputParamInfo->paramName);
+         break;
+      case TA_Input_Price:
+         // Handle complex price inputs - can have multiple components
+         switch (inputParamInfo->flags)
+         {
+         case TA_IN_PRICE_OPEN:
+            fprintf(out, "%s: &[f32],\n", "inOpen");
+            break;
+         case TA_IN_PRICE_HIGH:
+            fprintf(out, "%s: &[f32],\n", "inHigh");
+            break;
+         case TA_IN_PRICE_LOW:
+            fprintf(out, "%s: &[f32],\n", "inLow");
+            break;
+         case TA_IN_PRICE_CLOSE:
+            fprintf(out, "%s: &[f32],\n", "inClose");
+            break;
+         case TA_IN_PRICE_VOLUME:
+            fprintf(out, "%s: &[f32],\n", "inVolume");
+            break;
+         default:
+            printf("Unsupported price input for %s\n", funcInfo->name);
+            break;
+         }
+         break;
+      default:
+         printf("Unknown input type for %s\n", funcInfo->name);
+         break;
+      }
+   }
+
+   // Print optional input parameters
+   for (i = 0; i < funcInfo->nbOptInput; i++)
+   {
+      TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
+      
+      printIndent(out, indent);
+      
+      switch (optInputParamInfo->type)
+      {
+      case TA_OptInput_RealRange:
+         fprintf(out, "%s: f32,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerRange:
+         fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerList:
+         fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_RealList:
+         fprintf(out, "%s: f32,\n", optInputParamInfo->paramName);
+         break;
+      default:
+         printf("Unknown optional input type for %s\n", funcInfo->name);
+         break;
+      }
+   }
+
+   // Print output parameters with proper Rust mutable references
+   // Note: outputs still use f64 even for single precision functions
+   printIndent(out, indent);
+   fprintf(out, "outBegIdx: &mut i32,\n");
+   printIndent(out, indent);
+   fprintf(out, "outNBElement: &mut i32,\n");
+
+   for (i = 0; i < funcInfo->nbOutput; i++)
+   {
+      TA_GetOutputParameterInfo(funcInfo->handle, i, &outputParamInfo);
+      printIndent(out, indent);
+      
+      switch (outputParamInfo->type)
+      {
+      case TA_Output_Real:
+         fprintf(out, "%s: &mut [f64]", outputParamInfo->paramName);
+         break;
+      case TA_Output_Integer:
+         fprintf(out, "%s: &mut [i32]", outputParamInfo->paramName);
+         break;
+      default:
+         printf("Unknown output type for %s\n", funcInfo->name);
+         break;
+      }
+      
+      // Add comma except for the last parameter
+      if (i < funcInfo->nbOutput - 1) {
+         fprintf(out, ",\n");
+      }
+   }
+
+   // Close parameters and add return type
+   fprintf(out, ") -> RetCode\n");
 }
 
 void writeRustModLines(const TA_FuncInfo* funcInfo, void* opaque)

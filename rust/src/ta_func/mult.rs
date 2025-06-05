@@ -40,18 +40,17 @@
  */
 
  impl core {
- fn mult_lookback(
+ fn mult_lookback() -> i32
 {
    return 0;
 }
- fn mult( int startIdx,
- int endIdx,
-double inReal0[],
-double inReal1[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+ fn mult(startIdx: i32,
+ endIdx: i32,
+ inReal0: &[f64],
+ inReal1: &[f64],
+ outBegIdx: &mut i32,
+ outNBElement: &mut i32,
+ outReal: &mut [f64]) -> RetCode
 {
    int outIdx;
    int i;
@@ -67,8 +66,13 @@ double outReal[],
    outBegIdx.value  = startIdx;
    return  RetCode.Success ;
 }
- fn mult_s( int startIdx,
- int endIdx,
+ fn mult_s(startIdx: i32,
+ endIdx: i32,
+ inReal0: &[f32],
+ inReal1: &[f32],
+ outBegIdx: &mut i32,
+ outNBElement: &mut i32,
+ outReal: &mut [f64]) -> RetCode
  {
  int outIdx;
  int i;

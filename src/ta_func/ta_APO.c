@@ -92,7 +92,9 @@
 /* Generated */                       int           optInSlowPeriod, /* From 2 to 100000 */
 /* Generated */                       MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn apo_lookback( /* Generated */ 
+/* Generated */ fn apo_lookback(optInFastPeriod: i32,
+/* Generated */                 optInSlowPeriod: i32,
+/* Generated */                 optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_APO_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                          int           optInSlowPeriod, /* From 2 to 100000 */
@@ -185,17 +187,15 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn apo( int    startIdx,
-/* Generated */ 
-/* Generated */                          int    endIdx,
-double inReal[],
- optInFastPeriod[],
- optInSlowPeriod[],
- optInMAType[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn apo(startIdx: i32,
+/* Generated */        endIdx: i32,
+/* Generated */        inReal: &[f64],
+/* Generated */        optInFastPeriod: i32,
+/* Generated */        optInSlowPeriod: i32,
+/* Generated */        optInMAType: i32,
+/* Generated */        outBegIdx: &mut i32,
+/* Generated */        outNBElement: &mut i32,
+/* Generated */        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_APO( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -460,9 +460,15 @@ TA_RetCode TA_PREFIX(INT_PO)( int    startIdx,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn apo_s( int    startIdx,
-/* Generated */ 
-/* Generated */                            int    endIdx,
+/* Generated */ fn apo_s(startIdx: i32,
+/* Generated */          endIdx: i32,
+/* Generated */          inReal: &[f32],
+/* Generated */          optInFastPeriod: i32,
+/* Generated */          optInSlowPeriod: i32,
+/* Generated */          optInMAType: i32,
+/* Generated */          outBegIdx: &mut i32,
+/* Generated */          outNBElement: &mut i32,
+/* Generated */          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_APO( int    startIdx,
 /* Generated */                      int    endIdx,

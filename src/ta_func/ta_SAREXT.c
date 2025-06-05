@@ -115,7 +115,14 @@
 /* Generated */                          double        optInAccelerationMaxShort )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sarext_lookback( /* Generated */ 
+/* Generated */ fn sarext_lookback(optInStartValue: f64,
+/* Generated */                    optInOffsetOnReverse: f64,
+/* Generated */                    optInAccelerationInitLong: f64,
+/* Generated */                    optInAccelerationLong: f64,
+/* Generated */                    optInAccelerationMaxLong: f64,
+/* Generated */                    optInAccelerationInitShort: f64,
+/* Generated */                    optInAccelerationShort: f64,
+/* Generated */                    optInAccelerationMaxShort: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAREXT_Lookback( double        optInStartValue, /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */                                             double        optInOffsetOnReverse, /* From 0 to TA_REAL_MAX */
@@ -278,22 +285,19 @@
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sarext( int    startIdx,
-/* Generated */ 
-/* Generated */                             int    endIdx,
- inPriceHL[],
-double optInStartValue[],
-double optInOffsetOnReverse[],
-double optInAccelerationInitLong[],
-double optInAccelerationLong[],
-double optInAccelerationMaxLong[],
-double optInAccelerationInitShort[],
-double optInAccelerationShort[],
-double optInAccelerationMaxShort[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn sarext(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           /* Generated */           optInStartValue: f64,
+/* Generated */           optInOffsetOnReverse: f64,
+/* Generated */           optInAccelerationInitLong: f64,
+/* Generated */           optInAccelerationLong: f64,
+/* Generated */           optInAccelerationMaxLong: f64,
+/* Generated */           optInAccelerationInitShort: f64,
+/* Generated */           optInAccelerationShort: f64,
+/* Generated */           optInAccelerationMaxShort: f64,
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAREXT( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -781,9 +785,19 @@ double outReal[],
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sarext_s( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
+/* Generated */ fn sarext_s(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             optInStartValue: f32,
+/* Generated */             optInOffsetOnReverse: f32,
+/* Generated */             optInAccelerationInitLong: f32,
+/* Generated */             optInAccelerationLong: f32,
+/* Generated */             optInAccelerationMaxLong: f32,
+/* Generated */             optInAccelerationInitShort: f32,
+/* Generated */             optInAccelerationShort: f32,
+/* Generated */             optInAccelerationMaxShort: f32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAREXT( int    startIdx,
 /* Generated */                         int    endIdx,

@@ -88,7 +88,9 @@
 /* Generated */                                               int           optInMaxPeriod, /* From 2 to 100000 */
 /* Generated */                                               MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mavp_lookback( /* Generated */ 
+/* Generated */ fn mavp_lookback(optInMinPeriod: i32,
+/* Generated */                  optInMaxPeriod: i32,
+/* Generated */                  optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAVP_Lookback( int           optInMinPeriod, /* From 2 to 100000 */
 /* Generated */                                           int           optInMaxPeriod, /* From 2 to 100000 */
@@ -180,18 +182,16 @@
 /* Generated */                                             MInteger     outNBElement,
 /* Generated */                                             double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mavp( int    startIdx,
-/* Generated */ 
-/* Generated */                           int    endIdx,
-double inReal[],
-double inPeriods[],
- optInMinPeriod[],
- optInMaxPeriod[],
- optInMAType[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn mavp(startIdx: i32,
+/* Generated */         endIdx: i32,
+/* Generated */         inReal: &[f64],
+/* Generated */         inPeriods: &[f64],
+/* Generated */         optInMinPeriod: i32,
+/* Generated */         optInMaxPeriod: i32,
+/* Generated */         optInMAType: i32,
+/* Generated */         outBegIdx: &mut i32,
+/* Generated */         outNBElement: &mut i32,
+/* Generated */         outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -408,9 +408,16 @@ double outReal[],
 /* Generated */                                             MInteger     outNBElement,
 /* Generated */                                             double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mavp_s( int    startIdx,
-/* Generated */ 
-/* Generated */                             int    endIdx,
+/* Generated */ fn mavp_s(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           inReal: &[f32],
+/* Generated */           inPeriods: &[f32],
+/* Generated */           optInMinPeriod: i32,
+/* Generated */           optInMaxPeriod: i32,
+/* Generated */           optInMAType: i32,
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MAVP( int    startIdx,
 /* Generated */                       int    endIdx,

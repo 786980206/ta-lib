@@ -90,7 +90,7 @@
 /* Generated */ public int typPriceLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn typprice_lookback( /* Generated */ 
+/* Generated */ fn typprice_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_TYPPRICE_Lookback( void )
 /* Generated */ 
@@ -147,14 +147,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn typprice( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
- inPriceHLC[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn typprice(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_TYPPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -255,9 +252,11 @@ double outReal[],
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn typprice_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                 int    endIdx,
+/* Generated */ fn typprice_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               /* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_TYPPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

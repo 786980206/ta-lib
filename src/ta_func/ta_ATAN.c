@@ -86,7 +86,7 @@
 /* Generated */ public int atanLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn atan_lookback( /* Generated */ 
+/* Generated */ fn atan_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ATAN_Lookback( void )
 /* Generated */ 
@@ -135,14 +135,12 @@
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn atan( int    startIdx,
-/* Generated */ 
-/* Generated */                           int    endIdx,
-double inReal[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn atan(startIdx: i32,
+/* Generated */         endIdx: i32,
+/* Generated */         inReal: &[f64],
+/* Generated */         outBegIdx: &mut i32,
+/* Generated */         outNBElement: &mut i32,
+/* Generated */         outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ATAN( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -228,9 +226,12 @@ double outReal[],
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn atan_s( int    startIdx,
-/* Generated */ 
-/* Generated */                             int    endIdx,
+/* Generated */ fn atan_s(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           inReal: &[f32],
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ATAN( int    startIdx,
 /* Generated */                       int    endIdx,

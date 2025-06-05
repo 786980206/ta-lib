@@ -88,7 +88,7 @@
 /* Generated */ public int accbandsLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn accbands_lookback( /* Generated */ 
+/* Generated */ fn accbands_lookback(optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ACCBANDS_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -165,17 +165,14 @@
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn accbands( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
- inPriceHLC[],
- optInTimePeriod[],
-mut outBegIdx,
-mut outNBElement,
-double outRealUpperBand[],
-double outRealMiddleBand[],
-double outRealLowerBand[],
-)
+/* Generated */ fn accbands(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             optInTimePeriod: i32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outRealUpperBand: &mut [f64],
+/* Generated */             outRealMiddleBand: &mut [f64],
+/* Generated */             outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -403,9 +400,14 @@ double outRealLowerBand[],
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn accbands_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                 int    endIdx,
+/* Generated */ fn accbands_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               /* Generated */               optInTimePeriod: i32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outRealUpperBand: &mut [f64],
+/* Generated */               outRealMiddleBand: &mut [f64],
+/* Generated */               outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ACCBANDS( int    startIdx,
 /* Generated */                           int    endIdx,

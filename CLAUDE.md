@@ -1,0 +1,146 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Build Commands
+- CMake: `mkdir build && cd build && cmake .. && make`
+- Build after changes: Run `bin/gen_code` to regenerate code variants (Rust, Java)
+- Run tests: `bin/ta_regtest` (exit code 0 on success)
+
+## Rust Conversion Guidelines
+- Use snake_case for Rust function names
+- Rust code is auto-generated - modify C sources in `src/ta_func/` instead
+- Generated Rust files are in `rust/src/ta_func/`
+- Function signatures follow pattern: `fn function_name(startIdx, endIdx, inputs..., optional_inputs..., mut outputs...)`
+
+## Rust Architecture Plan
+- TA-Lib will export a "core" struct that provides TA functions
+- Functions are implemented as methods on core with `impl core { fn mult() {...} }`
+- Users will instantiate a TA-Lib core and call methods like `core.mult(stuff)`
+- Separate implementations can be spread across multiple files with multiple `impl core {}` blocks
+- Code generation needs to convert C-style loops to idiomatic Rust (replace i++/i-- with i+=1/i-=1)
+- Current focus is on completing function signatures in gen_rust.c (TODOs include input params, optional inputs, return types)
+- First function to be fully implemented is MULT, then SMA
+
+## Style Guidelines
+- C Code: CamelCase function names with TA_ prefix (e.g., `TA_RSI`)
+- Function parameters order: startIdx, endIdx, inputs, optional inputs, outputs
+- Error handling: Return codes via TA_RetCode enumeration
+- All files must maintain copyright header and generation comments
+- New functions: document algorithm in ta-lib-proposal-drafts repository first
+
+## Development Workflow
+- Modifications must be made on 'dev' branch
+- Run `scripts/sync.py` before committing to update versions and fix issues
+- After changes, run tests to verify functionality
+
+## Rust Code Generation
+- Code generation happens in `src/tools/gen_code/gen_rust.c`
+- Templates in `src/ta_abstract/templates/` (ta_x.rs.template, ta_func_mod.rs.template)
+- Current TODOs in gen_rust.c include:
+  - Print input parameters with proper Rust types
+  - Print optional input parameters
+  - Add function return types
+  - Convert validation logic to Rust
+  - Handle proper borrowing for output parameters
+- Single function testing can be controlled with RUST_SINGLE_FUNC macro
+
+## Code Generation Architecture
+- Source TA function files (like ta_MULT.c) contain code for multiple language targets
+- Files use special GENCODE sections with #if defined conditionals for different languages
+- Language-specific code is wrapped in /* Generated */ comments
+- Current language targets:
+  - Native C (default)
+  - Managed (.NET)
+  - Java 
+  - Rust (in progress)
+- The gen_code utility uses C preprocessor to extract relevant sections for each language
+- Each language has its own syntax pattern for:
+  - Function signatures
+  - Parameter types
+  - Error handling (RetCode)
+  - Namespacing (impl core { ... } for Rust)
+
+## Pre-Processing Macros in ta_MULT.c
+- The file is divided into GENCODE sections (1-5) that handle different parts of the implementation
+- Key macros used:
+  - `#if defined(_MANAGED)`, `#elif defined(_JAVA)`, `#elif defined(_RUST)` for language selection
+  - `TA_PREFIX(x)` for naming conventions in different languages
+  - `INPUT_TYPE` to define the type of input parameters (double or float)
+  - `ENUM_VALUE(RetCode,TA_SUCCESS,Success)` for returning success/error codes
+  - `VALUE_HANDLE_DEREF(outNBElement)` for setting output variables
+- The actual function implementation is only a few lines (194-197)
+- The same function is implemented twice: once for double precision, once for single precision
+- The preprocessor extracts different parts based on language target (via `#if defined(_RUST)`)
+- For Rust:
+  - Functions are wrapped in `impl core { ... }` (line 64)
+  - Function signatures use Rust-style naming (mult_lookback, mult, mult_s)
+  - Function bodies remain in C syntax and need conversion to Rust
+
+## MULT Function Analysis
+- Function has no optional parameters
+- Structure follows standard pattern:
+  1. Lookback function (returns 0 for MULT)
+  2. Double precision function with validation and implementation
+  3. Single precision function with similar structure
+- Core algorithm is simple array multiplication in a for-loop
+- Key C idioms that need Rust conversion:
+  - For loop with multiple increment operations: `for(i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++)`
+  - Assignment within array: `outReal[outIdx] = inReal0[i]*inReal1[i]`
+  - Macro for output parameter assignment: `VALUE_HANDLE_DEREF(outNBElement) = outIdx`
+  - Enum value return: `return ENUM_VALUE(RetCode,TA_SUCCESS,Success)`
+
+## Generation Process Understanding
+- gen_code.c controls the overall code generation process
+- gen_rust.c handles Rust-specific signature generation and boilerplate
+- The actual function implementation (e.g., MULT multiplication) is not generated by gen_rust.c
+- Instead, the C preprocessor extracts relevant parts from ta_MULT.c when `_RUST` is defined
+- Our approach should be:
+  1. Fix function signatures in gen_rust.c to generate proper Rust syntax
+  2. Create macros for Rust-specific operations in the implementation
+  3. Update existing code to use these macros
+  4. Let the preprocessor and gen_code combine them to produce correct Rust output
+- This keeps the pattern consistent with how Java and .NET are currently generated
+- We only need to add RUST-specific macro definitions and use them in the code
+
+## Cross-Language Macro Approach
+- We need macros that expand differently based on the language target
+- The same macro needs to produce valid code for all languages (C, Java, .NET, Rust)
+- Each macro should be conditionally defined for each language in a common header file
+- Examples of needed cross-language macros:
+  - `FOR_LOOP_START(start, end, idxVar, outIdxVar)`:
+    - C/C++: `for(idxVar=start, outIdxVar=0; idxVar <= end; idxVar++, outIdxVar++)`
+    - Rust: `let mut outIdxVar = 0; for idxVar in start..=end {`
+  - `FOR_LOOP_END`:
+    - C/C++: (empty, as the loop closing brace is part of the syntax)
+    - Rust: `}`
+  - `ARRAY_REF(array, idx)`:
+    - C/C++: `array[idx]`
+    - Rust: `array[idx as usize]`
+  - `SET_OUTPUT_INT(out, val)`:
+    - C/C++: `*out = val` or similar with VALUE_HANDLE_DEREF
+    - Rust: `*out = val`
+  - `RETURN_SUCCESS`:
+    - C/C++: `return TA_SUCCESS;`
+    - Rust: `RetCode::Success`
+  - `INCREMENT(var)`:
+    - C/C++: `var++`
+    - Rust: `var += 1`
+- The FOR_LOOP_START/END approach is preferred over a single macro for its clarity
+- Implementation options:
+  1. Define in ta_defs.h or a new ta_cross_language_macros.h with conditional logic
+  2. Define in the code generation process itself (gen_code.c and language-specific variants)
+  3. Handle in the templates for each language
+- This is an extension of the approach already used with `ENUM_VALUE` and `VALUE_HANDLE_DEREF`
+- Allows a single source implementation to generate correct code for all language targets
+
+## Important Generation Process Insight
+- The code marked with `/* Generated */` comments is auto-generated by gen_code
+- We should NOT directly edit these generated sections in the .c files
+- Instead, we need to:
+  1. Define language-specific macros and templates in gen_code.c and gen_rust.c
+  2. Let these macros handle the proper code generation for each language
+  3. Allow the generation process to create properly formatted Rust code
+- Any direct edits to the generated sections will be lost on the next run of gen_code
+- Macros that need to be defined should be included in the appropriate templates or generator files
+- The goal is to modify the generator, not the generated output

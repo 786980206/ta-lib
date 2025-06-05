@@ -89,7 +89,7 @@
 /* Generated */ public int avgPriceLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice_lookback( /* Generated */ 
+/* Generated */ fn avgprice_lookback() -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AVGPRICE_Lookback( void )
 /* Generated */ 
@@ -148,14 +148,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice( int    startIdx,
-/* Generated */ 
-/* Generated */                               int    endIdx,
- inPriceOHLC[],
-mut outBegIdx,
-mut outNBElement,
-double outReal[],
-)
+/* Generated */ fn avgprice(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AVGPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -261,9 +258,11 @@ double outReal[],
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                 int    endIdx,
+/* Generated */ fn avgprice_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               /* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AVGPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

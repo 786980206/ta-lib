@@ -87,7 +87,7 @@
 /* Generated */ public int minMaxIndexLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmaxindex_lookback( /* Generated */ 
+/* Generated */ fn minmaxindex_lookback(optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MINMAXINDEX_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -155,16 +155,14 @@
 /* Generated */                             int           outMinIdx[],
 /* Generated */                             int           outMaxIdx[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmaxindex( int    startIdx,
-/* Generated */ 
-/* Generated */                                  int    endIdx,
-double inReal[],
- optInTimePeriod[],
-mut outBegIdx,
-mut outNBElement,
- outMinIdx[],
- outMaxIdx[],
-)
+/* Generated */ fn minmaxindex(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                inReal: &[f64],
+/* Generated */                optInTimePeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outMinIdx: &mut [i32],
+/* Generated */                outMaxIdx: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MINMAXINDEX( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -350,9 +348,14 @@ mut outNBElement,
 /* Generated */                             int           outMinIdx[],
 /* Generated */                             int           outMaxIdx[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmaxindex_s( int    startIdx,
-/* Generated */ 
-/* Generated */                                    int    endIdx,
+/* Generated */ fn minmaxindex_s(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  inReal: &[f32],
+/* Generated */                  optInTimePeriod: i32,
+/* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outMinIdx: &mut [i32],
+/* Generated */                  outMaxIdx: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MINMAXINDEX( int    startIdx,
 /* Generated */                              int    endIdx,
