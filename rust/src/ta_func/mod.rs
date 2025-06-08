@@ -49,7 +49,7 @@ pub enum RetCode {
 // Core struct definition
 pub struct core {}
 
-pub use self::mult::*
+pub use self::mult::*;
 pub mod mult;
 
 /***************/

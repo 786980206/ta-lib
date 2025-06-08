@@ -89,3 +89,4 @@ out/
 !**/.gitkeep
 
 cmake-build-debug/
+rust/target
