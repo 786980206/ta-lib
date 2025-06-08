@@ -54,10 +54,12 @@
 {
    int outIdx;
    int i;
- if( startIdx < 0 )
+ if( startIdx < 0 ) {
  return  RetCode.OutOfRangeStartIndex ;
- if( (endIdx < 0) || (endIdx < startIdx))
+ }
+ if( (endIdx < 0) || (endIdx < startIdx)) {
  return  RetCode.OutOfRangeEndIndex ;
+ }
    for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
    {
       outReal[outIdx] = inReal0[i]*inReal1[i];

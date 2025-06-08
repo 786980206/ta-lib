@@ -3459,10 +3459,12 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "#ifndef TA_FUNC_NO_RANGE_CHECK\n" );
    print( out, "\n" );
    print( out, "   /* Validate the requested output range. */\n" );
-   print( out, "   if( startIdx < 0 )\n" );
+   print( out, "   if( startIdx < 0 ) {\n" );
    print( out, "      return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_START_INDEX,OutOfRangeStartIndex);\n" );
-   print( out, "   if( (endIdx < 0) || (endIdx < startIdx))\n" );
+   print( out, "   }\n");
+   print( out, "   if( (endIdx < 0) || (endIdx < startIdx)) {\n" );
    print( out, "      return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);\n" );
+   print( out, "   }\n");
    print( out, "\n" );
    /* Generate the code for checking the parameters.
     * Also generates the code for setting up the
