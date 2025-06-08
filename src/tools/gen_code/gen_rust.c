@@ -10,7 +10,7 @@ static void printRustLookbackFunctionSignature(FILE* out,
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
 
    // print lookback function header
-   sprintf(gTempBuf, "%sfn %s_lookback(",
+   sprintf(gTempBuf, "%sfn %s_lookback(\n",
            prefix? prefix:"",
            funcNameBuffer);
    
