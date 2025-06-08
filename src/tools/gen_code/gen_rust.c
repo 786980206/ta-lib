@@ -5,7 +5,7 @@ static void printRustLookbackFunctionSignature(FILE* out,
                                                const TA_FuncInfo* funcInfo)
 {
    char funcNameBuffer[1024]; /* Not safe, but 1024 is realistic, */
-   const TA_OptInputParameterInfo *optInputParamInfo;
+   const TA_OptInputParameterInfo* optInputParamInfo;
    int i, indent;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
 
@@ -13,42 +13,43 @@ static void printRustLookbackFunctionSignature(FILE* out,
    sprintf(gTempBuf, "%sfn %s_lookback(\n",
            prefix? prefix:"",
            funcNameBuffer);
-   
+
    print(out, gTempBuf);
-   
+
    // Calculate indent for parameter alignment
    indent = (unsigned int)strlen(gTempBuf);
-   
+
    // Print optional input parameters - only these are needed for lookback
    for (i = 0; i < funcInfo->nbOptInput; i++)
    {
       TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
-      
-      if (i > 0) {
+
+      if (i > 0)
+      {
          fprintf(out, ",\n");
          printIndent(out, indent);
       }
-      
+
       switch (optInputParamInfo->type)
       {
-         case TA_OptInput_RealRange:
-            fprintf(out, "%s: f64", optInputParamInfo->paramName);
-            break;
-         case TA_OptInput_IntegerRange:
-            fprintf(out, "%s: i32", optInputParamInfo->paramName);
-            break;
-         case TA_OptInput_IntegerList:
-            fprintf(out, "%s: i32", optInputParamInfo->paramName);
-            break;
-         case TA_OptInput_RealList:
-            fprintf(out, "%s: f64", optInputParamInfo->paramName);
-            break;
-         default:
-            printf("Unknown optional input type for %s\n", funcInfo->name);
-            break;
+      case TA_OptInput_RealRange:
+         fprintf(out, "%s: f64", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerRange:
+         fprintf(out, "%s: i32", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_IntegerList:
+         fprintf(out, "%s: i32", optInputParamInfo->paramName);
+         break;
+      case TA_OptInput_RealList:
+         fprintf(out, "%s: f64", optInputParamInfo->paramName);
+         break;
+      default:
+         printf("Unknown optional input type for %s\n", funcInfo->name);
+         break;
       }
    }
-   
+
    // Close function and add return type
    fprintf(out, ") -> i32\n");
 }
@@ -58,9 +59,9 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
                                                       const TA_FuncInfo* funcInfo)
 {
    char funcNameBuffer[1024]; /* Not safe, but 1024 is realistic, */
-   const TA_OptInputParameterInfo *optInputParamInfo;
-   const TA_OutputParameterInfo *outputParamInfo;
-   const TA_InputParameterInfo *inputParamInfo;
+   const TA_OptInputParameterInfo* optInputParamInfo;
+   const TA_OutputParameterInfo* outputParamInfo;
+   const TA_InputParameterInfo* inputParamInfo;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
    int indent, i;
 
@@ -70,10 +71,10 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
            funcNameBuffer);
 
    print(out, gTempBuf);
-   
+
    // Calculate indent for parameter alignment
    indent = (unsigned int)strlen(gTempBuf);
-   
+
    // Start with startIdx and endIdx parameters
    fprintf(out, "startIdx: i32,\n");
    printIndent(out, indent);
@@ -83,9 +84,9 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
    for (i = 0; i < funcInfo->nbInput; i++)
    {
       TA_GetInputParameterInfo(funcInfo->handle, i, &inputParamInfo);
-      
+
       printIndent(out, indent);
-      
+
       switch (inputParamInfo->type)
       {
       case TA_Input_Real:
@@ -128,9 +129,9 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
    for (i = 0; i < funcInfo->nbOptInput; i++)
    {
       TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
-      
+
       printIndent(out, indent);
-      
+
       switch (optInputParamInfo->type)
       {
       case TA_OptInput_RealRange:
@@ -161,7 +162,7 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
    {
       TA_GetOutputParameterInfo(funcInfo->handle, i, &outputParamInfo);
       printIndent(out, indent);
-      
+
       switch (outputParamInfo->type)
       {
       case TA_Output_Real:
@@ -174,9 +175,10 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
          printf("Unknown output type for %s\n", funcInfo->name);
          break;
       }
-      
+
       // Add comma except for the last parameter
-      if (i < funcInfo->nbOutput - 1) {
+      if (i < funcInfo->nbOutput - 1)
+      {
          fprintf(out, ",\n");
       }
    }
@@ -190,9 +192,9 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
                                                       const TA_FuncInfo* funcInfo)
 {
    char funcNameBuffer[1024]; /* Not safe, but 1024 is realistic, */
-   const TA_OptInputParameterInfo *optInputParamInfo;
-   const TA_OutputParameterInfo *outputParamInfo;
-   const TA_InputParameterInfo *inputParamInfo;
+   const TA_OptInputParameterInfo* optInputParamInfo;
+   const TA_OutputParameterInfo* outputParamInfo;
+   const TA_InputParameterInfo* inputParamInfo;
    toLowerSnakeCase(funcInfo->name, funcNameBuffer);
    int indent, i;
 
@@ -202,10 +204,10 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
            funcNameBuffer);
 
    print(out, gTempBuf);
-   
+
    // Calculate indent for parameter alignment
    indent = (unsigned int)strlen(gTempBuf);
-   
+
    // Start with startIdx and endIdx parameters
    fprintf(out, "startIdx: i32,\n");
    printIndent(out, indent);
@@ -215,9 +217,9 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
    for (i = 0; i < funcInfo->nbInput; i++)
    {
       TA_GetInputParameterInfo(funcInfo->handle, i, &inputParamInfo);
-      
+
       printIndent(out, indent);
-      
+
       switch (inputParamInfo->type)
       {
       case TA_Input_Real:
@@ -260,9 +262,9 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
    for (i = 0; i < funcInfo->nbOptInput; i++)
    {
       TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
-      
+
       printIndent(out, indent);
-      
+
       switch (optInputParamInfo->type)
       {
       case TA_OptInput_RealRange:
@@ -294,7 +296,7 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
    {
       TA_GetOutputParameterInfo(funcInfo->handle, i, &outputParamInfo);
       printIndent(out, indent);
-      
+
       switch (outputParamInfo->type)
       {
       case TA_Output_Real:
@@ -307,9 +309,10 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
          printf("Unknown output type for %s\n", funcInfo->name);
          break;
       }
-      
+
       // Add comma except for the last parameter
-      if (i < funcInfo->nbOutput - 1) {
+      if (i < funcInfo->nbOutput - 1)
+      {
          fprintf(out, ",\n");
       }
    }
