@@ -193,6 +193,30 @@
   #endif
 #endif
 
+/* additional rust-centric Macro Helpers */
+#if defined(_RUST)
+    #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) \
+    let mut outIdxVar = 0; \
+    for idxVar in startVal..=endVal {
+    #define FOR_EACH_OUTPUT_END outIdx += 1; }
+
+    #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=period).rev() {
+    #define FOR_COUNTDOWN_END }
+
+    #define DECLARE_INT_VAR(name) let mut name: i32;
+    #define DECLARE_DOUBLE_VAR(name) let mut name: f64;
+#else
+    #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) for(idxVar=startVal, outIdxVar=0; idxVar <= endVal; idxVar++, outIdxVar++) {
+    #define FOR_EACH_OUTPUT_END }
+
+    #define FOR_COUNTDOWN(period, idxVar) for(idxVar=period; idxVar > 0; idxVar--) {
+    #define FOR_COUNTDOWN_END }
+
+    #define DECLARE_INT_VAR(name) int name;
+    #define DECLARE_DOUBLE_VAR(name) double name;
+#endif
+
+
 /* Abstraction of function calls within the library.
  * Needed because Java/.NET allows overloading, while for C the
  * TA_PREFIX allows to select variant of the same function.
