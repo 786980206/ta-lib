@@ -113,14 +113,14 @@ optInAcceleration: f64,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    if( optInAcceleration == TA_REAL_DEFAULT ) {
-/* Generated */       optInAcceleration = 2.000000e-2;
+/* Generated */ 	  optInAcceleration = 2.000000e-2;
 /* Generated */    } else if( (optInAcceleration < 0.000000e+0) ||/* Generated */  (optInAcceleration > 3.000000e+37) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    if( optInMaximum == TA_REAL_DEFAULT ) {
-/* Generated */       optInMaximum = 2.000000e-1;
+/* Generated */ 	  optInMaximum = 2.000000e-1;
 /* Generated */    } else if( (optInMaximum < 0.000000e+0) ||/* Generated */  (optInMaximum > 3.000000e+37) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
@@ -238,14 +238,14 @@ optInAcceleration: f64,
 /* Generated */ }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    if( optInAcceleration == TA_REAL_DEFAULT ) {
-/* Generated */       optInAcceleration = 2.000000e-2;
+/* Generated */ 	  optInAcceleration = 2.000000e-2;
 /* Generated */    } else if( (optInAcceleration < 0.000000e+0) ||/* Generated */  (optInAcceleration > 3.000000e+37) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    if( optInMaximum == TA_REAL_DEFAULT ) {
-/* Generated */       optInMaximum = 2.000000e-1;
+/* Generated */ 	  optInMaximum = 2.000000e-1;
 /* Generated */    } else if( (optInMaximum < 0.000000e+0) ||/* Generated */  (optInMaximum > 3.000000e+37) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
@@ -598,17 +598,20 @@ optInAcceleration: f64,
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if(!inHigh||!inLow)
+/* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( optInAcceleration == TA_REAL_DEFAULT )
-/* Generated */        optInAcceleration = 2.000000e-2;
-/* Generated */     else if( (optInAcceleration < 0.000000e+0) ||  (optInAcceleration > 3.000000e+37) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */     if( optInMaximum == TA_REAL_DEFAULT )
-/* Generated */        optInMaximum = 2.000000e-1;
-/* Generated */     else if( (optInMaximum < 0.000000e+0) ||  (optInMaximum > 3.000000e+37) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( optInAcceleration == TA_REAL_DEFAULT ) {
+/* Generated */  	  optInAcceleration = 2.000000e-2;
+/* Generated */     } else if( (optInAcceleration < 0.000000e+0) ||  (optInAcceleration > 3.000000e+37) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
+/* Generated */     if( optInMaximum == TA_REAL_DEFAULT ) {
+/* Generated */  	  optInMaximum = 2.000000e-1;
+/* Generated */     } else if( (optInMaximum < 0.000000e+0) ||  (optInMaximum > 3.000000e+37) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);

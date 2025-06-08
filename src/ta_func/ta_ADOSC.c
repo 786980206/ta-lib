@@ -108,15 +108,15 @@ optInFastPeriod: i32,
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInFastPeriod. */
 /* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInFastPeriod = 3;
+/* Generated */ 	  optInFastPeriod = 3;
 /* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
 /* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInSlowPeriod = 10;
+/* Generated */ 	  optInSlowPeriod = 10;
 /* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
@@ -243,15 +243,15 @@ optInFastPeriod: i32,
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInFastPeriod. */
 /* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInFastPeriod = 3;
+/* Generated */ 	  optInFastPeriod = 3;
 /* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
 /* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInSlowPeriod = 10;
+/* Generated */ 	  optInSlowPeriod = 10;
 /* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
@@ -452,17 +452,20 @@ optInFastPeriod: i32,
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if(!inHigh||!inLow||!inClose||!inVolume)
+/* Generated */     if(!inHigh||!inLow||!inClose||!inVolume){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInFastPeriod == TA_INTEGER_DEFAULT )
-/* Generated */        optInFastPeriod = 3;
-/* Generated */     else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */     if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT )
-/* Generated */        optInSlowPeriod = 10;
-/* Generated */     else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInFastPeriod = 3;
+/* Generated */     } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
+/* Generated */     if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInSlowPeriod = 10;
+/* Generated */     } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);

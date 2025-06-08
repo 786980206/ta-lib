@@ -105,21 +105,21 @@ optInMinPeriod: i32,
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInMinPeriod. */
 /* Generated */    if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMinPeriod = 2;
+/* Generated */ 	  optInMinPeriod = 2;
 /* Generated */    } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInMaxPeriod. */
 /* Generated */    if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMaxPeriod = 30;
+/* Generated */ 	  optInMaxPeriod = 30;
 /* Generated */    } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
 /* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMAType = (TA_MAType)0;
+/* Generated */ 	  optInMAType = (TA_MAType)0;
 /* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -236,21 +236,21 @@ optInMinPeriod: i32,
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInMinPeriod. */
 /* Generated */    if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMinPeriod = 2;
+/* Generated */ 	  optInMinPeriod = 2;
 /* Generated */    } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInMaxPeriod. */
 /* Generated */    if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMaxPeriod = 30;
+/* Generated */ 	  optInMaxPeriod = 30;
 /* Generated */    } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
 /* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInMAType = (TA_MAType)0;
+/* Generated */ 	  optInMAType = (TA_MAType)0;
 /* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
 /* Generated */    #if !defined(_JAVA)
@@ -450,22 +450,25 @@ optInMinPeriod: i32,
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if( !inReal ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */     if( !inPeriods ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
+/* Generated */     if( !inPeriods ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInMinPeriod == TA_INTEGER_DEFAULT )
-/* Generated */        optInMinPeriod = 2;
-/* Generated */     else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */     if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT )
-/* Generated */        optInMaxPeriod = 30;
-/* Generated */     else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInMinPeriod = 2;
+/* Generated */     } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
+/* Generated */     if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInMaxPeriod = 30;
+/* Generated */     } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */     if( (int)optInMAType == TA_INTEGER_DEFAULT )
-/* Generated */        optInMAType = (TA_MAType)0;
-/* Generated */     else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInMAType = (TA_MAType)0;
+/* Generated */     } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #endif 
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )

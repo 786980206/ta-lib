@@ -107,14 +107,14 @@ optInFastLimit: f64,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    if( optInFastLimit == TA_REAL_DEFAULT ) {
-/* Generated */       optInFastLimit = 5.000000e-1;
+/* Generated */ 	  optInFastLimit = 5.000000e-1;
 /* Generated */    } else if( (optInFastLimit < 1.000000e-2) ||/* Generated */  (optInFastLimit > 9.900000e-1) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    if( optInSlowLimit == TA_REAL_DEFAULT ) {
-/* Generated */       optInSlowLimit = 5.000000e-2;
+/* Generated */ 	  optInSlowLimit = 5.000000e-2;
 /* Generated */    } else if( (optInSlowLimit < 1.000000e-2) ||/* Generated */  (optInSlowLimit > 9.900000e-1) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
@@ -271,14 +271,14 @@ optInFastLimit: f64,
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    if( optInFastLimit == TA_REAL_DEFAULT ) {
-/* Generated */       optInFastLimit = 5.000000e-1;
+/* Generated */ 	  optInFastLimit = 5.000000e-1;
 /* Generated */    } else if( (optInFastLimit < 1.000000e-2) ||/* Generated */  (optInFastLimit > 9.900000e-1) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    if( optInSlowLimit == TA_REAL_DEFAULT ) {
-/* Generated */       optInSlowLimit = 5.000000e-2;
+/* Generated */ 	  optInSlowLimit = 5.000000e-2;
 /* Generated */    } else if( (optInSlowLimit < 1.000000e-2) ||/* Generated */  (optInSlowLimit > 9.900000e-1) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outMAMA )
@@ -605,16 +605,18 @@ optInFastLimit: f64,
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if( !inReal ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( optInFastLimit == TA_REAL_DEFAULT )
-/* Generated */        optInFastLimit = 5.000000e-1;
-/* Generated */     else if( (optInFastLimit < 1.000000e-2) ||  (optInFastLimit > 9.900000e-1) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */     if( optInSlowLimit == TA_REAL_DEFAULT )
-/* Generated */        optInSlowLimit = 5.000000e-2;
-/* Generated */     else if( (optInSlowLimit < 1.000000e-2) ||  (optInSlowLimit > 9.900000e-1) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( optInFastLimit == TA_REAL_DEFAULT ) {
+/* Generated */  	  optInFastLimit = 5.000000e-1;
+/* Generated */     } else if( (optInFastLimit < 1.000000e-2) ||  (optInFastLimit > 9.900000e-1) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
+/* Generated */     if( optInSlowLimit == TA_REAL_DEFAULT ) {
+/* Generated */  	  optInSlowLimit = 5.000000e-2;
+/* Generated */     } else if( (optInSlowLimit < 1.000000e-2) ||  (optInSlowLimit > 9.900000e-1) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outMAMA )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);

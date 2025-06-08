@@ -101,9 +101,9 @@ optInPenetration: f64) -> i32
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    if( optInPenetration == TA_REAL_DEFAULT ) {
-/* Generated */       optInPenetration = 3.000000e-1;
+/* Generated */ 	  optInPenetration = 3.000000e-1;
 /* Generated */    } else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
@@ -211,9 +211,9 @@ optInPenetration: f64) -> i32
 /* Generated */ }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    if( optInPenetration == TA_REAL_DEFAULT ) {
-/* Generated */       optInPenetration = 3.000000e-1;
+/* Generated */ 	  optInPenetration = 3.000000e-1;
 /* Generated */    } else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outInteger )
@@ -392,13 +392,15 @@ optInPenetration: f64) -> i32
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if(!inOpen||!inHigh||!inLow||!inClose)
+/* Generated */     if(!inOpen||!inHigh||!inLow||!inClose){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( optInPenetration == TA_REAL_DEFAULT )
-/* Generated */        optInPenetration = 3.000000e-1;
-/* Generated */     else if( (optInPenetration < 0.000000e+0) ||  (optInPenetration > 3.000000e+37) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( optInPenetration == TA_REAL_DEFAULT ) {
+/* Generated */  	  optInPenetration = 3.000000e-1;
+/* Generated */     } else if( (optInPenetration < 0.000000e+0) ||  (optInPenetration > 3.000000e+37) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outInteger )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);

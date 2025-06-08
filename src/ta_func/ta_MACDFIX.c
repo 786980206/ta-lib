@@ -103,9 +103,9 @@ optInSignalPeriod: i32) -> i32
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInSignalPeriod. */
 /* Generated */    if( (int)optInSignalPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInSignalPeriod = 9;
+/* Generated */ 	  optInSignalPeriod = 9;
 /* Generated */    } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
-/* Generated */       return -1;
+/* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
@@ -211,9 +211,9 @@ optInSignalPeriod: i32) -> i32
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInSignalPeriod. */
 /* Generated */    if( (int)optInSignalPeriod == TA_INTEGER_DEFAULT ) {
-/* Generated */       optInSignalPeriod = 9;
+/* Generated */ 	  optInSignalPeriod = 9;
 /* Generated */    } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
-/* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outMACD )
@@ -315,12 +315,13 @@ optInSignalPeriod: i32) -> i32
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
-/* Generated */     if( !inReal ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInSignalPeriod == TA_INTEGER_DEFAULT )
-/* Generated */        optInSignalPeriod = 9;
-/* Generated */     else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) )
-/* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */     if( (int)optInSignalPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */  	  optInSignalPeriod = 9;
+/* Generated */     } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+/* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */  }
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outMACD )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
