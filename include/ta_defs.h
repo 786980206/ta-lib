@@ -130,7 +130,7 @@
 
   #define TA_LIB_API
 
-#elif defined( _JAVA ) || defined( _RUST )
+#elif defined( _JAVA )
 
   #define ENUM_BEGIN(w) public enum w {
   #define ENUM_DEFINE(x,y) y
@@ -153,6 +153,32 @@
   #define CONSTANT_DOUBLE(x) final double x
   #define NAMESPACE(x) x.
   #define UNUSED_VARIABLE(x)
+
+  #define TA_LIB_API
+
+#elif defined( _RUST )
+
+  #define ENUM_BEGIN(w) enum w {
+  #define ENUM_DEFINE(x,y) y
+  #define ENUM_VALUE(w,x,y) w::y
+  #define ENUM_CASE(w,x,y) y
+  #define ENUM_DECLARATION(w) w
+  #define ENUM_END(w) }
+
+  #define STRUCT_BEGIN(x) struct x {
+  #define STRUCT_END(x) }
+
+  #define VALUE_HANDLE_INT(name)            let mut name: i32
+  #define VALUE_HANDLE_DEREF(name)          (*name)
+  #define VALUE_HANDLE_DEREF_TO_ZERO(name)  (*name) = 0
+  #define VALUE_HANDLE_OUT(name)            &mut name
+
+  #define VALUE_HANDLE_GET(name)         name
+  #define VALUE_HANDLE_SET(name,x)       name = x
+
+  #define CONSTANT_DOUBLE(x) const x: f64
+  #define NAMESPACE(x) x::
+  #define UNUSED_VARIABLE(x) let _ = x
 
   #define TA_LIB_API
 
