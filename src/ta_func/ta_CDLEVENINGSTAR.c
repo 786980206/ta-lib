@@ -88,7 +88,8 @@
 /* Generated */ public int cdlEveningStarLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdleveningstar_lookback(optInPenetration: f64) -> i32
+/* Generated */ fn cdleveningstar_lookback(
+optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLEVENINGSTAR_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
@@ -99,11 +100,11 @@
 
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
-/* Generated */    if( optInPenetration == TA_REAL_DEFAULT )
+/* Generated */    if( optInPenetration == TA_REAL_DEFAULT ) {
 /* Generated */       optInPenetration = 3.000000e-1;
-/* Generated */    else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) )
+/* Generated */    } else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) ) {
 /* Generated */       return -1;
-/* Generated */ 
+/* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /**** END GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 
@@ -203,15 +204,15 @@
 /* Generated */ #else
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
-/* Generated */    if(!inOpen||!inHigh||!inLow||!inClose)
+/* Generated */    if(!inOpen||!inHigh||!inLow||!inClose){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */ 
+/* Generated */ }
 /* Generated */    #endif /* !defined(_JAVA)*/
-/* Generated */    if( optInPenetration == TA_REAL_DEFAULT )
+/* Generated */    if( optInPenetration == TA_REAL_DEFAULT ) {
 /* Generated */       optInPenetration = 3.000000e-1;
-/* Generated */    else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) )
+/* Generated */    } else if( (optInPenetration < 0.000000e+0) ||/* Generated */  (optInPenetration > 3.000000e+37) ) {
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */ 
+/* Generated */ }
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outInteger )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
@@ -374,10 +375,12 @@
 /* Generated */     double BodyShortPeriodTotal, BodyLongPeriodTotal, BodyShortPeriodTotal2;
 /* Generated */     int i, outIdx, BodyShortTrailingIdx, BodyLongTrailingIdx, lookbackTotal;
 /* Generated */  #ifndef TA_FUNC_NO_RANGE_CHECK
-/* Generated */     if( startIdx < 0 )
+/* Generated */     if( startIdx < 0 ) {
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_START_INDEX,OutOfRangeStartIndex);
-/* Generated */     if( (endIdx < 0) || (endIdx < startIdx))
+/* Generated */     }
+/* Generated */     if( (endIdx < 0) || (endIdx < startIdx)) {
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
+/* Generated */     }
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)

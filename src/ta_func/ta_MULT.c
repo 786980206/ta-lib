@@ -86,7 +86,8 @@
 /* Generated */ public int multLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mult_lookback() -> i32
+/* Generated */ fn mult_lookback(
+) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MULT_Lookback( void )
 /* Generated */ 
@@ -157,8 +158,8 @@
 /**** END GENCODE SECTION 3 - DO NOT DELETE THIS LINE ****/
 {
    /* insert local variable here */
-   int outIdx;
-   int i;
+   DECLARE_INT_VAR(outIdx)
+   DECLARE_INT_VAR(i)
 
 /**** START GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
 /* Generated */ 
@@ -176,8 +177,8 @@
 /* Generated */ 
 /* Generated */ #else
 /* Generated */    #if !defined(_JAVA)
-/* Generated */    if( !inReal0 ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
-/* Generated */    if( !inReal1 ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
+/* Generated */    if( !inReal0 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
+/* Generated */    if( !inReal1 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
@@ -191,10 +192,9 @@
 
    /* Insert TA function code here. */
 
-   for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
-   {
+   FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
       outReal[outIdx] = inReal0[i]*inReal1[i];
-   }
+   FOR_EACH_OUTPUT_END
 
    VALUE_HANDLE_DEREF(outNBElement) = outIdx;
    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
@@ -253,13 +253,15 @@
 /* Generated */                       double        outReal[] )
 /* Generated */ #endif
 /* Generated */ {
-/* Generated */    int outIdx;
-/* Generated */    int i;
+/* Generated */    DECLARE_INT_VAR(outIdx)
+/* Generated */    DECLARE_INT_VAR(i)
 /* Generated */  #ifndef TA_FUNC_NO_RANGE_CHECK
-/* Generated */     if( startIdx < 0 )
+/* Generated */     if( startIdx < 0 ) {
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_START_INDEX,OutOfRangeStartIndex);
-/* Generated */     if( (endIdx < 0) || (endIdx < startIdx))
+/* Generated */     }
+/* Generated */     if( (endIdx < 0) || (endIdx < startIdx)) {
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
+/* Generated */     }
 /* Generated */  #if defined( _RUST )
 /* Generated */  #else
 /* Generated */     #if !defined(_JAVA)
@@ -272,10 +274,9 @@
 /* Generated */     #endif 
 /* Generated */  #endif
 /* Generated */  #endif 
-/* Generated */    for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
-/* Generated */    {
+/* Generated */    FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
 /* Generated */       outReal[outIdx] = inReal0[i]*inReal1[i];
-/* Generated */    }
+/* Generated */    FOR_EACH_OUTPUT_END
 /* Generated */    VALUE_HANDLE_DEREF(outNBElement) = outIdx;
 /* Generated */    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
 /* Generated */    return ENUM_VALUE(RetCode,TA_SUCCESS,Success);

@@ -39,59 +39,64 @@
  *  in ta-lib\src\ta_func
  */
 
- impl core {
- fn mult_lookback() -> i32
-{
-   return 0;
+impl core {
+    fn mult_lookback() -> i32 {
+        return 0;
+    }
+    fn mult(
+        startIdx: i32,
+        endIdx: i32,
+        inReal0: &[f64],
+        inReal1: &[f64],
+        outBegIdx: &mut i32,
+        outNBElement: &mut i32,
+        outReal: &mut [f64],
+    ) -> RetCode {
+        let mut outIdx: i32;
+        let mut i: i32;
+        if (startIdx < 0) {
+            return RetCode.OutOfRangeStartIndex;
+        }
+        if ((endIdx < 0) || (endIdx < startIdx)) {
+            return RetCode.OutOfRangeEndIndex;
+        }
+        let mut outIdx = 0;
+        for i in startIdx..=endIdx {
+            outReal[outIdx] = inReal0[i] * inReal1[i];
+            outIdx += 1;
+        }
+        outNBElement.value = outIdx;
+        outBegIdx.value = startIdx;
+        return RetCode.Success;
+    }
+    fn mult_s(
+        startIdx: i32,
+        endIdx: i32,
+        inReal0: &[f32],
+        inReal1: &[f32],
+        outBegIdx: &mut i32,
+        outNBElement: &mut i32,
+        outReal: &mut [f64],
+    ) -> RetCode {
+        let mut outIdx: i32;
+        let mut i: i32;
+        if (startIdx < 0) {
+            return RetCode.OutOfRangeStartIndex;
+        }
+        if ((endIdx < 0) || (endIdx < startIdx)) {
+            return RetCode.OutOfRangeEndIndex;
+        }
+        let mut outIdx = 0;
+        for i in startIdx..=endIdx {
+            outReal[outIdx] = inReal0[i] * inReal1[i];
+            outIdx += 1;
+        }
+        outNBElement.value = outIdx;
+        outBegIdx.value = startIdx;
+        return RetCode.Success;
+    }
 }
- fn mult(startIdx: i32,
- endIdx: i32,
- inReal0: &[f64],
- inReal1: &[f64],
- outBegIdx: &mut i32,
- outNBElement: &mut i32,
- outReal: &mut [f64]) -> RetCode
-{
-   int outIdx;
-   int i;
- if( startIdx < 0 ) {
- return  RetCode.OutOfRangeStartIndex ;
- }
- if( (endIdx < 0) || (endIdx < startIdx)) {
- return  RetCode.OutOfRangeEndIndex ;
- }
-   for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
-   {
-      outReal[outIdx] = inReal0[i]*inReal1[i];
-   }
-   outNBElement.value  = outIdx;
-   outBegIdx.value  = startIdx;
-   return  RetCode.Success ;
-}
- fn mult_s(startIdx: i32,
- endIdx: i32,
- inReal0: &[f32],
- inReal1: &[f32],
- outBegIdx: &mut i32,
- outNBElement: &mut i32,
- outReal: &mut [f64]) -> RetCode
- {
- int outIdx;
- int i;
- if( startIdx < 0 )
- return  RetCode.OutOfRangeStartIndex ;
- if( (endIdx < 0) || (endIdx < startIdx))
- return  RetCode.OutOfRangeEndIndex ;
- for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
- {
- outReal[outIdx] = inReal0[i]*inReal1[i];
- }
- outNBElement.value  = outIdx;
- outBegIdx.value  = startIdx;
- return  RetCode.Success ;
- }
- }
-/* Generated */ 
+/* Generated */
 
 /***************/
 /* End of File */
