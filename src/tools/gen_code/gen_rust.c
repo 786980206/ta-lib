@@ -342,7 +342,7 @@ void writeRustModLines(const TA_FuncInfo* funcInfo, void* opaque)
     buffer[i] = '\0';
 
     if (params->writePubUse == 1)
-        fprintf(out->file, "pub use self::%s::*\n", buffer);
+        fprintf(out->file, "pub use self::%s::*;\n", buffer);
     else
         fprintf(out->file, "pub mod %s;\n", buffer);
 }
