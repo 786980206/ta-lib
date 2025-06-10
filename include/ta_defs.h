@@ -170,6 +170,7 @@
 
   #define VALUE_HANDLE_INT(name)            let mut name: i32
   #define VALUE_HANDLE_DEREF(name)          (*name)
+  #define VALUE_HANDLE_DEREF_INDEX(name, val) (*name) = (val) as i32
   #define VALUE_HANDLE_DEREF_TO_ZERO(name)  (*name) = 0
   #define VALUE_HANDLE_OUT(name)            &mut name
 
@@ -196,6 +197,7 @@
 
   #define VALUE_HANDLE_INT(name)           int name
   #define VALUE_HANDLE_DEREF(name)         (*name)
+  #define VALUE_HANDLE_DEREF_INDEX(name, val) (*name) = (val)
   #define VALUE_HANDLE_DEREF_TO_ZERO(name) (*name) = 0
   #define VALUE_HANDLE_OUT(name)           &name
 
@@ -222,24 +224,45 @@
 /* additional rust-centric Macro Helpers */
 #if defined(_RUST)
     #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) \
-    let mut outIdxVar = 0; \
-    for idxVar in startVal..=endVal {
-    #define FOR_EACH_OUTPUT_END outIdx += 1; }
-
-    #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=period).rev() {
+    outIdxVar = 0; \
+    for idxVar in (startVal as usize)..=(endVal as usize) {
+    #define FOR_EACH_OUTPUT_END(outIdxVar) outIdxVar += 1; }
+    #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=(period as usize)).rev() {
     #define FOR_COUNTDOWN_END }
 
     #define DECLARE_INT_VAR(name) let mut name: i32;
+    #define DECLARE_INDEX_VAR(name) let mut name: usize;
     #define DECLARE_DOUBLE_VAR(name) let mut name: f64;
+    
+    /* Rust-specific syntax helpers */
+    #define IF_CONDITION(cond) if cond {
+    #define IF_CONDITION_END }
+    #define ARRAY_ACCESS(arr, idx) arr[(idx) as usize]
+    #define CAST_TO_USIZE(val) ((val) as usize)
+    #define CAST_TO_I32(val) ((val) as i32)
+    #define CAST_TO_F64(val) ((val) as f64)
+    /* For Rust, always cast to f64 since output arrays are always f64 */
+    #define OUTPUT_F64(val) CAST_TO_F64(val)
 #else
     #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) for(idxVar=startVal, outIdxVar=0; idxVar <= endVal; idxVar++, outIdxVar++) {
-    #define FOR_EACH_OUTPUT_END }
+    #define FOR_EACH_OUTPUT_END(outIdxVar) }
 
     #define FOR_COUNTDOWN(period, idxVar) for(idxVar=period; idxVar > 0; idxVar--) {
     #define FOR_COUNTDOWN_END }
 
     #define DECLARE_INT_VAR(name) int name;
+    #define DECLARE_INDEX_VAR(name) int name;
     #define DECLARE_DOUBLE_VAR(name) double name;
+    
+    /* C-style syntax helpers (no-ops for C) */
+    #define IF_CONDITION(cond) if (cond) {
+    #define IF_CONDITION_END }
+    #define ARRAY_ACCESS(arr, idx) arr[idx]
+    #define CAST_TO_USIZE(val) (val)
+    #define CAST_TO_I32(val) (val)
+    #define CAST_TO_F64(val) (val)
+    /* For C, no casting needed between float and double in assignment */
+    #define OUTPUT_F64(val) (val)
 #endif
 
 
