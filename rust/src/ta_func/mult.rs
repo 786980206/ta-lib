@@ -40,68 +40,71 @@
  */
 
 // Import types from parent module
-use super::{RetCode, Core};
+use super::{Core, RetCode};
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-
 // allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
- impl Core {
- fn mult_lookback(
-) -> i32
-{
-   return 0;
+impl Core {
+    fn mult_lookback() -> i32 {
+        return 0;
+    }
+    fn mult(
+        startIdx: i32,
+        endIdx: i32,
+        inReal0: &[f64],
+        inReal1: &[f64],
+        outBegIdx: &mut i32,
+        outNBElement: &mut i32,
+        outReal: &mut [f64],
+    ) -> RetCode {
+        let mut outIdx: usize;
+        let mut i: usize;
+        if startIdx < 0 {
+            return RetCode::OutOfRangeStartIndex;
+        }
+        if (endIdx < 0) || (endIdx < startIdx) {
+            return RetCode::OutOfRangeEndIndex;
+        }
+        outIdx = 0;
+        for i in (startIdx as usize)..=(endIdx as usize) {
+            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
+            outIdx += 1;
+        }
+        (*outNBElement) = (outIdx) as i32;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
+    }
+    fn mult_s(
+        startIdx: i32,
+        endIdx: i32,
+        inReal0: &[f32],
+        inReal1: &[f32],
+        outBegIdx: &mut i32,
+        outNBElement: &mut i32,
+        outReal: &mut [f64],
+    ) -> RetCode {
+        let mut outIdx: usize;
+        let mut i: usize;
+        if startIdx < 0 {
+            return RetCode::OutOfRangeStartIndex;
+        }
+        if (endIdx < 0) || (endIdx < startIdx) {
+            return RetCode::OutOfRangeEndIndex;
+        }
+        outIdx = 0;
+        for i in (startIdx as usize)..=(endIdx as usize) {
+            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
+            outIdx += 1;
+        }
+        (*outNBElement) = (outIdx) as i32;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
+    }
 }
- fn mult(startIdx: i32,
- endIdx: i32,
- inReal0: &[f64],
- inReal1: &[f64],
- outBegIdx: &mut i32,
- outNBElement: &mut i32,
- outReal: &mut [f64]) -> RetCode
-{
-   let mut outIdx: usize;
-   let mut i: usize;
- if( startIdx < 0 ) {
- return  RetCode::OutOfRangeStartIndex ;
- }
- if( (endIdx < 0) || (endIdx < startIdx)) {
- return  RetCode::OutOfRangeEndIndex ;
- }
-   outIdx = 0; for i in (startIdx as usize)..=(endIdx as usize) {
-      outReal[outIdx] =  ((inReal0[i]*inReal1[i]) as f64) ;
-   outIdx += 1; }
-   (*outNBElement) = (outIdx) as i32 ;
-   (*outBegIdx)  = startIdx;
-   return  RetCode::Success ;
-}
- fn mult_s(startIdx: i32,
- endIdx: i32,
- inReal0: &[f32],
- inReal1: &[f32],
- outBegIdx: &mut i32,
- outNBElement: &mut i32,
- outReal: &mut [f64]) -> RetCode
- {
- let mut outIdx: usize;
- let mut i: usize;
- if( startIdx < 0 ) {
- return  RetCode::OutOfRangeStartIndex ;
- }
- if( (endIdx < 0) || (endIdx < startIdx)) {
- return  RetCode::OutOfRangeEndIndex ;
- }
- outIdx = 0; for i in (startIdx as usize)..=(endIdx as usize) {
- outReal[outIdx] =  ((inReal0[i]*inReal1[i]) as f64) ;
- outIdx += 1; }
- (*outNBElement) = (outIdx) as i32 ;
- (*outBegIdx)  = startIdx;
- return  RetCode::Success ;
- }
- }
-/* Generated */ 
+/* Generated */
 
 /***************/
 /* End of File */
