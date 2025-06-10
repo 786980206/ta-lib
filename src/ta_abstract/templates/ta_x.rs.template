@@ -39,6 +39,9 @@
  *  in ta-lib\src\ta_func
  */
 
+// Import types from parent module
+use super::{RetCode, Core};
+
 %%%GENCODE%%%
 
 /***************/

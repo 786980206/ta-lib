@@ -3141,7 +3141,7 @@ static void doFuncFile( const TA_FuncInfo *funcInfo )
    print( gOutFunc_C->file, "#if defined( _MANAGED )\n" );
    print( gOutFunc_C->file, "}}} // Close namespace TicTacTec.TA.Lib\n" );
    print( gOutFunc_C->file, "#elif defined( _RUST )\n" );
-   print( gOutFunc_C->file, "} // Close impl core\n" );
+   print( gOutFunc_C->file, "} // Close impl Core\n" );
    print( gOutFunc_C->file, "#endif\n" );
 
    fileClose( gOutFunc_C );
@@ -3383,7 +3383,7 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "#elif defined( _RUST )\n" );
    print( out, "   #include \"ta_defs.h\"\n" );
    print( out, "   #define TA_INTERNAL_ERROR(Id) (RetCode.InternalError)\n" );
-   print( out, "   impl core {\n" );
+   print( out, "   impl Core {\n" );
    print( out, "#else\n" );
    print( out, "   #include <string.h>\n" );
    print( out, "   #include <math.h>\n" );

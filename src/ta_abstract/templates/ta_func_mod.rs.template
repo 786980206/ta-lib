@@ -37,17 +37,18 @@
  */
 
 // Rust-specific types and enumerations
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetCode {
     Success,
     BadParam,
     OutOfRangeStartIndex,
     OutOfRangeEndIndex,
     AllocErr,
-    InternalError
+    InternalError,
 }
 
 // Core struct definition
-pub struct core {}
+pub struct Core {}
 
 %%%GENCODE%%%
 
