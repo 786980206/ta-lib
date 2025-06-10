@@ -42,6 +42,12 @@
 // Import types from parent module
 use super::{RetCode, Core};
 
+// Allow non-snake-case names to maintain TA-Lib API compatibility
+#[allow(non_snake_case)]
+
+// allow unused variables and dead code due to gen code weirdness
+#[allow(unused_variables)]
+#[allow(dead_code)]
  impl Core {
  fn mult_lookback(
 ) -> i32
