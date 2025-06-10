@@ -61,7 +61,7 @@
 /* Generated */ #elif defined( _RUST )
 /* Generated */    #include "ta_defs.h"
 /* Generated */    #define TA_INTERNAL_ERROR(Id) (RetCode.InternalError)
-/* Generated */    impl core {
+/* Generated */    impl Core {
 /* Generated */ #else
 /* Generated */    #include <string.h>
 /* Generated */    #include <math.h>
@@ -158,8 +158,8 @@
 /**** END GENCODE SECTION 3 - DO NOT DELETE THIS LINE ****/
 {
    /* insert local variable here */
-   DECLARE_INT_VAR(outIdx)
-   DECLARE_INT_VAR(i)
+   DECLARE_INDEX_VAR(outIdx)
+   DECLARE_INDEX_VAR(i)
 
 /**** START GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
 /* Generated */ 
@@ -193,10 +193,10 @@
    /* Insert TA function code here. */
 
    FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-      outReal[outIdx] = inReal0[i]*inReal1[i];
-   FOR_EACH_OUTPUT_END
+      outReal[outIdx] = OUTPUT_F64(inReal0[i]*inReal1[i]);
+   FOR_EACH_OUTPUT_END(outIdx)
 
-   VALUE_HANDLE_DEREF(outNBElement) = outIdx;
+   VALUE_HANDLE_DEREF_INDEX(outNBElement, outIdx);
    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
 
    return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
@@ -253,8 +253,8 @@
 /* Generated */                       double        outReal[] )
 /* Generated */ #endif
 /* Generated */ {
-/* Generated */    DECLARE_INT_VAR(outIdx)
-/* Generated */    DECLARE_INT_VAR(i)
+/* Generated */    DECLARE_INDEX_VAR(outIdx)
+/* Generated */    DECLARE_INDEX_VAR(i)
 /* Generated */  #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */     if( startIdx < 0 ) {
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_START_INDEX,OutOfRangeStartIndex);
@@ -275,9 +275,9 @@
 /* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-/* Generated */       outReal[outIdx] = inReal0[i]*inReal1[i];
-/* Generated */    FOR_EACH_OUTPUT_END
-/* Generated */    VALUE_HANDLE_DEREF(outNBElement) = outIdx;
+/* Generated */       outReal[outIdx] = OUTPUT_F64(inReal0[i]*inReal1[i]);
+/* Generated */    FOR_EACH_OUTPUT_END(outIdx)
+/* Generated */    VALUE_HANDLE_DEREF_INDEX(outNBElement, outIdx);
 /* Generated */    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
 /* Generated */    return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
 /* Generated */ }
@@ -285,7 +285,7 @@
 /* Generated */ #if defined( _MANAGED )
 /* Generated */ }}} // Close namespace TicTacTec.TA.Lib
 /* Generated */ #elif defined( _RUST )
-/* Generated */ } // Close impl core
+/* Generated */ } // Close impl Core
 /* Generated */ #endif
 /**** END GENCODE SECTION 5 - DO NOT DELETE THIS LINE ****/
 
