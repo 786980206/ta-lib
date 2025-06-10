@@ -39,7 +39,10 @@
  *  in ta-lib\src\ta_func
  */
 
- impl core {
+// Import types from parent module
+use super::{RetCode, Core};
+
+ impl Core {
  fn mult_lookback(
 ) -> i32
 {
@@ -53,18 +56,18 @@
  outNBElement: &mut i32,
  outReal: &mut [f64]) -> RetCode
 {
-   let mut outIdx: i32;
-   let mut i: i32;
+   let mut outIdx: usize;
+   let mut i: usize;
  if( startIdx < 0 ) {
  return  RetCode::OutOfRangeStartIndex ;
  }
  if( (endIdx < 0) || (endIdx < startIdx)) {
  return  RetCode::OutOfRangeEndIndex ;
  }
-   let mut outIdx = 0; for i in startIdx..=endIdx {
-      outReal[outIdx] = inReal0[i]*inReal1[i];
+   outIdx = 0; for i in (startIdx as usize)..=(endIdx as usize) {
+      outReal[outIdx] =  ((inReal0[i]*inReal1[i]) as f64) ;
    outIdx += 1; }
-   (*outNBElement)  = outIdx;
+   (*outNBElement) = (outIdx) as i32 ;
    (*outBegIdx)  = startIdx;
    return  RetCode::Success ;
 }
@@ -76,18 +79,18 @@
  outNBElement: &mut i32,
  outReal: &mut [f64]) -> RetCode
  {
- let mut outIdx: i32;
- let mut i: i32;
+ let mut outIdx: usize;
+ let mut i: usize;
  if( startIdx < 0 ) {
  return  RetCode::OutOfRangeStartIndex ;
  }
  if( (endIdx < 0) || (endIdx < startIdx)) {
  return  RetCode::OutOfRangeEndIndex ;
  }
- let mut outIdx = 0; for i in startIdx..=endIdx {
- outReal[outIdx] = inReal0[i]*inReal1[i];
+ outIdx = 0; for i in (startIdx as usize)..=(endIdx as usize) {
+ outReal[outIdx] =  ((inReal0[i]*inReal1[i]) as f64) ;
  outIdx += 1; }
- (*outNBElement)  = outIdx;
+ (*outNBElement) = (outIdx) as i32 ;
  (*outBegIdx)  = startIdx;
  return  RetCode::Success ;
  }
