@@ -1,5 +1,9 @@
 /** RUST functions that get injected hackily into the bottom gen_code.c **/
 
+// Forward declarations
+void rustCargoFix(void);
+void rustCargoFormat(void);
+
 static void printRustLookbackFunctionSignature(FILE* out,
                                                const char* prefix, /* Can be NULL */
                                                const TA_FuncInfo* funcInfo)
@@ -10,7 +14,7 @@ static void printRustLookbackFunctionSignature(FILE* out,
     toLowerSnakeCase(funcInfo->name, funcNameBuffer);
 
     // print lookback function header
-    sprintf(gTempBuf, "%sfn %s_lookback(\n",
+    sprintf(gTempBuf, "%spub fn %s_lookback(\n",
             prefix? prefix:"",
             funcNameBuffer);
 
@@ -66,7 +70,7 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
     int indent, i;
 
     // Print function header with idiomatic Rust signature
-    sprintf(gTempBuf, "%sfn %s(",
+    sprintf(gTempBuf, "%spub fn %s(",
             prefix? prefix:"",
             funcNameBuffer);
 
@@ -199,7 +203,7 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
     int indent, i;
 
     // Print function header with idiomatic Rust signature for single precision
-    sprintf(gTempBuf, "%sfn %s_s(",
+    sprintf(gTempBuf, "%spub fn %s_s(",
             prefix? prefix:"",
             funcNameBuffer);
 
@@ -374,6 +378,10 @@ void writeRustMod(void)
     TA_ForEachFunc(writeRustModLines, &params);
 
     fileClose(out);
+    
+    // Run cargo commands to clean up generated Rust code
+    rustCargoFix();
+    rustCargoFormat();
 }
 
 void genRustCodePhase2(const TA_FuncInfo* funcInfo)
@@ -456,4 +464,55 @@ void genRustCodePhase2(const TA_FuncInfo* funcInfo)
 
     // Upon closing, will touch the target file only if there was a change...
     fileClose(out);
+}
+
+static int tryCargoCommand(const char* command)
+{
+    char fullCommand[1024];
+    int result;
+    
+    // Try 1: Use PATH (standard installation)
+    snprintf(fullCommand, sizeof(fullCommand), "cd " ".." PATH_SEPARATOR "rust" " && cargo %s 2>/dev/null", command);
+    result = system(fullCommand);
+    if (result == 0) return 0;
+    
+    // Try 2: Common user installation location
+    snprintf(fullCommand, sizeof(fullCommand), "cd " ".." PATH_SEPARATOR "rust" " && ~/.cargo/bin/cargo %s 2>/dev/null", command);
+    result = system(fullCommand);
+    if (result == 0) return 0;
+    
+    // Try 3: System-wide installation (Linux/macOS)
+    snprintf(fullCommand, sizeof(fullCommand), "cd " ".." PATH_SEPARATOR "rust" " && /usr/local/bin/cargo %s 2>/dev/null", command);
+    result = system(fullCommand);
+    if (result == 0) return 0;
+    
+    // Try 4: Check if CARGO_HOME is set
+    const char* cargoHome = getenv("CARGO_HOME");
+    if (cargoHome) {
+        snprintf(fullCommand, sizeof(fullCommand), "cd " ".." PATH_SEPARATOR "rust" " && %s/bin/cargo %s 2>/dev/null", cargoHome, command);
+        result = system(fullCommand);
+        if (result == 0) return 0;
+    }
+    
+    return -1; // All attempts failed
+}
+
+void rustCargoFix(void)
+{
+    printf("Running cargo fix on generated Rust code...\n");
+    
+    if (tryCargoCommand("fix --lib -p ta-lib --allow-dirty") != 0) {
+        printf("Warning: cargo fix failed (cargo not found or command failed)\n");
+        printf("  To enable automatic cargo fix, ensure 'cargo' is in your PATH\n");
+    }
+}
+
+void rustCargoFormat(void)
+{
+    printf("Running cargo fmt on generated Rust code...\n");
+    
+    if (tryCargoCommand("fmt") != 0) {
+        printf("Warning: cargo fmt failed (cargo not found or command failed)\n");
+        printf("  To enable automatic cargo fmt, ensure 'cargo' is in your PATH\n");
+    }
 }

@@ -293,6 +293,8 @@ static void create_dir_recursively( const char *dir );
 
 static void writeRustMod( void );
 static void genRustCodePhase2( const TA_FuncInfo *funcInfo );
+void rustCargoFix( void );
+void rustCargoFormat( void );
 
 static void genJavaCodePhase1( const TA_FuncInfo *funcInfo );
 static void genJavaCodePhase2( const TA_FuncInfo *funcInfo );
