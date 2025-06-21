@@ -147,11 +147,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_trendmode(startIdx: i32,
-/* Generated */                     endIdx: i32,
+/* Generated */ pub fn ht_trendmode(startIdx: usize,
+/* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f64],
-/* Generated */                     outBegIdx: &mut i32,
-/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
 /* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_TRENDMODE( int    startIdx,
@@ -575,11 +575,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_trendmode_s(startIdx: i32,
-/* Generated */                       endIdx: i32,
+/* Generated */ pub fn ht_trendmode_s(startIdx: usize,
+/* Generated */                       endIdx: usize,
 /* Generated */                       inReal: &[f32],
-/* Generated */                       outBegIdx: &mut i32,
-/* Generated */                       outNBElement: &mut i32,
+/* Generated */                       outBegIdx: &mut usize,
+/* Generated */                       outNBElement: &mut usize,
 /* Generated */                       outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_TRENDMODE( int    startIdx,

@@ -146,10 +146,10 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn cdlhighwave(startIdx: i32,
-/* Generated */                    endIdx: i32,
-/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
-/* Generated */                    outNBElement: &mut i32,
+/* Generated */ pub fn cdlhighwave(startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    /* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
 /* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHIGHWAVE( int    startIdx,
@@ -311,10 +311,10 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn cdlhighwave_s(startIdx: i32,
-/* Generated */                      endIdx: i32,
-/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
-/* Generated */                      outNBElement: &mut i32,
+/* Generated */ pub fn cdlhighwave_s(startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      /* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
 /* Generated */                      outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHIGHWAVE( int    startIdx,

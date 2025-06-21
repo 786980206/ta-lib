@@ -153,12 +153,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn sum(startIdx: i32,
-/* Generated */            endIdx: i32,
+/* Generated */ pub fn sum(startIdx: usize,
+/* Generated */            endIdx: usize,
 /* Generated */            inReal: &[f64],
 /* Generated */            optInTimePeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
+/* Generated */            outBegIdx: &mut usize,
+/* Generated */            outNBElement: &mut usize,
 /* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
@@ -297,12 +297,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn sum_s(startIdx: i32,
-/* Generated */              endIdx: i32,
+/* Generated */ pub fn sum_s(startIdx: usize,
+/* Generated */              endIdx: usize,
 /* Generated */              inReal: &[f32],
 /* Generated */              optInTimePeriod: i32,
-/* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
 /* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SUM( int    startIdx,

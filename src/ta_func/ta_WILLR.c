@@ -161,11 +161,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn willr(startIdx: i32,
-/* Generated */              endIdx: i32,
+/* Generated */ pub fn willr(startIdx: usize,
+/* Generated */              endIdx: usize,
 /* Generated */              /* Generated */              optInTimePeriod: i32,
-/* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
 /* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
@@ -368,11 +368,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn willr_s(startIdx: i32,
-/* Generated */                endIdx: i32,
+/* Generated */ pub fn willr_s(startIdx: usize,
+/* Generated */                endIdx: usize,
 /* Generated */                /* Generated */                optInTimePeriod: i32,
-/* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
 /* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_WILLR( int    startIdx,

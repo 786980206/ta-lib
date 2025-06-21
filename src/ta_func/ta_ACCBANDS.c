@@ -166,11 +166,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn accbands(startIdx: i32,
-/* Generated */                 endIdx: i32,
+/* Generated */ pub fn accbands(startIdx: usize,
+/* Generated */                 endIdx: usize,
 /* Generated */                 /* Generated */                 optInTimePeriod: i32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outRealUpperBand: &mut [f64],
 /* Generated */                 outRealMiddleBand: &mut [f64],
 /* Generated */                 outRealLowerBand: &mut [f64]) -> RetCode
@@ -403,11 +403,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn accbands_s(startIdx: i32,
-/* Generated */                   endIdx: i32,
+/* Generated */ pub fn accbands_s(startIdx: usize,
+/* Generated */                   endIdx: usize,
 /* Generated */                   /* Generated */                   optInTimePeriod: i32,
-/* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
 /* Generated */                   outRealUpperBand: &mut [f64],
 /* Generated */                   outRealMiddleBand: &mut [f64],
 /* Generated */                   outRealLowerBand: &mut [f64]) -> RetCode

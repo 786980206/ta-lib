@@ -160,11 +160,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn aroon(startIdx: i32,
-/* Generated */              endIdx: i32,
+/* Generated */ pub fn aroon(startIdx: usize,
+/* Generated */              endIdx: usize,
 /* Generated */              /* Generated */              optInTimePeriod: i32,
-/* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
 /* Generated */              outAroonDown: &mut [f64],
 /* Generated */              outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -369,11 +369,11 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn aroon_s(startIdx: i32,
-/* Generated */                endIdx: i32,
+/* Generated */ pub fn aroon_s(startIdx: usize,
+/* Generated */                endIdx: usize,
 /* Generated */                /* Generated */                optInTimePeriod: i32,
-/* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
 /* Generated */                outAroonDown: &mut [f64],
 /* Generated */                outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else

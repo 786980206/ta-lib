@@ -156,12 +156,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        double        outMin[],
 /* Generated */                        double        outMax[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn minmax(startIdx: i32,
-/* Generated */               endIdx: i32,
+/* Generated */ pub fn minmax(startIdx: usize,
+/* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f64],
 /* Generated */               optInTimePeriod: i32,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
 /* Generated */               outMin: &mut [f64],
 /* Generated */               outMax: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -351,12 +351,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        double        outMin[],
 /* Generated */                        double        outMax[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn minmax_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
+/* Generated */ pub fn minmax_s(startIdx: usize,
+/* Generated */                 endIdx: usize,
 /* Generated */                 inReal: &[f32],
 /* Generated */                 optInTimePeriod: i32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outMin: &mut [f64],
 /* Generated */                 outMax: &mut [f64]) -> RetCode
 /* Generated */ #else

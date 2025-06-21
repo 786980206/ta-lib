@@ -143,11 +143,11 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_phasor(startIdx: i32,
-/* Generated */                  endIdx: i32,
+/* Generated */ pub fn ht_phasor(startIdx: usize,
+/* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f64],
-/* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outBegIdx: &mut usize,
+/* Generated */                  outNBElement: &mut usize,
 /* Generated */                  outInPhase: &mut [f64],
 /* Generated */                  outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -448,11 +448,11 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_phasor_s(startIdx: i32,
-/* Generated */                    endIdx: i32,
+/* Generated */ pub fn ht_phasor_s(startIdx: usize,
+/* Generated */                    endIdx: usize,
 /* Generated */                    inReal: &[f32],
-/* Generated */                    outBegIdx: &mut i32,
-/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
 /* Generated */                    outInPhase: &mut [f64],
 /* Generated */                    outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else

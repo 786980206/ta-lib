@@ -197,13 +197,13 @@ optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn mama(startIdx: i32,
-/* Generated */             endIdx: i32,
+/* Generated */ pub fn mama(startIdx: usize,
+/* Generated */             endIdx: usize,
 /* Generated */             inReal: &[f64],
 /* Generated */             optInFastLimit: f64,
 /* Generated */             optInSlowLimit: f64,
-/* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
+/* Generated */             outBegIdx: &mut usize,
+/* Generated */             outNBElement: &mut usize,
 /* Generated */             outMAMA: &mut [f64],
 /* Generated */             outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -554,13 +554,13 @@ optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn mama_s(startIdx: i32,
-/* Generated */               endIdx: i32,
+/* Generated */ pub fn mama_s(startIdx: usize,
+/* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f32],
 /* Generated */               optInFastLimit: f32,
 /* Generated */               optInSlowLimit: f32,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
 /* Generated */               outMAMA: &mut [f64],
 /* Generated */               outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else

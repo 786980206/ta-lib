@@ -150,11 +150,11 @@
 /* Generated */                        double        outSine[],
 /* Generated */                        double        outLeadSine[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_sine(startIdx: i32,
-/* Generated */                endIdx: i32,
+/* Generated */ pub fn ht_sine(startIdx: usize,
+/* Generated */                endIdx: usize,
 /* Generated */                inReal: &[f64],
-/* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
 /* Generated */                outSine: &mut [f64],
 /* Generated */                outLeadSine: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -519,11 +519,11 @@
 /* Generated */                        double        outSine[],
 /* Generated */                        double        outLeadSine[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ht_sine_s(startIdx: i32,
-/* Generated */                  endIdx: i32,
+/* Generated */ pub fn ht_sine_s(startIdx: usize,
+/* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f32],
-/* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outBegIdx: &mut usize,
+/* Generated */                  outNBElement: &mut usize,
 /* Generated */                  outSine: &mut [f64],
 /* Generated */                  outLeadSine: &mut [f64]) -> RetCode
 /* Generated */ #else

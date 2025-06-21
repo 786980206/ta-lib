@@ -170,7 +170,7 @@
 
   #define VALUE_HANDLE_INT(name)            let mut name: i32
   #define VALUE_HANDLE_DEREF(name)          (*name)
-  #define VALUE_HANDLE_DEREF_INDEX(name, val) (*name) = (val) as i32
+  #define VALUE_HANDLE_DEREF_INDEX(name, val) (*name) = (val)
   #define VALUE_HANDLE_DEREF_TO_ZERO(name)  (*name) = 0
   #define VALUE_HANDLE_OUT(name)            &mut name
 

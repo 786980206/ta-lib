@@ -194,13 +194,13 @@ optInTimePeriod1: i32,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ultosc(startIdx: i32,
-/* Generated */               endIdx: i32,
+/* Generated */ pub fn ultosc(startIdx: usize,
+/* Generated */               endIdx: usize,
 /* Generated */               /* Generated */               optInTimePeriod1: i32,
 /* Generated */               optInTimePeriod2: i32,
 /* Generated */               optInTimePeriod3: i32,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
 /* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
@@ -459,13 +459,13 @@ optInTimePeriod1: i32,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn ultosc_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
+/* Generated */ pub fn ultosc_s(startIdx: usize,
+/* Generated */                 endIdx: usize,
 /* Generated */                 /* Generated */                 optInTimePeriod1: i32,
 /* Generated */                 optInTimePeriod2: i32,
 /* Generated */                 optInTimePeriod3: i32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ULTOSC( int    startIdx,

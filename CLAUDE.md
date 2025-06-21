@@ -14,6 +14,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - Rust code is auto-generated - modify C sources in `src/ta_func/` instead
 - Generated Rust files are in `rust/src/ta_func/`
 - Function signatures follow pattern: `fn function_name(startIdx, endIdx, inputs..., optional_inputs..., mut outputs...)`
+- **API Contract**: Parameter names must maintain camelCase (startIdx, endIdx, outBegIdx, outNBElement) to preserve TA-Lib API compatibility
+- **Index Types**: Use `usize` for all index parameters (startIdx, endIdx, outBegIdx, outNBElement) instead of i32 for idiomatic Rust
 
 ## Rust Architecture Plan
 - TA-Lib will export a "core" struct that provides TA functions

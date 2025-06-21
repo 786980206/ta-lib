@@ -6,8 +6,8 @@ fn test_mult_double_precision() {
     let in_real0 = [1.0, 2.0, 3.0, 4.0, 5.0];
     let in_real1 = [2.0, 3.0, 4.0, 5.0, 6.0];
     let mut out_real = [0.0; 5];
-    let mut out_beg_idx = 0i32;
-    let mut out_nb_element = 0i32;
+    let mut out_beg_idx = 0usize;
+    let mut out_nb_element = 0usize;
 
     // Expected results: [2.0, 6.0, 12.0, 20.0, 30.0]
     let expected = [2.0, 6.0, 12.0, 20.0, 30.0];
@@ -37,8 +37,8 @@ fn test_mult_single_precision() {
     let in_real0: [f32; 5] = [1.5, 2.5, 3.5, 4.5, 5.5];
     let in_real1: [f32; 5] = [2.0, 2.0, 2.0, 2.0, 2.0];
     let mut out_real = [0.0f64; 5];
-    let mut out_beg_idx = 0i32;
-    let mut out_nb_element = 0i32;
+    let mut out_beg_idx = 0usize;
+    let mut out_nb_element = 0usize;
 
     // Expected results: [3.0, 5.0, 7.0, 9.0, 11.0]
     let expected = [3.0, 5.0, 7.0, 9.0, 11.0];
@@ -68,8 +68,8 @@ fn test_mult_partial_range() {
     let in_real0 = [1.0, 2.0, 3.0, 4.0, 5.0];
     let in_real1 = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0; 3];
-    let mut out_beg_idx = 0i32;
-    let mut out_nb_element = 0i32;
+    let mut out_beg_idx = 0usize;
+    let mut out_nb_element = 0usize;
 
     // Process indices 1-3: expected [4.0, 9.0, 16.0]
     let expected = [4.0, 9.0, 16.0];
@@ -98,34 +98,10 @@ fn test_mult_error_conditions() {
     let in_real0 = [1.0, 2.0, 3.0];
     let in_real1 = [1.0, 2.0, 3.0];
     let mut out_real = [0.0; 3];
-    let mut out_beg_idx = 0i32;
-    let mut out_nb_element = 0i32;
+    let mut out_beg_idx = 0usize;
+    let mut out_nb_element = 0usize;
 
-    // Test negative startIdx
-    let result = Core::mult(
-        -1,
-        2,
-        &in_real0,
-        &in_real1,
-        &mut out_beg_idx,
-        &mut out_nb_element,
-        &mut out_real,
-    );
-    assert_eq!(result, RetCode::OutOfRangeStartIndex);
-
-    // Test negative endIdx
-    let result = Core::mult(
-        0,
-        -1,
-        &in_real0,
-        &in_real1,
-        &mut out_beg_idx,
-        &mut out_nb_element,
-        &mut out_real,
-    );
-    assert_eq!(result, RetCode::OutOfRangeEndIndex);
-
-    // Test endIdx < startIdx
+    // Test endIdx < startIdx (can't test negative values with usize)
     let result = Core::mult(
         2,
         1,

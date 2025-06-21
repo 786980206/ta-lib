@@ -147,10 +147,10 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn wclprice(startIdx: i32,
-/* Generated */                 endIdx: i32,
-/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */ pub fn wclprice(startIdx: usize,
+/* Generated */                 endIdx: usize,
+/* Generated */                 /* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_WCLPRICE( int    startIdx,
@@ -254,10 +254,10 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn wclprice_s(startIdx: i32,
-/* Generated */                   endIdx: i32,
-/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
+/* Generated */ pub fn wclprice_s(startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   /* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
 /* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_WCLPRICE( int    startIdx,

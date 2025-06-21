@@ -208,15 +208,15 @@ optInTimePeriod: i32,
 /* Generated */                          double        outFastK[],
 /* Generated */                          double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn stochrsi(startIdx: i32,
-/* Generated */                 endIdx: i32,
+/* Generated */ pub fn stochrsi(startIdx: usize,
+/* Generated */                 endIdx: usize,
 /* Generated */                 inReal: &[f64],
 /* Generated */                 optInTimePeriod: i32,
 /* Generated */                 optInFastK_Period: i32,
 /* Generated */                 optInFastD_Period: i32,
 /* Generated */                 optInFastD_MAType: i32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outFastK: &mut [f64],
 /* Generated */                 outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
@@ -437,15 +437,15 @@ optInTimePeriod: i32,
 /* Generated */                          double        outFastK[],
 /* Generated */                          double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn stochrsi_s(startIdx: i32,
-/* Generated */                   endIdx: i32,
+/* Generated */ pub fn stochrsi_s(startIdx: usize,
+/* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f32],
 /* Generated */                   optInTimePeriod: i32,
 /* Generated */                   optInFastK_Period: i32,
 /* Generated */                   optInFastD_Period: i32,
 /* Generated */                   optInFastD_MAType: i32,
-/* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
 /* Generated */                   outFastK: &mut [f64],
 /* Generated */                   outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else

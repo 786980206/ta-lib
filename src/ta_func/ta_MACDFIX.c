@@ -167,12 +167,12 @@ optInSignalPeriod: i32) -> i32
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn macdfix(startIdx: i32,
-/* Generated */                endIdx: i32,
+/* Generated */ pub fn macdfix(startIdx: usize,
+/* Generated */                endIdx: usize,
 /* Generated */                inReal: &[f64],
 /* Generated */                optInSignalPeriod: i32,
-/* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
 /* Generated */                outMACD: &mut [f64],
 /* Generated */                outMACDSignal: &mut [f64],
 /* Generated */                outMACDHist: &mut [f64]) -> RetCode
@@ -284,12 +284,12 @@ optInSignalPeriod: i32) -> i32
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn macdfix_s(startIdx: i32,
-/* Generated */                  endIdx: i32,
+/* Generated */ pub fn macdfix_s(startIdx: usize,
+/* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f32],
 /* Generated */                  optInSignalPeriod: i32,
-/* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outBegIdx: &mut usize,
+/* Generated */                  outNBElement: &mut usize,
 /* Generated */                  outMACD: &mut [f64],
 /* Generated */                  outMACDSignal: &mut [f64],
 /* Generated */                  outMACDHist: &mut [f64]) -> RetCode

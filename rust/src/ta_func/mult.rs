@@ -52,12 +52,12 @@ impl Core {
         return 0;
     }
     pub fn mult(
-        startIdx: i32,
-        endIdx: i32,
+        startIdx: usize,
+        endIdx: usize,
         inReal0: &[f64],
         inReal1: &[f64],
-        outBegIdx: &mut i32,
-        outNBElement: &mut i32,
+        outBegIdx: &mut usize,
+        outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
@@ -73,17 +73,17 @@ impl Core {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
-        (*outNBElement) = (outIdx) as i32;
+        (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
     pub fn mult_s(
-        startIdx: i32,
-        endIdx: i32,
+        startIdx: usize,
+        endIdx: usize,
         inReal0: &[f32],
         inReal1: &[f32],
-        outBegIdx: &mut i32,
-        outNBElement: &mut i32,
+        outBegIdx: &mut usize,
+        outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
@@ -99,7 +99,7 @@ impl Core {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
-        (*outNBElement) = (outIdx) as i32;
+        (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }

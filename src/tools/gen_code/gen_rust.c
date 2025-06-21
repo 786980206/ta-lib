@@ -80,9 +80,9 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
     indent = (unsigned int)strlen(gTempBuf);
 
     // Start with startIdx and endIdx parameters
-    fprintf(out, "startIdx: i32,\n");
+    fprintf(out, "startIdx: usize,\n");
     printIndent(out, indent);
-    fprintf(out, "endIdx: i32,\n");
+    fprintf(out, "endIdx: usize,\n");
 
     // Print input parameters with proper Rust types
     for (i = 0; i < funcInfo->nbInput; i++)
@@ -158,9 +158,9 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
 
     // Print output parameters with proper Rust mutable references
     printIndent(out, indent);
-    fprintf(out, "outBegIdx: &mut i32,\n");
+    fprintf(out, "outBegIdx: &mut usize,\n");
     printIndent(out, indent);
-    fprintf(out, "outNBElement: &mut i32,\n");
+    fprintf(out, "outNBElement: &mut usize,\n");
 
     for (i = 0; i < funcInfo->nbOutput; i++)
     {
@@ -213,9 +213,9 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
     indent = (unsigned int)strlen(gTempBuf);
 
     // Start with startIdx and endIdx parameters
-    fprintf(out, "startIdx: i32,\n");
+    fprintf(out, "startIdx: usize,\n");
     printIndent(out, indent);
-    fprintf(out, "endIdx: i32,\n");
+    fprintf(out, "endIdx: usize,\n");
 
     // Print input parameters with proper Rust types (f32 for single precision)
     for (i = 0; i < funcInfo->nbInput; i++)
@@ -292,9 +292,9 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
     // Print output parameters with proper Rust mutable references
     // Note: outputs still use f64 even for single precision functions
     printIndent(out, indent);
-    fprintf(out, "outBegIdx: &mut i32,\n");
+    fprintf(out, "outBegIdx: &mut usize,\n");
     printIndent(out, indent);
-    fprintf(out, "outNBElement: &mut i32,\n");
+    fprintf(out, "outNBElement: &mut usize,\n");
 
     for (i = 0; i < funcInfo->nbOutput; i++)
     {

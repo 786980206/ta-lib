@@ -286,8 +286,8 @@ optInStartValue: f64,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn sarext(startIdx: i32,
-/* Generated */               endIdx: i32,
+/* Generated */ pub fn sarext(startIdx: usize,
+/* Generated */               endIdx: usize,
 /* Generated */               /* Generated */               optInStartValue: f64,
 /* Generated */               optInOffsetOnReverse: f64,
 /* Generated */               optInAccelerationInitLong: f64,
@@ -296,8 +296,8 @@ optInStartValue: f64,
 /* Generated */               optInAccelerationInitShort: f64,
 /* Generated */               optInAccelerationShort: f64,
 /* Generated */               optInAccelerationMaxShort: f64,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
 /* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAREXT( int    startIdx,
@@ -788,8 +788,8 @@ optInStartValue: f64,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ pub fn sarext_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
+/* Generated */ pub fn sarext_s(startIdx: usize,
+/* Generated */                 endIdx: usize,
 /* Generated */                 /* Generated */                 optInStartValue: f32,
 /* Generated */                 optInOffsetOnReverse: f32,
 /* Generated */                 optInAccelerationInitLong: f32,
@@ -798,8 +798,8 @@ optInStartValue: f64,
 /* Generated */                 optInAccelerationInitShort: f32,
 /* Generated */                 optInAccelerationShort: f32,
 /* Generated */                 optInAccelerationMaxShort: f32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAREXT( int    startIdx,
