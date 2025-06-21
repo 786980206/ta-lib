@@ -89,7 +89,7 @@
 /* Generated */ public int willRLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn willr_lookback(
+/* Generated */ pub fn willr_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_WILLR_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -161,12 +161,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn willr(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          /* Generated */          optInTimePeriod: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn willr(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              /* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -368,12 +368,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn willr_s(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            /* Generated */            optInTimePeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn willr_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                /* Generated */                optInTimePeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_WILLR( int    startIdx,
 /* Generated */                        int    endIdx,

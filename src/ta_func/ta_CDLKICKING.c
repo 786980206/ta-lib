@@ -88,7 +88,7 @@
 /* Generated */ public int cdlKickingLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlkicking_lookback(
+/* Generated */ pub fn cdlkicking_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLKICKING_Lookback( void )
@@ -147,11 +147,11 @@
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlkicking(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlkicking(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLKICKING( int    startIdx,
 /* Generated */                                      int    endIdx,
@@ -336,11 +336,11 @@
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlkicking_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
-/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
-/* Generated */                 outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlkicking_s(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     /* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLKICKING( int    startIdx,
 /* Generated */                             int    endIdx,

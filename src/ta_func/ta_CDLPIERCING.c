@@ -88,7 +88,7 @@
 /* Generated */ public int cdlPiercingLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlpiercing_lookback(
+/* Generated */ pub fn cdlpiercing_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLPIERCING_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlpiercing(startIdx: i32,
-/* Generated */                endIdx: i32,
-/* Generated */                /* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
-/* Generated */                outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlpiercing(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLPIERCING( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -315,11 +315,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlpiercing_s(startIdx: i32,
-/* Generated */                  endIdx: i32,
-/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
-/* Generated */                  outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlpiercing_s(startIdx: i32,
+/* Generated */                      endIdx: i32,
+/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
+/* Generated */                      outNBElement: &mut i32,
+/* Generated */                      outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLPIERCING( int    startIdx,
 /* Generated */                              int    endIdx,

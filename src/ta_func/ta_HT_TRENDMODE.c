@@ -89,7 +89,7 @@
 /* Generated */ public int htTrendModeLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_trendmode_lookback(
+/* Generated */ pub fn ht_trendmode_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_HT_TRENDMODE_Lookback( void )
@@ -147,12 +147,12 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_trendmode(startIdx: i32,
-/* Generated */                 endIdx: i32,
-/* Generated */                 inReal: &[f64],
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
-/* Generated */                 outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn ht_trendmode(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     inReal: &[f64],
+/* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_TRENDMODE( int    startIdx,
 /* Generated */                                        int    endIdx,
@@ -575,12 +575,12 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ht_trendmode_s(startIdx: i32,
-/* Generated */                   endIdx: i32,
-/* Generated */                   inReal: &[f32],
-/* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
-/* Generated */                   outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn ht_trendmode_s(startIdx: i32,
+/* Generated */                       endIdx: i32,
+/* Generated */                       inReal: &[f32],
+/* Generated */                       outBegIdx: &mut i32,
+/* Generated */                       outNBElement: &mut i32,
+/* Generated */                       outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_TRENDMODE( int    startIdx,
 /* Generated */                               int    endIdx,

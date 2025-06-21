@@ -89,7 +89,7 @@
 /* Generated */ public int adxrLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adxr_lookback(
+/* Generated */ pub fn adxr_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ADXR_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -163,12 +163,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adxr(startIdx: i32,
-/* Generated */         endIdx: i32,
-/* Generated */         /* Generated */         optInTimePeriod: i32,
-/* Generated */         outBegIdx: &mut i32,
-/* Generated */         outNBElement: &mut i32,
-/* Generated */         outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adxr(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             optInTimePeriod: i32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ADXR( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -329,12 +329,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adxr_s(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           /* Generated */           optInTimePeriod: i32,
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adxr_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               /* Generated */               optInTimePeriod: i32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ADXR( int    startIdx,
 /* Generated */                       int    endIdx,

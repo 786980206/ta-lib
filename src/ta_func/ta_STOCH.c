@@ -95,12 +95,12 @@
 /* Generated */                         int           optInSlowD_Period, /* From 1 to 100000 */
 /* Generated */                         MAType        optInSlowD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stoch_lookback(
+/* Generated */ pub fn stoch_lookback(
 optInFastK_Period: i32,
-/* Generated */                    optInSlowK_Period: i32,
-/* Generated */                    optInSlowK_MAType: i32,
-/* Generated */                    optInSlowD_Period: i32,
-/* Generated */                    optInSlowD_MAType: i32) -> i32
+/* Generated */                        optInSlowK_Period: i32,
+/* Generated */                        optInSlowK_MAType: i32,
+/* Generated */                        optInSlowD_Period: i32,
+/* Generated */                        optInSlowD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCH_Lookback( int           optInFastK_Period, /* From 1 to 100000 */
 /* Generated */                                            int           optInSlowK_Period, /* From 1 to 100000 */
@@ -237,17 +237,17 @@ optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stoch(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          /* Generated */          optInFastK_Period: i32,
-/* Generated */          optInSlowK_Period: i32,
-/* Generated */          optInSlowK_MAType: i32,
-/* Generated */          optInSlowD_Period: i32,
-/* Generated */          optInSlowD_MAType: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outSlowK: &mut [f64],
-/* Generated */          outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              /* Generated */              optInFastK_Period: i32,
+/* Generated */              optInSlowK_Period: i32,
+/* Generated */              optInSlowK_MAType: i32,
+/* Generated */              optInSlowD_Period: i32,
+/* Generated */              optInSlowD_MAType: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outSlowK: &mut [f64],
+/* Generated */              outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -641,17 +641,17 @@ optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stoch_s(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            /* Generated */            optInFastK_Period: i32,
-/* Generated */            optInSlowK_Period: i32,
-/* Generated */            optInSlowK_MAType: i32,
-/* Generated */            optInSlowD_Period: i32,
-/* Generated */            optInSlowD_MAType: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outSlowK: &mut [f64],
-/* Generated */            outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                /* Generated */                optInFastK_Period: i32,
+/* Generated */                optInSlowK_Period: i32,
+/* Generated */                optInSlowK_MAType: i32,
+/* Generated */                optInSlowD_Period: i32,
+/* Generated */                optInSlowD_MAType: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outSlowK: &mut [f64],
+/* Generated */                outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCH( int    startIdx,
 /* Generated */                        int    endIdx,

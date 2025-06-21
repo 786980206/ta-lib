@@ -89,7 +89,7 @@
 /* Generated */ public int adLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ad_lookback(
+/* Generated */ pub fn ad_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AD_Lookback( void )
@@ -149,11 +149,11 @@
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ad(startIdx: i32,
-/* Generated */       endIdx: i32,
-/* Generated */       /* Generated */       outBegIdx: &mut i32,
-/* Generated */       outNBElement: &mut i32,
-/* Generated */       outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ad(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           /* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AD( int    startIdx,
 /* Generated */                              int    endIdx,
@@ -288,11 +288,11 @@
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ad_s(startIdx: i32,
-/* Generated */         endIdx: i32,
-/* Generated */         /* Generated */         outBegIdx: &mut i32,
-/* Generated */         outNBElement: &mut i32,
-/* Generated */         outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ad_s(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             /* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AD( int    startIdx,
 /* Generated */                     int    endIdx,

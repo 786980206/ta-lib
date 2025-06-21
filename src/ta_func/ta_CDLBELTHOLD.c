@@ -88,7 +88,7 @@
 /* Generated */ public int cdlBeltHoldLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbelthold_lookback(
+/* Generated */ pub fn cdlbelthold_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLBELTHOLD_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbelthold(startIdx: i32,
-/* Generated */                endIdx: i32,
-/* Generated */                /* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
-/* Generated */                outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlbelthold(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLBELTHOLD( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -319,11 +319,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlbelthold_s(startIdx: i32,
-/* Generated */                  endIdx: i32,
-/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
-/* Generated */                  outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlbelthold_s(startIdx: i32,
+/* Generated */                      endIdx: i32,
+/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
+/* Generated */                      outNBElement: &mut i32,
+/* Generated */                      outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLBELTHOLD( int    startIdx,
 /* Generated */                              int    endIdx,

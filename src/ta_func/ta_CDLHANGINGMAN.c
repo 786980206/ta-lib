@@ -88,7 +88,7 @@
 /* Generated */ public int cdlHangingManLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhangingman_lookback(
+/* Generated */ pub fn cdlhangingman_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLHANGINGMAN_Lookback( void )
@@ -149,11 +149,11 @@
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhangingman(startIdx: i32,
-/* Generated */                  endIdx: i32,
-/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
-/* Generated */                  outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhangingman(startIdx: i32,
+/* Generated */                      endIdx: i32,
+/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
+/* Generated */                      outNBElement: &mut i32,
+/* Generated */                      outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHANGINGMAN( int    startIdx,
 /* Generated */                                         int    endIdx,
@@ -341,11 +341,11 @@
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlhangingman_s(startIdx: i32,
-/* Generated */                    endIdx: i32,
-/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
-/* Generated */                    outNBElement: &mut i32,
-/* Generated */                    outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhangingman_s(startIdx: i32,
+/* Generated */                        endIdx: i32,
+/* Generated */                        /* Generated */                        outBegIdx: &mut i32,
+/* Generated */                        outNBElement: &mut i32,
+/* Generated */                        outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHANGINGMAN( int    startIdx,
 /* Generated */                                int    endIdx,

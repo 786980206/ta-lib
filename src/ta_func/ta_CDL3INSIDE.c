@@ -88,7 +88,7 @@
 /* Generated */ public int cdl3InsideLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdl3inside_lookback(
+/* Generated */ pub fn cdl3inside_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDL3INSIDE_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdl3inside(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdl3inside(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDL3INSIDE( int    startIdx,
 /* Generated */                                      int    endIdx,
@@ -320,11 +320,11 @@
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdl3inside_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
-/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
-/* Generated */                 outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdl3inside_s(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     /* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDL3INSIDE( int    startIdx,
 /* Generated */                             int    endIdx,

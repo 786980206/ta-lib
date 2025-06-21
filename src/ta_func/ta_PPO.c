@@ -92,10 +92,10 @@
 /* Generated */                       int           optInSlowPeriod, /* From 2 to 100000 */
 /* Generated */                       MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ppo_lookback(
+/* Generated */ pub fn ppo_lookback(
 optInFastPeriod: i32,
-/* Generated */                  optInSlowPeriod: i32,
-/* Generated */                  optInMAType: i32) -> i32
+/* Generated */                      optInSlowPeriod: i32,
+/* Generated */                      optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_PPO_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                          int           optInSlowPeriod, /* From 2 to 100000 */
@@ -187,15 +187,15 @@ optInFastPeriod: i32,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ppo(startIdx: i32,
-/* Generated */        endIdx: i32,
-/* Generated */        inReal: &[f64],
-/* Generated */        optInFastPeriod: i32,
-/* Generated */        optInSlowPeriod: i32,
-/* Generated */        optInMAType: i32,
-/* Generated */        outBegIdx: &mut i32,
-/* Generated */        outNBElement: &mut i32,
-/* Generated */        outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ppo(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            inReal: &[f64],
+/* Generated */            optInFastPeriod: i32,
+/* Generated */            optInSlowPeriod: i32,
+/* Generated */            optInMAType: i32,
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -324,15 +324,15 @@ optInFastPeriod: i32,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ppo_s(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          inReal: &[f32],
-/* Generated */          optInFastPeriod: i32,
-/* Generated */          optInSlowPeriod: i32,
-/* Generated */          optInMAType: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ppo_s(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal: &[f32],
+/* Generated */              optInFastPeriod: i32,
+/* Generated */              optInSlowPeriod: i32,
+/* Generated */              optInMAType: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_PPO( int    startIdx,
 /* Generated */                      int    endIdx,

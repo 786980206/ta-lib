@@ -88,7 +88,7 @@
 /* Generated */ public int cmoLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cmo_lookback(
+/* Generated */ pub fn cmo_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CMO_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -159,13 +159,13 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cmo(startIdx: i32,
-/* Generated */        endIdx: i32,
-/* Generated */        inReal: &[f64],
-/* Generated */        optInTimePeriod: i32,
-/* Generated */        outBegIdx: &mut i32,
-/* Generated */        outNBElement: &mut i32,
-/* Generated */        outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn cmo(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            inReal: &[f64],
+/* Generated */            optInTimePeriod: i32,
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -470,13 +470,13 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cmo_s(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          inReal: &[f32],
-/* Generated */          optInTimePeriod: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn cmo_s(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal: &[f32],
+/* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CMO( int    startIdx,
 /* Generated */                      int    endIdx,

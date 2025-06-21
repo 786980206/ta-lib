@@ -92,10 +92,10 @@
 /* Generated */                          int           optInFastD_Period, /* From 1 to 100000 */
 /* Generated */                          MAType        optInFastD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochf_lookback(
+/* Generated */ pub fn stochf_lookback(
 optInFastK_Period: i32,
-/* Generated */                     optInFastD_Period: i32,
-/* Generated */                     optInFastD_MAType: i32) -> i32
+/* Generated */                         optInFastD_Period: i32,
+/* Generated */                         optInFastD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCHF_Lookback( int           optInFastK_Period, /* From 1 to 100000 */
 /* Generated */                                             int           optInFastD_Period, /* From 1 to 100000 */
@@ -202,15 +202,15 @@ optInFastK_Period: i32,
 /* Generated */                        double        outFastK[],
 /* Generated */                        double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochf(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           /* Generated */           optInFastK_Period: i32,
-/* Generated */           optInFastD_Period: i32,
-/* Generated */           optInFastD_MAType: i32,
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outFastK: &mut [f64],
-/* Generated */           outFastD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stochf(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               /* Generated */               optInFastK_Period: i32,
+/* Generated */               optInFastD_Period: i32,
+/* Generated */               optInFastD_MAType: i32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outFastK: &mut [f64],
+/* Generated */               outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -572,15 +572,15 @@ optInFastK_Period: i32,
 /* Generated */                        double        outFastK[],
 /* Generated */                        double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stochf_s(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             /* Generated */             optInFastK_Period: i32,
-/* Generated */             optInFastD_Period: i32,
-/* Generated */             optInFastD_MAType: i32,
-/* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outFastK: &mut [f64],
-/* Generated */             outFastD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stochf_s(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 /* Generated */                 optInFastK_Period: i32,
+/* Generated */                 optInFastD_Period: i32,
+/* Generated */                 optInFastD_MAType: i32,
+/* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outFastK: &mut [f64],
+/* Generated */                 outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCHF( int    startIdx,
 /* Generated */                         int    endIdx,

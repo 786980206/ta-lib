@@ -89,7 +89,7 @@
 /* Generated */ public int aroonLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroon_lookback(
+/* Generated */ pub fn aroon_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AROON_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -160,13 +160,13 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroon(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          /* Generated */          optInTimePeriod: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outAroonDown: &mut [f64],
-/* Generated */          outAroonUp: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroon(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              /* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outAroonDown: &mut [f64],
+/* Generated */              outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -369,13 +369,13 @@ optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroon_s(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            /* Generated */            optInTimePeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outAroonDown: &mut [f64],
-/* Generated */            outAroonUp: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroon_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                /* Generated */                optInTimePeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outAroonDown: &mut [f64],
+/* Generated */                outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AROON( int    startIdx,
 /* Generated */                        int    endIdx,

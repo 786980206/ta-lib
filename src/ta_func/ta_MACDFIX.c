@@ -89,7 +89,7 @@
 /* Generated */ public int macdFixLookback( int           optInSignalPeriod )  /* From 1 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdfix_lookback(
+/* Generated */ pub fn macdfix_lookback(
 optInSignalPeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MACDFIX_Lookback( int           optInSignalPeriod )  /* From 1 to 100000 */
@@ -167,15 +167,15 @@ optInSignalPeriod: i32) -> i32
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdfix(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            inReal: &[f64],
-/* Generated */            optInSignalPeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outMACD: &mut [f64],
-/* Generated */            outMACDSignal: &mut [f64],
-/* Generated */            outMACDHist: &mut [f64]) -> RetCode
+/* Generated */ pub fn macdfix(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                inReal: &[f64],
+/* Generated */                optInSignalPeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outMACD: &mut [f64],
+/* Generated */                outMACDSignal: &mut [f64],
+/* Generated */                outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,
 /* Generated */                                   int    endIdx,
@@ -284,15 +284,15 @@ optInSignalPeriod: i32) -> i32
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn macdfix_s(startIdx: i32,
-/* Generated */              endIdx: i32,
-/* Generated */              inReal: &[f32],
-/* Generated */              optInSignalPeriod: i32,
-/* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
-/* Generated */              outMACD: &mut [f64],
-/* Generated */              outMACDSignal: &mut [f64],
-/* Generated */              outMACDHist: &mut [f64]) -> RetCode
+/* Generated */ pub fn macdfix_s(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  inReal: &[f32],
+/* Generated */                  optInSignalPeriod: i32,
+/* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outMACD: &mut [f64],
+/* Generated */                  outMACDSignal: &mut [f64],
+/* Generated */                  outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MACDFIX( int    startIdx,
 /* Generated */                          int    endIdx,

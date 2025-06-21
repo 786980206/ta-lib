@@ -88,7 +88,7 @@
 /* Generated */ public int cdlUpsideGap2CrowsLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlupsidegap2crows_lookback(
+/* Generated */ pub fn cdlupsidegap2crows_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLUPSIDEGAP2CROWS_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                                    MInteger     outNBElement,
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlupsidegap2crows(startIdx: i32,
-/* Generated */                       endIdx: i32,
-/* Generated */                       /* Generated */                       outBegIdx: &mut i32,
-/* Generated */                       outNBElement: &mut i32,
-/* Generated */                       outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlupsidegap2crows(startIdx: i32,
+/* Generated */                           endIdx: i32,
+/* Generated */                           /* Generated */                           outBegIdx: &mut i32,
+/* Generated */                           outNBElement: &mut i32,
+/* Generated */                           outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLUPSIDEGAP2CROWS( int    startIdx,
 /* Generated */                                              int    endIdx,
@@ -322,11 +322,11 @@
 /* Generated */                                    MInteger     outNBElement,
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlupsidegap2crows_s(startIdx: i32,
-/* Generated */                         endIdx: i32,
-/* Generated */                         /* Generated */                         outBegIdx: &mut i32,
-/* Generated */                         outNBElement: &mut i32,
-/* Generated */                         outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlupsidegap2crows_s(startIdx: i32,
+/* Generated */                             endIdx: i32,
+/* Generated */                             /* Generated */                             outBegIdx: &mut i32,
+/* Generated */                             outNBElement: &mut i32,
+/* Generated */                             outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLUPSIDEGAP2CROWS( int    startIdx,
 /* Generated */                                     int    endIdx,

@@ -91,7 +91,7 @@
 /* Generated */ public int mfiLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mfi_lookback(
+/* Generated */ pub fn mfi_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MFI_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -183,12 +183,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mfi(startIdx: i32,
-/* Generated */        endIdx: i32,
-/* Generated */        /* Generated */        optInTimePeriod: i32,
-/* Generated */        outBegIdx: &mut i32,
-/* Generated */        outNBElement: &mut i32,
-/* Generated */        outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn mfi(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            /* Generated */            optInTimePeriod: i32,
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -444,12 +444,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mfi_s(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          /* Generated */          optInTimePeriod: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn mfi_s(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              /* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MFI( int    startIdx,
 /* Generated */                      int    endIdx,

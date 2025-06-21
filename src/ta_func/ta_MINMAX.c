@@ -87,7 +87,7 @@
 /* Generated */ public int minMaxLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmax_lookback(
+/* Generated */ pub fn minmax_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MINMAX_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -156,14 +156,14 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        double        outMin[],
 /* Generated */                        double        outMax[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmax(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           inReal: &[f64],
-/* Generated */           optInTimePeriod: i32,
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outMin: &mut [f64],
-/* Generated */           outMax: &mut [f64]) -> RetCode
+/* Generated */ pub fn minmax(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               inReal: &[f64],
+/* Generated */               optInTimePeriod: i32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outMin: &mut [f64],
+/* Generated */               outMax: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MINMAX( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -351,14 +351,14 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        double        outMin[],
 /* Generated */                        double        outMax[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn minmax_s(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             inReal: &[f32],
-/* Generated */             optInTimePeriod: i32,
-/* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outMin: &mut [f64],
-/* Generated */             outMax: &mut [f64]) -> RetCode
+/* Generated */ pub fn minmax_s(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 inReal: &[f32],
+/* Generated */                 optInTimePeriod: i32,
+/* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outMin: &mut [f64],
+/* Generated */                 outMax: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MINMAX( int    startIdx,
 /* Generated */                         int    endIdx,

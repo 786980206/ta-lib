@@ -88,7 +88,7 @@
 /* Generated */ public int cdlEveningStarLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdleveningstar_lookback(
+/* Generated */ pub fn cdleveningstar_lookback(
 optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLEVENINGSTAR_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
@@ -163,12 +163,12 @@ optInPenetration: f64) -> i32
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdleveningstar(startIdx: i32,
-/* Generated */                   endIdx: i32,
-/* Generated */                   /* Generated */                   optInPenetration: f64,
-/* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
-/* Generated */                   outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdleveningstar(startIdx: i32,
+/* Generated */                       endIdx: i32,
+/* Generated */                       /* Generated */                       optInPenetration: f64,
+/* Generated */                       outBegIdx: &mut i32,
+/* Generated */                       outNBElement: &mut i32,
+/* Generated */                       outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLEVENINGSTAR( int    startIdx,
 /* Generated */                                          int    endIdx,
@@ -353,12 +353,12 @@ optInPenetration: f64) -> i32
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdleveningstar_s(startIdx: i32,
-/* Generated */                     endIdx: i32,
-/* Generated */                     /* Generated */                     optInPenetration: f32,
-/* Generated */                     outBegIdx: &mut i32,
-/* Generated */                     outNBElement: &mut i32,
-/* Generated */                     outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdleveningstar_s(startIdx: i32,
+/* Generated */                         endIdx: i32,
+/* Generated */                         /* Generated */                         optInPenetration: f32,
+/* Generated */                         outBegIdx: &mut i32,
+/* Generated */                         outNBElement: &mut i32,
+/* Generated */                         outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLEVENINGSTAR( int    startIdx,
 /* Generated */                                 int    endIdx,

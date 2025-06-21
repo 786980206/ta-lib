@@ -48,10 +48,10 @@ use super::{Core, RetCode};
 #[allow(unused_variables)]
 #[allow(dead_code)]
 impl Core {
-    fn mult_lookback() -> i32 {
+    pub fn mult_lookback() -> i32 {
         return 0;
     }
-    fn mult(
+    pub fn mult(
         startIdx: i32,
         endIdx: i32,
         inReal0: &[f64],
@@ -77,7 +77,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    fn mult_s(
+    pub fn mult_s(
         startIdx: i32,
         endIdx: i32,
         inReal0: &[f32],

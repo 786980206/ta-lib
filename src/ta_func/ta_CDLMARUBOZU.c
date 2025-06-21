@@ -88,7 +88,7 @@
 /* Generated */ public int cdlMarubozuLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmarubozu_lookback(
+/* Generated */ pub fn cdlmarubozu_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLMARUBOZU_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmarubozu(startIdx: i32,
-/* Generated */                endIdx: i32,
-/* Generated */                /* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
-/* Generated */                outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmarubozu(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLMARUBOZU( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -311,11 +311,11 @@
 /* Generated */                             MInteger     outNBElement,
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmarubozu_s(startIdx: i32,
-/* Generated */                  endIdx: i32,
-/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
-/* Generated */                  outNBElement: &mut i32,
-/* Generated */                  outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmarubozu_s(startIdx: i32,
+/* Generated */                      endIdx: i32,
+/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
+/* Generated */                      outNBElement: &mut i32,
+/* Generated */                      outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLMARUBOZU( int    startIdx,
 /* Generated */                              int    endIdx,

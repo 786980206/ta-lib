@@ -86,7 +86,7 @@
 /* Generated */ public int log10Lookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn log10_lookback(
+/* Generated */ pub fn log10_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_LOG10_Lookback( void )
@@ -136,12 +136,12 @@
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn log10(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          inReal: &[f64],
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn log10(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal: &[f64],
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_LOG10( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -228,12 +228,12 @@
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn log10_s(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            inReal: &[f32],
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn log10_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                inReal: &[f32],
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_LOG10( int    startIdx,
 /* Generated */                        int    endIdx,

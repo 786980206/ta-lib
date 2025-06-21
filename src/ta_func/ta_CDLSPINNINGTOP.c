@@ -88,7 +88,7 @@
 /* Generated */ public int cdlSpinningTopLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlspinningtop_lookback(
+/* Generated */ pub fn cdlspinningtop_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLSPINNINGTOP_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlspinningtop(startIdx: i32,
-/* Generated */                   endIdx: i32,
-/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
-/* Generated */                   outNBElement: &mut i32,
-/* Generated */                   outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlspinningtop(startIdx: i32,
+/* Generated */                       endIdx: i32,
+/* Generated */                       /* Generated */                       outBegIdx: &mut i32,
+/* Generated */                       outNBElement: &mut i32,
+/* Generated */                       outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLSPINNINGTOP( int    startIdx,
 /* Generated */                                          int    endIdx,
@@ -303,11 +303,11 @@
 /* Generated */                                MInteger     outNBElement,
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlspinningtop_s(startIdx: i32,
-/* Generated */                     endIdx: i32,
-/* Generated */                     /* Generated */                     outBegIdx: &mut i32,
-/* Generated */                     outNBElement: &mut i32,
-/* Generated */                     outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlspinningtop_s(startIdx: i32,
+/* Generated */                         endIdx: i32,
+/* Generated */                         /* Generated */                         outBegIdx: &mut i32,
+/* Generated */                         outNBElement: &mut i32,
+/* Generated */                         outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLSPINNINGTOP( int    startIdx,
 /* Generated */                                 int    endIdx,

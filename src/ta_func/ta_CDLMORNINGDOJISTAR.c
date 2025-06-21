@@ -88,7 +88,7 @@
 /* Generated */ public int cdlMorningDojiStarLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningdojistar_lookback(
+/* Generated */ pub fn cdlmorningdojistar_lookback(
 optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLMORNINGDOJISTAR_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
@@ -164,12 +164,12 @@ optInPenetration: f64) -> i32
 /* Generated */                                    MInteger     outNBElement,
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningdojistar(startIdx: i32,
-/* Generated */                       endIdx: i32,
-/* Generated */                       /* Generated */                       optInPenetration: f64,
-/* Generated */                       outBegIdx: &mut i32,
-/* Generated */                       outNBElement: &mut i32,
-/* Generated */                       outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmorningdojistar(startIdx: i32,
+/* Generated */                           endIdx: i32,
+/* Generated */                           /* Generated */                           optInPenetration: f64,
+/* Generated */                           outBegIdx: &mut i32,
+/* Generated */                           outNBElement: &mut i32,
+/* Generated */                           outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLMORNINGDOJISTAR( int    startIdx,
 /* Generated */                                              int    endIdx,
@@ -359,12 +359,12 @@ optInPenetration: f64) -> i32
 /* Generated */                                    MInteger     outNBElement,
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmorningdojistar_s(startIdx: i32,
-/* Generated */                         endIdx: i32,
-/* Generated */                         /* Generated */                         optInPenetration: f32,
-/* Generated */                         outBegIdx: &mut i32,
-/* Generated */                         outNBElement: &mut i32,
-/* Generated */                         outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmorningdojistar_s(startIdx: i32,
+/* Generated */                             endIdx: i32,
+/* Generated */                             /* Generated */                             optInPenetration: f32,
+/* Generated */                             outBegIdx: &mut i32,
+/* Generated */                             outNBElement: &mut i32,
+/* Generated */                             outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLMORNINGDOJISTAR( int    startIdx,
 /* Generated */                                     int    endIdx,

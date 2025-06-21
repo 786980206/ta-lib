@@ -86,7 +86,7 @@
 /* Generated */ public int divLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn div_lookback(
+/* Generated */ pub fn div_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_DIV_Lookback( void )
@@ -139,13 +139,13 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn div(startIdx: i32,
-/* Generated */        endIdx: i32,
-/* Generated */        inReal0: &[f64],
-/* Generated */        inReal1: &[f64],
-/* Generated */        outBegIdx: &mut i32,
-/* Generated */        outNBElement: &mut i32,
-/* Generated */        outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn div(startIdx: i32,
+/* Generated */            endIdx: i32,
+/* Generated */            inReal0: &[f64],
+/* Generated */            inReal1: &[f64],
+/* Generated */            outBegIdx: &mut i32,
+/* Generated */            outNBElement: &mut i32,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_DIV( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -237,13 +237,13 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn div_s(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          inReal0: &[f32],
-/* Generated */          inReal1: &[f32],
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn div_s(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              inReal0: &[f32],
+/* Generated */              inReal1: &[f32],
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_DIV( int    startIdx,
 /* Generated */                      int    endIdx,

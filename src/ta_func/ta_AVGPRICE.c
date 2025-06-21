@@ -89,7 +89,7 @@
 /* Generated */ public int avgPriceLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice_lookback(
+/* Generated */ pub fn avgprice_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AVGPRICE_Lookback( void )
@@ -149,11 +149,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             /* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn avgprice(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AVGPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -261,11 +261,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn avgprice_s(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn avgprice_s(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AVGPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

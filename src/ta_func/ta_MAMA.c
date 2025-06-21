@@ -92,9 +92,9 @@
 /* Generated */                        double        optInSlowLimit )  /* From 0.01 to 0.99 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mama_lookback(
+/* Generated */ pub fn mama_lookback(
 optInFastLimit: f64,
-/* Generated */                   optInSlowLimit: f64) -> i32
+/* Generated */                       optInSlowLimit: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAMA_Lookback( double        optInFastLimit, /* From 0.01 to 0.99 */
 /* Generated */                                           double        optInSlowLimit )  /* From 0.01 to 0.99 */
@@ -197,15 +197,15 @@ optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mama(startIdx: i32,
-/* Generated */         endIdx: i32,
-/* Generated */         inReal: &[f64],
-/* Generated */         optInFastLimit: f64,
-/* Generated */         optInSlowLimit: f64,
-/* Generated */         outBegIdx: &mut i32,
-/* Generated */         outNBElement: &mut i32,
-/* Generated */         outMAMA: &mut [f64],
-/* Generated */         outFAMA: &mut [f64]) -> RetCode
+/* Generated */ pub fn mama(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             inReal: &[f64],
+/* Generated */             optInFastLimit: f64,
+/* Generated */             optInSlowLimit: f64,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outMAMA: &mut [f64],
+/* Generated */             outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -554,15 +554,15 @@ optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn mama_s(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           inReal: &[f32],
-/* Generated */           optInFastLimit: f32,
-/* Generated */           optInSlowLimit: f32,
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outMAMA: &mut [f64],
-/* Generated */           outFAMA: &mut [f64]) -> RetCode
+/* Generated */ pub fn mama_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               inReal: &[f32],
+/* Generated */               optInFastLimit: f32,
+/* Generated */               optInSlowLimit: f32,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outMAMA: &mut [f64],
+/* Generated */               outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MAMA( int    startIdx,
 /* Generated */                       int    endIdx,

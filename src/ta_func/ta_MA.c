@@ -92,9 +92,9 @@
 /* Generated */ public int movingAverageLookback( int           optInTimePeriod, /* From 1 to 100000 */
 /* Generated */                                 MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ma_lookback(
+/* Generated */ pub fn ma_lookback(
 optInTimePeriod: i32,
-/* Generated */                 optInMAType: i32) -> i32
+/* Generated */                     optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MA_Lookback( int           optInTimePeriod, /* From 1 to 100000 */
 /* Generated */                                         TA_MAType     optInMAType ) /* Generated */ 
@@ -218,14 +218,14 @@ optInTimePeriod: i32,
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ma(startIdx: i32,
-/* Generated */       endIdx: i32,
-/* Generated */       inReal: &[f64],
-/* Generated */       optInTimePeriod: i32,
-/* Generated */       optInMAType: i32,
-/* Generated */       outBegIdx: &mut i32,
-/* Generated */       outNBElement: &mut i32,
-/* Generated */       outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ma(startIdx: i32,
+/* Generated */           endIdx: i32,
+/* Generated */           inReal: &[f64],
+/* Generated */           optInTimePeriod: i32,
+/* Generated */           optInMAType: i32,
+/* Generated */           outBegIdx: &mut i32,
+/* Generated */           outNBElement: &mut i32,
+/* Generated */           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
 /* Generated */                              int    endIdx,
@@ -402,14 +402,14 @@ optInTimePeriod: i32,
 /* Generated */                               MInteger     outNBElement,
 /* Generated */                               double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn ma_s(startIdx: i32,
-/* Generated */         endIdx: i32,
-/* Generated */         inReal: &[f32],
-/* Generated */         optInTimePeriod: i32,
-/* Generated */         optInMAType: i32,
-/* Generated */         outBegIdx: &mut i32,
-/* Generated */         outNBElement: &mut i32,
-/* Generated */         outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ma_s(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             inReal: &[f32],
+/* Generated */             optInTimePeriod: i32,
+/* Generated */             optInMAType: i32,
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MA( int    startIdx,
 /* Generated */                     int    endIdx,

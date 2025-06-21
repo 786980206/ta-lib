@@ -90,7 +90,7 @@
 /* Generated */ public int cdlHaramiLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlharami_lookback(
+/* Generated */ pub fn cdlharami_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLHARAMI_Lookback( void )
@@ -148,11 +148,11 @@
 /* Generated */                           MInteger     outNBElement,
 /* Generated */                           int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlharami(startIdx: i32,
-/* Generated */              endIdx: i32,
-/* Generated */              /* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
-/* Generated */              outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlharami(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  /* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHARAMI( int    startIdx,
 /* Generated */                                     int    endIdx,
@@ -329,11 +329,11 @@
 /* Generated */                           MInteger     outNBElement,
 /* Generated */                           int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlharami_s(startIdx: i32,
-/* Generated */                endIdx: i32,
-/* Generated */                /* Generated */                outBegIdx: &mut i32,
-/* Generated */                outNBElement: &mut i32,
-/* Generated */                outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlharami_s(startIdx: i32,
+/* Generated */                    endIdx: i32,
+/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
+/* Generated */                    outNBElement: &mut i32,
+/* Generated */                    outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHARAMI( int    startIdx,
 /* Generated */                            int    endIdx,

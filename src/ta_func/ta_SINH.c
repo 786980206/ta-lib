@@ -86,7 +86,7 @@
 /* Generated */ public int sinhLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sinh_lookback(
+/* Generated */ pub fn sinh_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SINH_Lookback( void )
@@ -136,12 +136,12 @@
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sinh(startIdx: i32,
-/* Generated */         endIdx: i32,
-/* Generated */         inReal: &[f64],
-/* Generated */         outBegIdx: &mut i32,
-/* Generated */         outNBElement: &mut i32,
-/* Generated */         outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sinh(startIdx: i32,
+/* Generated */             endIdx: i32,
+/* Generated */             inReal: &[f64],
+/* Generated */             outBegIdx: &mut i32,
+/* Generated */             outNBElement: &mut i32,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SINH( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -228,12 +228,12 @@
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn sinh_s(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           inReal: &[f32],
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sinh_s(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               inReal: &[f32],
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SINH( int    startIdx,
 /* Generated */                       int    endIdx,

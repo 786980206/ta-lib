@@ -91,9 +91,9 @@
 /* Generated */                         int           optInSlowPeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adosc_lookback(
+/* Generated */ pub fn adosc_lookback(
 optInFastPeriod: i32,
-/* Generated */                    optInSlowPeriod: i32) -> i32
+/* Generated */                        optInSlowPeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ADOSC_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                            int           optInSlowPeriod )  /* From 2 to 100000 */
@@ -188,13 +188,13 @@ optInFastPeriod: i32,
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adosc(startIdx: i32,
-/* Generated */          endIdx: i32,
-/* Generated */          /* Generated */          optInFastPeriod: i32,
-/* Generated */          optInSlowPeriod: i32,
-/* Generated */          outBegIdx: &mut i32,
-/* Generated */          outNBElement: &mut i32,
-/* Generated */          outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adosc(startIdx: i32,
+/* Generated */              endIdx: i32,
+/* Generated */              /* Generated */              optInFastPeriod: i32,
+/* Generated */              optInSlowPeriod: i32,
+/* Generated */              outBegIdx: &mut i32,
+/* Generated */              outNBElement: &mut i32,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -415,13 +415,13 @@ optInFastPeriod: i32,
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn adosc_s(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            /* Generated */            optInFastPeriod: i32,
-/* Generated */            optInSlowPeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adosc_s(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                /* Generated */                optInFastPeriod: i32,
+/* Generated */                optInSlowPeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ADOSC( int    startIdx,
 /* Generated */                        int    endIdx,

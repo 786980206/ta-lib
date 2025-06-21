@@ -92,9 +92,9 @@
 /* Generated */                          double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stddev_lookback(
+/* Generated */ pub fn stddev_lookback(
 optInTimePeriod: i32,
-/* Generated */                     optInNbDev: f64) -> i32
+/* Generated */                         optInNbDev: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STDDEV_Lookback( int           optInTimePeriod, /* From 2 to 100000 */
 /* Generated */                                             double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
@@ -172,14 +172,14 @@ optInTimePeriod: i32,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stddev(startIdx: i32,
-/* Generated */           endIdx: i32,
-/* Generated */           inReal: &[f64],
-/* Generated */           optInTimePeriod: i32,
-/* Generated */           optInNbDev: f64,
-/* Generated */           outBegIdx: &mut i32,
-/* Generated */           outNBElement: &mut i32,
-/* Generated */           outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn stddev(startIdx: i32,
+/* Generated */               endIdx: i32,
+/* Generated */               inReal: &[f64],
+/* Generated */               optInTimePeriod: i32,
+/* Generated */               optInNbDev: f64,
+/* Generated */               outBegIdx: &mut i32,
+/* Generated */               outNBElement: &mut i32,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -404,14 +404,14 @@ void TA_PREFIX(INT_stddev_using_precalc_ma)( const INPUT_TYPE *inReal,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn stddev_s(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             inReal: &[f32],
-/* Generated */             optInTimePeriod: i32,
-/* Generated */             optInNbDev: f32,
-/* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn stddev_s(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 inReal: &[f32],
+/* Generated */                 optInTimePeriod: i32,
+/* Generated */                 optInNbDev: f32,
+/* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STDDEV( int    startIdx,
 /* Generated */                         int    endIdx,

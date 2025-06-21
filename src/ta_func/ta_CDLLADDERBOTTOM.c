@@ -88,7 +88,7 @@
 /* Generated */ public int cdlLadderBottomLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlladderbottom_lookback(
+/* Generated */ pub fn cdlladderbottom_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLLADDERBOTTOM_Lookback( void )
@@ -146,11 +146,11 @@
 /* Generated */                                 MInteger     outNBElement,
 /* Generated */                                 int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlladderbottom(startIdx: i32,
-/* Generated */                    endIdx: i32,
-/* Generated */                    /* Generated */                    outBegIdx: &mut i32,
-/* Generated */                    outNBElement: &mut i32,
-/* Generated */                    outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlladderbottom(startIdx: i32,
+/* Generated */                        endIdx: i32,
+/* Generated */                        /* Generated */                        outBegIdx: &mut i32,
+/* Generated */                        outNBElement: &mut i32,
+/* Generated */                        outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLLADDERBOTTOM( int    startIdx,
 /* Generated */                                           int    endIdx,
@@ -314,11 +314,11 @@
 /* Generated */                                 MInteger     outNBElement,
 /* Generated */                                 int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlladderbottom_s(startIdx: i32,
-/* Generated */                      endIdx: i32,
-/* Generated */                      /* Generated */                      outBegIdx: &mut i32,
-/* Generated */                      outNBElement: &mut i32,
-/* Generated */                      outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlladderbottom_s(startIdx: i32,
+/* Generated */                          endIdx: i32,
+/* Generated */                          /* Generated */                          outBegIdx: &mut i32,
+/* Generated */                          outNBElement: &mut i32,
+/* Generated */                          outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLLADDERBOTTOM( int    startIdx,
 /* Generated */                                  int    endIdx,

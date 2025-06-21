@@ -88,7 +88,7 @@
 /* Generated */ public int cdlMatHoldLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmathold_lookback(
+/* Generated */ pub fn cdlmathold_lookback(
 optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLMATHOLD_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
@@ -162,12 +162,12 @@ optInPenetration: f64) -> i32
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmathold(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               optInPenetration: f64,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmathold(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   optInPenetration: f64,
+/* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLMATHOLD( int    startIdx,
 /* Generated */                                      int    endIdx,
@@ -375,12 +375,12 @@ optInPenetration: f64) -> i32
 /* Generated */                            MInteger     outNBElement,
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn cdlmathold_s(startIdx: i32,
-/* Generated */                 endIdx: i32,
-/* Generated */                 /* Generated */                 optInPenetration: f32,
-/* Generated */                 outBegIdx: &mut i32,
-/* Generated */                 outNBElement: &mut i32,
-/* Generated */                 outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlmathold_s(startIdx: i32,
+/* Generated */                     endIdx: i32,
+/* Generated */                     /* Generated */                     optInPenetration: f32,
+/* Generated */                     outBegIdx: &mut i32,
+/* Generated */                     outNBElement: &mut i32,
+/* Generated */                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLMATHOLD( int    startIdx,
 /* Generated */                             int    endIdx,

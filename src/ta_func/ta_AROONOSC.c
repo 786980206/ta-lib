@@ -90,7 +90,7 @@
 /* Generated */ public int aroonOscLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroonosc_lookback(
+/* Generated */ pub fn aroonosc_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AROONOSC_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -158,12 +158,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroonosc(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             /* Generated */             optInTimePeriod: i32,
-/* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroonosc(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 /* Generated */                 optInTimePeriod: i32,
+/* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AROONOSC( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -376,12 +376,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn aroonosc_s(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               optInTimePeriod: i32,
-/* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroonosc_s(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   optInTimePeriod: i32,
+/* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AROONOSC( int    startIdx,
 /* Generated */                           int    endIdx,

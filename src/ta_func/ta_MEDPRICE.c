@@ -90,7 +90,7 @@
 /* Generated */ public int medPriceLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn medprice_lookback(
+/* Generated */ pub fn medprice_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MEDPRICE_Lookback( void )
@@ -144,11 +144,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn medprice(startIdx: i32,
-/* Generated */             endIdx: i32,
-/* Generated */             /* Generated */             outBegIdx: &mut i32,
-/* Generated */             outNBElement: &mut i32,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn medprice(startIdx: i32,
+/* Generated */                 endIdx: i32,
+/* Generated */                 /* Generated */                 outBegIdx: &mut i32,
+/* Generated */                 outNBElement: &mut i32,
+/* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MEDPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -250,11 +250,11 @@
 /* Generated */                          MInteger     outNBElement,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn medprice_s(startIdx: i32,
-/* Generated */               endIdx: i32,
-/* Generated */               /* Generated */               outBegIdx: &mut i32,
-/* Generated */               outNBElement: &mut i32,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn medprice_s(startIdx: i32,
+/* Generated */                   endIdx: i32,
+/* Generated */                   /* Generated */                   outBegIdx: &mut i32,
+/* Generated */                   outNBElement: &mut i32,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MEDPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

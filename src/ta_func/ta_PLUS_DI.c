@@ -93,7 +93,7 @@
 /* Generated */ public int plusDILookback( int           optInTimePeriod )  /* From 1 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn plus_di_lookback(
+/* Generated */ pub fn plus_di_lookback(
 optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_PLUS_DI_Lookback( int           optInTimePeriod )  /* From 1 to 100000 */
@@ -168,12 +168,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn plus_di(startIdx: i32,
-/* Generated */            endIdx: i32,
-/* Generated */            /* Generated */            optInTimePeriod: i32,
-/* Generated */            outBegIdx: &mut i32,
-/* Generated */            outNBElement: &mut i32,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn plus_di(startIdx: i32,
+/* Generated */                endIdx: i32,
+/* Generated */                /* Generated */                optInTimePeriod: i32,
+/* Generated */                outBegIdx: &mut i32,
+/* Generated */                outNBElement: &mut i32,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_PLUS_DI( int    startIdx,
 /* Generated */                                   int    endIdx,
@@ -556,12 +556,12 @@ optInTimePeriod: i32) -> i32
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-/* Generated */ fn plus_di_s(startIdx: i32,
-/* Generated */              endIdx: i32,
-/* Generated */              /* Generated */              optInTimePeriod: i32,
-/* Generated */              outBegIdx: &mut i32,
-/* Generated */              outNBElement: &mut i32,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn plus_di_s(startIdx: i32,
+/* Generated */                  endIdx: i32,
+/* Generated */                  /* Generated */                  optInTimePeriod: i32,
+/* Generated */                  outBegIdx: &mut i32,
+/* Generated */                  outNBElement: &mut i32,
+/* Generated */                  outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_PLUS_DI( int    startIdx,
 /* Generated */                          int    endIdx,
