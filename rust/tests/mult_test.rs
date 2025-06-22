@@ -128,32 +128,50 @@ fn test_usize_negative_validation() {
     let mut out_real = [0.0; 5];
     let mut out_beg_idx = 0usize;
     let mut out_nb_element = 0usize;
-    
+
     // This should test the validation logic
     // In C, passing -1 would be caught by startIdx < 0
     // In Rust with usize, what happens?
-    
+
     // Test 1: Normal valid case
-    let result = Core::mult(0, 4, &in_real0, &in_real1, 
-                           &mut out_beg_idx, &mut out_nb_element, 
-                           &mut out_real);
-    
+    let result = Core::mult(
+        0,
+        4,
+        &in_real0,
+        &in_real1,
+        &mut out_beg_idx,
+        &mut out_nb_element,
+        &mut out_real,
+    );
+
     println!("Normal case result: {:?}", result);
     assert_eq!(result, RetCode::Success);
-    
+
     // Test 2: What happens if we try to pass usize::MAX (equivalent to -1 in signed)?
     // This simulates what would happen if C code passed -1
-    let result_max = Core::mult(usize::MAX, 4, &in_real0, &in_real1, 
-                               &mut out_beg_idx, &mut out_nb_element, 
-                               &mut out_real);
-    
+    let result_max = Core::mult(
+        usize::MAX,
+        4,
+        &in_real0,
+        &in_real1,
+        &mut out_beg_idx,
+        &mut out_nb_element,
+        &mut out_real,
+    );
+
     println!("usize::MAX startIdx result: {:?}", result_max);
-    
+
     // Test 3: endIdx < startIdx case (already tested above, but let's be explicit)
-    let result_backwards = Core::mult(4, 0, &in_real0, &in_real1, 
-                                     &mut out_beg_idx, &mut out_nb_element, 
-                                     &mut out_real);
-    
+    let result_backwards = Core::mult(
+        4,
+        0,
+        &in_real0,
+        &in_real1,
+        &mut out_beg_idx,
+        &mut out_nb_element,
+        &mut out_real,
+    );
+
     println!("endIdx < startIdx result: {:?}", result_backwards);
     assert_eq!(result_backwards, RetCode::OutOfRangeEndIndex);
 }

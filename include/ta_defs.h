@@ -225,7 +225,7 @@
 #if defined(_RUST)
     #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) \
     outIdxVar = 0; \
-    for idxVar in startVal..=endVal {
+    for idxVar in (startVal as usize)..=(endVal as usize) {
     #define FOR_EACH_OUTPUT_END(outIdxVar) outIdxVar += 1; }
     #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=period).rev() {
     #define FOR_COUNTDOWN_END }
@@ -233,6 +233,10 @@
     #define DECLARE_INT_VAR(name) let mut name: i32;
     #define DECLARE_INDEX_VAR(name) let mut name: usize;
     #define DECLARE_DOUBLE_VAR(name) let mut name: f64;
+    
+    /* For loop variables used with FOR_EACH_OUTPUT, use this no-op macro
+     * since FOR_EACH_OUTPUT creates its own loop variable binding */
+    #define DECLARE_LOOP_VAR(name) /* no-op: loop variables handled by FOR_EACH_OUTPUT */
     
     /* Rust-specific syntax helpers */
     #define IF_CONDITION(cond) if cond {
@@ -253,6 +257,9 @@
     #define DECLARE_INT_VAR(name) int name;
     #define DECLARE_INDEX_VAR(name) int name;
     #define DECLARE_DOUBLE_VAR(name) double name;
+    
+    /* For C, loop variables need normal declaration */
+    #define DECLARE_LOOP_VAR(name) int name;
     
     /* C-style syntax helpers (no-ops for C) */
     #define IF_CONDITION(cond) if (cond) {

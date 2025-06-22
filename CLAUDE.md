@@ -1,258 +1,52 @@
-# CLAUDE.md
+# CLAUDE.md - TA-Lib Rust Integration Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+## Build & Test
+- Build: `bin/gen_code` → `cargo check && cargo fmt` → `bin/ta_regtest`
+- Workflow: Modify generator → Rebuild gen_code → Run gen_code → Test Rust
 
-## Build Commands
-- CMake: `mkdir build && cd build && cmake .. && make`
-- Build after changes: Run `bin/gen_code` to regenerate code variants (Rust, Java)
-- Run tests: `bin/ta_regtest` (exit code 0 on success)
-- **Rust validation**: `cargo check && cargo fmt` (both execute successfully after gen_code)
-- **Next goal**: Add MULT function tests and automate cargo fmt in build process
+## Rust Architecture  
+- Generated from C sources via `src/tools/gen_code/gen_rust.c`
+- Functions wrapped in `impl Core { pub fn mult(...) -> RetCode }`
+- Parameter types: `usize` for indices, `&[f64]`/`&mut [f64]` for arrays
+- Maintains TA-Lib API compatibility (camelCase parameters)
 
-## Rust Conversion Guidelines
-- Use snake_case for Rust function names
-- Rust code is auto-generated - modify C sources in `src/ta_func/` instead
-- Generated Rust files are in `rust/src/ta_func/`
-- Function signatures follow pattern: `fn function_name(startIdx, endIdx, inputs..., optional_inputs..., mut outputs...)`
-- **API Contract**: Parameter names must maintain camelCase (startIdx, endIdx, outBegIdx, outNBElement) to preserve TA-Lib API compatibility
-- **Index Types**: Use `usize` for all index parameters (startIdx, endIdx, outBegIdx, outNBElement) instead of i32 for idiomatic Rust
+## Code Generation
+- Multi-language: C, .NET, Java, Rust from single source
+- GENCODE sections in `.c` files contain language-specific implementations
+- Cross-language macros in `include/ta_defs.h` handle syntax differences
+- Key files: `gen_code.c` (validation), `gen_rust.c` (signatures), `ta_defs.h` (macros)
 
-## Rust Architecture Plan
-- TA-Lib will export a "core" struct that provides TA functions
-- Functions are implemented as methods on core with `impl core { fn mult() {...} }`
-- Users will instantiate a TA-Lib core and call methods like `core.mult(stuff)`
-- Separate implementations can be spread across multiple files with multiple `impl core {}` blocks
-- Code generation needs to convert C-style loops to idiomatic Rust (replace i++/i-- with i+=1/i-=1)
-- Current focus is on completing function signatures in gen_rust.c (TODOs include input params, optional inputs, return types)
-- First function to be fully implemented is MULT, then SMA
+## Critical Fixes Implemented
 
-## Style Guidelines
-- C Code: CamelCase function names with TA_ prefix (e.g., `TA_RSI`)
-- Function parameters order: startIdx, endIdx, inputs, optional inputs, outputs
-- Error handling: Return codes via TA_RetCode enumeration
-- All files must maintain copyright header and generation comments
-- New functions: document algorithm in ta-lib-proposal-drafts repository first
+### 1. Loop Variable Declaration (FIXED)
+**Problem**: `DECLARE_INDEX_VAR(i)` creates unused `let mut i: usize;` since `FOR_EACH_OUTPUT` creates own binding
+**Solution**: `DECLARE_LOOP_VAR(i)` - no-op for Rust, normal declaration for C
 
-## Development Workflow
-- Modifications must be made on 'dev' branch
-- Run `scripts/sync.py` before committing to update versions and fix issues
-- After changes, run tests to verify functionality
+### 2. Index Validation (FIXED)
+**Problem**: `startIdx < 0` meaningless for `usize` types  
+**Solution**: Modified `gen_code.c:3464-3476` - Rust skips negative checks, only validates `endIdx < startIdx`
 
-## Rust Code Generation
-- Code generation happens in `src/tools/gen_code/gen_rust.c`
-- Templates in `src/ta_abstract/templates/` (ta_x.rs.template, ta_func_mod.rs.template)
-- Current TODOs in gen_rust.c include:
-  - Print input parameters with proper Rust types
-  - Print optional input parameters
-  - Add function return types
-  - Convert validation logic to Rust
-  - Handle proper borrowing for output parameters
-- Single function testing can be controlled with RUST_SINGLE_FUNC macro
+### 3. Type Conversion (FIXED)
+**Problem**: f32 inputs → f64 outputs in single precision functions
+**Solution**: `OUTPUT_F64(val)` macro casts to f64 in Rust, no-op in C
 
-## Code Generation Architecture
-- Source TA function files (like ta_MULT.c) contain code for multiple language targets
-- Files use special GENCODE sections with #if defined conditionals for different languages
-- Language-specific code is wrapped in /* Generated */ comments
-- Current language targets:
-  - Native C (default)
-  - Managed (.NET)
-  - Java 
-  - Rust (in progress)
-- The gen_code utility uses C preprocessor to extract relevant sections for each language
-- Each language has its own syntax pattern for:
-  - Function signatures
-  - Parameter types
-  - Error handling (RetCode)
-  - Namespacing (impl core { ... } for Rust)
-
-## Pre-Processing Macros in ta_MULT.c
-- The file is divided into GENCODE sections (1-5) that handle different parts of the implementation
-- Key macros used:
-  - `#if defined(_MANAGED)`, `#elif defined(_JAVA)`, `#elif defined(_RUST)` for language selection
-  - `TA_PREFIX(x)` for naming conventions in different languages
-  - `INPUT_TYPE` to define the type of input parameters (double or float)
-  - `ENUM_VALUE(RetCode,TA_SUCCESS,Success)` for returning success/error codes
-  - `VALUE_HANDLE_DEREF(outNBElement)` for setting output variables
-- The actual function implementation is only a few lines (194-197)
-- The same function is implemented twice: once for double precision, once for single precision
-- The preprocessor extracts different parts based on language target (via `#if defined(_RUST)`)
-- For Rust:
-  - Functions are wrapped in `impl core { ... }` (line 64)
-  - Function signatures use Rust-style naming (mult_lookback, mult, mult_s)
-  - Function bodies remain in C syntax and need conversion to Rust
-
-## MULT Function Analysis
-- Function has no optional parameters
-- Structure follows standard pattern:
-  1. Lookback function (returns 0 for MULT)
-  2. Double precision function with validation and implementation
-  3. Single precision function with similar structure
-- Core algorithm is simple array multiplication in a for-loop
-- Key C idioms that need Rust conversion:
-  - For loop with multiple increment operations: `for(i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++)`
-  - Assignment within array: `outReal[outIdx] = inReal0[i]*inReal1[i]`
-  - Macro for output parameter assignment: `VALUE_HANDLE_DEREF(outNBElement) = outIdx`
-  - Enum value return: `return ENUM_VALUE(RetCode,TA_SUCCESS,Success)`
-
-## Generation Process Understanding
-- gen_code.c controls the overall code generation process
-- gen_rust.c handles Rust-specific signature generation and boilerplate
-- The actual function implementation (e.g., MULT multiplication) is not generated by gen_rust.c
-- Instead, the C preprocessor extracts relevant parts from ta_MULT.c when `_RUST` is defined
-- Our approach should be:
-  1. Fix function signatures in gen_rust.c to generate proper Rust syntax
-  2. Create macros for Rust-specific operations in the implementation
-  3. Update existing code to use these macros
-  4. Let the preprocessor and gen_code combine them to produce correct Rust output
-- This keeps the pattern consistent with how Java and .NET are currently generated
-- We only need to add RUST-specific macro definitions and use them in the code
-
-## Cross-Language Macro Approach - IMPLEMENTED
-Successfully implemented macro-based abstraction for loops and variable declarations in ta_defs.h:
-
-### Implemented Macros:
-- `FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar)` / `FOR_EACH_OUTPUT_END`:
-  - C: `for(idxVar=startVal, outIdxVar=0; idxVar <= endVal; idxVar++, outIdxVar++) { ... }`
-  - Rust: `let mut outIdxVar = 0; for idxVar in startVal..=endVal { ... outIdxVar += 1; }`
-- `FOR_COUNTDOWN(period, idxVar)` / `FOR_COUNTDOWN_END`:
-  - C: `for(idxVar=period; idxVar > 0; idxVar--) { ... }`
-  - Rust: `for idxVar in (1..=period).rev() { ... }`
-- `DECLARE_INT_VAR(name)` / `DECLARE_DOUBLE_VAR(name)`:
-  - C: `int name;` / `double name;`
-  - Rust: `let mut name: i32;` / `let mut name: f64;`
-
-### Results:
-- Successfully converts ~65% of TA-Lib loop patterns automatically
-- Maintains single source of truth in C files
-- Generates correct Rust syntax for variables and common loops
-- Works alongside existing macro patterns (ENUM_VALUE, VALUE_HANDLE_DEREF, etc.)
-- ta_MULT.c now generates proper Rust variable declarations and loop syntax
-
-### Multi-Tier Strategy:
-- **Tier 1 (65%)**: Use macros for simple sequential and countdown loops
-- **Tier 2 (25%)**: Specialized macros for specific patterns (candlestick functions)
-- **Tier 3 (15%)**: Manual conversion for complex nested/algorithmic loops
-
-This approach successfully demonstrates cross-language code generation for loop and variable syntax differences.
-
-## Build Process Insights - IMPORTANT
-- The gen_code executable must be **rebuilt** after modifying gen_rust.c or other generator files
-- After rebuilding gen_code, it must be **rerun** to update the GENCODE sections in .c files
-- The GENCODE sections in ta_MULT.c etc. are auto-generated by calling functions from gen_rust.c
-- Workflow: Modify gen_rust.c → Rebuild gen_code → Run gen_code → Rust signatures updated
-- This fixes issues like C-style parameter types appearing in Rust function signatures
-
-## gen_rust.c Function Analysis
-The key functions in `src/tools/gen_code/gen_rust.c` that generate proper Rust function signatures:
-
-### printRustDoublePrecisionFunctionSignature() (lines 56-186):
-- Generates signatures like `fn mult(startIdx: i32, endIdx: i32, inReal0: &[f64], inReal1: &[f64], ...)`
-- Handles different input types: TA_Input_Real → `&[f64]`, TA_Input_Integer → `&[i32]`
-- Processes price inputs with flags (OPEN, HIGH, LOW, CLOSE, VOLUME)
-- Converts optional inputs: TA_OptInput_RealRange → `f64`, TA_OptInput_IntegerRange → `i32`
-- Output parameters: TA_Output_Real → `&mut [f64]`, TA_Output_Integer → `&mut [i32]`
-
-### printRustSinglePrecisionFunctionSignature() (lines 188-319):
-- Similar to double precision but uses `f32` for inputs and `_s` suffix
-- Outputs still use `f64` even for single precision functions
-- Essential for the second function variant in each .c file
-
-### genRustCodePhase2() (lines 376-456):
-- **Key insight**: This function does NOT remove Rust syntax or cause type problems
-- It runs the C preprocessor with `-D _RUST` to extract Rust-specific code from .c files
-- Generates the `.rs` files by combining template + preprocessed implementation
-- The processor correctly extracts whatever is in the GENCODE sections
-
-### Root Cause of Initial Type Issue:
-The problem was NOT in genRustCodePhase2 removing Rust syntax. The issue was:
-1. The GENCODE sections in ta_MULT.c contained C-style signatures (int startIdx)
-2. Those sections are generated by calling the print functions from gen_rust.c
-3. When gen_rust.c was updated but gen_code wasn't rebuilt, the old functions were still being called
-4. After rebuilding gen_code and rerunning it, the GENCODE sections got updated with proper Rust syntax
-
-## Current Status - FULLY WORKING RUST GENERATION! 🎉
-- ✅ Function signatures now generate proper Rust types (startIdx: i32, inReal0: &[f64], etc.) maintaining TA-Lib API compatibility
-- ✅ Variable declarations use Rust syntax (let mut outIdx: usize;)
-- ✅ Loop patterns converted via macros (for i in (startIdx as usize)..=(endIdx as usize))
-- ✅ Multi-language generation working for C, Java, .NET, and Rust
-- ✅ gen_rust.c properly handles all TA input/output types and generates correct Rust signatures
-- ✅ Separated Java and Rust macro definitions in ta_defs.h for proper Rust syntax
-- ✅ Fixed enum access (RetCode::Success) and pointer dereferencing (*outNBElement)
-- ✅ Set up Cargo.toml and basic lib.rs structure for Rust crate
-- ✅ RESOLVED: Fixed variable redeclaration issues by using DECLARE_INDEX_VAR for array indices
-- ✅ RESOLVED: Fixed f32 to f64 type casting with OUTPUT_F64 macro
-- ✅ RESOLVED: Fixed macro structure with proper FOR_EACH_OUTPUT_END closing braces
-- ✅ Added lint allowances to maintain TA-Lib API naming conventions
-- ✅ MULT function fully compiles and passes cargo check!
-- ✅ **MILESTONE**: Both `cargo check` && `cargo fmt` execute successfully after Rust build
-- 🔄 **NEXT**: Adding tests for MULT function and automating cargo fmt in build process
-
-## Rust-Specific Macro Improvements - COMPLETED
-Successfully separated Java and Rust macro definitions in `include/ta_defs.h`:
-
-### Key Rust Macro Fixes:
-- `ENUM_VALUE(w,x,y)`: Now uses `w::y` (Rust) instead of `w.y` (Java)
-- `VALUE_HANDLE_DEREF(name)`: Now uses `(*name)` (Rust) instead of `name.value` (Java)
-- `NAMESPACE(x)`: Now uses `x::` (Rust) instead of `x.` (Java)
-- Added proper Rust type annotations: `const x: f64`
-- Added idiomatic Rust unused variable handling: `let _ = x`
-
-### Parameter Naming - Snake Case Applied:
-All parameter names in gen_rust.c now use toLowerSnakeCase():
-- `startIdx` → `start_idx`
-- `endIdx` → `end_idx`
-- `outBegIdx` → `out_beg_idx`
-- `outNBElement` → `out_nb_element`
-- `inOpen` → `in_open`, `inHigh` → `in_high`, etc.
-- All input/output parameter names from TA function metadata
-
-## Cargo Setup - COMPLETED
-- Created proper `Cargo.toml` with TA-Lib metadata and feature flags
-- Created minimal `lib.rs` that re-exports generated modules (avoiding duplication)
-- RetCode enum and Core struct should be generated from C definitions, not hardcoded
-
-## Key Learnings from F32/F64 Type Conversion Issue
-Successfully resolved complex f32 to f64 type conversion in Rust code generation:
-
-### Problem:
-- Single precision functions (mult_s) take f32 inputs but must write to f64 output arrays
-- Direct assignment `outReal[outIdx] = inReal0[i]*inReal1[i]` failed with type mismatch
-- f32 * f32 = f32, but outReal expects f64
-
-### Solution - OUTPUT_F64 Macro:
-- Created `OUTPUT_F64(val)` macro in ta_defs.h that casts to f64 in Rust
-- Rust: `#define OUTPUT_F64(val) CAST_TO_F64(val)` → `((val) as f64)`
-- C: `#define OUTPUT_F64(val) (val)` → no-op since C handles float/double conversion implicitly
-- Applied in ta_MULT.c: `outReal[outIdx] = OUTPUT_F64(inReal0[i]*inReal1[i]);`
-
-### Key Insights:
-1. **Macro Timing**: Conditional macros based on `USE_SINGLE_PRECISION_INPUT` don't work because the define happens during generation, not preprocessing
-2. **Simple is Better**: Always casting in Rust (even for double precision) is safer than conditional logic
-3. **Generated Code Structure**: The same source generates both double and single precision functions with different INPUT_TYPE defines
-4. **Rust Template Improvements**: Added `#[allow(non_snake_case)]` to maintain TA-Lib API compatibility
-
-### Template Enhancement:
-Updated `ta_x.rs.template` to include lint allowances:
-```rust
-#[allow(non_snake_case)]    // Maintain TA-Lib API compatibility
-#[allow(unused_variables)]  // Generated code may have unused vars
-#[allow(dead_code)]         // Functions not yet integrated
+## Macro System
+```c
+// FOR_EACH_OUTPUT: C vs Rust syntax conversion
+FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
+   outReal[outIdx] = OUTPUT_F64(inReal0[i] * inReal1[i]);
+FOR_EACH_OUTPUT_END(outIdx)
 ```
 
-This approach successfully handles cross-language type conversion while maintaining single-source-of-truth architecture.
+## Current Status
+- ✅ MULT function compiles clean with `cargo check`
+- ✅ Cross-language generation working for all targets
+- ✅ Template system with proper lint allowances
+- 🔄 Phase 2: Index validation fixes applied, pending regeneration
+- 📋 Phase 3: Documentation generation (conditional based on function metadata)
 
-## Debug Tools
-- Use `cargo check` to identify specific Rust syntax errors before attempting formatting
-- `cargo fmt` only works on syntactically valid Rust code
-- Generation workflow: Modify macros → Rebuild gen_code → Run gen_code → Test with cargo check
-
-## Important Generation Process Insight
-- The code marked with `/* Generated */` comments is auto-generated by gen_code
-- We should NOT directly edit these generated sections in the .c files
-- Instead, we need to:
-  1. Define language-specific macros and templates in gen_code.c and gen_rust.c
-  2. Let these macros handle the proper code generation for each language
-  3. Allow the generation process to create properly formatted Rust code
-- Any direct edits to the generated sections will be lost on the next run of gen_code
-- Macros that need to be defined should be included in the appropriate templates or generator files
-- The goal is to modify the generator, not the generated output
+## Key Technical Insights
+- **Generator Pattern**: Modify generators, not generated code
+- **Build Order**: gen_rust.c changes → rebuild gen_code → run gen_code → test
+- **Macro Strategy**: 65% automated via macros, 25% specialized patterns, 15% manual
+- **Type Safety**: Rust `usize` requires different validation than C `int`
