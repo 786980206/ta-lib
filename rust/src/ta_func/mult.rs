@@ -61,15 +61,11 @@ impl Core {
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
-        let mut i: usize;
-        if startIdx < 0 {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        if (endIdx < 0) || (endIdx < startIdx) {
+        if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in startIdx..=endIdx {
+        for i in (startIdx as usize)..=(endIdx as usize) {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
@@ -87,15 +83,11 @@ impl Core {
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
-        let mut i: usize;
-        if startIdx < 0 {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        if (endIdx < 0) || (endIdx < startIdx) {
+        if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in startIdx..=endIdx {
+        for i in (startIdx as usize)..=(endIdx as usize) {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
