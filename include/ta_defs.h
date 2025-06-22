@@ -225,9 +225,9 @@
 #if defined(_RUST)
     #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) \
     outIdxVar = 0; \
-    for idxVar in (startVal as usize)..=(endVal as usize) {
+    for idxVar in startVal..=endVal {
     #define FOR_EACH_OUTPUT_END(outIdxVar) outIdxVar += 1; }
-    #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=(period as usize)).rev() {
+    #define FOR_COUNTDOWN(period, idxVar) for idxVar in (1..=period).rev() {
     #define FOR_COUNTDOWN_END }
 
     #define DECLARE_INT_VAR(name) let mut name: i32;
@@ -237,7 +237,7 @@
     /* Rust-specific syntax helpers */
     #define IF_CONDITION(cond) if cond {
     #define IF_CONDITION_END }
-    #define ARRAY_ACCESS(arr, idx) arr[(idx) as usize]
+    #define ARRAY_ACCESS(arr, idx) arr[idx]
     #define CAST_TO_USIZE(val) ((val) as usize)
     #define CAST_TO_I32(val) ((val) as i32)
     #define CAST_TO_F64(val) ((val) as f64)

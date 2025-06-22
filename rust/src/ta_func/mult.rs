@@ -69,7 +69,7 @@ impl Core {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in startIdx..=endIdx {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
@@ -95,7 +95,7 @@ impl Core {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in startIdx..=endIdx {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
         }
