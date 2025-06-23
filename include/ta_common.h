@@ -123,7 +123,7 @@ typedef struct TA_StringTable
  *        }
  *
  * Would display:
- *        "Error 1(TA_LIB_NOT_INITIALIZE): TA_Initialize was not sucessfully called"
+ *        "Error 1(TA_LIB_NOT_INITIALIZE): TA_Initialize was not successfully called"
  */
 typedef struct TA_RetCodeInfo
 {
