@@ -1,5 +1,54 @@
 # CLAUDE.md - TA-Lib Rust Integration Guide
 
+## CRITICAL: Generated Code Philosophy
+
+**DO NOT hand-write language-specific code in source files.** The entire system is designed around code generation:
+
+1. **Function signatures are GENERATED** by `printRustDoublePrecisionFunctionSignature`, `printRustSinglePrecisionFunctionSignature`, and `printRustLookbackFunctionSignature` in `gen_rust.c`
+2. **GENCODE sections are GENERATED** - never manually edit lines prefixed with `/* Generated */`
+3. **Macros enable cross-language code** - use macros from `ta_defs.h` rather than writing language-specific syntax
+4. **If you need new Rust functionality**, the correct approach is:
+   - Add a new macro to `ta_defs.h` with proper `#if defined( _RUST )` / `#else` handling
+   - OR add a new print function to `gen_rust.c` and call it from `gen_code.c`
+   - NEVER write raw Rust syntax in `.c` source files
+
+### PREFER MACROS OVER CONDITIONALS
+
+When modifying source `.c` files (in the logic sections between GENCODE 3-5), **use macros directly** rather than adding `#if defined(_RUST)` conditionals:
+
+**WRONG** - Adding conditionals in source:
+```c
+#if defined( _RUST )
+   DECLARE_DOUBLE_VAR(periodTotal)
+#else
+   double periodTotal;
+#endif
+```
+
+**RIGHT** - Using macros directly (let macro handle the switch):
+```c
+   DECLARE_DOUBLE_VAR(periodTotal)
+```
+
+The macro in `ta_defs.h` already handles language switching:
+- Rust: `DECLARE_DOUBLE_VAR(x)` → `let mut x: f64;`
+- C/Java: `DECLARE_DOUBLE_VAR(x)` → `double x;`
+
+This keeps the source clean and maintainable. If a macro doesn't exist for what you need, **add the macro to ta_defs.h** rather than adding conditionals to source files.
+
+### Code Generation Flow
+```
+ta_SMA.c (source)     →  gen_code processes  →  ta_SMA.c (output with Generated prefix)
+                                              →  sma.rs (Rust file via mcpp)
+```
+
+The generator:
+1. Reads source `.c` files
+2. Creates templates by emptying GENCODE sections
+3. RE-GENERATES those sections using `printFunc`, `printRustXxxSignature`, etc.
+4. Extracts "logic" between sections 3-5 and re-inserts with `/* Generated */` prefix
+5. Runs mcpp to produce Rust output
+
 ## Quick Reference Commands
 
 ```bash
