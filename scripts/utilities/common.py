@@ -222,10 +222,10 @@ def expand_globs(root_dir: str, file_list: list) -> list:
     return expanded_files
 
 
-def run_command(command: list) -> str:
+def run_command(command: list, cwd: str = None) -> str:
     """Run a shell command and return the output."""
     try:
-        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        result = subprocess.run(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, cwd=cwd)
         if result.returncode != 0:
             print(f"stdout for '{' '.join(command)}': {result.stdout}")
             print(f"stderr for '{' '.join(command)}': {result.stderr}")
@@ -482,4 +482,3 @@ def compare_dir(dir1: str, dir2: str) -> bool:
             differences_found = True
 
     return not differences_found
-
