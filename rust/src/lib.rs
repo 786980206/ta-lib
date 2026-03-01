@@ -6,7 +6,7 @@
 
 #![warn(missing_docs)]
 
-// Declare the generated ta_func module
+/// Generated technical analysis functions.
 pub mod ta_func;
 
 // Re-export all generated modules and types

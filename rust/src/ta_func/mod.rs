@@ -67,7 +67,9 @@ pub enum RetCode {
 /// ```
 pub struct Core {}
 
+/// Vector Arithmetic Mult implementation.
 pub mod mult;
+/// Simple Moving Average implementation.
 pub mod sma;
 
 /***************/
