@@ -21540,7 +21540,9 @@ public class Core {
       }
       retValue = optInTimePeriod + (this.unstablePeriod[FuncUnstId.Rsi.ordinal()]) ;
       if( (this.compatibility) == Compatibility.Metastock )
-         retValue--;
+      {
+         retValue = retValue - 1;
+      }
       return retValue;
    }
    public RetCode rsi( int startIdx,
@@ -21552,9 +21554,16 @@ public class Core {
       double outReal[] )
    {
       int outIdx;
-      int today, lookbackTotal, unstablePeriod, i;
-      double prevGain, prevLoss, prevValue, savePrevValue;
-      double tempValue1, tempValue2;
+      int today;
+      int lookbackTotal;
+      int unstablePeriod;
+      int i;
+      double prevGain;
+      double prevLoss;
+      double prevValue;
+      double savePrevValue;
+      double tempValue1;
+      double tempValue2;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -21568,17 +21577,21 @@ public class Core {
       }
       outBegIdx.value = 0 ;
       outNBElement.value = 0 ;
-      lookbackTotal = rsiLookback ( optInTimePeriod );
+      lookbackTotal = ( rsiLookback ( optInTimePeriod )) ;
       if( startIdx < lookbackTotal )
+      {
          startIdx = lookbackTotal;
+      }
       if( startIdx > endIdx )
+      {
          return RetCode.Success ;
+      }
       outIdx = 0;
       if( optInTimePeriod == 1 )
       {
          outBegIdx.value = startIdx;
-         i = (endIdx-startIdx)+1;
-         outNBElement.value = i;
+         i = (int)((endIdx-startIdx)+1) ;
+         outNBElement.value = (i) ;
          System.arraycopy(inReal,startIdx,outReal,0,i) ;
          return RetCode.Success ;
       }
@@ -21591,54 +21604,68 @@ public class Core {
          savePrevValue = prevValue;
          prevGain = 0.0;
          prevLoss = 0.0;
-         for( i=optInTimePeriod; i > 0; i-- )
-         {
-            tempValue1 = inReal[today++];
+         for(i=optInTimePeriod; i > 0; i--) {
+            tempValue1 = inReal[today]; today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             if( tempValue2 < 0 )
+            {
                prevLoss -= tempValue2;
+            }
             else
+            {
                prevGain += tempValue2;
+            }
          }
-         tempValue1 = prevLoss/optInTimePeriod;
-         tempValue2 = prevGain/optInTimePeriod;
+         tempValue1 = prevLoss/ (optInTimePeriod) ;
+         tempValue2 = prevGain/ (optInTimePeriod) ;
          tempValue1 = tempValue2+tempValue1;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100*(tempValue2/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
          if( today > endIdx )
          {
             outBegIdx.value = startIdx;
             outNBElement.value = outIdx;
             return RetCode.Success ;
          }
-         today -= optInTimePeriod;
+         today = today - (optInTimePeriod) ;
          prevValue = savePrevValue;
       }
       prevGain = 0.0;
       prevLoss = 0.0;
-      today++;
-      for( i=optInTimePeriod; i > 0; i-- )
-      {
-         tempValue1 = inReal[today++];
+      today = today + 1;
+      for(i=optInTimePeriod; i > 0; i--) {
+         tempValue1 = inReal[today]; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          if( tempValue2 < 0 )
+         {
             prevLoss -= tempValue2;
+         }
          else
+         {
             prevGain += tempValue2;
+         }
       }
-      prevLoss /= optInTimePeriod;
-      prevGain /= optInTimePeriod;
+      prevLoss /= (optInTimePeriod) ;
+      prevGain /= (optInTimePeriod) ;
       if( today > startIdx )
       {
          tempValue1 = prevGain+prevLoss;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100.0*(prevGain/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
       }
       else
       {
@@ -21647,35 +21674,47 @@ public class Core {
             tempValue1 = inReal[today];
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            prevLoss *= (optInTimePeriod-1);
-            prevGain *= (optInTimePeriod-1);
+            prevLoss *= (optInTimePeriod-1) ;
+            prevGain *= (optInTimePeriod-1) ;
             if( tempValue2 < 0 )
+            {
                prevLoss -= tempValue2;
+            }
             else
+            {
                prevGain += tempValue2;
-            prevLoss /= optInTimePeriod;
-            prevGain /= optInTimePeriod;
-            today++;
+            }
+            prevLoss /= (optInTimePeriod) ;
+            prevGain /= (optInTimePeriod) ;
+            today = today + 1;
          }
       }
       while( today <= endIdx )
       {
-         tempValue1 = inReal[today++];
+         tempValue1 = inReal[today]; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
+         prevLoss *= (optInTimePeriod-1) ;
+         prevGain *= (optInTimePeriod-1) ;
          if( tempValue2 < 0 )
+         {
             prevLoss -= tempValue2;
+         }
          else
+         {
             prevGain += tempValue2;
-         prevLoss /= optInTimePeriod;
-         prevGain /= optInTimePeriod;
+         }
+         prevLoss /= (optInTimePeriod) ;
+         prevGain /= (optInTimePeriod) ;
          tempValue1 = prevGain+prevLoss;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100.0*(prevGain/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
@@ -21690,9 +21729,16 @@ public class Core {
       double outReal[] )
    {
       int outIdx;
-      int today, lookbackTotal, unstablePeriod, i;
-      double prevGain, prevLoss, prevValue, savePrevValue;
-      double tempValue1, tempValue2;
+      int today;
+      int lookbackTotal;
+      int unstablePeriod;
+      int i;
+      double prevGain;
+      double prevLoss;
+      double prevValue;
+      double savePrevValue;
+      double tempValue1;
+      double tempValue2;
       int mmmixi, mmmixdestIdx, mmmixsrcIdx ;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -21707,17 +21753,21 @@ public class Core {
       }
       outBegIdx.value = 0 ;
       outNBElement.value = 0 ;
-      lookbackTotal = rsiLookback ( optInTimePeriod );
+      lookbackTotal = ( rsiLookback ( optInTimePeriod )) ;
       if( startIdx < lookbackTotal )
+      {
          startIdx = lookbackTotal;
+      }
       if( startIdx > endIdx )
+      {
          return RetCode.Success ;
+      }
       outIdx = 0;
       if( optInTimePeriod == 1 )
       {
          outBegIdx.value = startIdx;
-         i = (endIdx-startIdx)+1;
-         outNBElement.value = i;
+         i = (int)((endIdx-startIdx)+1) ;
+         outNBElement.value = (i) ;
          { for( mmmixi=0, mmmixdestIdx=0, mmmixsrcIdx=startIdx; mmmixi < i; mmmixi++, mmmixdestIdx++, mmmixsrcIdx++ ) { outReal[mmmixdestIdx] = inReal[mmmixsrcIdx]; } } ;
          return RetCode.Success ;
       }
@@ -21730,54 +21780,68 @@ public class Core {
          savePrevValue = prevValue;
          prevGain = 0.0;
          prevLoss = 0.0;
-         for( i=optInTimePeriod; i > 0; i-- )
-         {
-            tempValue1 = inReal[today++];
+         for(i=optInTimePeriod; i > 0; i--) {
+            tempValue1 = inReal[today]; today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             if( tempValue2 < 0 )
+            {
                prevLoss -= tempValue2;
+            }
             else
+            {
                prevGain += tempValue2;
+            }
          }
-         tempValue1 = prevLoss/optInTimePeriod;
-         tempValue2 = prevGain/optInTimePeriod;
+         tempValue1 = prevLoss/ (optInTimePeriod) ;
+         tempValue2 = prevGain/ (optInTimePeriod) ;
          tempValue1 = tempValue2+tempValue1;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100*(tempValue2/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
          if( today > endIdx )
          {
             outBegIdx.value = startIdx;
             outNBElement.value = outIdx;
             return RetCode.Success ;
          }
-         today -= optInTimePeriod;
+         today = today - (optInTimePeriod) ;
          prevValue = savePrevValue;
       }
       prevGain = 0.0;
       prevLoss = 0.0;
-      today++;
-      for( i=optInTimePeriod; i > 0; i-- )
-      {
-         tempValue1 = inReal[today++];
+      today = today + 1;
+      for(i=optInTimePeriod; i > 0; i--) {
+         tempValue1 = inReal[today]; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          if( tempValue2 < 0 )
+         {
             prevLoss -= tempValue2;
+         }
          else
+         {
             prevGain += tempValue2;
+         }
       }
-      prevLoss /= optInTimePeriod;
-      prevGain /= optInTimePeriod;
+      prevLoss /= (optInTimePeriod) ;
+      prevGain /= (optInTimePeriod) ;
       if( today > startIdx )
       {
          tempValue1 = prevGain+prevLoss;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100.0*(prevGain/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
       }
       else
       {
@@ -21786,35 +21850,47 @@ public class Core {
             tempValue1 = inReal[today];
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            prevLoss *= (optInTimePeriod-1);
-            prevGain *= (optInTimePeriod-1);
+            prevLoss *= (optInTimePeriod-1) ;
+            prevGain *= (optInTimePeriod-1) ;
             if( tempValue2 < 0 )
+            {
                prevLoss -= tempValue2;
+            }
             else
+            {
                prevGain += tempValue2;
-            prevLoss /= optInTimePeriod;
-            prevGain /= optInTimePeriod;
-            today++;
+            }
+            prevLoss /= (optInTimePeriod) ;
+            prevGain /= (optInTimePeriod) ;
+            today = today + 1;
          }
       }
       while( today <= endIdx )
       {
-         tempValue1 = inReal[today++];
+         tempValue1 = inReal[today]; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         prevLoss *= (optInTimePeriod-1);
-         prevGain *= (optInTimePeriod-1);
+         prevLoss *= (optInTimePeriod-1) ;
+         prevGain *= (optInTimePeriod-1) ;
          if( tempValue2 < 0 )
+         {
             prevLoss -= tempValue2;
+         }
          else
+         {
             prevGain += tempValue2;
-         prevLoss /= optInTimePeriod;
-         prevGain /= optInTimePeriod;
+         }
+         prevLoss /= (optInTimePeriod) ;
+         prevGain /= (optInTimePeriod) ;
          tempValue1 = prevGain+prevLoss;
          if( ! (((- (0.00000000000001) )<tempValue1)&&(tempValue1< (0.00000000000001) )) )
-            outReal[outIdx++] = 100.0*(prevGain/tempValue1);
+         {
+            outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
+         }
          else
-            outReal[outIdx++] = 0.0;
+         {
+            outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+         }
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
