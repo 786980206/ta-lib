@@ -256,6 +256,11 @@
     #define TA_INT_SMA self.int_sma
     #define TA_S_INT_SMA self.int_sma_s
 
+    /* Lookback function mappings (preprocessor can't do case conversion)
+     * Add one #define per function as it gets converted to Rust.
+     */
+    #define TA_RSI_Lookback self.rsi_lookback
+
     /* Function call macros for Rust
      * Uses TA_PREFIX which gets redefined in generated code for single precision
      */
@@ -292,6 +297,8 @@
 #if !defined(_RUST)
 #define FUNCTION_CALL(x)        TA_PREFIX(x)
 #define FUNCTION_CALL_DOUBLE(x) TA_##x
+#define LOOKBACK_CALL(x)        TA_##x##_Lookback
+#else
 #define LOOKBACK_CALL(x)        TA_##x##_Lookback
 #endif
 
