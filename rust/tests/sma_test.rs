@@ -2,6 +2,7 @@ use ta_lib::ta_func::{Core, RetCode};
 
 #[test]
 fn test_sma_basic() {
+    let core = Core::new();
     // Test data: 5 values
     let input: [f64; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0f64; 5];
@@ -9,7 +10,7 @@ fn test_sma_basic() {
     let mut out_nb_element: usize = 0;
 
     // SMA with period 3
-    let result = Core::sma(
+    let result = core.sma(
         0, // startIdx
         4, // endIdx (last index)
         &input,
@@ -33,6 +34,7 @@ fn test_sma_basic() {
 
 #[test]
 fn test_sma_single_precision() {
+    let core = Core::new();
     // Test data: 5 values as f32
     let input: [f32; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0f64; 5];
@@ -40,7 +42,7 @@ fn test_sma_single_precision() {
     let mut out_nb_element: usize = 0;
 
     // SMA with period 3
-    let result = Core::sma_s(
+    let result = core.sma_s(
         0, // startIdx
         4, // endIdx (last index)
         &input,
@@ -61,21 +63,23 @@ fn test_sma_single_precision() {
 
 #[test]
 fn test_sma_lookback() {
-    assert_eq!(Core::sma_lookback(3), 2); // period-1
-    assert_eq!(Core::sma_lookback(10), 9);
-    assert_eq!(Core::sma_lookback(1), -1); // period 1 is below min (2), returns -1
-    assert_eq!(Core::sma_lookback(30), 29); // default value case: TA_INTEGER_DEFAULT resolves to 30
+    let core = Core::new();
+    assert_eq!(core.sma_lookback(3), 2); // period-1
+    assert_eq!(core.sma_lookback(10), 9);
+    assert_eq!(core.sma_lookback(1), -1); // period 1 is below min (2), returns -1
+    assert_eq!(core.sma_lookback(30), 29); // default value case: TA_INTEGER_DEFAULT resolves to 30
 }
 
 #[test]
 fn test_sma_minimum_period() {
+    let core = Core::new();
     // SMA with period 2 (the minimum valid period)
     let input: [f64; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0f64; 5];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
-    let result = Core::sma(
+    let result = core.sma(
         0,
         4,
         &input,
@@ -98,13 +102,14 @@ fn test_sma_minimum_period() {
 
 #[test]
 fn test_sma_error_conditions() {
+    let core = Core::new();
     let input: [f64; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0f64; 5];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
     // Period 1 is below minimum (2) — should return BadParam
-    let result = Core::sma(
+    let result = core.sma(
         0,
         4,
         &input,
@@ -116,7 +121,7 @@ fn test_sma_error_conditions() {
     assert_eq!(result, RetCode::BadParam);
 
     // Period 0 is below minimum — should return BadParam
-    let result = Core::sma(
+    let result = core.sma(
         0,
         4,
         &input,
@@ -128,7 +133,7 @@ fn test_sma_error_conditions() {
     assert_eq!(result, RetCode::BadParam);
 
     // Period 100001 is above maximum (100000) — should return BadParam
-    let result = Core::sma(
+    let result = core.sma(
         0,
         4,
         &input,
@@ -140,7 +145,7 @@ fn test_sma_error_conditions() {
     assert_eq!(result, RetCode::BadParam);
 
     // endIdx < startIdx — should return OutOfRangeEndIndex
-    let result = Core::sma(
+    let result = core.sma(
         4,
         0,
         &input,
@@ -154,7 +159,7 @@ fn test_sma_error_conditions() {
     // i32::MIN should use default period (30) — with enough data, returns Success
     let large_input = [1.0f64; 50];
     let mut large_out = [0.0f64; 50];
-    let result = Core::sma(
+    let result = core.sma(
         0,
         49,
         &large_input,
@@ -169,13 +174,14 @@ fn test_sma_error_conditions() {
 
 #[test]
 fn test_sma_s_error_conditions() {
+    let core = Core::new();
     let input: [f32; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
     let mut out_real = [0.0f64; 5];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
     // Period below minimum — should return BadParam
-    let result = Core::sma_s(
+    let result = core.sma_s(
         0,
         4,
         &input,
@@ -189,7 +195,7 @@ fn test_sma_s_error_conditions() {
     // i32::MIN should use default period (30)
     let large_input = [1.0f32; 50];
     let mut large_out = [0.0f64; 50];
-    let result = Core::sma_s(
+    let result = core.sma_s(
         0,
         49,
         &large_input,
@@ -204,13 +210,14 @@ fn test_sma_s_error_conditions() {
 
 #[test]
 fn test_sma_partial_range() {
+    let core = Core::new();
     let input: [f64; 10] = [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0];
     let mut out_real = [0.0f64; 10];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
     // Calculate SMA only from index 3 to 7
-    let result = Core::sma(
+    let result = core.sma(
         3, // startIdx
         7, // endIdx
         &input,
