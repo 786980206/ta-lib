@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlgravestonedoji_lookback(
+/* Generated */ pub fn cdlgravestonedoji_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLGRAVESTONEDOJI_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlgravestonedoji(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlgravestonedoji(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlgravestonedoji(startIdx: usize,
-/* Generated */                          endIdx: usize,
-/* Generated */                          /* Generated */                          outBegIdx: &mut usize,
-/* Generated */                          outNBElement: &mut usize,
-/* Generated */                          outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlgravestonedoji(&self, startIdx: usize,
+/* Generated */                                 endIdx: usize,
+/* Generated */                                 /* Generated */                                 outBegIdx: &mut usize,
+/* Generated */                                 outNBElement: &mut usize,
+/* Generated */                                 outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
 /* Generated */                                             int    endIdx,
@@ -368,11 +369,11 @@
 /* Generated */                                   int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlgravestonedoji`].
-/* Generated */ pub fn cdlgravestonedoji_s(startIdx: usize,
-/* Generated */                            endIdx: usize,
-/* Generated */                            /* Generated */                            outBegIdx: &mut usize,
-/* Generated */                            outNBElement: &mut usize,
-/* Generated */                            outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlgravestonedoji_s(&self, startIdx: usize,
+/* Generated */                                   endIdx: usize,
+/* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
+/* Generated */                                   outNBElement: &mut usize,
+/* Generated */                                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
 /* Generated */                                    int    endIdx,

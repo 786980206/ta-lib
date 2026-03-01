@@ -103,11 +103,11 @@
 @RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
 @RUSTDOC@* `optInFastD_Period` - Smoothing for making the Fast-D line. Usually set to 3 (default: 3, range: 1..=100000)
 @RUSTDOC@* `optInFastD_MAType` - Type of Moving Average for Fast-D
-/* Generated */ pub fn stochrsi_lookback(
+/* Generated */ pub fn stochrsi_lookback(&self,
 mut optInTimePeriod: i32,
-/* Generated */                           mut optInFastK_Period: i32,
-/* Generated */                           mut optInFastD_Period: i32,
-/* Generated */                           mut optInFastD_MAType: i32) -> i32
+/* Generated */                                 mut optInFastK_Period: i32,
+/* Generated */                                 mut optInFastD_Period: i32,
+/* Generated */                                 mut optInFastD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCHRSI_Lookback( int           optInTimePeriod, /* From 2 to 100000 */
 /* Generated */                                               int           optInFastK_Period, /* From 1 to 100000 */
@@ -247,7 +247,8 @@ mut optInTimePeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::stochrsi(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.stochrsi(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -263,17 +264,17 @@ mut optInTimePeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn stochrsi(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 inReal: &[f64],
-/* Generated */                 mut optInTimePeriod: i32,
-/* Generated */                 mut optInFastK_Period: i32,
-/* Generated */                 mut optInFastD_Period: i32,
-/* Generated */                 mut optInFastD_MAType: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outFastK: &mut [f64],
-/* Generated */                 outFastD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stochrsi(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        inReal: &[f64],
+/* Generated */                        mut optInTimePeriod: i32,
+/* Generated */                        mut optInFastK_Period: i32,
+/* Generated */                        mut optInFastD_Period: i32,
+/* Generated */                        mut optInFastD_MAType: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outFastK: &mut [f64],
+/* Generated */                        outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -496,17 +497,17 @@ mut optInTimePeriod: i32,
 /* Generated */                          double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::stochrsi`].
-/* Generated */ pub fn stochrsi_s(startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   inReal: &[f32],
-/* Generated */                   mut optInTimePeriod: i32,
-/* Generated */                   mut optInFastK_Period: i32,
-/* Generated */                   mut optInFastD_Period: i32,
-/* Generated */                   mut optInFastD_MAType: i32,
-/* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outFastK: &mut [f64],
-/* Generated */                   outFastD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stochrsi_s(&self, startIdx: usize,
+/* Generated */                          endIdx: usize,
+/* Generated */                          inReal: &[f32],
+/* Generated */                          mut optInTimePeriod: i32,
+/* Generated */                          mut optInFastK_Period: i32,
+/* Generated */                          mut optInFastD_Period: i32,
+/* Generated */                          mut optInFastD_MAType: i32,
+/* Generated */                          outBegIdx: &mut usize,
+/* Generated */                          outNBElement: &mut usize,
+/* Generated */                          outFastK: &mut [f64],
+/* Generated */                          outFastD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCHRSI( int    startIdx,
 /* Generated */                           int    endIdx,

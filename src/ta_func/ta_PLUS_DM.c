@@ -95,7 +95,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
-/* Generated */ pub fn plus_dm_lookback(
+/* Generated */ pub fn plus_dm_lookback(&self,
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_PLUS_DM_Lookback( int           optInTimePeriod )  /* From 1 to 100000 */
@@ -194,7 +194,8 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::plus_dm(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.plus_dm(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -207,12 +208,12 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn plus_dm(startIdx: usize,
-/* Generated */                endIdx: usize,
-/* Generated */                /* Generated */                mut optInTimePeriod: i32,
-/* Generated */                outBegIdx: &mut usize,
-/* Generated */                outNBElement: &mut usize,
-/* Generated */                outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn plus_dm(&self, startIdx: usize,
+/* Generated */                       endIdx: usize,
+/* Generated */                       /* Generated */                       mut optInTimePeriod: i32,
+/* Generated */                       outBegIdx: &mut usize,
+/* Generated */                       outNBElement: &mut usize,
+/* Generated */                       outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_PLUS_DM( int    startIdx,
 /* Generated */                                   int    endIdx,
@@ -517,12 +518,12 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::plus_dm`].
-/* Generated */ pub fn plus_dm_s(startIdx: usize,
-/* Generated */                  endIdx: usize,
-/* Generated */                  /* Generated */                  mut optInTimePeriod: i32,
-/* Generated */                  outBegIdx: &mut usize,
-/* Generated */                  outNBElement: &mut usize,
-/* Generated */                  outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn plus_dm_s(&self, startIdx: usize,
+/* Generated */                         endIdx: usize,
+/* Generated */                         /* Generated */                         mut optInTimePeriod: i32,
+/* Generated */                         outBegIdx: &mut usize,
+/* Generated */                         outNBElement: &mut usize,
+/* Generated */                         outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_PLUS_DM( int    startIdx,
 /* Generated */                          int    endIdx,

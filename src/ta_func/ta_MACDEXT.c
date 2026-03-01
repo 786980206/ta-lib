@@ -107,13 +107,13 @@
 @RUSTDOC@* `optInSlowMAType` - Type of Moving Average for slow MA
 @RUSTDOC@* `optInSignalPeriod` - Smoothing for the signal line (nb of period) (default: 9, range: 1..=100000)
 @RUSTDOC@* `optInSignalMAType` - Type of Moving Average for signal line
-/* Generated */ pub fn macdext_lookback(
+/* Generated */ pub fn macdext_lookback(&self,
 mut optInFastPeriod: i32,
-/* Generated */                          mut optInFastMAType: i32,
-/* Generated */                          mut optInSlowPeriod: i32,
-/* Generated */                          mut optInSlowMAType: i32,
-/* Generated */                          mut optInSignalPeriod: i32,
-/* Generated */                          mut optInSignalMAType: i32) -> i32
+/* Generated */                                mut optInFastMAType: i32,
+/* Generated */                                mut optInSlowPeriod: i32,
+/* Generated */                                mut optInSlowMAType: i32,
+/* Generated */                                mut optInSignalPeriod: i32,
+/* Generated */                                mut optInSignalMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MACDEXT_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                              TA_MAType     optInFastMAType,
@@ -294,7 +294,8 @@ mut optInFastPeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::macdext(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.macdext(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -313,20 +314,20 @@ mut optInFastPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn macdext(startIdx: usize,
-/* Generated */                endIdx: usize,
-/* Generated */                inReal: &[f64],
-/* Generated */                mut optInFastPeriod: i32,
-/* Generated */                mut optInFastMAType: i32,
-/* Generated */                mut optInSlowPeriod: i32,
-/* Generated */                mut optInSlowMAType: i32,
-/* Generated */                mut optInSignalPeriod: i32,
-/* Generated */                mut optInSignalMAType: i32,
-/* Generated */                outBegIdx: &mut usize,
-/* Generated */                outNBElement: &mut usize,
-/* Generated */                outMACD: &mut [f64],
-/* Generated */                outMACDSignal: &mut [f64],
-/* Generated */                outMACDHist: &mut [f64]) -> RetCode
+/* Generated */ pub fn macdext(&self, startIdx: usize,
+/* Generated */                       endIdx: usize,
+/* Generated */                       inReal: &[f64],
+/* Generated */                       mut optInFastPeriod: i32,
+/* Generated */                       mut optInFastMAType: i32,
+/* Generated */                       mut optInSlowPeriod: i32,
+/* Generated */                       mut optInSlowMAType: i32,
+/* Generated */                       mut optInSignalPeriod: i32,
+/* Generated */                       mut optInSignalMAType: i32,
+/* Generated */                       outBegIdx: &mut usize,
+/* Generated */                       outNBElement: &mut usize,
+/* Generated */                       outMACD: &mut [f64],
+/* Generated */                       outMACDSignal: &mut [f64],
+/* Generated */                       outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
 /* Generated */                                   int    endIdx,
@@ -638,20 +639,20 @@ mut optInFastPeriod: i32,
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::macdext`].
-/* Generated */ pub fn macdext_s(startIdx: usize,
-/* Generated */                  endIdx: usize,
-/* Generated */                  inReal: &[f32],
-/* Generated */                  mut optInFastPeriod: i32,
-/* Generated */                  mut optInFastMAType: i32,
-/* Generated */                  mut optInSlowPeriod: i32,
-/* Generated */                  mut optInSlowMAType: i32,
-/* Generated */                  mut optInSignalPeriod: i32,
-/* Generated */                  mut optInSignalMAType: i32,
-/* Generated */                  outBegIdx: &mut usize,
-/* Generated */                  outNBElement: &mut usize,
-/* Generated */                  outMACD: &mut [f64],
-/* Generated */                  outMACDSignal: &mut [f64],
-/* Generated */                  outMACDHist: &mut [f64]) -> RetCode
+/* Generated */ pub fn macdext_s(&self, startIdx: usize,
+/* Generated */                         endIdx: usize,
+/* Generated */                         inReal: &[f32],
+/* Generated */                         mut optInFastPeriod: i32,
+/* Generated */                         mut optInFastMAType: i32,
+/* Generated */                         mut optInSlowPeriod: i32,
+/* Generated */                         mut optInSlowMAType: i32,
+/* Generated */                         mut optInSignalPeriod: i32,
+/* Generated */                         mut optInSignalMAType: i32,
+/* Generated */                         outBegIdx: &mut usize,
+/* Generated */                         outNBElement: &mut usize,
+/* Generated */                         outMACD: &mut [f64],
+/* Generated */                         outMACDSignal: &mut [f64],
+/* Generated */                         outMACDHist: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MACDEXT( int    startIdx,
 /* Generated */                          int    endIdx,

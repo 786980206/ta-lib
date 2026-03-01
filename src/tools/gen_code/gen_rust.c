@@ -267,7 +267,8 @@ static void printRustFuncDoc(FILE *out,
                 fprintf(out, "@RUSTDOC@\n");
 
                 /* Function call */
-                fprintf(out, "@RUSTDOC@let result = Core::%s(\n", snakeName);
+                fprintf(out, "@RUSTDOC@let core = Core::new();\n");
+                fprintf(out, "@RUSTDOC@let result = core.%s(\n", snakeName);
                 fprintf(out, "@RUSTDOC@    0,\n");
                 fprintf(out, "@RUSTDOC@    %d,\n", arraySize - 1);
 
@@ -347,7 +348,7 @@ static void printRustLookbackFunctionSignature(FILE* out,
     toLowerSnakeCase(funcInfo->name, funcNameBuffer);
 
     // print lookback function header
-    sprintf(gTempBuf, "%spub fn %s_lookback(\n",
+    sprintf(gTempBuf, "%spub fn %s_lookback(&self,\n",
             prefix? prefix:"",
             funcNameBuffer);
 
@@ -403,7 +404,7 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
     int indent, i;
 
     // Print function header with idiomatic Rust signature
-    sprintf(gTempBuf, "%spub fn %s(",
+    sprintf(gTempBuf, "%spub fn %s(&self, ",
             prefix? prefix:"",
             funcNameBuffer);
 
@@ -536,7 +537,7 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
     int indent, i;
 
     // Print function header with idiomatic Rust signature for single precision
-    sprintf(gTempBuf, "%spub fn %s_s(",
+    sprintf(gTempBuf, "%spub fn %s_s(&self, ",
             prefix? prefix:"",
             funcNameBuffer);
 

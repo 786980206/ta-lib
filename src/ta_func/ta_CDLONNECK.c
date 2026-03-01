@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlonneck_lookback(
+/* Generated */ pub fn cdlonneck_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLONNECK_Lookback( void )
@@ -182,7 +182,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlonneck(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlonneck(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -196,11 +197,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlonneck(startIdx: usize,
-/* Generated */                  endIdx: usize,
-/* Generated */                  /* Generated */                  outBegIdx: &mut usize,
-/* Generated */                  outNBElement: &mut usize,
-/* Generated */                  outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlonneck(&self, startIdx: usize,
+/* Generated */                         endIdx: usize,
+/* Generated */                         /* Generated */                         outBegIdx: &mut usize,
+/* Generated */                         outNBElement: &mut usize,
+/* Generated */                         outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLONNECK( int    startIdx,
 /* Generated */                                     int    endIdx,
@@ -372,11 +373,11 @@
 /* Generated */                           int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlonneck`].
-/* Generated */ pub fn cdlonneck_s(startIdx: usize,
-/* Generated */                    endIdx: usize,
-/* Generated */                    /* Generated */                    outBegIdx: &mut usize,
-/* Generated */                    outNBElement: &mut usize,
-/* Generated */                    outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlonneck_s(&self, startIdx: usize,
+/* Generated */                           endIdx: usize,
+/* Generated */                           /* Generated */                           outBegIdx: &mut usize,
+/* Generated */                           outNBElement: &mut usize,
+/* Generated */                           outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLONNECK( int    startIdx,
 /* Generated */                            int    endIdx,

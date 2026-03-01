@@ -95,7 +95,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn obv_lookback(
+/* Generated */ pub fn obv_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_OBV_Lookback( void )
@@ -176,7 +176,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::obv(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.obv(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -188,13 +189,13 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn obv(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            inReal: &[f64],
-/* Generated */            inVolume: &[f64],
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn obv(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   inReal: &[f64],
+/* Generated */                   inVolume: &[f64],
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_OBV( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -304,13 +305,13 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::obv`].
-/* Generated */ pub fn obv_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              inReal: &[f32],
-/* Generated */              inVolume: &[f32],
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn obv_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     inReal: &[f32],
+/* Generated */                     inVolume: &[f32],
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_OBV( int    startIdx,
 /* Generated */                      int    endIdx,

@@ -92,7 +92,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-/* Generated */ pub fn maxindex_lookback(
+/* Generated */ pub fn maxindex_lookback(&self,
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAXINDEX_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -184,7 +184,8 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::maxindex(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.maxindex(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -196,13 +197,13 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn maxindex(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 inReal: &[f64],
-/* Generated */                 mut optInTimePeriod: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn maxindex(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        inReal: &[f64],
+/* Generated */                        mut optInTimePeriod: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MAXINDEX( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -362,13 +363,13 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                          int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::maxindex`].
-/* Generated */ pub fn maxindex_s(startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   inReal: &[f32],
-/* Generated */                   mut optInTimePeriod: i32,
-/* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn maxindex_s(&self, startIdx: usize,
+/* Generated */                          endIdx: usize,
+/* Generated */                          inReal: &[f32],
+/* Generated */                          mut optInTimePeriod: i32,
+/* Generated */                          outBegIdx: &mut usize,
+/* Generated */                          outNBElement: &mut usize,
+/* Generated */                          outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MAXINDEX( int    startIdx,
 /* Generated */                           int    endIdx,

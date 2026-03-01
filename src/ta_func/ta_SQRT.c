@@ -90,7 +90,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn sqrt_lookback(
+/* Generated */ pub fn sqrt_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SQRT_Lookback( void )
@@ -165,7 +165,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::sqrt(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.sqrt(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -176,12 +177,12 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn sqrt(startIdx: usize,
-/* Generated */             endIdx: usize,
-/* Generated */             inReal: &[f64],
-/* Generated */             outBegIdx: &mut usize,
-/* Generated */             outNBElement: &mut usize,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sqrt(&self, startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    inReal: &[f64],
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SQRT( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -272,12 +273,12 @@
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sqrt`].
-/* Generated */ pub fn sqrt_s(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal: &[f32],
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sqrt_s(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal: &[f32],
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SQRT( int    startIdx,
 /* Generated */                       int    endIdx,

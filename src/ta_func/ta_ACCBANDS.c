@@ -93,7 +93,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 20, range: 2..=100000)
-/* Generated */ pub fn accbands_lookback(
+/* Generated */ pub fn accbands_lookback(&self,
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ACCBANDS_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -205,7 +205,8 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::accbands(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.accbands(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -221,14 +222,14 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn accbands(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 mut optInTimePeriod: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outRealUpperBand: &mut [f64],
-/* Generated */                 outRealMiddleBand: &mut [f64],
-/* Generated */                 outRealLowerBand: &mut [f64]) -> RetCode
+/* Generated */ pub fn accbands(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        /* Generated */                        mut optInTimePeriod: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outRealUpperBand: &mut [f64],
+/* Generated */                        outRealMiddleBand: &mut [f64],
+/* Generated */                        outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -462,14 +463,14 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::accbands`].
-/* Generated */ pub fn accbands_s(startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   mut optInTimePeriod: i32,
-/* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outRealUpperBand: &mut [f64],
-/* Generated */                   outRealMiddleBand: &mut [f64],
-/* Generated */                   outRealLowerBand: &mut [f64]) -> RetCode
+/* Generated */ pub fn accbands_s(&self, startIdx: usize,
+/* Generated */                          endIdx: usize,
+/* Generated */                          /* Generated */                          mut optInTimePeriod: i32,
+/* Generated */                          outBegIdx: &mut usize,
+/* Generated */                          outNBElement: &mut usize,
+/* Generated */                          outRealUpperBand: &mut [f64],
+/* Generated */                          outRealMiddleBand: &mut [f64],
+/* Generated */                          outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ACCBANDS( int    startIdx,
 /* Generated */                           int    endIdx,

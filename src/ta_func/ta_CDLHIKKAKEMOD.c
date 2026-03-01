@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlhikkakemod_lookback(
+/* Generated */ pub fn cdlhikkakemod_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLHIKKAKEMOD_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlhikkakemod(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlhikkakemod(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlhikkakemod(startIdx: usize,
-/* Generated */                      endIdx: usize,
-/* Generated */                      /* Generated */                      outBegIdx: &mut usize,
-/* Generated */                      outNBElement: &mut usize,
-/* Generated */                      outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhikkakemod(&self, startIdx: usize,
+/* Generated */                             endIdx: usize,
+/* Generated */                             /* Generated */                             outBegIdx: &mut usize,
+/* Generated */                             outNBElement: &mut usize,
+/* Generated */                             outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
 /* Generated */                                         int    endIdx,
@@ -418,11 +419,11 @@
 /* Generated */                               int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlhikkakemod`].
-/* Generated */ pub fn cdlhikkakemod_s(startIdx: usize,
-/* Generated */                        endIdx: usize,
-/* Generated */                        /* Generated */                        outBegIdx: &mut usize,
-/* Generated */                        outNBElement: &mut usize,
-/* Generated */                        outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhikkakemod_s(&self, startIdx: usize,
+/* Generated */                               endIdx: usize,
+/* Generated */                               /* Generated */                               outBegIdx: &mut usize,
+/* Generated */                               outNBElement: &mut usize,
+/* Generated */                               outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHIKKAKEMOD( int    startIdx,
 /* Generated */                                int    endIdx,

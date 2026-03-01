@@ -93,7 +93,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInPenetration` - Percentage of penetration of a candle within another candle (default: 0.3)
-/* Generated */ pub fn cdleveningstar_lookback(
+/* Generated */ pub fn cdleveningstar_lookback(&self,
 mut optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLEVENINGSTAR_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
@@ -200,7 +200,8 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdleveningstar(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdleveningstar(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -215,12 +216,12 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdleveningstar(startIdx: usize,
-/* Generated */                       endIdx: usize,
-/* Generated */                       /* Generated */                       mut optInPenetration: f64,
-/* Generated */                       outBegIdx: &mut usize,
-/* Generated */                       outNBElement: &mut usize,
-/* Generated */                       outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdleveningstar(&self, startIdx: usize,
+/* Generated */                              endIdx: usize,
+/* Generated */                              /* Generated */                              mut optInPenetration: f64,
+/* Generated */                              outBegIdx: &mut usize,
+/* Generated */                              outNBElement: &mut usize,
+/* Generated */                              outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLEVENINGSTAR( int    startIdx,
 /* Generated */                                          int    endIdx,
@@ -409,12 +410,12 @@ mut optInPenetration: f64) -> i32
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdleveningstar`].
-/* Generated */ pub fn cdleveningstar_s(startIdx: usize,
-/* Generated */                         endIdx: usize,
-/* Generated */                         /* Generated */                         mut optInPenetration: f32,
-/* Generated */                         outBegIdx: &mut usize,
-/* Generated */                         outNBElement: &mut usize,
-/* Generated */                         outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdleveningstar_s(&self, startIdx: usize,
+/* Generated */                                endIdx: usize,
+/* Generated */                                /* Generated */                                mut optInPenetration: f32,
+/* Generated */                                outBegIdx: &mut usize,
+/* Generated */                                outNBElement: &mut usize,
+/* Generated */                                outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLEVENINGSTAR( int    startIdx,
 /* Generated */                                 int    endIdx,

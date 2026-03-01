@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlrisefall3methods_lookback(
+/* Generated */ pub fn cdlrisefall3methods_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLRISEFALL3METHODS_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlrisefall3methods(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlrisefall3methods(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlrisefall3methods(startIdx: usize,
-/* Generated */                            endIdx: usize,
-/* Generated */                            /* Generated */                            outBegIdx: &mut usize,
-/* Generated */                            outNBElement: &mut usize,
-/* Generated */                            outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlrisefall3methods(&self, startIdx: usize,
+/* Generated */                                   endIdx: usize,
+/* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
+/* Generated */                                   outNBElement: &mut usize,
+/* Generated */                                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLRISEFALL3METHODS( int    startIdx,
 /* Generated */                                               int    endIdx,
@@ -399,11 +400,11 @@
 /* Generated */                                     int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlrisefall3methods`].
-/* Generated */ pub fn cdlrisefall3methods_s(startIdx: usize,
-/* Generated */                              endIdx: usize,
-/* Generated */                              /* Generated */                              outBegIdx: &mut usize,
-/* Generated */                              outNBElement: &mut usize,
-/* Generated */                              outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlrisefall3methods_s(&self, startIdx: usize,
+/* Generated */                                     endIdx: usize,
+/* Generated */                                     /* Generated */                                     outBegIdx: &mut usize,
+/* Generated */                                     outNBElement: &mut usize,
+/* Generated */                                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLRISEFALL3METHODS( int    startIdx,
 /* Generated */                                      int    endIdx,

@@ -99,10 +99,10 @@
 @RUSTDOC@* `optInTimePeriod1` - Number of bars for 1st period. (default: 7, range: 1..=100000)
 @RUSTDOC@* `optInTimePeriod2` - Number of bars fro 2nd period (default: 14, range: 1..=100000)
 @RUSTDOC@* `optInTimePeriod3` - Number of bars for 3rd period (default: 28, range: 1..=100000)
-/* Generated */ pub fn ultosc_lookback(
+/* Generated */ pub fn ultosc_lookback(&self,
 mut optInTimePeriod1: i32,
-/* Generated */                         mut optInTimePeriod2: i32,
-/* Generated */                         mut optInTimePeriod3: i32) -> i32
+/* Generated */                               mut optInTimePeriod2: i32,
+/* Generated */                               mut optInTimePeriod3: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ULTOSC_Lookback( int           optInTimePeriod1, /* From 1 to 100000 */
 /* Generated */                                             int           optInTimePeriod2, /* From 1 to 100000 */
@@ -233,7 +233,8 @@ mut optInTimePeriod1: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::ultosc(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.ultosc(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -249,14 +250,14 @@ mut optInTimePeriod1: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ultosc(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               /* Generated */               mut optInTimePeriod1: i32,
-/* Generated */               mut optInTimePeriod2: i32,
-/* Generated */               mut optInTimePeriod3: i32,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ultosc(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      /* Generated */                      mut optInTimePeriod1: i32,
+/* Generated */                      mut optInTimePeriod2: i32,
+/* Generated */                      mut optInTimePeriod3: i32,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -518,14 +519,14 @@ mut optInTimePeriod1: i32,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ultosc`].
-/* Generated */ pub fn ultosc_s(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 mut optInTimePeriod1: i32,
-/* Generated */                 mut optInTimePeriod2: i32,
-/* Generated */                 mut optInTimePeriod3: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ultosc_s(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        /* Generated */                        mut optInTimePeriod1: i32,
+/* Generated */                        mut optInTimePeriod2: i32,
+/* Generated */                        mut optInTimePeriod3: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ULTOSC( int    startIdx,
 /* Generated */                         int    endIdx,

@@ -104,9 +104,9 @@
 @RUSTDOC@
 @RUSTDOC@* `optInAcceleration` - Acceleration Factor used up to the Maximum value (default: 0.02)
 @RUSTDOC@* `optInMaximum` - Acceleration Factor Maximum value (default: 0.2)
-/* Generated */ pub fn sar_lookback(
+/* Generated */ pub fn sar_lookback(&self,
 mut optInAcceleration: f64,
-/* Generated */                      mut optInMaximum: f64) -> i32
+/* Generated */                            mut optInMaximum: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAR_Lookback( double        optInAcceleration, /* From 0 to TA_REAL_MAX */
 /* Generated */                                          double        optInMaximum )  /* From 0 to TA_REAL_MAX */
@@ -219,7 +219,8 @@ mut optInAcceleration: f64,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::sar(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.sar(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -233,13 +234,13 @@ mut optInAcceleration: f64,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn sar(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            /* Generated */            mut optInAcceleration: f64,
-/* Generated */            mut optInMaximum: f64,
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sar(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   /* Generated */                   mut optInAcceleration: f64,
+/* Generated */                   mut optInMaximum: f64,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -615,13 +616,13 @@ mut optInAcceleration: f64,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sar`].
-/* Generated */ pub fn sar_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              /* Generated */              mut optInAcceleration: f32,
-/* Generated */              mut optInMaximum: f32,
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sar_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     /* Generated */                     mut optInAcceleration: f32,
+/* Generated */                     mut optInMaximum: f32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAR( int    startIdx,
 /* Generated */                      int    endIdx,

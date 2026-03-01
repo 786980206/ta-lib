@@ -90,7 +90,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cosh_lookback(
+/* Generated */ pub fn cosh_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_COSH_Lookback( void )
@@ -165,7 +165,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cosh(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cosh(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -176,12 +177,12 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cosh(startIdx: usize,
-/* Generated */             endIdx: usize,
-/* Generated */             inReal: &[f64],
-/* Generated */             outBegIdx: &mut usize,
-/* Generated */             outNBElement: &mut usize,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn cosh(&self, startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    inReal: &[f64],
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_COSH( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -272,12 +273,12 @@
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cosh`].
-/* Generated */ pub fn cosh_s(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal: &[f32],
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn cosh_s(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal: &[f32],
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_COSH( int    startIdx,
 /* Generated */                       int    endIdx,

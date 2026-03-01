@@ -93,7 +93,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn ad_lookback(
+/* Generated */ pub fn ad_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AD_Lookback( void )
@@ -184,7 +184,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::ad(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.ad(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -198,11 +199,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ad(startIdx: usize,
-/* Generated */           endIdx: usize,
-/* Generated */           /* Generated */           outBegIdx: &mut usize,
-/* Generated */           outNBElement: &mut usize,
-/* Generated */           outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ad(&self, startIdx: usize,
+/* Generated */                  endIdx: usize,
+/* Generated */                  /* Generated */                  outBegIdx: &mut usize,
+/* Generated */                  outNBElement: &mut usize,
+/* Generated */                  outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AD( int    startIdx,
 /* Generated */                              int    endIdx,
@@ -341,11 +342,11 @@
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ad`].
-/* Generated */ pub fn ad_s(startIdx: usize,
-/* Generated */             endIdx: usize,
-/* Generated */             /* Generated */             outBegIdx: &mut usize,
-/* Generated */             outNBElement: &mut usize,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ad_s(&self, startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    /* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AD( int    startIdx,
 /* Generated */                     int    endIdx,

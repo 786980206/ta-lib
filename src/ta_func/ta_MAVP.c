@@ -95,10 +95,10 @@
 @RUSTDOC@* `optInMinPeriod` - Value less than minimum will be changed to Minimum period (default: 2, range: 2..=100000)
 @RUSTDOC@* `optInMaxPeriod` - Value higher than maximum will be changed to Maximum period (default: 30, range: 2..=100000)
 @RUSTDOC@* `optInMAType` - Type of Moving Average
-/* Generated */ pub fn mavp_lookback(
+/* Generated */ pub fn mavp_lookback(&self,
 mut optInMinPeriod: i32,
-/* Generated */                       mut optInMaxPeriod: i32,
-/* Generated */                       mut optInMAType: i32) -> i32
+/* Generated */                             mut optInMaxPeriod: i32,
+/* Generated */                             mut optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAVP_Lookback( int           optInMinPeriod, /* From 2 to 100000 */
 /* Generated */                                           int           optInMaxPeriod, /* From 2 to 100000 */
@@ -220,7 +220,8 @@ mut optInMinPeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::mavp(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.mavp(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -235,16 +236,16 @@ mut optInMinPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn mavp(startIdx: usize,
-/* Generated */             endIdx: usize,
-/* Generated */             inReal: &[f64],
-/* Generated */             inPeriods: &[f64],
-/* Generated */             mut optInMinPeriod: i32,
-/* Generated */             mut optInMaxPeriod: i32,
-/* Generated */             mut optInMAType: i32,
-/* Generated */             outBegIdx: &mut usize,
-/* Generated */             outNBElement: &mut usize,
-/* Generated */             outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn mavp(&self, startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    inReal: &[f64],
+/* Generated */                    inPeriods: &[f64],
+/* Generated */                    mut optInMinPeriod: i32,
+/* Generated */                    mut optInMaxPeriod: i32,
+/* Generated */                    mut optInMAType: i32,
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -467,16 +468,16 @@ mut optInMinPeriod: i32,
 /* Generated */                                             double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::mavp`].
-/* Generated */ pub fn mavp_s(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal: &[f32],
-/* Generated */               inPeriods: &[f32],
-/* Generated */               mut optInMinPeriod: i32,
-/* Generated */               mut optInMaxPeriod: i32,
-/* Generated */               mut optInMAType: i32,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn mavp_s(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal: &[f32],
+/* Generated */                      inPeriods: &[f32],
+/* Generated */                      mut optInMinPeriod: i32,
+/* Generated */                      mut optInMaxPeriod: i32,
+/* Generated */                      mut optInMAType: i32,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MAVP( int    startIdx,
 /* Generated */                       int    endIdx,

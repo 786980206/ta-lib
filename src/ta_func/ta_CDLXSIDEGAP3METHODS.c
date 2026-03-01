@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlxsidegap3methods_lookback(
+/* Generated */ pub fn cdlxsidegap3methods_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLXSIDEGAP3METHODS_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlxsidegap3methods(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlxsidegap3methods(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlxsidegap3methods(startIdx: usize,
-/* Generated */                            endIdx: usize,
-/* Generated */                            /* Generated */                            outBegIdx: &mut usize,
-/* Generated */                            outNBElement: &mut usize,
-/* Generated */                            outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlxsidegap3methods(&self, startIdx: usize,
+/* Generated */                                   endIdx: usize,
+/* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
+/* Generated */                                   outNBElement: &mut usize,
+/* Generated */                                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLXSIDEGAP3METHODS( int    startIdx,
 /* Generated */                                               int    endIdx,
@@ -360,11 +361,11 @@
 /* Generated */                                     int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlxsidegap3methods`].
-/* Generated */ pub fn cdlxsidegap3methods_s(startIdx: usize,
-/* Generated */                              endIdx: usize,
-/* Generated */                              /* Generated */                              outBegIdx: &mut usize,
-/* Generated */                              outNBElement: &mut usize,
-/* Generated */                              outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlxsidegap3methods_s(&self, startIdx: usize,
+/* Generated */                                     endIdx: usize,
+/* Generated */                                     /* Generated */                                     outBegIdx: &mut usize,
+/* Generated */                                     outNBElement: &mut usize,
+/* Generated */                                     outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLXSIDEGAP3METHODS( int    startIdx,
 /* Generated */                                      int    endIdx,

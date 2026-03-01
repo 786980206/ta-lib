@@ -95,7 +95,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-/* Generated */ pub fn correl_lookback(
+/* Generated */ pub fn correl_lookback(&self,
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CORREL_Lookback( int           optInTimePeriod )  /* From 1 to 100000 */
@@ -191,7 +191,8 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::correl(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.correl(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -204,14 +205,14 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn correl(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal0: &[f64],
-/* Generated */               inReal1: &[f64],
-/* Generated */               mut optInTimePeriod: i32,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn correl(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal0: &[f64],
+/* Generated */                      inReal1: &[f64],
+/* Generated */                      mut optInTimePeriod: i32,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -391,14 +392,14 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::correl`].
-/* Generated */ pub fn correl_s(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 inReal0: &[f32],
-/* Generated */                 inReal1: &[f32],
-/* Generated */                 mut optInTimePeriod: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn correl_s(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        inReal0: &[f32],
+/* Generated */                        inReal1: &[f32],
+/* Generated */                        mut optInTimePeriod: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CORREL( int    startIdx,
 /* Generated */                         int    endIdx,

@@ -90,7 +90,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn add_lookback(
+/* Generated */ pub fn add_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ADD_Lookback( void )
@@ -170,7 +170,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::add(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.add(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -182,13 +183,13 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn add(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            inReal0: &[f64],
-/* Generated */            inReal1: &[f64],
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn add(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   inReal0: &[f64],
+/* Generated */                   inReal1: &[f64],
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ADD( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -284,13 +285,13 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::add`].
-/* Generated */ pub fn add_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              inReal0: &[f32],
-/* Generated */              inReal1: &[f32],
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn add_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     inReal0: &[f32],
+/* Generated */                     inReal1: &[f32],
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ADD( int    startIdx,
 /* Generated */                      int    endIdx,

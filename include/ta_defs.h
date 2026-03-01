@@ -253,8 +253,8 @@
      * These map C function names to Rust method names
      * TA_PREFIX gets redefined for single precision (TA_S_##x), so we define both variants
      */
-    #define TA_INT_SMA Self::int_sma
-    #define TA_S_INT_SMA Self::int_sma_s
+    #define TA_INT_SMA self.int_sma
+    #define TA_S_INT_SMA self.int_sma_s
 
     /* Function call macros for Rust
      * Uses TA_PREFIX which gets redefined in generated code for single precision

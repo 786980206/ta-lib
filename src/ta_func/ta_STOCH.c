@@ -104,12 +104,12 @@
 @RUSTDOC@* `optInSlowK_MAType` - Type of Moving Average for Slow-K
 @RUSTDOC@* `optInSlowD_Period` - Smoothing for making the Slow-D line (default: 3, range: 1..=100000)
 @RUSTDOC@* `optInSlowD_MAType` - Type of Moving Average for Slow-D
-/* Generated */ pub fn stoch_lookback(
+/* Generated */ pub fn stoch_lookback(&self,
 mut optInFastK_Period: i32,
-/* Generated */                        mut optInSlowK_Period: i32,
-/* Generated */                        mut optInSlowK_MAType: i32,
-/* Generated */                        mut optInSlowD_Period: i32,
-/* Generated */                        mut optInSlowD_MAType: i32) -> i32
+/* Generated */                              mut optInSlowK_Period: i32,
+/* Generated */                              mut optInSlowK_MAType: i32,
+/* Generated */                              mut optInSlowD_Period: i32,
+/* Generated */                              mut optInSlowD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCH_Lookback( int           optInFastK_Period, /* From 1 to 100000 */
 /* Generated */                                            int           optInSlowK_Period, /* From 1 to 100000 */
@@ -282,7 +282,8 @@ mut optInFastK_Period: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::stoch(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.stoch(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -301,17 +302,17 @@ mut optInFastK_Period: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn stoch(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              /* Generated */              mut optInFastK_Period: i32,
-/* Generated */              mut optInSlowK_Period: i32,
-/* Generated */              mut optInSlowK_MAType: i32,
-/* Generated */              mut optInSlowD_Period: i32,
-/* Generated */              mut optInSlowD_MAType: i32,
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outSlowK: &mut [f64],
-/* Generated */              outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     /* Generated */                     mut optInFastK_Period: i32,
+/* Generated */                     mut optInSlowK_Period: i32,
+/* Generated */                     mut optInSlowK_MAType: i32,
+/* Generated */                     mut optInSlowD_Period: i32,
+/* Generated */                     mut optInSlowD_MAType: i32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outSlowK: &mut [f64],
+/* Generated */                     outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -709,17 +710,17 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::stoch`].
-/* Generated */ pub fn stoch_s(startIdx: usize,
-/* Generated */                endIdx: usize,
-/* Generated */                /* Generated */                mut optInFastK_Period: i32,
-/* Generated */                mut optInSlowK_Period: i32,
-/* Generated */                mut optInSlowK_MAType: i32,
-/* Generated */                mut optInSlowD_Period: i32,
-/* Generated */                mut optInSlowD_MAType: i32,
-/* Generated */                outBegIdx: &mut usize,
-/* Generated */                outNBElement: &mut usize,
-/* Generated */                outSlowK: &mut [f64],
-/* Generated */                outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch_s(&self, startIdx: usize,
+/* Generated */                       endIdx: usize,
+/* Generated */                       /* Generated */                       mut optInFastK_Period: i32,
+/* Generated */                       mut optInSlowK_Period: i32,
+/* Generated */                       mut optInSlowK_MAType: i32,
+/* Generated */                       mut optInSlowD_Period: i32,
+/* Generated */                       mut optInSlowD_MAType: i32,
+/* Generated */                       outBegIdx: &mut usize,
+/* Generated */                       outNBElement: &mut usize,
+/* Generated */                       outSlowK: &mut [f64],
+/* Generated */                       outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCH( int    startIdx,
 /* Generated */                        int    endIdx,

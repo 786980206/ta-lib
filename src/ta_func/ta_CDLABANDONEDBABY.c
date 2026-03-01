@@ -93,7 +93,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInPenetration` - Percentage of penetration of a candle within another candle (default: 0.3)
-/* Generated */ pub fn cdlabandonedbaby_lookback(
+/* Generated */ pub fn cdlabandonedbaby_lookback(&self,
 mut optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLABANDONEDBABY_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
@@ -202,7 +202,8 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlabandonedbaby(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlabandonedbaby(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -217,12 +218,12 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlabandonedbaby(startIdx: usize,
-/* Generated */                         endIdx: usize,
-/* Generated */                         /* Generated */                         mut optInPenetration: f64,
-/* Generated */                         outBegIdx: &mut usize,
-/* Generated */                         outNBElement: &mut usize,
-/* Generated */                         outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlabandonedbaby(&self, startIdx: usize,
+/* Generated */                                endIdx: usize,
+/* Generated */                                /* Generated */                                mut optInPenetration: f64,
+/* Generated */                                outBegIdx: &mut usize,
+/* Generated */                                outNBElement: &mut usize,
+/* Generated */                                outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLABANDONEDBABY( int    startIdx,
 /* Generated */                                            int    endIdx,
@@ -434,12 +435,12 @@ mut optInPenetration: f64) -> i32
 /* Generated */                                  int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlabandonedbaby`].
-/* Generated */ pub fn cdlabandonedbaby_s(startIdx: usize,
-/* Generated */                           endIdx: usize,
-/* Generated */                           /* Generated */                           mut optInPenetration: f32,
-/* Generated */                           outBegIdx: &mut usize,
-/* Generated */                           outNBElement: &mut usize,
-/* Generated */                           outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlabandonedbaby_s(&self, startIdx: usize,
+/* Generated */                                  endIdx: usize,
+/* Generated */                                  /* Generated */                                  mut optInPenetration: f32,
+/* Generated */                                  outBegIdx: &mut usize,
+/* Generated */                                  outNBElement: &mut usize,
+/* Generated */                                  outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLABANDONEDBABY( int    startIdx,
 /* Generated */                                   int    endIdx,

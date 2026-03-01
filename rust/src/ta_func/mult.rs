@@ -52,7 +52,7 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn mult_lookback() -> i32 {
+    pub fn mult_lookback(&self) -> i32 {
         return 0;
     }
     /// Vector Arithmetic Mult
@@ -82,7 +82,8 @@ impl Core {
     /// let mut out_beg_idx: usize = 0;
     /// let mut out_nb_element: usize = 0;
     ///
-    /// let result = Core::mult(
+    /// let core = Core::new();
+    /// let result = core.mult(
     ///  0,
     ///  49,
     ///  &input,
@@ -95,6 +96,7 @@ impl Core {
     /// assert_eq!(result, RetCode::Success);
     /// ```
     pub fn mult(
+        &self,
         startIdx: usize,
         endIdx: usize,
         inReal0: &[f64],
@@ -118,6 +120,7 @@ impl Core {
     }
     /// Single-precision variant of [`Core::mult`].
     pub fn mult_s(
+        &self,
         startIdx: usize,
         endIdx: usize,
         inReal0: &[f32],

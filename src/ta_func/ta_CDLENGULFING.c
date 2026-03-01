@@ -94,7 +94,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlengulfing_lookback(
+/* Generated */ pub fn cdlengulfing_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLENGULFING_Lookback( void )
@@ -183,7 +183,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlengulfing(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlengulfing(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -197,11 +198,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlengulfing(startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlengulfing(&self, startIdx: usize,
+/* Generated */                            endIdx: usize,
+/* Generated */                            /* Generated */                            outBegIdx: &mut usize,
+/* Generated */                            outNBElement: &mut usize,
+/* Generated */                            outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLENGULFING( int    startIdx,
 /* Generated */                                        int    endIdx,
@@ -359,11 +360,11 @@
 /* Generated */                              int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlengulfing`].
-/* Generated */ pub fn cdlengulfing_s(startIdx: usize,
-/* Generated */                       endIdx: usize,
-/* Generated */                       /* Generated */                       outBegIdx: &mut usize,
-/* Generated */                       outNBElement: &mut usize,
-/* Generated */                       outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlengulfing_s(&self, startIdx: usize,
+/* Generated */                              endIdx: usize,
+/* Generated */                              /* Generated */                              outBegIdx: &mut usize,
+/* Generated */                              outNBElement: &mut usize,
+/* Generated */                              outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLENGULFING( int    startIdx,
 /* Generated */                               int    endIdx,

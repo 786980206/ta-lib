@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdlhighwave_lookback(
+/* Generated */ pub fn cdlhighwave_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLHIGHWAVE_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdlhighwave(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdlhighwave(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlhighwave(startIdx: usize,
-/* Generated */                    endIdx: usize,
-/* Generated */                    /* Generated */                    outBegIdx: &mut usize,
-/* Generated */                    outNBElement: &mut usize,
-/* Generated */                    outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhighwave(&self, startIdx: usize,
+/* Generated */                           endIdx: usize,
+/* Generated */                           /* Generated */                           outBegIdx: &mut usize,
+/* Generated */                           outNBElement: &mut usize,
+/* Generated */                           outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLHIGHWAVE( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -364,11 +365,11 @@
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlhighwave`].
-/* Generated */ pub fn cdlhighwave_s(startIdx: usize,
-/* Generated */                      endIdx: usize,
-/* Generated */                      /* Generated */                      outBegIdx: &mut usize,
-/* Generated */                      outNBElement: &mut usize,
-/* Generated */                      outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdlhighwave_s(&self, startIdx: usize,
+/* Generated */                             endIdx: usize,
+/* Generated */                             /* Generated */                             outBegIdx: &mut usize,
+/* Generated */                             outNBElement: &mut usize,
+/* Generated */                             outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLHIGHWAVE( int    startIdx,
 /* Generated */                              int    endIdx,

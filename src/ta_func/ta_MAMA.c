@@ -98,9 +98,9 @@
 @RUSTDOC@
 @RUSTDOC@* `optInFastLimit` - Upper limit use in the adaptive algorithm (default: 0.5)
 @RUSTDOC@* `optInSlowLimit` - Lower limit use in the adaptive algorithm (default: 0.05)
-/* Generated */ pub fn mama_lookback(
+/* Generated */ pub fn mama_lookback(&self,
 mut optInFastLimit: f64,
-/* Generated */                       mut optInSlowLimit: f64) -> i32
+/* Generated */                             mut optInSlowLimit: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAMA_Lookback( double        optInFastLimit, /* From 0.01 to 0.99 */
 /* Generated */                                           double        optInSlowLimit )  /* From 0.01 to 0.99 */
@@ -232,7 +232,8 @@ mut optInFastLimit: f64,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::mama(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.mama(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -246,15 +247,15 @@ mut optInFastLimit: f64,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn mama(startIdx: usize,
-/* Generated */             endIdx: usize,
-/* Generated */             inReal: &[f64],
-/* Generated */             mut optInFastLimit: f64,
-/* Generated */             mut optInSlowLimit: f64,
-/* Generated */             outBegIdx: &mut usize,
-/* Generated */             outNBElement: &mut usize,
-/* Generated */             outMAMA: &mut [f64],
-/* Generated */             outFAMA: &mut [f64]) -> RetCode
+/* Generated */ pub fn mama(&self, startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    inReal: &[f64],
+/* Generated */                    mut optInFastLimit: f64,
+/* Generated */                    mut optInSlowLimit: f64,
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outMAMA: &mut [f64],
+/* Generated */                    outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -607,15 +608,15 @@ mut optInFastLimit: f64,
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::mama`].
-/* Generated */ pub fn mama_s(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal: &[f32],
-/* Generated */               mut optInFastLimit: f32,
-/* Generated */               mut optInSlowLimit: f32,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outMAMA: &mut [f64],
-/* Generated */               outFAMA: &mut [f64]) -> RetCode
+/* Generated */ pub fn mama_s(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal: &[f32],
+/* Generated */                      mut optInFastLimit: f32,
+/* Generated */                      mut optInSlowLimit: f32,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outMAMA: &mut [f64],
+/* Generated */                      outFAMA: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MAMA( int    startIdx,
 /* Generated */                       int    endIdx,

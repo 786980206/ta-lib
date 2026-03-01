@@ -103,11 +103,11 @@
 @RUSTDOC@* `optInNbDevUp` - Deviation multiplier for upper band (default: 2)
 @RUSTDOC@* `optInNbDevDn` - Deviation multiplier for lower band (default: 2)
 @RUSTDOC@* `optInMAType` - Type of Moving Average
-/* Generated */ pub fn bbands_lookback(
+/* Generated */ pub fn bbands_lookback(&self,
 mut optInTimePeriod: i32,
-/* Generated */                         mut optInNbDevUp: f64,
-/* Generated */                         mut optInNbDevDn: f64,
-/* Generated */                         mut optInMAType: i32) -> i32
+/* Generated */                               mut optInNbDevUp: f64,
+/* Generated */                               mut optInNbDevDn: f64,
+/* Generated */                               mut optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_BBANDS_Lookback( int           optInTimePeriod, /* From 2 to 100000 */
 /* Generated */                                             double        optInNbDevUp, /* From TA_REAL_MIN to TA_REAL_MAX */
@@ -251,7 +251,8 @@ mut optInTimePeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::bbands(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.bbands(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -268,18 +269,18 @@ mut optInTimePeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn bbands(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               inReal: &[f64],
-/* Generated */               mut optInTimePeriod: i32,
-/* Generated */               mut optInNbDevUp: f64,
-/* Generated */               mut optInNbDevDn: f64,
-/* Generated */               mut optInMAType: i32,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outRealUpperBand: &mut [f64],
-/* Generated */               outRealMiddleBand: &mut [f64],
-/* Generated */               outRealLowerBand: &mut [f64]) -> RetCode
+/* Generated */ pub fn bbands(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      inReal: &[f64],
+/* Generated */                      mut optInTimePeriod: i32,
+/* Generated */                      mut optInNbDevUp: f64,
+/* Generated */                      mut optInNbDevDn: f64,
+/* Generated */                      mut optInMAType: i32,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outRealUpperBand: &mut [f64],
+/* Generated */                      outRealMiddleBand: &mut [f64],
+/* Generated */                      outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -572,18 +573,18 @@ mut optInTimePeriod: i32,
 /* Generated */                        double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::bbands`].
-/* Generated */ pub fn bbands_s(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 inReal: &[f32],
-/* Generated */                 mut optInTimePeriod: i32,
-/* Generated */                 mut optInNbDevUp: f32,
-/* Generated */                 mut optInNbDevDn: f32,
-/* Generated */                 mut optInMAType: i32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outRealUpperBand: &mut [f64],
-/* Generated */                 outRealMiddleBand: &mut [f64],
-/* Generated */                 outRealLowerBand: &mut [f64]) -> RetCode
+/* Generated */ pub fn bbands_s(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        inReal: &[f32],
+/* Generated */                        mut optInTimePeriod: i32,
+/* Generated */                        mut optInNbDevUp: f32,
+/* Generated */                        mut optInNbDevDn: f32,
+/* Generated */                        mut optInMAType: i32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outRealUpperBand: &mut [f64],
+/* Generated */                        outRealMiddleBand: &mut [f64],
+/* Generated */                        outRealLowerBand: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_BBANDS( int    startIdx,
 /* Generated */                         int    endIdx,

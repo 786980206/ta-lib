@@ -93,7 +93,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn ht_dcperiod_lookback(
+/* Generated */ pub fn ht_dcperiod_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_HT_DCPERIOD_Lookback( void )
@@ -169,7 +169,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::ht_dcperiod(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.ht_dcperiod(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -180,12 +181,12 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ht_dcperiod(startIdx: usize,
-/* Generated */                    endIdx: usize,
-/* Generated */                    inReal: &[f64],
-/* Generated */                    outBegIdx: &mut usize,
-/* Generated */                    outNBElement: &mut usize,
-/* Generated */                    outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ht_dcperiod(&self, startIdx: usize,
+/* Generated */                           endIdx: usize,
+/* Generated */                           inReal: &[f64],
+/* Generated */                           outBegIdx: &mut usize,
+/* Generated */                           outNBElement: &mut usize,
+/* Generated */                           outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_DCPERIOD( int    startIdx,
 /* Generated */                                       int    endIdx,
@@ -477,12 +478,12 @@
 /* Generated */                            double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ht_dcperiod`].
-/* Generated */ pub fn ht_dcperiod_s(startIdx: usize,
-/* Generated */                      endIdx: usize,
-/* Generated */                      inReal: &[f32],
-/* Generated */                      outBegIdx: &mut usize,
-/* Generated */                      outNBElement: &mut usize,
-/* Generated */                      outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn ht_dcperiod_s(&self, startIdx: usize,
+/* Generated */                             endIdx: usize,
+/* Generated */                             inReal: &[f32],
+/* Generated */                             outBegIdx: &mut usize,
+/* Generated */                             outNBElement: &mut usize,
+/* Generated */                             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_DCPERIOD( int    startIdx,
 /* Generated */                              int    endIdx,

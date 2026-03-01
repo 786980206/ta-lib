@@ -4,7 +4,8 @@ let mut out = [0.0_f64; 5];
 let mut out_beg_idx: usize = 0;
 let mut out_nb_element: usize = 0;
 
-let result = Core::sma(
+let core = Core::new();
+let result = core.sma(
     0,
     4,
     &close_prices,

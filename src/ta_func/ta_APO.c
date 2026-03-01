@@ -99,10 +99,10 @@
 @RUSTDOC@* `optInFastPeriod` - Number of period for the fast MA (default: 12, range: 2..=100000)
 @RUSTDOC@* `optInSlowPeriod` - Number of period for the slow MA (default: 26, range: 2..=100000)
 @RUSTDOC@* `optInMAType` - Type of Moving Average
-/* Generated */ pub fn apo_lookback(
+/* Generated */ pub fn apo_lookback(&self,
 mut optInFastPeriod: i32,
-/* Generated */                      mut optInSlowPeriod: i32,
-/* Generated */                      mut optInMAType: i32) -> i32
+/* Generated */                            mut optInSlowPeriod: i32,
+/* Generated */                            mut optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_APO_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                          int           optInSlowPeriod, /* From 2 to 100000 */
@@ -223,7 +223,8 @@ mut optInFastPeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::apo(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.apo(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -237,15 +238,15 @@ mut optInFastPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn apo(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            inReal: &[f64],
-/* Generated */            mut optInFastPeriod: i32,
-/* Generated */            mut optInSlowPeriod: i32,
-/* Generated */            mut optInMAType: i32,
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn apo(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   inReal: &[f64],
+/* Generated */                   mut optInFastPeriod: i32,
+/* Generated */                   mut optInSlowPeriod: i32,
+/* Generated */                   mut optInMAType: i32,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_APO( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -516,15 +517,15 @@ TA_RetCode TA_PREFIX(INT_PO)( int    startIdx,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::apo`].
-/* Generated */ pub fn apo_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              inReal: &[f32],
-/* Generated */              mut optInFastPeriod: i32,
-/* Generated */              mut optInSlowPeriod: i32,
-/* Generated */              mut optInMAType: i32,
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn apo_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     inReal: &[f32],
+/* Generated */                     mut optInFastPeriod: i32,
+/* Generated */                     mut optInSlowPeriod: i32,
+/* Generated */                     mut optInMAType: i32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_APO( int    startIdx,
 /* Generated */                      int    endIdx,

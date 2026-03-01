@@ -53,7 +53,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn sma_lookback(mut optInTimePeriod: i32) -> i32 {
+    pub fn sma_lookback(&self, mut optInTimePeriod: i32) -> i32 {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
@@ -88,7 +88,8 @@ impl Core {
     /// let mut out_beg_idx: usize = 0;
     /// let mut out_nb_element: usize = 0;
     ///
-    /// let result = Core::sma(
+    /// let core = Core::new();
+    /// let result = core.sma(
     ///  0,
     ///  4,
     ///  &close_prices,
@@ -106,6 +107,7 @@ impl Core {
     /// assert!((out[2] - 4.0).abs() < 1e-10);
     /// ```
     pub fn sma(
+        &self,
         startIdx: usize,
         endIdx: usize,
         inReal: &[f64],
@@ -122,7 +124,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return Self::int_sma(
+        return self.int_sma(
             startIdx,
             endIdx,
             inReal,
@@ -133,6 +135,7 @@ impl Core {
         );
     }
     fn int_sma(
+        &self,
         mut startIdx: usize,
         endIdx: usize,
         inReal: &[f64],
@@ -181,6 +184,7 @@ impl Core {
     }
     /// Single-precision variant of [`Core::sma`].
     pub fn sma_s(
+        &self,
         startIdx: usize,
         endIdx: usize,
         inReal: &[f32],
@@ -197,7 +201,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return Self::int_sma_s(
+        return self.int_sma_s(
             startIdx,
             endIdx,
             inReal,
@@ -208,6 +212,7 @@ impl Core {
         );
     }
     fn int_sma_s(
+        &self,
         mut startIdx: usize,
         endIdx: usize,
         inReal: &[f32],

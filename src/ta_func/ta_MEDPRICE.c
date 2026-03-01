@@ -94,7 +94,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn medprice_lookback(
+/* Generated */ pub fn medprice_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MEDPRICE_Lookback( void )
@@ -175,7 +175,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::medprice(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.medprice(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -187,11 +188,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn medprice(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn medprice(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        /* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_MEDPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -297,11 +298,11 @@
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::medprice`].
-/* Generated */ pub fn medprice_s(startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn medprice_s(&self, startIdx: usize,
+/* Generated */                          endIdx: usize,
+/* Generated */                          /* Generated */                          outBegIdx: &mut usize,
+/* Generated */                          outNBElement: &mut usize,
+/* Generated */                          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_MEDPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

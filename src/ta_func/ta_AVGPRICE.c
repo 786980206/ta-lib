@@ -93,7 +93,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn avgprice_lookback(
+/* Generated */ pub fn avgprice_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AVGPRICE_Lookback( void )
@@ -184,7 +184,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::avgprice(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.avgprice(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -198,11 +199,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn avgprice(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn avgprice(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        /* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AVGPRICE( int    startIdx,
 /* Generated */                                    int    endIdx,
@@ -314,11 +315,11 @@
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::avgprice`].
-/* Generated */ pub fn avgprice_s(startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn avgprice_s(&self, startIdx: usize,
+/* Generated */                          endIdx: usize,
+/* Generated */                          /* Generated */                          outBegIdx: &mut usize,
+/* Generated */                          outNBElement: &mut usize,
+/* Generated */                          outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AVGPRICE( int    startIdx,
 /* Generated */                           int    endIdx,

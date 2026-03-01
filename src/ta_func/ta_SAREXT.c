@@ -127,15 +127,15 @@
 @RUSTDOC@* `optInAccelerationInitShort` - Acceleration Factor initial value for the Short direction (default: 0.02)
 @RUSTDOC@* `optInAccelerationShort` - Acceleration Factor for the Short direction (default: 0.02)
 @RUSTDOC@* `optInAccelerationMaxShort` - Acceleration Factor maximum value for the Short direction (default: 0.2)
-/* Generated */ pub fn sarext_lookback(
+/* Generated */ pub fn sarext_lookback(&self,
 mut optInStartValue: f64,
-/* Generated */                         mut optInOffsetOnReverse: f64,
-/* Generated */                         mut optInAccelerationInitLong: f64,
-/* Generated */                         mut optInAccelerationLong: f64,
-/* Generated */                         mut optInAccelerationMaxLong: f64,
-/* Generated */                         mut optInAccelerationInitShort: f64,
-/* Generated */                         mut optInAccelerationShort: f64,
-/* Generated */                         mut optInAccelerationMaxShort: f64) -> i32
+/* Generated */                               mut optInOffsetOnReverse: f64,
+/* Generated */                               mut optInAccelerationInitLong: f64,
+/* Generated */                               mut optInAccelerationLong: f64,
+/* Generated */                               mut optInAccelerationMaxLong: f64,
+/* Generated */                               mut optInAccelerationInitShort: f64,
+/* Generated */                               mut optInAccelerationShort: f64,
+/* Generated */                               mut optInAccelerationMaxShort: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAREXT_Lookback( double        optInStartValue, /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */                                             double        optInOffsetOnReverse, /* From 0 to TA_REAL_MAX */
@@ -333,7 +333,8 @@ mut optInStartValue: f64,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::sarext(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.sarext(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_high,
@@ -353,19 +354,19 @@ mut optInStartValue: f64,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn sarext(startIdx: usize,
-/* Generated */               endIdx: usize,
-/* Generated */               /* Generated */               mut optInStartValue: f64,
-/* Generated */               mut optInOffsetOnReverse: f64,
-/* Generated */               mut optInAccelerationInitLong: f64,
-/* Generated */               mut optInAccelerationLong: f64,
-/* Generated */               mut optInAccelerationMaxLong: f64,
-/* Generated */               mut optInAccelerationInitShort: f64,
-/* Generated */               mut optInAccelerationShort: f64,
-/* Generated */               mut optInAccelerationMaxShort: f64,
-/* Generated */               outBegIdx: &mut usize,
-/* Generated */               outNBElement: &mut usize,
-/* Generated */               outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sarext(&self, startIdx: usize,
+/* Generated */                      endIdx: usize,
+/* Generated */                      /* Generated */                      mut optInStartValue: f64,
+/* Generated */                      mut optInOffsetOnReverse: f64,
+/* Generated */                      mut optInAccelerationInitLong: f64,
+/* Generated */                      mut optInAccelerationLong: f64,
+/* Generated */                      mut optInAccelerationMaxLong: f64,
+/* Generated */                      mut optInAccelerationInitShort: f64,
+/* Generated */                      mut optInAccelerationShort: f64,
+/* Generated */                      mut optInAccelerationMaxShort: f64,
+/* Generated */                      outBegIdx: &mut usize,
+/* Generated */                      outNBElement: &mut usize,
+/* Generated */                      outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAREXT( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -859,19 +860,19 @@ mut optInStartValue: f64,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sarext`].
-/* Generated */ pub fn sarext_s(startIdx: usize,
-/* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 mut optInStartValue: f32,
-/* Generated */                 mut optInOffsetOnReverse: f32,
-/* Generated */                 mut optInAccelerationInitLong: f32,
-/* Generated */                 mut optInAccelerationLong: f32,
-/* Generated */                 mut optInAccelerationMaxLong: f32,
-/* Generated */                 mut optInAccelerationInitShort: f32,
-/* Generated */                 mut optInAccelerationShort: f32,
-/* Generated */                 mut optInAccelerationMaxShort: f32,
-/* Generated */                 outBegIdx: &mut usize,
-/* Generated */                 outNBElement: &mut usize,
-/* Generated */                 outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sarext_s(&self, startIdx: usize,
+/* Generated */                        endIdx: usize,
+/* Generated */                        /* Generated */                        mut optInStartValue: f32,
+/* Generated */                        mut optInOffsetOnReverse: f32,
+/* Generated */                        mut optInAccelerationInitLong: f32,
+/* Generated */                        mut optInAccelerationLong: f32,
+/* Generated */                        mut optInAccelerationMaxLong: f32,
+/* Generated */                        mut optInAccelerationInitShort: f32,
+/* Generated */                        mut optInAccelerationShort: f32,
+/* Generated */                        mut optInAccelerationMaxShort: f32,
+/* Generated */                        outBegIdx: &mut usize,
+/* Generated */                        outNBElement: &mut usize,
+/* Generated */                        outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAREXT( int    startIdx,
 /* Generated */                         int    endIdx,

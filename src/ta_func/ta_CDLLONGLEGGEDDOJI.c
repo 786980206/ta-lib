@@ -92,7 +92,7 @@
 @RUSTDOC@
 @RUSTDOC@# Arguments
 @RUSTDOC@
-/* Generated */ pub fn cdllongleggeddoji_lookback(
+/* Generated */ pub fn cdllongleggeddoji_lookback(&self,
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLLONGLEGGEDDOJI_Lookback( void )
@@ -181,7 +181,8 @@
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::cdllongleggeddoji(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.cdllongleggeddoji(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &in_open,
@@ -195,11 +196,11 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdllongleggeddoji(startIdx: usize,
-/* Generated */                          endIdx: usize,
-/* Generated */                          /* Generated */                          outBegIdx: &mut usize,
-/* Generated */                          outNBElement: &mut usize,
-/* Generated */                          outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdllongleggeddoji(&self, startIdx: usize,
+/* Generated */                                 endIdx: usize,
+/* Generated */                                 /* Generated */                                 outBegIdx: &mut usize,
+/* Generated */                                 outNBElement: &mut usize,
+/* Generated */                                 outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_CDLLONGLEGGEDDOJI( int    startIdx,
 /* Generated */                                             int    endIdx,
@@ -367,11 +368,11 @@
 /* Generated */                                   int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdllongleggeddoji`].
-/* Generated */ pub fn cdllongleggeddoji_s(startIdx: usize,
-/* Generated */                            endIdx: usize,
-/* Generated */                            /* Generated */                            outBegIdx: &mut usize,
-/* Generated */                            outNBElement: &mut usize,
-/* Generated */                            outInteger: &mut [i32]) -> RetCode
+/* Generated */ pub fn cdllongleggeddoji_s(&self, startIdx: usize,
+/* Generated */                                   endIdx: usize,
+/* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
+/* Generated */                                   outNBElement: &mut usize,
+/* Generated */                                   outInteger: &mut [i32]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_CDLLONGLEGGEDDOJI( int    startIdx,
 /* Generated */                                    int    endIdx,

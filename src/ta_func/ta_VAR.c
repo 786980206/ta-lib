@@ -97,9 +97,9 @@
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
 @RUSTDOC@* `optInNbDev` - Nb of deviations (default: 1)
-/* Generated */ pub fn var_lookback(
+/* Generated */ pub fn var_lookback(&self,
 mut optInTimePeriod: i32,
-/* Generated */                      mut optInNbDev: f64) -> i32
+/* Generated */                            mut optInNbDev: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_VAR_Lookback( int           optInTimePeriod, /* From 1 to 100000 */
 /* Generated */                                          double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
@@ -204,7 +204,8 @@ mut optInTimePeriod: i32,
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::var(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.var(
 @RUSTDOC@    0,
 @RUSTDOC@    49,
 @RUSTDOC@    &input,
@@ -217,14 +218,14 @@ mut optInTimePeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn var(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            inReal: &[f64],
-/* Generated */            mut optInTimePeriod: i32,
-/* Generated */            mut optInNbDev: f64,
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn var(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   inReal: &[f64],
+/* Generated */                   mut optInTimePeriod: i32,
+/* Generated */                   mut optInNbDev: f64,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -444,14 +445,14 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::var`].
-/* Generated */ pub fn var_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              inReal: &[f32],
-/* Generated */              mut optInTimePeriod: i32,
-/* Generated */              mut optInNbDev: f32,
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn var_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     inReal: &[f32],
+/* Generated */                     mut optInTimePeriod: i32,
+/* Generated */                     mut optInNbDev: f32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_VAR( int    startIdx,
 /* Generated */                      int    endIdx,

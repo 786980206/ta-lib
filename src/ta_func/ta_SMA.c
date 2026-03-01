@@ -94,7 +94,7 @@
 @RUSTDOC@# Arguments
 @RUSTDOC@
 @RUSTDOC@* `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-/* Generated */ pub fn sma_lookback(
+/* Generated */ pub fn sma_lookback(&self,
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SMA_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
@@ -187,7 +187,8 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
-@RUSTDOC@let result = Core::sma(
+@RUSTDOC@let core = Core::new();
+@RUSTDOC@let result = core.sma(
 @RUSTDOC@    0,
 @RUSTDOC@    4,
 @RUSTDOC@    &close_prices,
@@ -204,13 +205,13 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@assert!((out[1] - 3.0).abs() < 1e-10); // avg(2,3,4)
 @RUSTDOC@assert!((out[2] - 4.0).abs() < 1e-10); // avg(3,4,5)
 @RUSTDOC@```
-/* Generated */ pub fn sma(startIdx: usize,
-/* Generated */            endIdx: usize,
-/* Generated */            inReal: &[f64],
-/* Generated */            mut optInTimePeriod: i32,
-/* Generated */            outBegIdx: &mut usize,
-/* Generated */            outNBElement: &mut usize,
-/* Generated */            outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sma(&self, startIdx: usize,
+/* Generated */                   endIdx: usize,
+/* Generated */                   inReal: &[f64],
+/* Generated */                   mut optInTimePeriod: i32,
+/* Generated */                   outBegIdx: &mut usize,
+/* Generated */                   outNBElement: &mut usize,
+/* Generated */                   outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SMA( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -296,7 +297,7 @@ RetCode TA_INT_SMA( int    startIdx,
                     double   outReal[] )
 #elif defined( _RUST )
 #if defined( USE_SINGLE_PRECISION_INPUT )
-fn int_sma_s(
+fn int_sma_s(&self,
     mut startIdx: usize,
     endIdx: usize,
     inReal: &[f32],
@@ -305,7 +306,7 @@ fn int_sma_s(
     outNBElement: &mut usize,
     outReal: &mut [f64]) -> RetCode
 #else
-fn int_sma(
+fn int_sma(&self,
     mut startIdx: usize,
     endIdx: usize,
     inReal: &[f64],
@@ -425,13 +426,13 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sma`].
-/* Generated */ pub fn sma_s(startIdx: usize,
-/* Generated */              endIdx: usize,
-/* Generated */              inReal: &[f32],
-/* Generated */              mut optInTimePeriod: i32,
-/* Generated */              outBegIdx: &mut usize,
-/* Generated */              outNBElement: &mut usize,
-/* Generated */              outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sma_s(&self, startIdx: usize,
+/* Generated */                     endIdx: usize,
+/* Generated */                     inReal: &[f32],
+/* Generated */                     mut optInTimePeriod: i32,
+/* Generated */                     outBegIdx: &mut usize,
+/* Generated */                     outNBElement: &mut usize,
+/* Generated */                     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SMA( int    startIdx,
 /* Generated */                      int    endIdx,
@@ -501,7 +502,7 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                     double   outReal[] )
 /* Generated */ #elif defined( _RUST )
 /* Generated */ #if defined( USE_SINGLE_PRECISION_INPUT )
-/* Generated */ fn int_sma_s(
+/* Generated */ fn int_sma_s(&self,
 /* Generated */     mut startIdx: usize,
 /* Generated */     endIdx: usize,
 /* Generated */     inReal: &[f32],
@@ -510,7 +511,7 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */     outNBElement: &mut usize,
 /* Generated */     outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
-/* Generated */ fn int_sma(
+/* Generated */ fn int_sma(&self,
 /* Generated */     mut startIdx: usize,
 /* Generated */     endIdx: usize,
 /* Generated */     inReal: &[f64],
