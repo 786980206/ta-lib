@@ -161,10 +161,10 @@ ARRAY_ACCESS(arr, i)                     → arr[i]
 ENUM_VALUE(RetCode, TA_SUCCESS, Success) → RetCode::Success
 FUNCTION_CALL(SMA)                       → TA_PREFIX(SMA) → depends on context
 FUNCTION_CALL_DOUBLE(SMA)                → explicit double-precision variant
-LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback (NOT yet defined for Rust)
+LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback → self.rsi_lookback
 ```
 
-**Note**: `LOOKBACK_CALL` is only defined for C/Java (`#if !defined(_RUST)`). A Rust definition mapping to `Self::x_lookback()` is needed before implementing RSI and other unstable indicators.
+**Note**: `LOOKBACK_CALL` uses two-level expansion for Rust. `LOOKBACK_CALL(RSI)` → `TA_RSI_Lookback` → `self.rsi_lookback`. Add one `#define TA_XXX_Lookback self.xxx_lookback` per function in `ta_defs.h`.
 
 **Note**: `TA_FUNC_NO_RANGE_CHECK` was removed — it disabled ALL validation including basic range checks, causing test regressions. Use targeted macros (`CAST_TO_I32`, exclusion guards) instead.
 
@@ -176,36 +176,28 @@ LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback (NOT yet defined fo
 
 ## Next Functions to Implement
 
-### RSI (Relative Strength Index)
-**New Challenges**:
-- `TA_IS_ZERO` macro - floating point epsilon comparison (avoid divide by zero)
-- `TA_GLOBALS_UNSTABLE_PERIOD` - unstable period handling for technical indicators
-- `TA_GLOBALS_COMPATIBILITY` - Metastock compatibility mode
-- `LOOKBACK_CALL(RSI)` - needs Rust definition before RSI can be generated
-- Optional parameter: `optInTimePeriod` with default value handling
-
-**Floating Point Note**: Epsilon comparison is critical for financial calculations.
-
 ### MA (Moving Average - dispatcher)
 **Uses `FUNCTION_CALL` extensively** to dispatch to SMA, EMA, WMA, etc. Needs Rust equivalent for method dispatch.
 
-## Macros Still Needed for RSI and Beyond
+### EMA (Exponential Moving Average)
+Uses unstable period like RSI. Should be straightforward given RSI infrastructure.
 
-```c
-TA_IS_ZERO(x)                           // → x.abs() < f64::EPSILON ?
-TA_GLOBALS_UNSTABLE_PERIOD(id, name)    // → Core state or const
-TA_GLOBALS_COMPATIBILITY                // → Core config/const
-LOOKBACK_CALL(x)                        // → Self::x_lookback()
-ARRAY_MEMMOVE(dst, di, src, si, n)      // → dst[di..di+n].copy_from_slice(&src[si..si+n])
-ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
-```
+## Macros Completed for RSI
+
+All macros needed for RSI are now implemented:
+- `TA_IS_ZERO(x)` — already worked as-is (C epsilon comparison compiles in Rust)
+- `TA_GLOBALS_UNSTABLE_PERIOD(x,y)` — `self.unstable_period[FuncUnstId::y as usize]` (ta_memory.h)
+- `TA_GLOBALS_COMPATIBILITY` — `self.compatibility` (ta_memory.h)
+- `LOOKBACK_CALL(x)` — two-level expansion via `TA_RSI_Lookback` → `self.rsi_lookback` (ta_defs.h)
+- `ARRAY_MEMMOVE` / `ARRAY_MEMMOVEMIX` — `copy_from_slice` / element-wise `as f64` (ta_memory.h)
 
 ## Current Status
 
 - **MULT** - Complete, all 6 tests pass + 1 doctest
 - **SMA** - Complete, all 7 tests pass + 1 doctest (rich hand-written example)
+- **RSI** - Complete, all 13 tests pass + 1 doctest. First "unstable" indicator — uses Core state, unstable periods, compatibility modes.
 - **Doc generation** - `printRustFuncDoc` in gen_rust.c generates `///` doc comments from ta_abstract metadata. Zero `missing_docs` warnings. Uses `@RUSTDOC@` markers to survive mcpp. Rich examples override via `src/ta_abstract/rust_examples/<name>.txt`.
-- **RUST_SUPPORTED_FUNCS** - Currently `"SMA,MULT"` in gen_code.c line 111
+- **RUST_SUPPORTED_FUNCS** - Currently `"SMA,MULT,RSI"` in gen_code.c line 111
 - **Price Inputs** - Complex candlestick inputs (OHLCV combinations) not fully supported yet
 
 ## Build Configuration
@@ -218,7 +210,7 @@ ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 #define ENABLE_RUST
 
 // CSV list of supported Rust functions (comment out to generate all):
-#define RUST_SUPPORTED_FUNCS "SMA,MULT"
+#define RUST_SUPPORTED_FUNCS "SMA,MULT,RSI"
 ```
 
 ### Dependencies

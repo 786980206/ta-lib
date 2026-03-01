@@ -6,6 +6,31 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-01 -- RSI complete — first unstable indicator
+
+`git diff f81456aa^..0cdd3190` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/f81456aa...0cdd3190)
+
+* [f81456a](https://github.com/TA-Lib/ta-lib/commit/f81456aa) Converted ta_RSI.c logic section to cross-language macros (DECLARE vars, FOR_COUNTDOWN, CAST macros, braces)
+* [51a6b82](https://github.com/TA-Lib/ta-lib/commit/51a6b82e) Added RSI to `RUST_SUPPORTED_FUNCS`, template imports via `use super::*`, `mut startIdx` in signatures
+* [51a6b82](https://github.com/TA-Lib/ta-lib/commit/51a6b82e) Fixed `< 0` → `< 0.0` for f64 comparisons, added `CAST_TO_F64(inReal[today])` for single-precision compat
+* [5d9833d](https://github.com/TA-Lib/ta-lib/commit/5d9833de) RSI test suite: 13 tests covering basic, single precision, lookback, error conditions, unstable period, Metastock compat
+* [0cdd319](https://github.com/TA-Lib/ta-lib/commit/0cdd3190) Added rich hand-written doctest example for RSI
+* All 30 Rust tests passing (6 MULT + 7 SMA + 13 RSI + 4 doctests), zero warnings
+
+## 2026-03-01 -- Core becomes stateful — infrastructure for unstable indicators
+
+`git diff 59b61e9d^..c78b0a87` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/59b61e9d...c78b0a87)
+
+* [59b61e9](https://github.com/TA-Lib/ta-lib/commit/59b61e9d) Added `Compatibility` and `FuncUnstId` enums to Rust template (25 variants)
+* [a5ef144](https://github.com/TA-Lib/ta-lib/commit/a5ef1448) Made Core stateful with `unstable_period` array and `compatibility` field
+* [0ba23d1](https://github.com/TA-Lib/ta-lib/commit/0ba23d1c) Added `&self` to all Rust function signatures — static functions become instance methods
+* [b2def6d](https://github.com/TA-Lib/ta-lib/commit/b2def6df) Updated MULT/SMA tests for `&self` method API (`Core::func()` → `core.func()`)
+* [cca127b](https://github.com/TA-Lib/ta-lib/commit/cca127b2) Separated Rust from Java in `TA_GLOBALS_*` and `ARRAY_MEMMOVE/MEMMOVEMIX` macros (ta_memory.h)
+* [c78b0a8](https://github.com/TA-Lib/ta-lib/commit/c78b0a87) Added `LOOKBACK_CALL` for Rust — two-level expansion: `LOOKBACK_CALL(RSI)` → `TA_RSI_Lookback` → `self.rsi_lookback`
+* All 16 existing tests passing (6 MULT + 7 SMA + 3 doctests), zero regressions
+
+---
+
 ## 2026-03-01 -- SMA complete with full validation and tests
 
 `git diff 509d6af2^..24ad5e21` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/509d6af2...24ad5e21)
