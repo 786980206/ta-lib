@@ -177,6 +177,8 @@ impl Core {
 
 /// Vector Arithmetic Mult implementation.
 pub mod mult;
+/// Relative Strength Index implementation.
+pub mod rsi;
 /// Simple Moving Average implementation.
 pub mod sma;
 

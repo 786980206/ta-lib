@@ -234,7 +234,7 @@ mut optInAcceleration: f64,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn sar(&self, startIdx: usize,
+/* Generated */ pub fn sar(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   /* Generated */                   mut optInAcceleration: f64,
 /* Generated */                   mut optInMaximum: f64,
@@ -616,7 +616,7 @@ mut optInAcceleration: f64,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sar`].
-/* Generated */ pub fn sar_s(&self, startIdx: usize,
+/* Generated */ pub fn sar_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInAcceleration: f32,
 /* Generated */                     mut optInMaximum: f32,

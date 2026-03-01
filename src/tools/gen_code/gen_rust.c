@@ -414,7 +414,7 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
     indent = (unsigned int)strlen(gTempBuf);
 
     // Start with startIdx and endIdx parameters
-    fprintf(out, "startIdx: usize,\n");
+    fprintf(out, "mut startIdx: usize,\n");
     printIndent(out, indent);
     fprintf(out, "endIdx: usize,\n");
 
@@ -547,7 +547,7 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
     indent = (unsigned int)strlen(gTempBuf);
 
     // Start with startIdx and endIdx parameters
-    fprintf(out, "startIdx: usize,\n");
+    fprintf(out, "mut startIdx: usize,\n");
     printIndent(out, indent);
     fprintf(out, "endIdx: usize,\n");
 

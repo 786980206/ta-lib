@@ -195,7 +195,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn typprice(&self, startIdx: usize,
+/* Generated */ pub fn typprice(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        outBegIdx: &mut usize,
 /* Generated */                        outNBElement: &mut usize,
@@ -306,7 +306,7 @@
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::typprice`].
-/* Generated */ pub fn typprice_s(&self, startIdx: usize,
+/* Generated */ pub fn typprice_s(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          /* Generated */                          outBegIdx: &mut usize,
 /* Generated */                          outNBElement: &mut usize,

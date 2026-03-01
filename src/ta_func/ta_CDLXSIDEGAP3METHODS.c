@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlxsidegap3methods(&self, startIdx: usize,
+/* Generated */ pub fn cdlxsidegap3methods(&self, mut startIdx: usize,
 /* Generated */                                   endIdx: usize,
 /* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
 /* Generated */                                   outNBElement: &mut usize,
@@ -361,7 +361,7 @@
 /* Generated */                                     int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlxsidegap3methods`].
-/* Generated */ pub fn cdlxsidegap3methods_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlxsidegap3methods_s(&self, mut startIdx: usize,
 /* Generated */                                     endIdx: usize,
 /* Generated */                                     /* Generated */                                     outBegIdx: &mut usize,
 /* Generated */                                     outNBElement: &mut usize,

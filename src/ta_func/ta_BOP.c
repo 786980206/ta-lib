@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn bop(&self, startIdx: usize,
+/* Generated */ pub fn bop(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   /* Generated */                   outBegIdx: &mut usize,
 /* Generated */                   outNBElement: &mut usize,
@@ -314,7 +314,7 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::bop`].
-/* Generated */ pub fn bop_s(&self, startIdx: usize,
+/* Generated */ pub fn bop_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     outBegIdx: &mut usize,
 /* Generated */                     outNBElement: &mut usize,

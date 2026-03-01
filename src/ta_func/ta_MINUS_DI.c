@@ -218,7 +218,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn minus_di(&self, startIdx: usize,
+/* Generated */ pub fn minus_di(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        mut optInTimePeriod: i32,
 /* Generated */                        outBegIdx: &mut usize,
@@ -610,7 +610,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                         double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::minus_di`].
-/* Generated */ pub fn minus_di_s(&self, startIdx: usize,
+/* Generated */ pub fn minus_di_s(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          /* Generated */                          mut optInTimePeriod: i32,
 /* Generated */                          outBegIdx: &mut usize,

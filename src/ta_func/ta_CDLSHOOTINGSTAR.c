@@ -198,7 +198,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlshootingstar(&self, startIdx: usize,
+/* Generated */ pub fn cdlshootingstar(&self, mut startIdx: usize,
 /* Generated */                               endIdx: usize,
 /* Generated */                               /* Generated */                               outBegIdx: &mut usize,
 /* Generated */                               outNBElement: &mut usize,
@@ -383,7 +383,7 @@
 /* Generated */                                 int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlshootingstar`].
-/* Generated */ pub fn cdlshootingstar_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlshootingstar_s(&self, mut startIdx: usize,
 /* Generated */                                 endIdx: usize,
 /* Generated */                                 /* Generated */                                 outBegIdx: &mut usize,
 /* Generated */                                 outNBElement: &mut usize,

@@ -206,7 +206,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn rsi(&self, startIdx: usize,
+/* Generated */ pub fn rsi(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   mut optInTimePeriod: i32,
@@ -335,7 +335,7 @@ mut optInTimePeriod: i32) -> i32
     * among the initial period.
     */
    today = startIdx-lookbackTotal;
-   prevValue = inReal[today];
+   prevValue = CAST_TO_F64(inReal[today]);
 
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
 
@@ -365,10 +365,10 @@ mut optInTimePeriod: i32) -> i32
       prevGain = 0.0;
       prevLoss = 0.0;
       FOR_COUNTDOWN(optInTimePeriod, i)
-         tempValue1 = inReal[today]; today = today + 1;
+         tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue  = tempValue1;
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }
@@ -414,10 +414,10 @@ mut optInTimePeriod: i32) -> i32
    prevLoss = 0.0;
    today = today + 1;
    FOR_COUNTDOWN(optInTimePeriod, i)
-      tempValue1 = inReal[today]; today = today + 1;
+      tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
       tempValue2 = tempValue1 - prevValue;
       prevValue  = tempValue1;
-      if( tempValue2 < 0 )
+      if( tempValue2 < 0.0 )
       {
          prevLoss -= tempValue2;
       }
@@ -464,13 +464,13 @@ mut optInTimePeriod: i32) -> i32
        */
       while( today < startIdx )
       {
-         tempValue1 = inReal[today];
+         tempValue1 = CAST_TO_F64(inReal[today]);
          tempValue2 = tempValue1 - prevValue;
          prevValue  = tempValue1;
 
          prevLoss *= CAST_TO_F64(optInTimePeriod-1);
          prevGain *= CAST_TO_F64(optInTimePeriod-1);
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }
@@ -491,13 +491,13 @@ mut optInTimePeriod: i32) -> i32
     */
    while( today <= endIdx )
    {
-      tempValue1 = inReal[today]; today = today + 1;
+      tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
       tempValue2 = tempValue1 - prevValue;
       prevValue  = tempValue1;
 
       prevLoss *= CAST_TO_F64(optInTimePeriod-1);
       prevGain *= CAST_TO_F64(optInTimePeriod-1);
-      if( tempValue2 < 0 )
+      if( tempValue2 < 0.0 )
       {
          prevLoss -= tempValue2;
       }
@@ -561,7 +561,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::rsi`].
-/* Generated */ pub fn rsi_s(&self, startIdx: usize,
+/* Generated */ pub fn rsi_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     mut optInTimePeriod: i32,
@@ -643,7 +643,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */       return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
 /* Generated */    }
 /* Generated */    today = startIdx-lookbackTotal;
-/* Generated */    prevValue = inReal[today];
+/* Generated */    prevValue = CAST_TO_F64(inReal[today]);
 /* Generated */    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
 /* Generated */    if( (unstablePeriod == 0) &&
 /* Generated */        (TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)))
@@ -652,10 +652,10 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */       prevGain = 0.0;
 /* Generated */       prevLoss = 0.0;
 /* Generated */       FOR_COUNTDOWN(optInTimePeriod, i)
-/* Generated */          tempValue1 = inReal[today]; today = today + 1;
+/* Generated */          tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
 /* Generated */          tempValue2 = tempValue1 - prevValue;
 /* Generated */          prevValue  = tempValue1;
-/* Generated */          if( tempValue2 < 0 )
+/* Generated */          if( tempValue2 < 0.0 )
 /* Generated */          {
 /* Generated */             prevLoss -= tempValue2;
 /* Generated */          }
@@ -688,10 +688,10 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    prevLoss = 0.0;
 /* Generated */    today = today + 1;
 /* Generated */    FOR_COUNTDOWN(optInTimePeriod, i)
-/* Generated */       tempValue1 = inReal[today]; today = today + 1;
+/* Generated */       tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
 /* Generated */       tempValue2 = tempValue1 - prevValue;
 /* Generated */       prevValue  = tempValue1;
-/* Generated */       if( tempValue2 < 0 )
+/* Generated */       if( tempValue2 < 0.0 )
 /* Generated */       {
 /* Generated */          prevLoss -= tempValue2;
 /* Generated */       }
@@ -718,12 +718,12 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    {
 /* Generated */       while( today < startIdx )
 /* Generated */       {
-/* Generated */          tempValue1 = inReal[today];
+/* Generated */          tempValue1 = CAST_TO_F64(inReal[today]);
 /* Generated */          tempValue2 = tempValue1 - prevValue;
 /* Generated */          prevValue  = tempValue1;
 /* Generated */          prevLoss *= CAST_TO_F64(optInTimePeriod-1);
 /* Generated */          prevGain *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */          if( tempValue2 < 0 )
+/* Generated */          if( tempValue2 < 0.0 )
 /* Generated */          {
 /* Generated */             prevLoss -= tempValue2;
 /* Generated */          }
@@ -738,12 +738,12 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    }
 /* Generated */    while( today <= endIdx )
 /* Generated */    {
-/* Generated */       tempValue1 = inReal[today]; today = today + 1;
+/* Generated */       tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
 /* Generated */       tempValue2 = tempValue1 - prevValue;
 /* Generated */       prevValue  = tempValue1;
 /* Generated */       prevLoss *= CAST_TO_F64(optInTimePeriod-1);
 /* Generated */       prevGain *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */       if( tempValue2 < 0 )
+/* Generated */       if( tempValue2 < 0.0 )
 /* Generated */       {
 /* Generated */          prevLoss -= tempValue2;
 /* Generated */       }

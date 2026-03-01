@@ -215,7 +215,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn natr(&self, startIdx: usize,
+/* Generated */ pub fn natr(&self, mut startIdx: usize,
 /* Generated */                    endIdx: usize,
 /* Generated */                    /* Generated */                    mut optInTimePeriod: i32,
 /* Generated */                    outBegIdx: &mut usize,
@@ -458,7 +458,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::natr`].
-/* Generated */ pub fn natr_s(&self, startIdx: usize,
+/* Generated */ pub fn natr_s(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      /* Generated */                      mut optInTimePeriod: i32,
 /* Generated */                      outBegIdx: &mut usize,

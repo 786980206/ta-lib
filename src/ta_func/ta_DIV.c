@@ -183,7 +183,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn div(&self, startIdx: usize,
+/* Generated */ pub fn div(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal0: &[f64],
 /* Generated */                   inReal1: &[f64],
@@ -285,7 +285,7 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::div`].
-/* Generated */ pub fn div_s(&self, startIdx: usize,
+/* Generated */ pub fn div_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal0: &[f32],
 /* Generated */                     inReal1: &[f32],

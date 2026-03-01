@@ -205,7 +205,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@assert!((out[1] - 3.0).abs() < 1e-10); // avg(2,3,4)
 @RUSTDOC@assert!((out[2] - 4.0).abs() < 1e-10); // avg(3,4,5)
 @RUSTDOC@```
-/* Generated */ pub fn sma(&self, startIdx: usize,
+/* Generated */ pub fn sma(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   mut optInTimePeriod: i32,
@@ -426,7 +426,7 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sma`].
-/* Generated */ pub fn sma_s(&self, startIdx: usize,
+/* Generated */ pub fn sma_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     mut optInTimePeriod: i32,

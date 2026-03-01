@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlshortline(&self, startIdx: usize,
+/* Generated */ pub fn cdlshortline(&self, mut startIdx: usize,
 /* Generated */                            endIdx: usize,
 /* Generated */                            /* Generated */                            outBegIdx: &mut usize,
 /* Generated */                            outNBElement: &mut usize,
@@ -365,7 +365,7 @@
 /* Generated */                              int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlshortline`].
-/* Generated */ pub fn cdlshortline_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlshortline_s(&self, mut startIdx: usize,
 /* Generated */                              endIdx: usize,
 /* Generated */                              /* Generated */                              outBegIdx: &mut usize,
 /* Generated */                              outNBElement: &mut usize,

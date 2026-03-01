@@ -40,7 +40,7 @@
  */
 
 // Import types from parent module
-use super::{Core, RetCode};
+use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]

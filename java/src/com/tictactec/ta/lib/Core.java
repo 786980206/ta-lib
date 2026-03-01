@@ -21596,7 +21596,7 @@ public class Core {
          return RetCode.Success ;
       }
       today = startIdx-lookbackTotal;
-      prevValue = inReal[today];
+      prevValue = (inReal[today]) ;
       unstablePeriod = (this.unstablePeriod[FuncUnstId.Rsi.ordinal()]) ;
       if( (unstablePeriod == 0) &&
          ( (this.compatibility) == Compatibility.Metastock ))
@@ -21605,10 +21605,10 @@ public class Core {
          prevGain = 0.0;
          prevLoss = 0.0;
          for(i=optInTimePeriod; i > 0; i--) {
-            tempValue1 = inReal[today]; today = today + 1;
+            tempValue1 = (inReal[today]) ; today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            if( tempValue2 < 0 )
+            if( tempValue2 < 0.0 )
             {
                prevLoss -= tempValue2;
             }
@@ -21641,10 +21641,10 @@ public class Core {
       prevLoss = 0.0;
       today = today + 1;
       for(i=optInTimePeriod; i > 0; i--) {
-         tempValue1 = inReal[today]; today = today + 1;
+         tempValue1 = (inReal[today]) ; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }
@@ -21671,12 +21671,12 @@ public class Core {
       {
          while( today < startIdx )
          {
-            tempValue1 = inReal[today];
+            tempValue1 = (inReal[today]) ;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             prevLoss *= (optInTimePeriod-1) ;
             prevGain *= (optInTimePeriod-1) ;
-            if( tempValue2 < 0 )
+            if( tempValue2 < 0.0 )
             {
                prevLoss -= tempValue2;
             }
@@ -21691,12 +21691,12 @@ public class Core {
       }
       while( today <= endIdx )
       {
-         tempValue1 = inReal[today]; today = today + 1;
+         tempValue1 = (inReal[today]) ; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          prevLoss *= (optInTimePeriod-1) ;
          prevGain *= (optInTimePeriod-1) ;
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }
@@ -21772,7 +21772,7 @@ public class Core {
          return RetCode.Success ;
       }
       today = startIdx-lookbackTotal;
-      prevValue = inReal[today];
+      prevValue = (inReal[today]) ;
       unstablePeriod = (this.unstablePeriod[FuncUnstId.Rsi.ordinal()]) ;
       if( (unstablePeriod == 0) &&
          ( (this.compatibility) == Compatibility.Metastock ))
@@ -21781,10 +21781,10 @@ public class Core {
          prevGain = 0.0;
          prevLoss = 0.0;
          for(i=optInTimePeriod; i > 0; i--) {
-            tempValue1 = inReal[today]; today = today + 1;
+            tempValue1 = (inReal[today]) ; today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            if( tempValue2 < 0 )
+            if( tempValue2 < 0.0 )
             {
                prevLoss -= tempValue2;
             }
@@ -21817,10 +21817,10 @@ public class Core {
       prevLoss = 0.0;
       today = today + 1;
       for(i=optInTimePeriod; i > 0; i--) {
-         tempValue1 = inReal[today]; today = today + 1;
+         tempValue1 = (inReal[today]) ; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }
@@ -21847,12 +21847,12 @@ public class Core {
       {
          while( today < startIdx )
          {
-            tempValue1 = inReal[today];
+            tempValue1 = (inReal[today]) ;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
             prevLoss *= (optInTimePeriod-1) ;
             prevGain *= (optInTimePeriod-1) ;
-            if( tempValue2 < 0 )
+            if( tempValue2 < 0.0 )
             {
                prevLoss -= tempValue2;
             }
@@ -21867,12 +21867,12 @@ public class Core {
       }
       while( today <= endIdx )
       {
-         tempValue1 = inReal[today]; today = today + 1;
+         tempValue1 = (inReal[today]) ; today = today + 1;
          tempValue2 = tempValue1 - prevValue;
          prevValue = tempValue1;
          prevLoss *= (optInTimePeriod-1) ;
          prevGain *= (optInTimePeriod-1) ;
-         if( tempValue2 < 0 )
+         if( tempValue2 < 0.0 )
          {
             prevLoss -= tempValue2;
          }

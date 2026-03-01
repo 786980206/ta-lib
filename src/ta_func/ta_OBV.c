@@ -189,7 +189,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn obv(&self, startIdx: usize,
+/* Generated */ pub fn obv(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   inVolume: &[f64],
@@ -305,7 +305,7 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::obv`].
-/* Generated */ pub fn obv_s(&self, startIdx: usize,
+/* Generated */ pub fn obv_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     inVolume: &[f32],

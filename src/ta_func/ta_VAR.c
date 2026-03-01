@@ -218,7 +218,7 @@ mut optInTimePeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn var(&self, startIdx: usize,
+/* Generated */ pub fn var(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   mut optInTimePeriod: i32,
@@ -445,7 +445,7 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::var`].
-/* Generated */ pub fn var_s(&self, startIdx: usize,
+/* Generated */ pub fn var_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     mut optInTimePeriod: i32,

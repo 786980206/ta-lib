@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlpiercing(&self, startIdx: usize,
+/* Generated */ pub fn cdlpiercing(&self, mut startIdx: usize,
 /* Generated */                           endIdx: usize,
 /* Generated */                           /* Generated */                           outBegIdx: &mut usize,
 /* Generated */                           outNBElement: &mut usize,
@@ -369,7 +369,7 @@
 /* Generated */                             int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlpiercing`].
-/* Generated */ pub fn cdlpiercing_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlpiercing_s(&self, mut startIdx: usize,
 /* Generated */                             endIdx: usize,
 /* Generated */                             /* Generated */                             outBegIdx: &mut usize,
 /* Generated */                             outNBElement: &mut usize,

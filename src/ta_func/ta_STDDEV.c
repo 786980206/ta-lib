@@ -219,7 +219,7 @@ mut optInTimePeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn stddev(&self, startIdx: usize,
+/* Generated */ pub fn stddev(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      inReal: &[f64],
 /* Generated */                      mut optInTimePeriod: i32,
@@ -455,7 +455,7 @@ void TA_PREFIX(INT_stddev_using_precalc_ma)( const INPUT_TYPE *inReal,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::stddev`].
-/* Generated */ pub fn stddev_s(&self, startIdx: usize,
+/* Generated */ pub fn stddev_s(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        inReal: &[f32],
 /* Generated */                        mut optInTimePeriod: i32,

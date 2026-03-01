@@ -302,7 +302,7 @@ mut optInFastK_Period: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn stoch(&self, startIdx: usize,
+/* Generated */ pub fn stoch(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInFastK_Period: i32,
 /* Generated */                     mut optInSlowK_Period: i32,
@@ -710,7 +710,7 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::stoch`].
-/* Generated */ pub fn stoch_s(&self, startIdx: usize,
+/* Generated */ pub fn stoch_s(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       /* Generated */                       mut optInFastK_Period: i32,
 /* Generated */                       mut optInSlowK_Period: i32,

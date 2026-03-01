@@ -109,7 +109,7 @@
 
 // Comma-separated list of functions to generate for Rust.
 // Comment out to generate all functions.
-#define RUST_SUPPORTED_FUNCS "SMA,MULT"
+#define RUST_SUPPORTED_FUNCS "SMA,MULT,RSI"
 
 #if !defined(__WIN32__) && !defined(__MSDOS__) && !defined(WIN32)
    #include <unistd.h>

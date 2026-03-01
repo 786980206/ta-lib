@@ -250,7 +250,7 @@ mut optInTimePeriod1: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ultosc(&self, startIdx: usize,
+/* Generated */ pub fn ultosc(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      /* Generated */                      mut optInTimePeriod1: i32,
 /* Generated */                      mut optInTimePeriod2: i32,
@@ -519,7 +519,7 @@ mut optInTimePeriod1: i32,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ultosc`].
-/* Generated */ pub fn ultosc_s(&self, startIdx: usize,
+/* Generated */ pub fn ultosc_s(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        mut optInTimePeriod1: i32,
 /* Generated */                        mut optInTimePeriod2: i32,

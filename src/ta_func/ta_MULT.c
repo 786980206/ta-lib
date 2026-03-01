@@ -183,7 +183,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn mult(&self, startIdx: usize,
+/* Generated */ pub fn mult(&self, mut startIdx: usize,
 /* Generated */                    endIdx: usize,
 /* Generated */                    inReal0: &[f64],
 /* Generated */                    inReal1: &[f64],
@@ -284,7 +284,7 @@
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::mult`].
-/* Generated */ pub fn mult_s(&self, startIdx: usize,
+/* Generated */ pub fn mult_s(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      inReal0: &[f32],
 /* Generated */                      inReal1: &[f32],

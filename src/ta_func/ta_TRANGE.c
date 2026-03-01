@@ -192,7 +192,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn trange(&self, startIdx: usize,
+/* Generated */ pub fn trange(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      /* Generated */                      outBegIdx: &mut usize,
 /* Generated */                      outNBElement: &mut usize,
@@ -343,7 +343,7 @@
 /* Generated */                           double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::trange`].
-/* Generated */ pub fn trange_s(&self, startIdx: usize,
+/* Generated */ pub fn trange_s(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        outBegIdx: &mut usize,
 /* Generated */                        outNBElement: &mut usize,

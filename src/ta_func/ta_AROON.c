@@ -210,7 +210,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn aroon(&self, startIdx: usize,
+/* Generated */ pub fn aroon(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInTimePeriod: i32,
 /* Generated */                     outBegIdx: &mut usize,
@@ -423,7 +423,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::aroon`].
-/* Generated */ pub fn aroon_s(&self, startIdx: usize,
+/* Generated */ pub fn aroon_s(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       /* Generated */                       mut optInTimePeriod: i32,
 /* Generated */                       outBegIdx: &mut usize,

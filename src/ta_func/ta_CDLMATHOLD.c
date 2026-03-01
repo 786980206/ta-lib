@@ -215,7 +215,7 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlmathold(&self, startIdx: usize,
+/* Generated */ pub fn cdlmathold(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          /* Generated */                          mut optInPenetration: f64,
 /* Generated */                          outBegIdx: &mut usize,
@@ -432,7 +432,7 @@ mut optInPenetration: f64) -> i32
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlmathold`].
-/* Generated */ pub fn cdlmathold_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlmathold_s(&self, mut startIdx: usize,
 /* Generated */                            endIdx: usize,
 /* Generated */                            /* Generated */                            mut optInPenetration: f32,
 /* Generated */                            outBegIdx: &mut usize,

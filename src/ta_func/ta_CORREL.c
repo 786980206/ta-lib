@@ -205,7 +205,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn correl(&self, startIdx: usize,
+/* Generated */ pub fn correl(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      inReal0: &[f64],
 /* Generated */                      inReal1: &[f64],
@@ -392,7 +392,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::correl`].
-/* Generated */ pub fn correl_s(&self, startIdx: usize,
+/* Generated */ pub fn correl_s(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        inReal0: &[f32],
 /* Generated */                        inReal1: &[f32],

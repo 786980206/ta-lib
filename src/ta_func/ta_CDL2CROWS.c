@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdl2crows(&self, startIdx: usize,
+/* Generated */ pub fn cdl2crows(&self, mut startIdx: usize,
 /* Generated */                         endIdx: usize,
 /* Generated */                         /* Generated */                         outBegIdx: &mut usize,
 /* Generated */                         outNBElement: &mut usize,
@@ -365,7 +365,7 @@
 /* Generated */                           int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdl2crows`].
-/* Generated */ pub fn cdl2crows_s(&self, startIdx: usize,
+/* Generated */ pub fn cdl2crows_s(&self, mut startIdx: usize,
 /* Generated */                           endIdx: usize,
 /* Generated */                           /* Generated */                           outBegIdx: &mut usize,
 /* Generated */                           outNBElement: &mut usize,

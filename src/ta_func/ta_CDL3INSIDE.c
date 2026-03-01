@@ -196,7 +196,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdl3inside(&self, startIdx: usize,
+/* Generated */ pub fn cdl3inside(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          /* Generated */                          outBegIdx: &mut usize,
 /* Generated */                          outNBElement: &mut usize,
@@ -374,7 +374,7 @@
 /* Generated */                            int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdl3inside`].
-/* Generated */ pub fn cdl3inside_s(&self, startIdx: usize,
+/* Generated */ pub fn cdl3inside_s(&self, mut startIdx: usize,
 /* Generated */                            endIdx: usize,
 /* Generated */                            /* Generated */                            outBegIdx: &mut usize,
 /* Generated */                            outNBElement: &mut usize,

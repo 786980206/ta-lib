@@ -236,7 +236,7 @@ mut optInMinPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn mavp(&self, startIdx: usize,
+/* Generated */ pub fn mavp(&self, mut startIdx: usize,
 /* Generated */                    endIdx: usize,
 /* Generated */                    inReal: &[f64],
 /* Generated */                    inPeriods: &[f64],
@@ -468,7 +468,7 @@ mut optInMinPeriod: i32,
 /* Generated */                                             double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::mavp`].
-/* Generated */ pub fn mavp_s(&self, startIdx: usize,
+/* Generated */ pub fn mavp_s(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      inReal: &[f32],
 /* Generated */                      inPeriods: &[f32],

@@ -198,7 +198,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlseparatinglines(&self, startIdx: usize,
+/* Generated */ pub fn cdlseparatinglines(&self, mut startIdx: usize,
 /* Generated */                                  endIdx: usize,
 /* Generated */                                  /* Generated */                                  outBegIdx: &mut usize,
 /* Generated */                                  outNBElement: &mut usize,
@@ -390,7 +390,7 @@
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlseparatinglines`].
-/* Generated */ pub fn cdlseparatinglines_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlseparatinglines_s(&self, mut startIdx: usize,
 /* Generated */                                    endIdx: usize,
 /* Generated */                                    /* Generated */                                    outBegIdx: &mut usize,
 /* Generated */                                    outNBElement: &mut usize,

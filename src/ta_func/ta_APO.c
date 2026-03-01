@@ -238,7 +238,7 @@ mut optInFastPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn apo(&self, startIdx: usize,
+/* Generated */ pub fn apo(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   mut optInFastPeriod: i32,
@@ -517,7 +517,7 @@ TA_RetCode TA_PREFIX(INT_PO)( int    startIdx,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::apo`].
-/* Generated */ pub fn apo_s(&self, startIdx: usize,
+/* Generated */ pub fn apo_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     mut optInFastPeriod: i32,

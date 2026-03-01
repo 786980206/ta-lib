@@ -197,7 +197,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlidentical3crows(&self, startIdx: usize,
+/* Generated */ pub fn cdlidentical3crows(&self, mut startIdx: usize,
 /* Generated */                                  endIdx: usize,
 /* Generated */                                  /* Generated */                                  outBegIdx: &mut usize,
 /* Generated */                                  outNBElement: &mut usize,
@@ -398,7 +398,7 @@
 /* Generated */                                    int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlidentical3crows`].
-/* Generated */ pub fn cdlidentical3crows_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlidentical3crows_s(&self, mut startIdx: usize,
 /* Generated */                                    endIdx: usize,
 /* Generated */                                    /* Generated */                                    outBegIdx: &mut usize,
 /* Generated */                                    outNBElement: &mut usize,

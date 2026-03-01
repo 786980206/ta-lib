@@ -211,7 +211,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn willr(&self, startIdx: usize,
+/* Generated */ pub fn willr(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInTimePeriod: i32,
 /* Generated */                     outBegIdx: &mut usize,
@@ -422,7 +422,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::willr`].
-/* Generated */ pub fn willr_s(&self, startIdx: usize,
+/* Generated */ pub fn willr_s(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       /* Generated */                       mut optInTimePeriod: i32,
 /* Generated */                       outBegIdx: &mut usize,

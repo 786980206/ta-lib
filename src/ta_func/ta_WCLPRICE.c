@@ -194,7 +194,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn wclprice(&self, startIdx: usize,
+/* Generated */ pub fn wclprice(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        outBegIdx: &mut usize,
 /* Generated */                        outNBElement: &mut usize,
@@ -305,7 +305,7 @@
 /* Generated */                          double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::wclprice`].
-/* Generated */ pub fn wclprice_s(&self, startIdx: usize,
+/* Generated */ pub fn wclprice_s(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          /* Generated */                          outBegIdx: &mut usize,
 /* Generated */                          outNBElement: &mut usize,

@@ -354,7 +354,7 @@ mut optInStartValue: f64,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn sarext(&self, startIdx: usize,
+/* Generated */ pub fn sarext(&self, mut startIdx: usize,
 /* Generated */                      endIdx: usize,
 /* Generated */                      /* Generated */                      mut optInStartValue: f64,
 /* Generated */                      mut optInOffsetOnReverse: f64,
@@ -860,7 +860,7 @@ mut optInStartValue: f64,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::sarext`].
-/* Generated */ pub fn sarext_s(&self, startIdx: usize,
+/* Generated */ pub fn sarext_s(&self, mut startIdx: usize,
 /* Generated */                        endIdx: usize,
 /* Generated */                        /* Generated */                        mut optInStartValue: f32,
 /* Generated */                        mut optInOffsetOnReverse: f32,

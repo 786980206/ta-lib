@@ -181,7 +181,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ht_dcperiod(&self, startIdx: usize,
+/* Generated */ pub fn ht_dcperiod(&self, mut startIdx: usize,
 /* Generated */                           endIdx: usize,
 /* Generated */                           inReal: &[f64],
 /* Generated */                           outBegIdx: &mut usize,
@@ -478,7 +478,7 @@
 /* Generated */                            double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ht_dcperiod`].
-/* Generated */ pub fn ht_dcperiod_s(&self, startIdx: usize,
+/* Generated */ pub fn ht_dcperiod_s(&self, mut startIdx: usize,
 /* Generated */                             endIdx: usize,
 /* Generated */                             inReal: &[f32],
 /* Generated */                             outBegIdx: &mut usize,

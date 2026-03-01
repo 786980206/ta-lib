@@ -203,7 +203,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn minmaxindex(&self, startIdx: usize,
+/* Generated */ pub fn minmaxindex(&self, mut startIdx: usize,
 /* Generated */                           endIdx: usize,
 /* Generated */                           inReal: &[f64],
 /* Generated */                           mut optInTimePeriod: i32,
@@ -402,7 +402,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                             int           outMaxIdx[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::minmaxindex`].
-/* Generated */ pub fn minmaxindex_s(&self, startIdx: usize,
+/* Generated */ pub fn minmaxindex_s(&self, mut startIdx: usize,
 /* Generated */                             endIdx: usize,
 /* Generated */                             inReal: &[f32],
 /* Generated */                             mut optInTimePeriod: i32,

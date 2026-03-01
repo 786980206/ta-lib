@@ -244,7 +244,7 @@ mut optInFastPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn adosc(&self, startIdx: usize,
+/* Generated */ pub fn adosc(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInFastPeriod: i32,
 /* Generated */                     mut optInSlowPeriod: i32,
@@ -475,7 +475,7 @@ mut optInFastPeriod: i32,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::adosc`].
-/* Generated */ pub fn adosc_s(&self, startIdx: usize,
+/* Generated */ pub fn adosc_s(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       /* Generated */                       mut optInFastPeriod: i32,
 /* Generated */                       mut optInSlowPeriod: i32,

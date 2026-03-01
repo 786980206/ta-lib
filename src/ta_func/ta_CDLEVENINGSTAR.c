@@ -216,7 +216,7 @@ mut optInPenetration: f64) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdleveningstar(&self, startIdx: usize,
+/* Generated */ pub fn cdleveningstar(&self, mut startIdx: usize,
 /* Generated */                              endIdx: usize,
 /* Generated */                              /* Generated */                              mut optInPenetration: f64,
 /* Generated */                              outBegIdx: &mut usize,
@@ -410,7 +410,7 @@ mut optInPenetration: f64) -> i32
 /* Generated */                                int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdleveningstar`].
-/* Generated */ pub fn cdleveningstar_s(&self, startIdx: usize,
+/* Generated */ pub fn cdleveningstar_s(&self, mut startIdx: usize,
 /* Generated */                                endIdx: usize,
 /* Generated */                                /* Generated */                                mut optInPenetration: f32,
 /* Generated */                                outBegIdx: &mut usize,

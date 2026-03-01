@@ -217,7 +217,7 @@ mut optInSignalPeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn macdfix(&self, startIdx: usize,
+/* Generated */ pub fn macdfix(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       inReal: &[f64],
 /* Generated */                       mut optInSignalPeriod: i32,
@@ -338,7 +338,7 @@ mut optInSignalPeriod: i32) -> i32
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::macdfix`].
-/* Generated */ pub fn macdfix_s(&self, startIdx: usize,
+/* Generated */ pub fn macdfix_s(&self, mut startIdx: usize,
 /* Generated */                         endIdx: usize,
 /* Generated */                         inReal: &[f32],
 /* Generated */                         mut optInSignalPeriod: i32,

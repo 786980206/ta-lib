@@ -177,7 +177,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn tan(&self, startIdx: usize,
+/* Generated */ pub fn tan(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   inReal: &[f64],
 /* Generated */                   outBegIdx: &mut usize,
@@ -272,7 +272,7 @@
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::tan`].
-/* Generated */ pub fn tan_s(&self, startIdx: usize,
+/* Generated */ pub fn tan_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     inReal: &[f32],
 /* Generated */                     outBegIdx: &mut usize,

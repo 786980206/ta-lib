@@ -202,7 +202,7 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn imi(&self, startIdx: usize,
+/* Generated */ pub fn imi(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   /* Generated */                   mut optInTimePeriod: i32,
 /* Generated */                   outBegIdx: &mut usize,
@@ -343,7 +343,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::imi`].
-/* Generated */ pub fn imi_s(&self, startIdx: usize,
+/* Generated */ pub fn imi_s(&self, mut startIdx: usize,
 /* Generated */                     endIdx: usize,
 /* Generated */                     /* Generated */                     mut optInTimePeriod: i32,
 /* Generated */                     outBegIdx: &mut usize,

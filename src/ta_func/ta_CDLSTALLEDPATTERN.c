@@ -198,7 +198,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn cdlstalledpattern(&self, startIdx: usize,
+/* Generated */ pub fn cdlstalledpattern(&self, mut startIdx: usize,
 /* Generated */                                 endIdx: usize,
 /* Generated */                                 /* Generated */                                 outBegIdx: &mut usize,
 /* Generated */                                 outNBElement: &mut usize,
@@ -417,7 +417,7 @@
 /* Generated */                                   int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::cdlstalledpattern`].
-/* Generated */ pub fn cdlstalledpattern_s(&self, startIdx: usize,
+/* Generated */ pub fn cdlstalledpattern_s(&self, mut startIdx: usize,
 /* Generated */                                   endIdx: usize,
 /* Generated */                                   /* Generated */                                   outBegIdx: &mut usize,
 /* Generated */                                   outNBElement: &mut usize,

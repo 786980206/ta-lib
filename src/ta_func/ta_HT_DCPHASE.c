@@ -188,7 +188,7 @@
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn ht_dcphase(&self, startIdx: usize,
+/* Generated */ pub fn ht_dcphase(&self, mut startIdx: usize,
 /* Generated */                          endIdx: usize,
 /* Generated */                          inReal: &[f64],
 /* Generated */                          outBegIdx: &mut usize,
@@ -551,7 +551,7 @@
 /* Generated */                           double        outReal[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::ht_dcphase`].
-/* Generated */ pub fn ht_dcphase_s(&self, startIdx: usize,
+/* Generated */ pub fn ht_dcphase_s(&self, mut startIdx: usize,
 /* Generated */                            endIdx: usize,
 /* Generated */                            inReal: &[f32],
 /* Generated */                            outBegIdx: &mut usize,

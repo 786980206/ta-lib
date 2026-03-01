@@ -314,7 +314,7 @@ mut optInFastPeriod: i32,
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
 @RUSTDOC@```
-/* Generated */ pub fn macdext(&self, startIdx: usize,
+/* Generated */ pub fn macdext(&self, mut startIdx: usize,
 /* Generated */                       endIdx: usize,
 /* Generated */                       inReal: &[f64],
 /* Generated */                       mut optInFastPeriod: i32,
@@ -639,7 +639,7 @@ mut optInFastPeriod: i32,
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
 @RUSTDOC@Single-precision variant of [`Core::macdext`].
-/* Generated */ pub fn macdext_s(&self, startIdx: usize,
+/* Generated */ pub fn macdext_s(&self, mut startIdx: usize,
 /* Generated */                         endIdx: usize,
 /* Generated */                         inReal: &[f32],
 /* Generated */                         mut optInFastPeriod: i32,
