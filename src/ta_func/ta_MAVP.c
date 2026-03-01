@@ -187,9 +187,9 @@ mut optInMinPeriod: i32,
 /* Generated */             endIdx: usize,
 /* Generated */             inReal: &[f64],
 /* Generated */             inPeriods: &[f64],
-/* Generated */             optInMinPeriod: i32,
-/* Generated */             optInMaxPeriod: i32,
-/* Generated */             optInMAType: i32,
+/* Generated */             mut optInMinPeriod: i32,
+/* Generated */             mut optInMaxPeriod: i32,
+/* Generated */             mut optInMAType: i32,
 /* Generated */             outBegIdx: &mut usize,
 /* Generated */             outNBElement: &mut usize,
 /* Generated */             outReal: &mut [f64]) -> RetCode
@@ -234,13 +234,10 @@ mut optInMinPeriod: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    if( !inPeriods ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInMinPeriod. */
 /* Generated */    if( CAST_TO_I32(optInMinPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMinPeriod = 2;
@@ -260,12 +257,11 @@ mut optInMinPeriod: i32,
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -422,9 +418,9 @@ mut optInMinPeriod: i32,
 /* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f32],
 /* Generated */               inPeriods: &[f32],
-/* Generated */               optInMinPeriod: i32,
-/* Generated */               optInMaxPeriod: i32,
-/* Generated */               optInMAType: i32,
+/* Generated */               mut optInMinPeriod: i32,
+/* Generated */               mut optInMaxPeriod: i32,
+/* Generated */               mut optInMAType: i32,
 /* Generated */               outBegIdx: &mut usize,
 /* Generated */               outNBElement: &mut usize,
 /* Generated */               outReal: &mut [f64]) -> RetCode
@@ -460,9 +456,7 @@ mut optInMinPeriod: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     if( !inPeriods ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
@@ -483,11 +477,10 @@ mut optInMinPeriod: i32,
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    lookbackTotal = LOOKBACK_CALL(MA)(optInMaxPeriod,optInMAType);
 /* Generated */    if( startIdx < lookbackTotal )

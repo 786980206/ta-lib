@@ -174,8 +174,8 @@ mut optInTimePeriod: i32,
 /* Generated */ pub fn var(startIdx: usize,
 /* Generated */            endIdx: usize,
 /* Generated */            inReal: &[f64],
-/* Generated */            optInTimePeriod: i32,
-/* Generated */            optInNbDev: f64,
+/* Generated */            mut optInTimePeriod: i32,
+/* Generated */            mut optInNbDev: f64,
 /* Generated */            outBegIdx: &mut usize,
 /* Generated */            outNBElement: &mut usize,
 /* Generated */            outReal: &mut [f64]) -> RetCode
@@ -212,12 +212,9 @@ mut optInTimePeriod: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
 /* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 5;
@@ -229,12 +226,11 @@ mut optInTimePeriod: i32,
 /* Generated */    } else if( (optInNbDev < -3.000000e+37) ||/* Generated */  (optInNbDev > 3.000000e+37) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -404,8 +400,8 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */ pub fn var_s(startIdx: usize,
 /* Generated */              endIdx: usize,
 /* Generated */              inReal: &[f32],
-/* Generated */              optInTimePeriod: i32,
-/* Generated */              optInNbDev: f32,
+/* Generated */              mut optInTimePeriod: i32,
+/* Generated */              mut optInNbDev: f32,
 /* Generated */              outBegIdx: &mut usize,
 /* Generated */              outNBElement: &mut usize,
 /* Generated */              outReal: &mut [f64]) -> RetCode
@@ -433,9 +429,7 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
 /* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
@@ -448,11 +442,10 @@ TA_RetCode TA_PREFIX(INT_VAR)( int    startIdx,
 /* Generated */     } else if( (optInNbDev < -3.000000e+37) ||  (optInNbDev > 3.000000e+37) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    return FUNCTION_CALL(INT_VAR)( startIdx, endIdx, inReal,
 /* Generated */                                   optInTimePeriod, 

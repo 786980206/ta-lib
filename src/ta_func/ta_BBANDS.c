@@ -213,10 +213,10 @@ mut optInTimePeriod: i32,
 /* Generated */ pub fn bbands(startIdx: usize,
 /* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f64],
-/* Generated */               optInTimePeriod: i32,
-/* Generated */               optInNbDevUp: f64,
-/* Generated */               optInNbDevDn: f64,
-/* Generated */               optInMAType: i32,
+/* Generated */               mut optInTimePeriod: i32,
+/* Generated */               mut optInNbDevUp: f64,
+/* Generated */               mut optInNbDevDn: f64,
+/* Generated */               mut optInMAType: i32,
 /* Generated */               outBegIdx: &mut usize,
 /* Generated */               outNBElement: &mut usize,
 /* Generated */               outRealUpperBand: &mut [f64],
@@ -264,12 +264,9 @@ mut optInTimePeriod: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
 /* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 5;
@@ -293,7 +290,7 @@ mut optInTimePeriod: i32,
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outRealUpperBand )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
@@ -303,8 +300,7 @@ mut optInTimePeriod: i32,
 /* Generated */    if( !outRealLowerBand )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -520,10 +516,10 @@ mut optInTimePeriod: i32,
 /* Generated */ pub fn bbands_s(startIdx: usize,
 /* Generated */                 endIdx: usize,
 /* Generated */                 inReal: &[f32],
-/* Generated */                 optInTimePeriod: i32,
-/* Generated */                 optInNbDevUp: f32,
-/* Generated */                 optInNbDevDn: f32,
-/* Generated */                 optInMAType: i32,
+/* Generated */                 mut optInTimePeriod: i32,
+/* Generated */                 mut optInNbDevUp: f32,
+/* Generated */                 mut optInNbDevDn: f32,
+/* Generated */                 mut optInMAType: i32,
 /* Generated */                 outBegIdx: &mut usize,
 /* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outRealUpperBand: &mut [f64],
@@ -562,9 +558,7 @@ mut optInTimePeriod: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
 /* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
@@ -589,7 +583,7 @@ mut optInTimePeriod: i32,
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outRealUpperBand )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outRealMiddleBand )
@@ -597,7 +591,6 @@ mut optInTimePeriod: i32,
 /* Generated */     if( !outRealLowerBand )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    #if defined(USE_SINGLE_PRECISION_INPUT) || defined( USE_SUBARRAY )
 /* Generated */       tempBuffer1 = outRealMiddleBand;

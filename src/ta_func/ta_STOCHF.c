@@ -204,9 +204,9 @@ mut optInFastK_Period: i32,
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn stochf(startIdx: usize,
 /* Generated */               endIdx: usize,
-/* Generated */               /* Generated */               optInFastK_Period: i32,
-/* Generated */               optInFastD_Period: i32,
-/* Generated */               optInFastD_MAType: i32,
+/* Generated */               /* Generated */               mut optInFastK_Period: i32,
+/* Generated */               mut optInFastD_Period: i32,
+/* Generated */               mut optInFastD_MAType: i32,
 /* Generated */               outBegIdx: &mut usize,
 /* Generated */               outNBElement: &mut usize,
 /* Generated */               outFastK: &mut [f64],
@@ -258,15 +258,12 @@ mut optInFastK_Period: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow||!inClose){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInFastK_Period. */
 /* Generated */    if( CAST_TO_I32(optInFastK_Period) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastK_Period = 5;
@@ -286,15 +283,14 @@ mut optInFastK_Period: i32,
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outFastK )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
 /* Generated */    if( !outFastD )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -581,9 +577,9 @@ mut optInFastK_Period: i32,
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn stochf_s(startIdx: usize,
 /* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 optInFastK_Period: i32,
-/* Generated */                 optInFastD_Period: i32,
-/* Generated */                 optInFastD_MAType: i32,
+/* Generated */                 /* Generated */                 mut optInFastK_Period: i32,
+/* Generated */                 mut optInFastD_Period: i32,
+/* Generated */                 mut optInFastD_MAType: i32,
 /* Generated */                 outBegIdx: &mut usize,
 /* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outFastK: &mut [f64],
@@ -625,9 +621,7 @@ mut optInFastK_Period: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if(!inHigh||!inLow||!inClose){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
@@ -649,13 +643,12 @@ mut optInFastK_Period: i32,
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outFastK )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outFastD )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    lookbackK      = optInFastK_Period-1;
 /* Generated */    lookbackFastD  = LOOKBACK_CALL(MA)( optInFastD_Period, optInFastD_MAType );

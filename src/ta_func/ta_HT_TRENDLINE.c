@@ -229,18 +229,14 @@
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -549,16 +545,13 @@
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    CIRCBUF_INIT_LOCAL_ONLY(smoothPrice,double);
 /* Generated */    iTrend1 = iTrend2 = iTrend3 = 0.0;

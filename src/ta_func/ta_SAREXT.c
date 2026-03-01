@@ -288,14 +288,14 @@ mut optInStartValue: f64,
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn sarext(startIdx: usize,
 /* Generated */               endIdx: usize,
-/* Generated */               /* Generated */               optInStartValue: f64,
-/* Generated */               optInOffsetOnReverse: f64,
-/* Generated */               optInAccelerationInitLong: f64,
-/* Generated */               optInAccelerationLong: f64,
-/* Generated */               optInAccelerationMaxLong: f64,
-/* Generated */               optInAccelerationInitShort: f64,
-/* Generated */               optInAccelerationShort: f64,
-/* Generated */               optInAccelerationMaxShort: f64,
+/* Generated */               /* Generated */               mut optInStartValue: f64,
+/* Generated */               mut optInOffsetOnReverse: f64,
+/* Generated */               mut optInAccelerationInitLong: f64,
+/* Generated */               mut optInAccelerationLong: f64,
+/* Generated */               mut optInAccelerationMaxLong: f64,
+/* Generated */               mut optInAccelerationInitShort: f64,
+/* Generated */               mut optInAccelerationShort: f64,
+/* Generated */               mut optInAccelerationMaxShort: f64,
 /* Generated */               outBegIdx: &mut usize,
 /* Generated */               outNBElement: &mut usize,
 /* Generated */               outReal: &mut [f64]) -> RetCode
@@ -349,15 +349,12 @@ mut optInStartValue: f64,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    if( optInStartValue == TA_REAL_DEFAULT ) {
 /* Generated */ 	  optInStartValue = 0.000000e+0;
 /* Generated */    } else if( (optInStartValue < -3.000000e+37) ||/* Generated */  (optInStartValue > 3.000000e+37) ) {
@@ -398,12 +395,11 @@ mut optInStartValue: f64,
 /* Generated */    } else if( (optInAccelerationMaxShort < 0.000000e+0) ||/* Generated */  (optInAccelerationMaxShort > 3.000000e+37) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -797,14 +793,14 @@ mut optInStartValue: f64,
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn sarext_s(startIdx: usize,
 /* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 optInStartValue: f32,
-/* Generated */                 optInOffsetOnReverse: f32,
-/* Generated */                 optInAccelerationInitLong: f32,
-/* Generated */                 optInAccelerationLong: f32,
-/* Generated */                 optInAccelerationMaxLong: f32,
-/* Generated */                 optInAccelerationInitShort: f32,
-/* Generated */                 optInAccelerationShort: f32,
-/* Generated */                 optInAccelerationMaxShort: f32,
+/* Generated */                 /* Generated */                 mut optInStartValue: f32,
+/* Generated */                 mut optInOffsetOnReverse: f32,
+/* Generated */                 mut optInAccelerationInitLong: f32,
+/* Generated */                 mut optInAccelerationLong: f32,
+/* Generated */                 mut optInAccelerationMaxLong: f32,
+/* Generated */                 mut optInAccelerationInitShort: f32,
+/* Generated */                 mut optInAccelerationShort: f32,
+/* Generated */                 mut optInAccelerationMaxShort: f32,
 /* Generated */                 outBegIdx: &mut usize,
 /* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outReal: &mut [f64]) -> RetCode
@@ -846,9 +842,7 @@ mut optInStartValue: f64,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
@@ -893,11 +887,10 @@ mut optInStartValue: f64,
 /* Generated */     } else if( (optInAccelerationMaxShort < 0.000000e+0) ||  (optInAccelerationMaxShort > 3.000000e+37) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( startIdx < 1 )
 /* Generated */       startIdx = 1;

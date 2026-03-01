@@ -160,7 +160,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn aroonosc(startIdx: usize,
 /* Generated */                 endIdx: usize,
-/* Generated */                 /* Generated */                 optInTimePeriod: i32,
+/* Generated */                 /* Generated */                 mut optInTimePeriod: i32,
 /* Generated */                 outBegIdx: &mut usize,
 /* Generated */                 outNBElement: &mut usize,
 /* Generated */                 outReal: &mut [f64]) -> RetCode
@@ -200,27 +200,23 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
 /* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 14;
 /* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -385,7 +381,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn aroonosc_s(startIdx: usize,
 /* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   optInTimePeriod: i32,
+/* Generated */                   /* Generated */                   mut optInTimePeriod: i32,
 /* Generated */                   outBegIdx: &mut usize,
 /* Generated */                   outNBElement: &mut usize,
 /* Generated */                   outReal: &mut [f64]) -> RetCode
@@ -416,9 +412,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
@@ -428,11 +422,10 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( startIdx < optInTimePeriod )
 /* Generated */       startIdx = optInTimePeriod;

@@ -200,8 +200,8 @@ mut optInFastLimit: f64,
 /* Generated */ pub fn mama(startIdx: usize,
 /* Generated */             endIdx: usize,
 /* Generated */             inReal: &[f64],
-/* Generated */             optInFastLimit: f64,
-/* Generated */             optInSlowLimit: f64,
+/* Generated */             mut optInFastLimit: f64,
+/* Generated */             mut optInSlowLimit: f64,
 /* Generated */             outBegIdx: &mut usize,
 /* Generated */             outNBElement: &mut usize,
 /* Generated */             outMAMA: &mut [f64],
@@ -271,12 +271,9 @@ mut optInFastLimit: f64,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    if( optInFastLimit == TA_REAL_DEFAULT ) {
 /* Generated */ 	  optInFastLimit = 5.000000e-1;
 /* Generated */    } else if( (optInFastLimit < 1.000000e-2) ||/* Generated */  (optInFastLimit > 9.900000e-1) ) {
@@ -287,15 +284,14 @@ mut optInFastLimit: f64,
 /* Generated */    } else if( (optInSlowLimit < 1.000000e-2) ||/* Generated */  (optInSlowLimit > 9.900000e-1) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outMAMA )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
 /* Generated */    if( !outFAMA )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -564,8 +560,8 @@ mut optInFastLimit: f64,
 /* Generated */ pub fn mama_s(startIdx: usize,
 /* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f32],
-/* Generated */               optInFastLimit: f32,
-/* Generated */               optInSlowLimit: f32,
+/* Generated */               mut optInFastLimit: f32,
+/* Generated */               mut optInSlowLimit: f32,
 /* Generated */               outBegIdx: &mut usize,
 /* Generated */               outNBElement: &mut usize,
 /* Generated */               outMAMA: &mut [f64],
@@ -615,9 +611,7 @@ mut optInFastLimit: f64,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
 /* Generated */     if( optInFastLimit == TA_REAL_DEFAULT ) {
@@ -630,13 +624,12 @@ mut optInFastLimit: f64,
 /* Generated */     } else if( (optInSlowLimit < 1.000000e-2) ||  (optInSlowLimit > 9.900000e-1) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outMAMA )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outFAMA )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    rad2Deg = 180.0 / (4.0 * std_atan(1));
 /* Generated */    lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_MAMA,Mama);

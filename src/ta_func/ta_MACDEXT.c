@@ -252,12 +252,12 @@ mut optInFastPeriod: i32,
 /* Generated */ pub fn macdext(startIdx: usize,
 /* Generated */                endIdx: usize,
 /* Generated */                inReal: &[f64],
-/* Generated */                optInFastPeriod: i32,
-/* Generated */                optInFastMAType: i32,
-/* Generated */                optInSlowPeriod: i32,
-/* Generated */                optInSlowMAType: i32,
-/* Generated */                optInSignalPeriod: i32,
-/* Generated */                optInSignalMAType: i32,
+/* Generated */                mut optInFastPeriod: i32,
+/* Generated */                mut optInFastMAType: i32,
+/* Generated */                mut optInSlowPeriod: i32,
+/* Generated */                mut optInSlowMAType: i32,
+/* Generated */                mut optInSignalPeriod: i32,
+/* Generated */                mut optInSignalMAType: i32,
 /* Generated */                outBegIdx: &mut usize,
 /* Generated */                outNBElement: &mut usize,
 /* Generated */                outMACD: &mut [f64],
@@ -313,12 +313,9 @@ mut optInFastPeriod: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */ #if defined( _RUST )
-/* Generated */ 
-/* Generated */ #else
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
 /* Generated */    /* min/max are checked for optInFastPeriod. */
 /* Generated */    if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastPeriod = 12;
@@ -358,7 +355,7 @@ mut optInFastPeriod: i32,
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA)
+/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */    if( !outMACD )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
@@ -368,8 +365,7 @@ mut optInFastPeriod: i32,
 /* Generated */    if( !outMACDHist )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) */
-/* Generated */ #endif
+/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -580,12 +576,12 @@ mut optInFastPeriod: i32,
 /* Generated */ pub fn macdext_s(startIdx: usize,
 /* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f32],
-/* Generated */                  optInFastPeriod: i32,
-/* Generated */                  optInFastMAType: i32,
-/* Generated */                  optInSlowPeriod: i32,
-/* Generated */                  optInSlowMAType: i32,
-/* Generated */                  optInSignalPeriod: i32,
-/* Generated */                  optInSignalMAType: i32,
+/* Generated */                  mut optInFastPeriod: i32,
+/* Generated */                  mut optInFastMAType: i32,
+/* Generated */                  mut optInSlowPeriod: i32,
+/* Generated */                  mut optInSlowMAType: i32,
+/* Generated */                  mut optInSignalPeriod: i32,
+/* Generated */                  mut optInSignalMAType: i32,
 /* Generated */                  outBegIdx: &mut usize,
 /* Generated */                  outNBElement: &mut usize,
 /* Generated */                  outMACD: &mut [f64],
@@ -632,9 +628,7 @@ mut optInFastPeriod: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */  #if defined( _RUST )
-/* Generated */  #else
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
 /* Generated */     if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
@@ -673,7 +667,7 @@ mut optInFastPeriod: i32,
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA)
+/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
 /* Generated */     if( !outMACD )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outMACDSignal )
@@ -681,7 +675,6 @@ mut optInFastPeriod: i32,
 /* Generated */     if( !outMACDHist )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
-/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( optInSlowPeriod < optInFastPeriod )
 /* Generated */    {

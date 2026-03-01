@@ -60,13 +60,18 @@ impl Core {
         startIdx: usize,
         endIdx: usize,
         inReal: &[f64],
-        optInTimePeriod: i32,
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
+        }
+        if ((optInTimePeriod) as i32) == (i32::MIN) {
+            optInTimePeriod = 30;
+        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+            return RetCode::BadParam;
         }
         return Self::int_sma(
             startIdx,
@@ -129,13 +134,18 @@ impl Core {
         startIdx: usize,
         endIdx: usize,
         inReal: &[f32],
-        optInTimePeriod: i32,
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
+        }
+        if ((optInTimePeriod) as i32) == (i32::MIN) {
+            optInTimePeriod = 30;
+        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
+            return RetCode::BadParam;
         }
         return Self::int_sma_s(
             startIdx,
