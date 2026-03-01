@@ -45,7 +45,15 @@
    #define ARRAY_VTYPE_MEMMOVE(type,dest,destIdx,src,srcIdx,size) cli::array<type>::Copy( src, srcIdx, dest, destIdx, size )
    #define ARRAY_VTYPE_FREE(type,name)
    #define ARRAY_VTYPE_FREE_COND(type,cond,name)
-#elif defined( _JAVA ) || defined( _RUST )
+#elif defined( _RUST )
+   #define ARRAY_VTYPE_REF(type,name)             /* not used in Rust */
+   #define ARRAY_VTYPE_LOCAL(type,name,size)       /* not used in Rust */
+   #define ARRAY_VTYPE_ALLOC(type,name,size)       /* not used in Rust */
+   #define ARRAY_VTYPE_COPY(type,dest,src,size)    { let _n = (size) as usize; dest[0.._n].copy_from_slice(&src[0.._n]); }
+   #define ARRAY_VTYPE_MEMMOVE(type,dest,destIdx,src,srcIdx,size) { let _n = (size) as usize; let _di = (destIdx) as usize; let _si = (srcIdx) as usize; dest[_di.._di+_n].copy_from_slice(&src[_si.._si+_n]); }
+   #define ARRAY_VTYPE_FREE(type,name)
+   #define ARRAY_VTYPE_FREE_COND(type,cond,name)
+#elif defined( _JAVA )
    #define ARRAY_VTYPE_REF(type,name)             type []name
    #define ARRAY_VTYPE_LOCAL(type,name,size)      type []name = new type[size]
    #define ARRAY_VTYPE_ALLOC(type,name,size)      name = new type[size]
@@ -84,6 +92,10 @@
 /* ARRAY: Macros to manipulate arrays of mix type.
  * This is just a loop doing an element by element copy.
  */
+#if defined(_RUST)
+#define ARRAY_MEMMOVEMIX_VAR /* no-op for Rust */
+#define ARRAY_MEMMOVEMIX(dest,destIdx,src,srcIdx,size) { let _n = (size) as usize; let _di = (destIdx) as usize; let _si = (srcIdx) as usize; for _k in 0.._n { dest[_di+_k] = src[_si+_k] as f64; } }
+#else
 #define ARRAY_MEMMOVEMIX_VAR int mmmixi, mmmixdestIdx, mmmixsrcIdx
 #define ARRAY_MEMMOVEMIX(dest,destIdx,src,srcIdx,size) { \
             for( mmmixi=0, mmmixdestIdx=destIdx, mmmixsrcIdx=srcIdx; \
@@ -93,6 +105,7 @@
                   dest[mmmixdestIdx] = src[mmmixsrcIdx]; \
               } \
             }
+#endif
 
 /* Access to "Globals"
  *
@@ -105,7 +118,10 @@
 #if defined( _MANAGED )
    #define TA_GLOBALS_UNSTABLE_PERIOD(x,y) (Globals->unstablePeriod[(int)(FuncUnstId::y)])
    #define TA_GLOBALS_COMPATIBILITY        (Globals->compatibility)
-#elif defined( _JAVA ) || defined( _RUST)
+#elif defined( _RUST )
+   #define TA_GLOBALS_UNSTABLE_PERIOD(x,y) (self.unstable_period[FuncUnstId::y as usize])
+   #define TA_GLOBALS_COMPATIBILITY        (self.compatibility)
+#elif defined( _JAVA )
    #define TA_GLOBALS_UNSTABLE_PERIOD(x,y) (this.unstablePeriod[FuncUnstId.y.ordinal()])
    #define TA_GLOBALS_COMPATIBILITY        (this.compatibility)
 #else
