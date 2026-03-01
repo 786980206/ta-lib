@@ -93,8 +93,8 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn mama_lookback(
-optInFastLimit: f64,
-/* Generated */                       optInSlowLimit: f64) -> i32
+mut optInFastLimit: f64,
+/* Generated */                       mut optInSlowLimit: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAMA_Lookback( double        optInFastLimit, /* From 0.01 to 0.99 */
 /* Generated */                                           double        optInSlowLimit )  /* From 0.01 to 0.99 */

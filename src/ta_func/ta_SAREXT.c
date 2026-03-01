@@ -116,14 +116,14 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn sarext_lookback(
-optInStartValue: f64,
-/* Generated */                         optInOffsetOnReverse: f64,
-/* Generated */                         optInAccelerationInitLong: f64,
-/* Generated */                         optInAccelerationLong: f64,
-/* Generated */                         optInAccelerationMaxLong: f64,
-/* Generated */                         optInAccelerationInitShort: f64,
-/* Generated */                         optInAccelerationShort: f64,
-/* Generated */                         optInAccelerationMaxShort: f64) -> i32
+mut optInStartValue: f64,
+/* Generated */                         mut optInOffsetOnReverse: f64,
+/* Generated */                         mut optInAccelerationInitLong: f64,
+/* Generated */                         mut optInAccelerationLong: f64,
+/* Generated */                         mut optInAccelerationMaxLong: f64,
+/* Generated */                         mut optInAccelerationInitShort: f64,
+/* Generated */                         mut optInAccelerationShort: f64,
+/* Generated */                         mut optInAccelerationMaxShort: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAREXT_Lookback( double        optInStartValue, /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */                                             double        optInOffsetOnReverse, /* From 0 to TA_REAL_MAX */

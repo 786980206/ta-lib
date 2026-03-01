@@ -89,9 +89,9 @@
 /* Generated */                                               MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn mavp_lookback(
-optInMinPeriod: i32,
-/* Generated */                       optInMaxPeriod: i32,
-/* Generated */                       optInMAType: i32) -> i32
+mut optInMinPeriod: i32,
+/* Generated */                       mut optInMaxPeriod: i32,
+/* Generated */                       mut optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MAVP_Lookback( int           optInMinPeriod, /* From 2 to 100000 */
 /* Generated */                                           int           optInMaxPeriod, /* From 2 to 100000 */
@@ -104,21 +104,21 @@ optInMinPeriod: i32,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInMinPeriod. */
-/* Generated */    if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMinPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMinPeriod = 2;
-/* Generated */    } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMinPeriod) < 2) || (CAST_TO_I32(optInMinPeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInMaxPeriod. */
-/* Generated */    if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMaxPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMaxPeriod = 30;
-/* Generated */    } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMaxPeriod) < 2) || (CAST_TO_I32(optInMaxPeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMAType = (TA_MAType)0;
-/* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
@@ -242,21 +242,21 @@ optInMinPeriod: i32,
 /* Generated */    if( !inPeriods ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInMinPeriod. */
-/* Generated */    if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMinPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMinPeriod = 2;
-/* Generated */    } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMinPeriod) < 2) || (CAST_TO_I32(optInMinPeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInMaxPeriod. */
-/* Generated */    if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMaxPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMaxPeriod = 30;
-/* Generated */    } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMaxPeriod) < 2) || (CAST_TO_I32(optInMaxPeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMAType = (TA_MAType)0;
-/* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
@@ -466,20 +466,20 @@ optInMinPeriod: i32,
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     if( !inPeriods ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInMinPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInMinPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInMinPeriod = 2;
-/* Generated */     } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInMinPeriod) < 2) || (CAST_TO_I32(optInMinPeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     if( (int)optInMaxPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInMaxPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInMaxPeriod = 30;
-/* Generated */     } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInMaxPeriod) < 2) || (CAST_TO_I32(optInMaxPeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */     if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInMAType = (TA_MAType)0;
-/* Generated */     } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 

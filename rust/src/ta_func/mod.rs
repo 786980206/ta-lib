@@ -51,6 +51,7 @@ pub enum RetCode {
 pub struct Core {}
 
 pub mod mult;
+pub mod sma;
 
 /***************/
 /* End of File */

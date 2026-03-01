@@ -191,9 +191,9 @@ public class Core {
    /**** START GENCODE SECTION 1 - DO NOT DELETE THIS LINE ****/
    public int accbandsLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 20;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return smaLookback ( optInTimePeriod );
@@ -223,9 +223,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 20;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = smaLookback ( optInTimePeriod );
@@ -314,9 +314,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 20;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = smaLookback ( optInTimePeriod );
@@ -572,14 +572,14 @@ public class Core {
       int optInSlowPeriod )
    {
       int slowestPeriod;
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 3;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 10;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return -1;
       }
       if( optInFastPeriod < optInSlowPeriod )
@@ -612,14 +612,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 3;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 10;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInFastPeriod < optInSlowPeriod )
@@ -686,14 +686,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 3;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 10;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInFastPeriod < optInSlowPeriod )
@@ -739,9 +739,9 @@ public class Core {
    /* Generated */
    public int adxLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (2 * optInTimePeriod) + (this.unstablePeriod[FuncUnstId.Adx.ordinal()]) - 1;
@@ -768,9 +768,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (2*optInTimePeriod) + (this.unstablePeriod[FuncUnstId.Adx.ordinal()]) - 1;
@@ -944,9 +944,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (2*optInTimePeriod) + (this.unstablePeriod[FuncUnstId.Adx.ordinal()]) - 1;
@@ -1101,9 +1101,9 @@ public class Core {
    /* Generated */
    public int adxrLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -1130,9 +1130,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       adxrLookback = adxrLookback ( optInTimePeriod );
@@ -1181,9 +1181,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       adxrLookback = adxrLookback ( optInTimePeriod );
@@ -1218,14 +1218,14 @@ public class Core {
       int optInSlowPeriod,
       MAType optInMAType )
    {
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return -1;
       }
       return movingAverageLookback ( (((optInSlowPeriod) > (optInFastPeriod)) ? (optInSlowPeriod) : (optInFastPeriod)) , optInMAType );
@@ -1248,14 +1248,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       tempBuffer = new double[(endIdx-startIdx+1)] ;
@@ -1359,14 +1359,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       tempBuffer = new double[(endIdx-startIdx+1)] ;
@@ -1455,9 +1455,9 @@ public class Core {
    /* Generated */
    public int aroonLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -1481,9 +1481,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -1575,9 +1575,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -1653,9 +1653,9 @@ public class Core {
    /* Generated */
    public int aroonOscLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -1678,9 +1678,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -1771,9 +1771,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -1951,9 +1951,9 @@ public class Core {
    /* Generated */
    public int atrLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod + (this.unstablePeriod[FuncUnstId.Atr.ordinal()]) ;
@@ -1982,9 +1982,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -2066,9 +2066,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -2192,9 +2192,9 @@ public class Core {
    /* Generated */
    public int avgDevLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -2214,9 +2214,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookback = optInTimePeriod - 1;
@@ -2264,9 +2264,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookback = optInTimePeriod - 1;
@@ -2305,9 +2305,9 @@ public class Core {
       double optInNbDevDn,
       MAType optInMAType )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInNbDevUp == (-4e+37) ) {
@@ -2346,9 +2346,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDevUp == (-4e+37) ) {
@@ -2491,9 +2491,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDevUp == (-4e+37) ) {
@@ -2591,9 +2591,9 @@ public class Core {
    /* Generated */
    public int betaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -2627,9 +2627,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = optInTimePeriod;
@@ -2739,9 +2739,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = optInTimePeriod;
@@ -2892,9 +2892,9 @@ public class Core {
    /* Generated */
    public int cciLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -2918,9 +2918,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -2988,9 +2988,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -12259,9 +12259,9 @@ public class Core {
    public int cmoLookback( int optInTimePeriod )
    {
       int retValue;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       retValue = optInTimePeriod + (this.unstablePeriod[FuncUnstId.Cmo.ordinal()]) ;
@@ -12287,9 +12287,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -12427,9 +12427,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -12551,9 +12551,9 @@ public class Core {
    /* Generated */
    public int correlLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -12576,9 +12576,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = optInTimePeriod-1;
@@ -12654,9 +12654,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = optInTimePeriod-1;
@@ -12819,9 +12819,9 @@ public class Core {
    /* Generated */
    public int demaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return emaLookback ( optInTimePeriod ) * 2;
@@ -12849,9 +12849,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outNBElement.value = 0 ;
@@ -12921,9 +12921,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outNBElement.value = 0 ;
@@ -13021,9 +13021,9 @@ public class Core {
    /* Generated */
    public int dxLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -13053,9 +13053,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -13199,9 +13199,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -13326,9 +13326,9 @@ public class Core {
    /* Generated */
    public int emaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod - 1 + (this.unstablePeriod[FuncUnstId.Ema.ordinal()]) ;
@@ -13347,9 +13347,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_EMA ( startIdx, endIdx, inReal,
@@ -13418,9 +13418,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_EMA ( startIdx, endIdx, inReal,
@@ -15602,9 +15602,9 @@ public class Core {
    /* Generated */
    public int imiLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod + (this.unstablePeriod[FuncUnstId.Imi.ordinal()]) - 1;
@@ -15625,9 +15625,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookback = imiLookback ( optInTimePeriod );
@@ -15674,9 +15674,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookback = imiLookback ( optInTimePeriod );
@@ -15710,9 +15710,9 @@ public class Core {
    /* Generated */
    public int kamaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod + (this.unstablePeriod[FuncUnstId.Kama.ordinal()]) ;
@@ -15738,9 +15738,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -15836,9 +15836,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -15916,9 +15916,9 @@ public class Core {
    /* Generated */
    public int linearRegLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -15943,9 +15943,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegLookback ( optInTimePeriod );
@@ -16000,9 +16000,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegLookback ( optInTimePeriod );
@@ -16040,9 +16040,9 @@ public class Core {
    /* Generated */
    public int linearRegAngleLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -16067,9 +16067,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegAngleLookback ( optInTimePeriod );
@@ -16123,9 +16123,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegAngleLookback ( optInTimePeriod );
@@ -16162,9 +16162,9 @@ public class Core {
    /* Generated */
    public int linearRegInterceptLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -16189,9 +16189,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegInterceptLookback ( optInTimePeriod );
@@ -16245,9 +16245,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegInterceptLookback ( optInTimePeriod );
@@ -16284,9 +16284,9 @@ public class Core {
    /* Generated */
    public int linearRegSlopeLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -16310,9 +16310,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegSlopeLookback ( optInTimePeriod );
@@ -16364,9 +16364,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = linearRegSlopeLookback ( optInTimePeriod );
@@ -16506,9 +16506,9 @@ public class Core {
       MAType optInMAType )
    {
       int retValue;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod <= 1 )
@@ -16566,9 +16566,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod == 1 )
@@ -16646,9 +16646,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod == 1 )
@@ -16713,19 +16713,19 @@ public class Core {
       int optInSignalPeriod )
    {
       int tempInteger;
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return -1;
       }
       if( optInSlowPeriod < optInFastPeriod )
@@ -16755,19 +16755,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_MACD ( startIdx, endIdx, inReal,
@@ -16901,19 +16901,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_MACD ( startIdx, endIdx, inReal,
@@ -17038,19 +17038,19 @@ public class Core {
       MAType optInSignalMAType )
    {
       int tempInteger, lookbackLargest;
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return -1;
       }
       lookbackLargest = movingAverageLookback ( optInFastPeriod, optInFastMAType );
@@ -17091,19 +17091,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInSlowPeriod < optInFastPeriod )
@@ -17212,19 +17212,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInSlowPeriod < optInFastPeriod )
@@ -17304,9 +17304,9 @@ public class Core {
    /* Generated */
    public int macdFixLookback( int optInSignalPeriod )
    {
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return -1;
       }
       return emaLookback ( 26 )
@@ -17328,9 +17328,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_MACD ( startIdx, endIdx, inReal,
@@ -17359,9 +17359,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInSignalPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSignalPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSignalPeriod = 9;
-      } else if( ((int)optInSignalPeriod < 1) || ((int)optInSignalPeriod > 100000) ) {
+      } else if( ( (int)(optInSignalPeriod) < 1) || ( (int)(optInSignalPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_MACD ( startIdx, endIdx, inReal,
@@ -17735,14 +17735,14 @@ public class Core {
       int optInMaxPeriod,
       MAType optInMAType )
    {
-      if( (int)optInMinPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMinPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMinPeriod = 2;
-      } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+      } else if( ( (int)(optInMinPeriod) < 2) || ( (int)(optInMinPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInMaxPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMaxPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMaxPeriod = 30;
-      } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+      } else if( ( (int)(optInMaxPeriod) < 2) || ( (int)(optInMaxPeriod) > 100000) ) {
          return -1;
       }
       return movingAverageLookback (optInMaxPeriod, optInMAType);
@@ -17770,14 +17770,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInMinPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMinPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMinPeriod = 2;
-      } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+      } else if( ( (int)(optInMinPeriod) < 2) || ( (int)(optInMinPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInMaxPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMaxPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMaxPeriod = 30;
-      } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+      } else if( ( (int)(optInMaxPeriod) < 2) || ( (int)(optInMaxPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = movingAverageLookback (optInMaxPeriod,optInMAType);
@@ -17863,14 +17863,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInMinPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMinPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMinPeriod = 2;
-      } else if( ((int)optInMinPeriod < 2) || ((int)optInMinPeriod > 100000) ) {
+      } else if( ( (int)(optInMinPeriod) < 2) || ( (int)(optInMinPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInMaxPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInMaxPeriod) == ( Integer.MIN_VALUE ) ) {
          optInMaxPeriod = 30;
-      } else if( ((int)optInMaxPeriod < 2) || ((int)optInMaxPeriod > 100000) ) {
+      } else if( ( (int)(optInMaxPeriod) < 2) || ( (int)(optInMaxPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = movingAverageLookback (optInMaxPeriod,optInMAType);
@@ -17936,9 +17936,9 @@ public class Core {
    /* Generated */
    public int maxLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -17960,9 +17960,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18027,9 +18027,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18080,9 +18080,9 @@ public class Core {
    /* Generated */
    public int maxIndexLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -18104,9 +18104,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18171,9 +18171,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18277,9 +18277,9 @@ public class Core {
    /* Generated */
    public int mfiLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod + (this.unstablePeriod[FuncUnstId.Mfi.ordinal()]) ;
@@ -18305,9 +18305,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       { if( optInTimePeriod <= 0 ) return RetCode.AllocErr ; mflow = new MoneyFlow[optInTimePeriod]; for( int _mflow_index =0; _mflow_index <mflow.length; _mflow_index ++) { mflow[_mflow_index ]=new MoneyFlow(); } maxIdx_mflow = (optInTimePeriod-1); } ;
@@ -18446,9 +18446,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       { if( optInTimePeriod <= 0 ) return RetCode.AllocErr ; mflow = new MoneyFlow[optInTimePeriod]; for( int _mflow_index =0; _mflow_index <mflow.length; _mflow_index ++) { mflow[_mflow_index ]=new MoneyFlow(); } maxIdx_mflow = (optInTimePeriod-1); } ;
@@ -18569,9 +18569,9 @@ public class Core {
    /* Generated */
    public int midPointLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -18593,9 +18593,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18644,9 +18644,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18681,9 +18681,9 @@ public class Core {
    /* Generated */
    public int midPriceLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -18706,9 +18706,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18760,9 +18760,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18799,9 +18799,9 @@ public class Core {
    /* Generated */
    public int minLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -18823,9 +18823,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18890,9 +18890,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -18943,9 +18943,9 @@ public class Core {
    /* Generated */
    public int minIndexLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -18967,9 +18967,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19034,9 +19034,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19087,9 +19087,9 @@ public class Core {
    /* Generated */
    public int minMaxLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -19112,9 +19112,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19204,9 +19204,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19281,9 +19281,9 @@ public class Core {
    /* Generated */
    public int minMaxIndexLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -19306,9 +19306,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19398,9 +19398,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -19475,9 +19475,9 @@ public class Core {
    /* Generated */
    public int minusDILookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -19506,9 +19506,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -19656,9 +19656,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -19788,9 +19788,9 @@ public class Core {
    /* Generated */
    public int minusDMLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -19818,9 +19818,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -19944,9 +19944,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -20053,9 +20053,9 @@ public class Core {
    /* Generated */
    public int momLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -20075,9 +20075,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -20112,9 +20112,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -20188,9 +20188,9 @@ public class Core {
    /* Generated */
    public int natrLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod + (this.unstablePeriod[FuncUnstId.Natr.ordinal()]) ;
@@ -20219,9 +20219,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -20312,9 +20312,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -20457,9 +20457,9 @@ public class Core {
    /* Generated */
    public int plusDILookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -20488,9 +20488,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -20638,9 +20638,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -20770,9 +20770,9 @@ public class Core {
    /* Generated */
    public int plusDMLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInTimePeriod > 1 )
@@ -20800,9 +20800,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -20926,9 +20926,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInTimePeriod > 1 )
@@ -21037,14 +21037,14 @@ public class Core {
       int optInSlowPeriod,
       MAType optInMAType )
    {
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return -1;
       }
       return movingAverageLookback ( (((optInSlowPeriod) > (optInFastPeriod)) ? (optInSlowPeriod) : (optInFastPeriod)) , optInMAType );
@@ -21067,14 +21067,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       tempBuffer = new double[endIdx-startIdx+1] ;
@@ -21107,14 +21107,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastPeriod) == ( Integer.MIN_VALUE ) ) {
          optInFastPeriod = 12;
-      } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+      } else if( ( (int)(optInFastPeriod) < 2) || ( (int)(optInFastPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowPeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowPeriod) == ( Integer.MIN_VALUE ) ) {
          optInSlowPeriod = 26;
-      } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+      } else if( ( (int)(optInSlowPeriod) < 2) || ( (int)(optInSlowPeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       tempBuffer = new double[endIdx-startIdx+1] ;
@@ -21132,9 +21132,9 @@ public class Core {
    /* Generated */
    public int rocLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -21155,9 +21155,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21200,9 +21200,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21232,9 +21232,9 @@ public class Core {
    /* Generated */
    public int rocPLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -21255,9 +21255,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21300,9 +21300,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21332,9 +21332,9 @@ public class Core {
    /* Generated */
    public int rocRLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -21355,9 +21355,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21400,9 +21400,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21432,9 +21432,9 @@ public class Core {
    /* Generated */
    public int rocR100Lookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod;
@@ -21455,9 +21455,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21500,9 +21500,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 10;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( startIdx < optInTimePeriod )
@@ -21533,9 +21533,9 @@ public class Core {
    public int rsiLookback( int optInTimePeriod )
    {
       int retValue;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       retValue = optInTimePeriod + (this.unstablePeriod[FuncUnstId.Rsi.ordinal()]) ;
@@ -21561,9 +21561,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -21700,9 +21700,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -22763,9 +22763,9 @@ public class Core {
    /* Generated */
    public int smaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod - 1;
@@ -22784,9 +22784,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_SMA ( startIdx, endIdx,
@@ -22801,33 +22801,43 @@ public class Core {
       MInteger outNBElement,
       double outReal[] )
    {
-      double periodTotal, tempReal;
-      int i, outIdx, trailingIdx, lookbackTotal;
-      lookbackTotal = (optInTimePeriod-1);
-      if( startIdx < lookbackTotal )
+      double periodTotal;
+      double tempReal;
+      int i;
+      int outIdx;
+      int trailingIdx;
+      int lookbackTotal;
+      lookbackTotal = (optInTimePeriod-1) ;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
+      }
       if( startIdx > endIdx )
       {
          outBegIdx.value = 0 ;
          outNBElement.value = 0 ;
          return RetCode.Success ;
       }
-      periodTotal = 0;
-      trailingIdx = startIdx-lookbackTotal;
-      i=trailingIdx;
+      periodTotal = 0.0;
+      trailingIdx = startIdx - lookbackTotal;
+      i = trailingIdx;
       if( optInTimePeriod > 1 )
       {
-         while( i < startIdx )
-            periodTotal += inReal[i++];
+         while( i < startIdx ) {
+            periodTotal += (inReal[i]) ;
+            i = i + 1;
+         }
       }
       outIdx = 0;
-      do
+      while( i <= endIdx )
       {
-         periodTotal += inReal[i++];
+         periodTotal += (inReal[i]) ;
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= inReal[trailingIdx++];
-         outReal[outIdx++] = tempReal / optInTimePeriod;
-      } while( i <= endIdx );
+         periodTotal -= (inReal[trailingIdx]) ;
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (optInTimePeriod) ;
+         outIdx = outIdx + 1;
+      }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22846,9 +22856,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       return TA_INT_SMA ( startIdx, endIdx,
@@ -22863,33 +22873,43 @@ public class Core {
       MInteger outNBElement,
       double outReal[] )
    {
-      double periodTotal, tempReal;
-      int i, outIdx, trailingIdx, lookbackTotal;
-      lookbackTotal = (optInTimePeriod-1);
-      if( startIdx < lookbackTotal )
+      double periodTotal;
+      double tempReal;
+      int i;
+      int outIdx;
+      int trailingIdx;
+      int lookbackTotal;
+      lookbackTotal = (optInTimePeriod-1) ;
+      if( startIdx < lookbackTotal ) {
          startIdx = lookbackTotal;
+      }
       if( startIdx > endIdx )
       {
          outBegIdx.value = 0 ;
          outNBElement.value = 0 ;
          return RetCode.Success ;
       }
-      periodTotal = 0;
-      trailingIdx = startIdx-lookbackTotal;
-      i=trailingIdx;
+      periodTotal = 0.0;
+      trailingIdx = startIdx - lookbackTotal;
+      i = trailingIdx;
       if( optInTimePeriod > 1 )
       {
-         while( i < startIdx )
-            periodTotal += inReal[i++];
+         while( i < startIdx ) {
+            periodTotal += (inReal[i]) ;
+            i = i + 1;
+         }
       }
       outIdx = 0;
-      do
+      while( i <= endIdx )
       {
-         periodTotal += inReal[i++];
+         periodTotal += (inReal[i]) ;
+         i = i + 1;
          tempReal = periodTotal;
-         periodTotal -= inReal[trailingIdx++];
-         outReal[outIdx++] = tempReal / optInTimePeriod;
-      } while( i <= endIdx );
+         periodTotal -= (inReal[trailingIdx]) ;
+         trailingIdx = trailingIdx + 1;
+         outReal[outIdx] = tempReal / (optInTimePeriod) ;
+         outIdx = outIdx + 1;
+      }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
@@ -22949,9 +22969,9 @@ public class Core {
    public int stdDevLookback( int optInTimePeriod,
       double optInNbDev )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -22979,9 +22999,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -23073,9 +23093,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -23157,19 +23177,19 @@ public class Core {
       MAType optInSlowD_MAType )
    {
       int retValue;
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowK_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowK_Period = 3;
-      } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
+      } else if( ( (int)(optInSlowK_Period) < 1) || ( (int)(optInSlowK_Period) > 100000) ) {
          return -1;
       }
-      if( (int)optInSlowD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowD_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowD_Period = 3;
-      } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
+      } else if( ( (int)(optInSlowD_Period) < 1) || ( (int)(optInSlowD_Period) > 100000) ) {
          return -1;
       }
       retValue = (optInFastK_Period - 1);
@@ -23204,19 +23224,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowK_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowK_Period = 3;
-      } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
+      } else if( ( (int)(optInSlowK_Period) < 1) || ( (int)(optInSlowK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowD_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowD_Period = 3;
-      } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
+      } else if( ( (int)(optInSlowD_Period) < 1) || ( (int)(optInSlowD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackK = optInFastK_Period-1;
@@ -23358,19 +23378,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowK_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowK_Period = 3;
-      } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
+      } else if( ( (int)(optInSlowK_Period) < 1) || ( (int)(optInSlowK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInSlowD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInSlowD_Period) == ( Integer.MIN_VALUE ) ) {
          optInSlowD_Period = 3;
-      } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
+      } else if( ( (int)(optInSlowD_Period) < 1) || ( (int)(optInSlowD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackK = optInFastK_Period-1;
@@ -23476,14 +23496,14 @@ public class Core {
       MAType optInFastD_MAType )
    {
       int retValue;
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return -1;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return -1;
       }
       retValue = (optInFastK_Period - 1);
@@ -23515,14 +23535,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackK = optInFastK_Period-1;
@@ -23657,14 +23677,14 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackK = optInFastK_Period-1;
@@ -23766,19 +23786,19 @@ public class Core {
       MAType optInFastD_MAType )
    {
       int retValue;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return -1;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return -1;
       }
       retValue = rsiLookback ( optInTimePeriod ) + stochFLookback ( optInFastK_Period, optInFastD_Period, optInFastD_MAType );
@@ -23808,19 +23828,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -23895,19 +23915,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastK_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastK_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastK_Period = 5;
-      } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
+      } else if( ( (int)(optInFastK_Period) < 1) || ( (int)(optInFastK_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInFastD_Period == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInFastD_Period) == ( Integer.MIN_VALUE ) ) {
          optInFastD_Period = 3;
-      } else if( ((int)optInFastD_Period < 1) || ((int)optInFastD_Period > 100000) ) {
+      } else if( ( (int)(optInFastD_Period) < 1) || ( (int)(optInFastD_Period) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -24014,9 +24034,9 @@ public class Core {
    /* Generated */
    public int sumLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -24037,9 +24057,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -24087,9 +24107,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -24125,9 +24145,9 @@ public class Core {
    public int t3Lookback( int optInTimePeriod,
       double optInVFactor )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInVFactor == (-4e+37) ) {
@@ -24158,9 +24178,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInVFactor == (-4e+37) ) {
@@ -24280,9 +24300,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInVFactor == (-4e+37) ) {
@@ -24487,9 +24507,9 @@ public class Core {
    public int temaLookback( int optInTimePeriod )
    {
       int retValue;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       retValue = emaLookback ( optInTimePeriod );
@@ -24521,9 +24541,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outNBElement.value = 0 ;
@@ -24600,9 +24620,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       outNBElement.value = 0 ;
@@ -24755,9 +24775,9 @@ public class Core {
    /* Generated */
    public int trimaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -24782,9 +24802,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -24907,9 +24927,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = (optInTimePeriod-1);
@@ -25016,9 +25036,9 @@ public class Core {
    public int trixLookback( int optInTimePeriod )
    {
       int emaLookback;
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       emaLookback = emaLookback ( optInTimePeriod );
@@ -25046,9 +25066,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       emaLookback = emaLookback ( optInTimePeriod );
@@ -25134,9 +25154,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       emaLookback = emaLookback ( optInTimePeriod );
@@ -25203,9 +25223,9 @@ public class Core {
    /* Generated */
    public int tsfLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod-1;
@@ -25230,9 +25250,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = tsfLookback ( optInTimePeriod );
@@ -25287,9 +25307,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = tsfLookback ( optInTimePeriod );
@@ -25389,19 +25409,19 @@ public class Core {
       int optInTimePeriod3 )
    {
       int maxPeriod;
-      if( (int)optInTimePeriod1 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod1) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod1 = 7;
-      } else if( ((int)optInTimePeriod1 < 1) || ((int)optInTimePeriod1 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod1) < 1) || ( (int)(optInTimePeriod1) > 100000) ) {
          return -1;
       }
-      if( (int)optInTimePeriod2 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod2) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod2 = 14;
-      } else if( ((int)optInTimePeriod2 < 1) || ((int)optInTimePeriod2 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod2) < 1) || ( (int)(optInTimePeriod2) > 100000) ) {
          return -1;
       }
-      if( (int)optInTimePeriod3 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod3) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod3 = 28;
-      } else if( ((int)optInTimePeriod3 < 1) || ((int)optInTimePeriod3 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod3) < 1) || ( (int)(optInTimePeriod3) > 100000) ) {
          return -1;
       }
       maxPeriod = ((( (((optInTimePeriod1) > (optInTimePeriod2)) ? (optInTimePeriod1) : (optInTimePeriod2)) ) > (optInTimePeriod3)) ? ( (((optInTimePeriod1) > (optInTimePeriod2)) ? (optInTimePeriod1) : (optInTimePeriod2)) ) : (optInTimePeriod3)) ;
@@ -25436,19 +25456,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod1 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod1) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod1 = 7;
-      } else if( ((int)optInTimePeriod1 < 1) || ((int)optInTimePeriod1 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod1) < 1) || ( (int)(optInTimePeriod1) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInTimePeriod2 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod2) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod2 = 14;
-      } else if( ((int)optInTimePeriod2 < 1) || ((int)optInTimePeriod2 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod2) < 1) || ( (int)(optInTimePeriod2) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInTimePeriod3 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod3) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod3 = 28;
-      } else if( ((int)optInTimePeriod3 < 1) || ((int)optInTimePeriod3 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod3) < 1) || ( (int)(optInTimePeriod3) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -25550,19 +25570,19 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod1 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod1) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod1 = 7;
-      } else if( ((int)optInTimePeriod1 < 1) || ((int)optInTimePeriod1 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod1) < 1) || ( (int)(optInTimePeriod1) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInTimePeriod2 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod2) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod2 = 14;
-      } else if( ((int)optInTimePeriod2 < 1) || ((int)optInTimePeriod2 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod2) < 1) || ( (int)(optInTimePeriod2) > 100000) ) {
          return RetCode.BadParam ;
       }
-      if( (int)optInTimePeriod3 == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod3) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod3 = 28;
-      } else if( ((int)optInTimePeriod3 < 1) || ((int)optInTimePeriod3 > 100000) ) {
+      } else if( ( (int)(optInTimePeriod3) < 1) || ( (int)(optInTimePeriod3) > 100000) ) {
          return RetCode.BadParam ;
       }
       outBegIdx.value = 0 ;
@@ -25639,9 +25659,9 @@ public class Core {
    public int varianceLookback( int optInTimePeriod,
       double optInNbDev )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -25666,9 +25686,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -25746,9 +25766,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 5;
-      } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 1) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       if( optInNbDev == (-4e+37) ) {
@@ -25873,9 +25893,9 @@ public class Core {
    /* Generated */
    public int willRLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return (optInTimePeriod-1);
@@ -25900,9 +25920,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -25999,9 +26019,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 14;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       nbInitialElementNeeded = (optInTimePeriod-1);
@@ -26081,9 +26101,9 @@ public class Core {
    /* Generated */
    public int wmaLookback( int optInTimePeriod )
    {
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return -1;
       }
       return optInTimePeriod - 1;
@@ -26105,9 +26125,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = optInTimePeriod-1;
@@ -26172,9 +26192,9 @@ public class Core {
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (int)optInTimePeriod == ( Integer.MIN_VALUE ) ) {
+      if( (int)(optInTimePeriod) == ( Integer.MIN_VALUE ) ) {
          optInTimePeriod = 30;
-      } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+      } else if( ( (int)(optInTimePeriod) < 2) || ( (int)(optInTimePeriod) > 100000) ) {
          return RetCode.BadParam ;
       }
       lookbackTotal = optInTimePeriod-1;

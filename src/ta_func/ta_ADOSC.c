@@ -92,8 +92,8 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn adosc_lookback(
-optInFastPeriod: i32,
-/* Generated */                        optInSlowPeriod: i32) -> i32
+mut optInFastPeriod: i32,
+/* Generated */                        mut optInSlowPeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ADOSC_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                            int           optInSlowPeriod )  /* From 2 to 100000 */
@@ -107,15 +107,15 @@ optInFastPeriod: i32,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInFastPeriod. */
-/* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastPeriod = 3;
-/* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
-/* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowPeriod = 10;
-/* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -249,15 +249,15 @@ optInFastPeriod: i32,
 /* Generated */ }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInFastPeriod. */
-/* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastPeriod = 3;
-/* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
-/* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowPeriod = 10;
-/* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
@@ -469,14 +469,14 @@ optInFastPeriod: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInFastPeriod = 3;
-/* Generated */     } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowPeriod = 10;
-/* Generated */     } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_JAVA)

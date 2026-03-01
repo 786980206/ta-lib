@@ -99,8 +99,8 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn sar_lookback(
-optInAcceleration: f64,
-/* Generated */                      optInMaximum: f64) -> i32
+mut optInAcceleration: f64,
+/* Generated */                      mut optInMaximum: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAR_Lookback( double        optInAcceleration, /* From 0 to TA_REAL_MAX */
 /* Generated */                                          double        optInMaximum )  /* From 0 to TA_REAL_MAX */

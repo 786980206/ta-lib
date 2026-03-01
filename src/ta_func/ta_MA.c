@@ -93,8 +93,8 @@
 /* Generated */                                 MAType        optInMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn ma_lookback(
-optInTimePeriod: i32,
-/* Generated */                     optInMAType: i32) -> i32
+mut optInTimePeriod: i32,
+/* Generated */                     mut optInMAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_MA_Lookback( int           optInTimePeriod, /* From 1 to 100000 */
 /* Generated */                                         TA_MAType     optInMAType ) /* Generated */ 
@@ -107,15 +107,15 @@ optInTimePeriod: i32,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 30;
-/* Generated */    } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMAType = (TA_MAType)0;
-/* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
@@ -271,15 +271,15 @@ optInTimePeriod: i32,
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 30;
-/* Generated */    } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInMAType = (TA_MAType)0;
-/* Generated */    } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
@@ -450,15 +450,15 @@ optInTimePeriod: i32,
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInTimePeriod = 30;
-/* Generated */     } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */     if( (int)optInMAType == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInMAType) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInMAType = (TA_MAType)0;
-/* Generated */     } else if( ((int)optInMAType < 0) || ((int)optInMAType > 8) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInMAType) < 0) || (CAST_TO_I32(optInMAType) > 8) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 

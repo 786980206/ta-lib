@@ -89,7 +89,7 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn cdldarkcloudcover_lookback(
-optInPenetration: f64) -> i32
+mut optInPenetration: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_CDLDARKCLOUDCOVER_Lookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
