@@ -36,6 +36,24 @@ The macro in `ta_defs.h` already handles language switching:
 
 This keeps the source clean and maintainable. If a macro doesn't exist for what you need, **add the macro to ta_defs.h** rather than adding conditionals to source files.
 
+### Cross-Language Development Workflow
+
+When converting an indicator to Rust, the process is:
+
+1. **Compare** the generated Rust output (`rust/src/ta_func/xxx.rs`) against the Java reference in `Core.java` — the Java is the known-working target
+2. **Find syntax mismatches** — anything that doesn't compile or behaves differently
+3. **Trace the origin** — is the bad syntax in:
+   - The hand-written logic (between GENCODE 3-5 in `ta_XXX.c`)?
+   - The generated scaffolding (`printFunc`, `printOptInputValidation`, etc. in `gen_code.c`)?
+4. **Fix at the right level**, in this priority order:
+   - **Light C refactoring** (preferred) — remove unnecessary syntax that's invalid in Rust but a no-op in C/Java (e.g., adding curly braces to bare if/else). BUT: verify the syntax is truly unnecessary across ALL parameter types and languages first.
+   - **New macro in `ta_defs.h`** — when syntax genuinely differs or has semantic meaning in some code paths. Every macro MUST have a healthy default for C/Java/.NET (the `#else` branch).
+   - **Generator changes in `gen_code.c`/`gen_rust.c`** — when the scaffolding itself needs different output per language
+   - **ALWAYS verify C/Java/.NET output is unchanged** after any fix (`git diff` the generated files)
+5. **Rebuild and verify**: build gen_code → run gen_code from `bin/` → `cargo check` → `cargo test`
+
+**Precedent**: Commits `a6702544`/`c2aacd15` added curly braces to all generated if/else in `gen_code.c` because Rust requires them — a light refactoring that's valid in all languages, cleaner than a macro.
+
 ### Code Generation Flow
 ```
 ta_SMA.c (source)     →  gen_code processes  →  ta_SMA.c (output with Generated prefix)
@@ -56,7 +74,7 @@ The generator:
 cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make gen_code -j4
 
 # Run gen_code (must run from bin directory)
-cd /path/to/ta-lib/bin && ../cmake-build/bin/gen_code
+cd bin && ../cmake-build/bin/gen_code
 
 # Verify Rust compilation
 cd rust && cargo check
@@ -104,7 +122,7 @@ DECLARE_DOUBLE_VAR(name)  → let mut name: f64;
 ```c
 // FOR_EACH_OUTPUT: C → Rust conversion
 FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-   outReal[outIdx] = OUTPUT_F64(inReal0[i] * inReal1[i]);
+   outReal[outIdx] = CAST_TO_F64(inReal0[i] * inReal1[i]);
 FOR_EACH_OUTPUT_END(outIdx)
 
 // Rust expands to:
@@ -124,31 +142,37 @@ VALUE_HANDLE_DEREF_TO_ZERO(name) → (*name) = 0       // initialize to zero
 
 ### Type Conversion
 ```c
-OUTPUT_F64(val)   → (val) as f64   // Cast to f64 (important for f32 inputs)
-CAST_TO_USIZE(v)  → (v) as usize
+CAST_TO_F64(v)    → (v) as f64     // Cast to f64 (important for f32 inputs)
+CAST_TO_INDEX(v)  → (v) as usize   // Cast to index type (usize in Rust, int in C/Java)
 CAST_TO_I32(v)    → (v) as i32
 ```
 
-### Function/Enum Macros
+### Control Flow Macros
 ```c
-ENUM_VALUE(RetCode, TA_SUCCESS, Success) → RetCode::Success
-FUNCTION_CALL(SMA)                       → TA_PREFIX(SMA) → depends on context
-LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback
+IF_CONDITION(expr)      → if expr {
+IF_CONDITION_END        → }
+FOR_COUNTDOWN(i, n)     → for i in (0..n).rev() {
+FOR_COUNTDOWN_END       → }
 ```
 
-## Critical Fixes Implemented
+### Array/Function Macros
+```c
+ARRAY_ACCESS(arr, i)                     → arr[i]
+ENUM_VALUE(RetCode, TA_SUCCESS, Success) → RetCode::Success
+FUNCTION_CALL(SMA)                       → TA_PREFIX(SMA) → depends on context
+FUNCTION_CALL_DOUBLE(SMA)                → explicit double-precision variant
+LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback (NOT yet defined for Rust)
+```
 
-### 1. Loop Variable Declaration
-**Problem**: `DECLARE_INDEX_VAR(i)` creates unused `let mut i: usize;` since `FOR_EACH_OUTPUT` creates its own binding
-**Solution**: `DECLARE_LOOP_VAR(i)` - no-op for Rust, normal declaration for C
+**Note**: `LOOKBACK_CALL` is only defined for C/Java (`#if !defined(_RUST)`). A Rust definition mapping to `Self::x_lookback()` is needed before implementing RSI and other unstable indicators.
 
-### 2. Index Validation
-**Problem**: `startIdx < 0` meaningless for `usize` types
-**Solution**: Modified `gen_code.c:3464-3476` - Rust skips negative checks, only validates `endIdx < startIdx`
+Also available: `TA_FUNC_NO_RANGE_CHECK` - skips range validation for Rust (defined at line 61 of ta_defs.h).
 
-### 3. Type Conversion
-**Problem**: f32 inputs → f64 outputs need explicit cast in Rust
-**Solution**: `OUTPUT_F64(val)` macro casts to f64 in Rust, no-op in C
+## Known Gotchas
+
+- **Loop variables**: Use `DECLARE_LOOP_VAR(i)` (no-op for Rust) instead of `DECLARE_INDEX_VAR(i)` when the variable is rebound by `FOR_EACH_OUTPUT`
+- **Index validation**: Rust skips `startIdx < 0` checks (meaningless for `usize`); see `gen_code.c:3464-3476`
+- **Type conversion**: f32 inputs to f64 outputs require `CAST_TO_F64(val)` — no-op in C, explicit cast in Rust
 
 ## Next Functions to Implement
 
@@ -157,30 +181,22 @@ LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback
 - `TA_IS_ZERO` macro - floating point epsilon comparison (avoid divide by zero)
 - `TA_GLOBALS_UNSTABLE_PERIOD` - unstable period handling for technical indicators
 - `TA_GLOBALS_COMPATIBILITY` - Metastock compatibility mode
-- `LOOKBACK_CALL(RSI)` - calling lookback function within implementation
+- `LOOKBACK_CALL(RSI)` - needs Rust definition before RSI can be generated
 - Optional parameter: `optInTimePeriod` with default value handling
 
-**Floating Point Note**: "What every computer scientist should know about floating point" - epsilon comparison is critical for financial calculations.
-
-### SMA (Simple Moving Average)
-**New Challenges**:
-- `FUNCTION_CALL(INT_SMA)` - internal function calls between TA functions
-- Pattern: `ta_SMA` calls `ta_INT_SMA` for the actual implementation
-- This pattern is used in `ta_MA.c` which dispatches to SMA, EMA, WMA, etc.
+**Floating Point Note**: Epsilon comparison is critical for financial calculations.
 
 ### MA (Moving Average - dispatcher)
-**Uses `FUNCTION_CALL` extensively**:
-```c
-retCode = FUNCTION_CALL(SMA)(startIdx, endIdx, inReal, optInTimePeriod, ...);
-retCode = FUNCTION_CALL(EMA)(startIdx, endIdx, inReal, optInTimePeriod, ...);
-// etc.
-```
-Needs Rust equivalent for method dispatch.
+**Uses `FUNCTION_CALL` extensively** to dispatch to SMA, EMA, WMA, etc. Needs Rust equivalent for method dispatch.
 
 ## Macros Still Needed for RSI/SMA
 
 ```c
-// These need Rust implementations:
+// Needed for SMA:
+CAST_TO_INT(x)                          // → (x) as i32 (NOT just remove (int) — it does real
+                                        //   enum-to-int conversion for TA_MAType params)
+
+// Needed for RSI and beyond:
 TA_IS_ZERO(x)                           // → x.abs() < f64::EPSILON ?
 TA_GLOBALS_UNSTABLE_PERIOD(id, name)    // → Core state or const
 TA_GLOBALS_COMPATIBILITY                // → Core config/const
@@ -192,8 +208,9 @@ ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 
 ## Current Status
 
-- **MULT** - Compiles clean with `cargo check` and all tests pass
-- **RUST_SINGLE_FUNC** - Currently set to "MULT" in gen_code.c line 111
+- **MULT** - Compiles clean, all tests pass
+- **SMA** - Generated and in progress (`sma.rs`, `sma_test.rs` exist)
+- **RUST_SINGLE_FUNC** - Currently set to `"SMA"` in gen_code.c line 111
 - **Price Inputs** - Complex candlestick inputs (OHLCV combinations) not fully supported yet
 
 ## Build Configuration
@@ -206,7 +223,7 @@ ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 #define ENABLE_RUST
 
 // Comment to generate all functions:
-#define RUST_SINGLE_FUNC "MULT"
+#define RUST_SINGLE_FUNC "SMA"
 ```
 
 ### Dependencies
@@ -254,9 +271,11 @@ ta-lib/
 │   │   ├── lib.rs
 │   │   └── ta_func/
 │   │       ├── mod.rs     # Generated module declarations
-│   │       └── mult.rs    # Generated MULT function
+│   │       ├── mult.rs    # Generated MULT function
+│   │       └── sma.rs     # Generated SMA function
 │   └── tests/
-│       └── mult_test.rs
+│       ├── mult_test.rs
+│       └── sma_test.rs
 └── src/
     ├── ta_func/
     │   ├── ta_MULT.c      # Source with GENCODE sections
