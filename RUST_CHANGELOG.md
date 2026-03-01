@@ -6,27 +6,24 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
-## 2026-03-01 -- Replace TA_FUNC_NO_RANGE_CHECK with CAST_TO_I32 macro
+## 2026-03-01 -- SMA complete with full validation and tests
 
-* [Diff: 509d6af...1132d92](https://github.com/TA-Lib/ta-lib/compare/509d6af2...1132d920)
-* Removed `TA_FUNC_NO_RANGE_CHECK` which was disabling ALL validation for Rust (caused MULT test regressions)
-* Added `CAST_TO_I32` macro to `printOptInputValidation` so `(int)` casts become cross-language
-* Renamed `CAST_TO_USIZE` to `CAST_TO_INDEX` (concept-based naming -- each language maps to its own index type)
-* Removed redundant `OUTPUT_F64` macro, consolidated to `CAST_TO_F64`
-* Added `FUNCTION_CALL` / `FUNCTION_CALL_DOUBLE` macros for Rust (needed for SMA internal dispatch)
-* Split Rust `INT_MIN`/`INT_MAX` from Java (`i32::MIN` vs `Integer.MIN_VALUE`)
-* Added `mut` to lookback function params in gen_rust.c (validation assigns default values)
-* Refactored `RUST_SINGLE_FUNC` to `RUST_SUPPORTED_FUNCS` for multi-function support
-* All 11 Rust tests passing (6 MULT + 5 SMA)
-
-## 2026-03-01 -- Add SMA tests
-
-* [Diff: 95f1413](https://github.com/TA-Lib/ta-lib/commit/95f1413d)
-* Double precision SMA with period 3
-* Single precision (f32) input variant
-* Lookback function (valid period, invalid period returns -1, default value)
-* Period 1 pass-through behavior
-* Partial range calculation (startIdx > 0)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Removed `TA_FUNC_NO_RANGE_CHECK` which was disabling ALL validation for Rust (caused MULT test regressions)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Added `CAST_TO_I32` macro to `printOptInputValidation` so `(int)` casts become cross-language
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Renamed `CAST_TO_USIZE` to `CAST_TO_INDEX` (concept-based naming -- each language maps to its own index type)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Removed redundant `OUTPUT_F64` macro, consolidated to `CAST_TO_F64`
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Added `FUNCTION_CALL` / `FUNCTION_CALL_DOUBLE` macros for Rust (needed for SMA internal dispatch)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Split Rust `INT_MIN`/`INT_MAX` from Java (`i32::MIN` vs `Integer.MIN_VALUE`)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Added `mut` to lookback function params in gen_rust.c (validation assigns default values)
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Refactored `RUST_SINGLE_FUNC` to `RUST_SUPPORTED_FUNCS` for multi-function support
+* [95f1413](https://github.com/TA-Lib/ta-lib/commit/95f1413d) SMA tests: basic, single precision, lookback, partial range
+* [1132d92](https://github.com/TA-Lib/ta-lib/commit/1132d920) Updated CLAUDE.md with `CAST_TO_INDEX` macro docs and SMA status
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Removed empty `#if defined(_RUST)` wrapper in gen_code.c Section 4 — Rust now goes through `printFunc(validationCode=1)` like all other languages
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Added `!defined(_RUST)` to null-pointer check guards (alongside `!defined(_JAVA)`) — Rust doesn't need null checks
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Added `mut` to optional input params in both double and single precision Rust signatures
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) SMA error condition tests: BadParam for period 0/1/100001, OutOfRangeEndIndex, default period via i32::MIN (double + single precision)
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Replaced `test_sma_period_1` with `test_sma_minimum_period` (period=2, the actual minimum)
+* All 13 Rust tests passing (6 MULT + 7 SMA)
 
 ## 2026-01-07 -- Document generated code philosophy and macro-first approach
 

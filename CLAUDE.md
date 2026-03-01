@@ -166,7 +166,7 @@ LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback (NOT yet defined fo
 
 **Note**: `LOOKBACK_CALL` is only defined for C/Java (`#if !defined(_RUST)`). A Rust definition mapping to `Self::x_lookback()` is needed before implementing RSI and other unstable indicators.
 
-Also available: `TA_FUNC_NO_RANGE_CHECK` - skips range validation for Rust (defined at line 61 of ta_defs.h).
+**Note**: `TA_FUNC_NO_RANGE_CHECK` was removed — it disabled ALL validation including basic range checks, causing test regressions. Use targeted macros (`CAST_TO_I32`, exclusion guards) instead.
 
 ## Known Gotchas
 
@@ -189,28 +189,22 @@ Also available: `TA_FUNC_NO_RANGE_CHECK` - skips range validation for Rust (defi
 ### MA (Moving Average - dispatcher)
 **Uses `FUNCTION_CALL` extensively** to dispatch to SMA, EMA, WMA, etc. Needs Rust equivalent for method dispatch.
 
-## Macros Still Needed for RSI/SMA
+## Macros Still Needed for RSI and Beyond
 
 ```c
-// Needed for SMA:
-CAST_TO_INT(x)                          // → (x) as i32 (NOT just remove (int) — it does real
-                                        //   enum-to-int conversion for TA_MAType params)
-
-// Needed for RSI and beyond:
 TA_IS_ZERO(x)                           // → x.abs() < f64::EPSILON ?
 TA_GLOBALS_UNSTABLE_PERIOD(id, name)    // → Core state or const
 TA_GLOBALS_COMPATIBILITY                // → Core config/const
-LOOKBACK_CALL(x)                        // → Core::x_lookback()
-FUNCTION_CALL(x)                        // → Core::x() or self.x()
+LOOKBACK_CALL(x)                        // → Self::x_lookback()
 ARRAY_MEMMOVE(dst, di, src, si, n)      // → dst[di..di+n].copy_from_slice(&src[si..si+n])
 ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 ```
 
 ## Current Status
 
-- **MULT** - Compiles clean, all tests pass
-- **SMA** - Generated and in progress (`sma.rs`, `sma_test.rs` exist)
-- **RUST_SINGLE_FUNC** - Currently set to `"SMA"` in gen_code.c line 111
+- **MULT** - Complete, all 6 tests pass
+- **SMA** - Complete, all 7 tests pass (basic, single precision, lookback, minimum period, partial range, error conditions double + single)
+- **RUST_SUPPORTED_FUNCS** - Currently `"SMA,MULT"` in gen_code.c line 111
 - **Price Inputs** - Complex candlestick inputs (OHLCV combinations) not fully supported yet
 
 ## Build Configuration
@@ -222,8 +216,8 @@ ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 #define ENABLE_DOTNET
 #define ENABLE_RUST
 
-// Comment to generate all functions:
-#define RUST_SINGLE_FUNC "SMA"
+// CSV list of supported Rust functions (comment out to generate all):
+#define RUST_SUPPORTED_FUNCS "SMA,MULT"
 ```
 
 ### Dependencies
@@ -256,6 +250,25 @@ The Rust implementation is largely based on the Java implementation patterns. Ke
 - Both use method dispatch within class/impl
 - Both have MInteger-style output parameter handling
 - Both share the same GENCODE sections in source files
+
+## Changelog Format (RUST_CHANGELOG.md)
+
+One entry per day. If multiple commits happen on the same day, consolidate into a single entry. Each bullet links to the specific commit that introduced it:
+
+```markdown
+## 2026-03-01 -- Short title summarizing the day's work
+
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Description of change from this commit
+* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Another change from the same commit
+* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Change from a different commit
+* All 13 Rust tests passing (6 MULT + 7 SMA)
+```
+
+Rules:
+- **One entry per day** — amend the existing entry if pushing more commits on the same day
+- **Per-bullet commit links** — every bullet gets `[short-hash](commit-url)`, even if multiple bullets share the same commit
+- **Summary bullet at the end** — total test count to show nothing regressed
+- **Amend the changelog commit** when updating the same day's entry
 
 ## Project Structure
 
