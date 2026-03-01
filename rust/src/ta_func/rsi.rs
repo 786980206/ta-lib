@@ -87,16 +87,22 @@ impl Core {
     /// ```
     /// use ta_lib::ta_func::{Core, RetCode};
     ///
-    /// let input = [1.0_f64; 50];
-    /// let mut out = [0.0_f64; 50];
+    ///
+    /// let prices = [
+    ///  44.0, 44.34, 44.09, 43.61, 44.33, 44.83, 44.32, 44.55,
+    ///  43.93, 44.05, 43.80, 43.64, 43.82, 44.29, 44.09, 44.15,
+    ///  43.61, 44.33, 44.83, 44.32, 44.55, 43.93, 44.05, 43.80,
+    ///  43.64, 43.82, 44.29, 44.09, 44.15, 43.61_f64,
+    /// ];
+    /// let mut out = [0.0_f64; 30];
     /// let mut out_beg_idx: usize = 0;
     /// let mut out_nb_element: usize = 0;
     ///
     /// let core = Core::new();
     /// let result = core.rsi(
     ///  0,
-    ///  49,
-    ///  &input,
+    ///  prices.len() - 1,
+    ///  &prices,
     ///  14,
     ///  &mut out_beg_idx,
     ///  &mut out_nb_element,
@@ -104,6 +110,13 @@ impl Core {
     /// );
     ///
     /// assert_eq!(result, RetCode::Success);
+    /// assert_eq!(out_beg_idx, 14);
+    /// assert!(out_nb_element > 0);
+    ///
+    ///
+    /// for i in 0..out_nb_element {
+    ///  assert!(out[i] >= 0.0 && out[i] <= 100.0);
+    /// }
     /// ```
     pub fn rsi(
         &self,
