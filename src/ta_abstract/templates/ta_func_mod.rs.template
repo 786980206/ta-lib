@@ -123,17 +123,57 @@ pub enum FuncUnstId {
 
 /// Core struct providing access to all TA-Lib technical analysis functions.
 ///
-/// Functions are implemented as static methods. No state is preserved between calls.
+/// Create an instance with [`Core::new()`] and call functions as methods.
+/// Unstable period and compatibility mode can be configured per-instance.
 ///
 /// # Example
 ///
 /// ```
 /// use ta_lib::ta_func::{Core, RetCode};
 ///
-/// let lookback = Core::sma_lookback(30);
+/// let core = Core::new();
+/// let lookback = core.sma_lookback(30);
 /// assert_eq!(lookback, 29);
 /// ```
-pub struct Core {}
+pub struct Core {
+    /// Unstable period for each function identified by [`FuncUnstId`].
+    pub unstable_period: [i32; FuncUnstId::FuncUnstAll as usize],
+    /// Compatibility mode (default: [`Compatibility::Default`]).
+    pub compatibility: Compatibility,
+}
+
+impl Core {
+    /// Create a new Core instance with default settings.
+    ///
+    /// All unstable periods are initialized to 0 and compatibility
+    /// mode is set to [`Compatibility::Default`].
+    pub fn new() -> Self {
+        Self {
+            unstable_period: [0; FuncUnstId::FuncUnstAll as usize],
+            compatibility: Compatibility::Default,
+        }
+    }
+
+    /// Set the unstable period for a specific function.
+    pub fn set_unstable_period(&mut self, id: FuncUnstId, period: i32) {
+        self.unstable_period[id as usize] = period;
+    }
+
+    /// Get the unstable period for a specific function.
+    pub fn get_unstable_period(&self, id: FuncUnstId) -> i32 {
+        self.unstable_period[id as usize]
+    }
+
+    /// Set the compatibility mode.
+    pub fn set_compatibility(&mut self, compat: Compatibility) {
+        self.compatibility = compat;
+    }
+
+    /// Get the current compatibility mode.
+    pub fn get_compatibility(&self) -> Compatibility {
+        self.compatibility
+    }
+}
 
 %%%GENCODE%%%
 
