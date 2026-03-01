@@ -36,18 +36,35 @@
  *   Any modification will be lost on next execution of gen_code.
  */
 
-// Rust-specific types and enumerations
+/// Return codes for TA-Lib function calls.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RetCode {
+    /// Function completed successfully.
     Success,
+    /// One or more parameters are invalid.
     BadParam,
+    /// The start index is out of range.
     OutOfRangeStartIndex,
+    /// The end index is out of range or less than start index.
     OutOfRangeEndIndex,
+    /// Memory allocation failed.
     AllocErr,
+    /// Internal error occurred.
     InternalError,
 }
 
-// Core struct definition
+/// Core struct providing access to all TA-Lib technical analysis functions.
+///
+/// Functions are implemented as static methods. No state is preserved between calls.
+///
+/// # Example
+///
+/// ```
+/// use ta_lib::ta_func::{Core, RetCode};
+///
+/// let lookback = Core::sma_lookback(30);
+/// assert_eq!(lookback, 29);
+/// ```
 pub struct Core {}
 
 pub mod mult;
