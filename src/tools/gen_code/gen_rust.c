@@ -151,7 +151,7 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
         }
     }
 
-    // Print optional input parameters
+    // Print optional input parameters (mut because validation may assign defaults)
     for (i = 0; i < funcInfo->nbOptInput; i++)
     {
         TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
@@ -161,16 +161,16 @@ static void printRustDoublePrecisionFunctionSignature(FILE* out,
         switch (optInputParamInfo->type)
         {
         case TA_OptInput_RealRange:
-            fprintf(out, "%s: f64,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f64,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerRange:
-            fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerList:
-            fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_RealList:
-            fprintf(out, "%s: f64,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f64,\n", optInputParamInfo->paramName);
             break;
         default:
             printf("Unknown optional input type for %s\n", funcInfo->name);
@@ -284,7 +284,7 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
         }
     }
 
-    // Print optional input parameters
+    // Print optional input parameters (mut because validation may assign defaults)
     for (i = 0; i < funcInfo->nbOptInput; i++)
     {
         TA_GetOptInputParameterInfo(funcInfo->handle, i, &optInputParamInfo);
@@ -294,16 +294,16 @@ static void printRustSinglePrecisionFunctionSignature(FILE* out,
         switch (optInputParamInfo->type)
         {
         case TA_OptInput_RealRange:
-            fprintf(out, "%s: f32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f32,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerRange:
-            fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerList:
-            fprintf(out, "%s: i32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32,\n", optInputParamInfo->paramName);
             break;
         case TA_OptInput_RealList:
-            fprintf(out, "%s: f32,\n", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f32,\n", optInputParamInfo->paramName);
             break;
         default:
             printf("Unknown optional input type for %s\n", funcInfo->name);

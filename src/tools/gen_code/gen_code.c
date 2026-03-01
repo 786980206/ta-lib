@@ -2262,7 +2262,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#if !defined(_JAVA)\n" );
+         fprintf( out, "#if !defined(_JAVA) && !defined(_RUST)\n" );
       }
 
       paramNb = 0;
@@ -2553,7 +2553,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#endif /* !defined(_JAVA)*/\n" );
+         fprintf( out, "#endif /* !defined(_JAVA) && !defined(_RUST)*/\n" );
       }
    }
 
@@ -2779,7 +2779,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#if !defined(_JAVA)\n" );
+         fprintf( out, "#if !defined(_JAVA) && !defined(_RUST)\n" );
       }
 
       for( i=0; i < funcInfo->nbOutput; i++ )
@@ -2870,7 +2870,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#endif /* !defined(_JAVA) */\n" );
+         fprintf( out, "#endif /* !defined(_JAVA) && !defined(_RUST) */\n" );
       }
 
    }
@@ -3480,12 +3480,7 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
     * Also generates the code for setting up the
     * default values.
     */
-   print( out, "#if defined( _RUST )\n" );
-   // printRustRangeCheckValidationCode();
-   print( out, "\n" );
-   print( out, "#else\n" );
    printFunc( out, NULL, funcInfo, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-   print( out, "#endif\n" );
 
    print( out, "#endif /* TA_FUNC_NO_RANGE_CHECK */\n" );
    print( out, "\n" );
