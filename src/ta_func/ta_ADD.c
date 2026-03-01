@@ -86,6 +86,10 @@
 /* Generated */ public int addLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::add`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
 /* Generated */ pub fn add_lookback(
 ) -> i32
 /* Generated */ #else
@@ -139,6 +143,45 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Vector Arithmetic Add
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal0` - Input price series
+@RUSTDOC@* `inReal1` - Input price series
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outReal` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::add(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    &input,
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn add(startIdx: usize,
 /* Generated */            endIdx: usize,
 /* Generated */            inReal0: &[f64],
@@ -240,6 +283,7 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::add`].
 /* Generated */ pub fn add_s(startIdx: usize,
 /* Generated */              endIdx: usize,
 /* Generated */              inReal0: &[f32],

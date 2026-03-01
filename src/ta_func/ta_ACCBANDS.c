@@ -88,6 +88,11 @@
 /* Generated */ public int accbandsLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::accbands`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 20, range: 2..=100000)
 /* Generated */ pub fn accbands_lookback(
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
@@ -166,6 +171,56 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Acceleration Bands
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `inClose` - Close price series
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 20, range: 2..=100000)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outRealUpperBand` - Output values
+@RUSTDOC@* `outRealMiddleBand` - Output values
+@RUSTDOC@* `outRealLowerBand` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let in_close = [1.0_f64; 50];
+@RUSTDOC@let mut outRealUpperBand = [0.0_f64; 50];
+@RUSTDOC@let mut outRealMiddleBand = [0.0_f64; 50];
+@RUSTDOC@let mut outRealLowerBand = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::accbands(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    &in_close,
+@RUSTDOC@    20, // optInTimePeriod
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outRealUpperBand,
+@RUSTDOC@    &mut outRealMiddleBand,
+@RUSTDOC@    &mut outRealLowerBand,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn accbands(startIdx: usize,
 /* Generated */                 endIdx: usize,
 /* Generated */                 /* Generated */                 mut optInTimePeriod: i32,
@@ -406,6 +461,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                          double        outRealMiddleBand[],
 /* Generated */                          double        outRealLowerBand[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::accbands`].
 /* Generated */ pub fn accbands_s(startIdx: usize,
 /* Generated */                   endIdx: usize,
 /* Generated */                   /* Generated */                   mut optInTimePeriod: i32,

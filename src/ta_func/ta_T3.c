@@ -95,6 +95,12 @@
 /* Generated */                      double        optInVFactor )  /* From 0 to 1 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::t3`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
+@RUSTDOC@* `optInVFactor` - Volume Factor (default: 0.7)
 /* Generated */ pub fn t3_lookback(
 mut optInTimePeriod: i32,
 /* Generated */                     mut optInVFactor: f64) -> i32
@@ -174,6 +180,46 @@ mut optInTimePeriod: i32,
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Triple Exponential Moving Average (T3)
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal` - Input price series
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
+@RUSTDOC@* `optInVFactor` - Volume Factor (default: 0.7)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outReal` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::t3(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    5, // optInTimePeriod
+@RUSTDOC@    0, // optInVFactor
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn t3(startIdx: usize,
 /* Generated */           endIdx: usize,
 /* Generated */           inReal: &[f64],
@@ -423,6 +469,7 @@ mut optInTimePeriod: i32,
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::t3`].
 /* Generated */ pub fn t3_s(startIdx: usize,
 /* Generated */             endIdx: usize,
 /* Generated */             inReal: &[f32],

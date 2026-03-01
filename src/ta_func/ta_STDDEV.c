@@ -92,6 +92,12 @@
 /* Generated */                          double        optInNbDev )  /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::stddev`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
+@RUSTDOC@* `optInNbDev` - Nb of deviations (default: 1)
 /* Generated */ pub fn stddev_lookback(
 mut optInTimePeriod: i32,
 /* Generated */                         mut optInNbDev: f64) -> i32
@@ -172,6 +178,46 @@ mut optInTimePeriod: i32,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Standard Deviation
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal` - Input price series
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
+@RUSTDOC@* `optInNbDev` - Nb of deviations (default: 1)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outReal` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::stddev(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    5, // optInTimePeriod
+@RUSTDOC@    1, // optInNbDev
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn stddev(startIdx: usize,
 /* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f64],
@@ -407,6 +453,7 @@ void TA_PREFIX(INT_stddev_using_precalc_ma)( const INPUT_TYPE *inReal,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::stddev`].
 /* Generated */ pub fn stddev_s(startIdx: usize,
 /* Generated */                 endIdx: usize,
 /* Generated */                 inReal: &[f32],

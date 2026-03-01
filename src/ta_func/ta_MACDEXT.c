@@ -97,6 +97,16 @@
 /* Generated */                           int           optInSignalPeriod, /* From 1 to 100000 */
 /* Generated */                           MAType        optInSignalMAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::macdext`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInFastPeriod` - Number of period for the fast MA (default: 12, range: 2..=100000)
+@RUSTDOC@* `optInFastMAType` - Type of Moving Average for fast MA
+@RUSTDOC@* `optInSlowPeriod` - Number of period for the slow MA (default: 26, range: 2..=100000)
+@RUSTDOC@* `optInSlowMAType` - Type of Moving Average for slow MA
+@RUSTDOC@* `optInSignalPeriod` - Smoothing for the signal line (nb of period) (default: 9, range: 1..=100000)
+@RUSTDOC@* `optInSignalMAType` - Type of Moving Average for signal line
 /* Generated */ pub fn macdext_lookback(
 mut optInFastPeriod: i32,
 /* Generated */                          mut optInFastMAType: i32,
@@ -249,6 +259,60 @@ mut optInFastPeriod: i32,
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@MACD with controllable MA type
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal` - Input price series
+@RUSTDOC@* `optInFastPeriod` - Number of period for the fast MA (default: 12, range: 2..=100000)
+@RUSTDOC@* `optInFastMAType` - Type of Moving Average for fast MA
+@RUSTDOC@* `optInSlowPeriod` - Number of period for the slow MA (default: 26, range: 2..=100000)
+@RUSTDOC@* `optInSlowMAType` - Type of Moving Average for slow MA
+@RUSTDOC@* `optInSignalPeriod` - Smoothing for the signal line (nb of period) (default: 9, range: 1..=100000)
+@RUSTDOC@* `optInSignalMAType` - Type of Moving Average for signal line
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outMACD` - Output values
+@RUSTDOC@* `outMACDSignal` - Output values
+@RUSTDOC@* `outMACDHist` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut outMACD = [0.0_f64; 50];
+@RUSTDOC@let mut outMACDSignal = [0.0_f64; 50];
+@RUSTDOC@let mut outMACDHist = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::macdext(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    12, // optInFastPeriod
+@RUSTDOC@    0, // optInFastMAType
+@RUSTDOC@    26, // optInSlowPeriod
+@RUSTDOC@    0, // optInSlowMAType
+@RUSTDOC@    9, // optInSignalPeriod
+@RUSTDOC@    0, // optInSignalMAType
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outMACD,
+@RUSTDOC@    &mut outMACDSignal,
+@RUSTDOC@    &mut outMACDHist,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn macdext(startIdx: usize,
 /* Generated */                endIdx: usize,
 /* Generated */                inReal: &[f64],
@@ -573,6 +637,7 @@ mut optInFastPeriod: i32,
 /* Generated */                         double        outMACDSignal[],
 /* Generated */                         double        outMACDHist[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::macdext`].
 /* Generated */ pub fn macdext_s(startIdx: usize,
 /* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f32],

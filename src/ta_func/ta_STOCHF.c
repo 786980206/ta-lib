@@ -92,6 +92,13 @@
 /* Generated */                          int           optInFastD_Period, /* From 1 to 100000 */
 /* Generated */                          MAType        optInFastD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::stochf`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
+@RUSTDOC@* `optInFastD_Period` - Smoothing for making the Fast-D line. Usually set to 3 (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInFastD_MAType` - Type of Moving Average for Fast-D
 /* Generated */ pub fn stochf_lookback(
 mut optInFastK_Period: i32,
 /* Generated */                         mut optInFastD_Period: i32,
@@ -202,6 +209,57 @@ mut optInFastK_Period: i32,
 /* Generated */                        double        outFastK[],
 /* Generated */                        double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Stochastic Fast
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `inClose` - Close price series
+@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
+@RUSTDOC@* `optInFastD_Period` - Smoothing for making the Fast-D line. Usually set to 3 (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInFastD_MAType` - Type of Moving Average for Fast-D
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outFastK` - Output values
+@RUSTDOC@* `outFastD` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let in_close = [1.0_f64; 50];
+@RUSTDOC@let mut outFastK = [0.0_f64; 50];
+@RUSTDOC@let mut outFastD = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::stochf(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    &in_close,
+@RUSTDOC@    5, // optInFastK_Period
+@RUSTDOC@    3, // optInFastD_Period
+@RUSTDOC@    0, // optInFastD_MAType
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outFastK,
+@RUSTDOC@    &mut outFastD,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn stochf(startIdx: usize,
 /* Generated */               endIdx: usize,
 /* Generated */               /* Generated */               mut optInFastK_Period: i32,
@@ -575,6 +633,7 @@ mut optInFastK_Period: i32,
 /* Generated */                        double        outFastK[],
 /* Generated */                        double        outFastD[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::stochf`].
 /* Generated */ pub fn stochf_s(startIdx: usize,
 /* Generated */                 endIdx: usize,
 /* Generated */                 /* Generated */                 mut optInFastK_Period: i32,

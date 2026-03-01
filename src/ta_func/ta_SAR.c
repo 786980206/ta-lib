@@ -98,6 +98,12 @@
 /* Generated */                       double        optInMaximum )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::sar`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInAcceleration` - Acceleration Factor used up to the Maximum value (default: 0.02)
+@RUSTDOC@* `optInMaximum` - Acceleration Factor Maximum value (default: 0.2)
 /* Generated */ pub fn sar_lookback(
 mut optInAcceleration: f64,
 /* Generated */                      mut optInMaximum: f64) -> i32
@@ -184,6 +190,49 @@ mut optInAcceleration: f64,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Parabolic SAR
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `optInAcceleration` - Acceleration Factor used up to the Maximum value (default: 0.02)
+@RUSTDOC@* `optInMaximum` - Acceleration Factor Maximum value (default: 0.2)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outReal` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::sar(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    0, // optInAcceleration
+@RUSTDOC@    0, // optInMaximum
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn sar(startIdx: usize,
 /* Generated */            endIdx: usize,
 /* Generated */            /* Generated */            mut optInAcceleration: f64,
@@ -565,6 +614,7 @@ mut optInAcceleration: f64,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::sar`].
 /* Generated */ pub fn sar_s(startIdx: usize,
 /* Generated */              endIdx: usize,
 /* Generated */              /* Generated */              mut optInAcceleration: f32,

@@ -48,6 +48,11 @@ use super::{Core, RetCode};
 #[allow(unused_variables)]
 #[allow(dead_code)]
 impl Core {
+    /// Lookback period for [`Core::sma`].
+    ///
+    /// # Arguments
+    ///
+    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
     pub fn sma_lookback(mut optInTimePeriod: i32) -> i32 {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
@@ -56,6 +61,44 @@ impl Core {
         }
         return optInTimePeriod - 1;
     }
+    /// Simple Moving Average
+    ///
+    /// # Arguments
+    ///
+    /// * `startIdx` - Start index for calculation range
+    /// * `endIdx` - End index for calculation range (inclusive)
+    /// * `inReal` - Input price series
+    /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
+    /// * `outBegIdx` - First valid output index
+    /// * `outNBElement` - Number of valid output elements
+    /// * `outReal` - Output values
+    ///
+    /// # Returns
+    ///
+    /// [`RetCode::Success`] on success, or an error code on failure.
+    ///
+    /// # Example
+    ///
+    /// ```
+    /// use ta_lib::ta_func::{Core, RetCode};
+    ///
+    /// let input = [1.0_f64; 50];
+    /// let mut out = [0.0_f64; 50];
+    /// let mut out_beg_idx: usize = 0;
+    /// let mut out_nb_element: usize = 0;
+    ///
+    /// let result = Core::sma(
+    ///  0,
+    ///  49,
+    ///  &input,
+    ///  30,
+    ///  &mut out_beg_idx,
+    ///  &mut out_nb_element,
+    ///  &mut out,
+    /// );
+    ///
+    /// assert_eq!(result, RetCode::Success);
+    /// ```
     pub fn sma(
         startIdx: usize,
         endIdx: usize,
@@ -130,6 +173,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    /// Single-precision variant of [`Core::sma`].
     pub fn sma_s(
         startIdx: usize,
         endIdx: usize,

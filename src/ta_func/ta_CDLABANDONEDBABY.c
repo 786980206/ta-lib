@@ -88,6 +88,11 @@
 /* Generated */ public int cdlAbandonedBabyLookback( double        optInPenetration )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::cdlabandonedbaby`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInPenetration` - Percentage of penetration of a candle within another candle (default: 0.3)
 /* Generated */ pub fn cdlabandonedbaby_lookback(
 mut optInPenetration: f64) -> i32
 /* Generated */ #else
@@ -165,6 +170,53 @@ mut optInPenetration: f64) -> i32
 /* Generated */                                  MInteger     outNBElement,
 /* Generated */                                  int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Abandoned Baby
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inOpen` - Open price series
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `inClose` - Close price series
+@RUSTDOC@* `optInPenetration` - Percentage of penetration of a candle within another candle (default: 0.3)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outInteger` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_open = [1.0_f64; 50];
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let in_close = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0_i32; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::cdlabandonedbaby(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_open,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    &in_close,
+@RUSTDOC@    0, // optInPenetration
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn cdlabandonedbaby(startIdx: usize,
 /* Generated */                         endIdx: usize,
 /* Generated */                         /* Generated */                         mut optInPenetration: f64,
@@ -381,6 +433,7 @@ mut optInPenetration: f64) -> i32
 /* Generated */                                  MInteger     outNBElement,
 /* Generated */                                  int           outInteger[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::cdlabandonedbaby`].
 /* Generated */ pub fn cdlabandonedbaby_s(startIdx: usize,
 /* Generated */                           endIdx: usize,
 /* Generated */                           /* Generated */                           mut optInPenetration: f32,

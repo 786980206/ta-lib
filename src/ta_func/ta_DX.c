@@ -91,6 +91,11 @@
 /* Generated */ public int dxLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::dx`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
 /* Generated */ pub fn dx_lookback(
 mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
@@ -165,6 +170,50 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Directional Movement Index
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `inClose` - Close price series
+@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outReal` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let in_close = [1.0_f64; 50];
+@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::dx(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    &in_close,
+@RUSTDOC@    14, // optInTimePeriod
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut out,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn dx(startIdx: usize,
 /* Generated */           endIdx: usize,
 /* Generated */           /* Generated */           mut optInTimePeriod: i32,
@@ -552,6 +601,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                    MInteger     outNBElement,
 /* Generated */                    double        outReal[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::dx`].
 /* Generated */ pub fn dx_s(startIdx: usize,
 /* Generated */             endIdx: usize,
 /* Generated */             /* Generated */             mut optInTimePeriod: i32,

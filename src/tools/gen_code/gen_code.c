@@ -337,6 +337,14 @@ typedef struct {
 	const TA_FuncInfo *funcInfo;
 } PrintFuncParamStruct;
 
+/* Doc types for printRustFuncDoc */
+#define RUST_DOC_LOOKBACK 0
+#define RUST_DOC_MAIN     1
+#define RUST_DOC_SINGLE   2
+
+static void printRustFuncDoc(FILE *out,
+                      const TA_FuncInfo *funcInfo,
+                      int docType);
 static void printRustLookbackFunctionSignature(FILE *out,
                       const char *prefix, /* Can be NULL */
                       const TA_FuncInfo *funcInfo);
@@ -3121,6 +3129,7 @@ static void doFuncFile( const TA_FuncInfo *funcInfo )
    print( gOutFunc_C->file, "#elif defined( _JAVA )\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0);
    print( gOutFunc_C->file, "#elif defined( _RUST )\n" );
+   printRustFuncDoc(gOutFunc_C->file, funcInfo, RUST_DOC_SINGLE);
    printRustSinglePrecisionFunctionSignature(gOutFunc_C->file, NULL, funcInfo);
    print( gOutFunc_C->file, "#else\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
@@ -3409,6 +3418,7 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "#elif defined( _JAVA )\n" );
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0);
    print( out, "#elif defined( _RUST )\n" );
+   printRustFuncDoc(out, funcInfo, RUST_DOC_LOOKBACK);
    printRustLookbackFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -3449,6 +3459,7 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
 
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);
    print( out, "#elif defined( _RUST )\n" );
+   printRustFuncDoc(out, funcInfo, RUST_DOC_MAIN);
    printRustDoublePrecisionFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);

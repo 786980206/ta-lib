@@ -92,6 +92,12 @@
 /* Generated */                        double        optInSlowLimit )  /* From 0.01 to 0.99 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::mama`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInFastLimit` - Upper limit use in the adaptive algorithm (default: 0.5)
+@RUSTDOC@* `optInSlowLimit` - Lower limit use in the adaptive algorithm (default: 0.05)
 /* Generated */ pub fn mama_lookback(
 mut optInFastLimit: f64,
 /* Generated */                       mut optInSlowLimit: f64) -> i32
@@ -197,6 +203,49 @@ mut optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@MESA Adaptive Moving Average
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal` - Input price series
+@RUSTDOC@* `optInFastLimit` - Upper limit use in the adaptive algorithm (default: 0.5)
+@RUSTDOC@* `optInSlowLimit` - Lower limit use in the adaptive algorithm (default: 0.05)
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outMAMA` - Output values
+@RUSTDOC@* `outFAMA` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut outMAMA = [0.0_f64; 50];
+@RUSTDOC@let mut outFAMA = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::mama(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    0, // optInFastLimit
+@RUSTDOC@    0, // optInSlowLimit
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outMAMA,
+@RUSTDOC@    &mut outFAMA,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn mama(startIdx: usize,
 /* Generated */             endIdx: usize,
 /* Generated */             inReal: &[f64],
@@ -557,6 +606,7 @@ mut optInFastLimit: f64,
 /* Generated */                      double        outMAMA[],
 /* Generated */                      double        outFAMA[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::mama`].
 /* Generated */ pub fn mama_s(startIdx: usize,
 /* Generated */               endIdx: usize,
 /* Generated */               inReal: &[f32],

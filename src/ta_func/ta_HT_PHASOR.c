@@ -89,6 +89,10 @@
 /* Generated */ public int htPhasorLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::ht_phasor`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
 /* Generated */ pub fn ht_phasor_lookback(
 ) -> i32
 /* Generated */ #else
@@ -143,6 +147,45 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Hilbert Transform - Phasor Components
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inReal` - Input price series
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outInPhase` - Output values
+@RUSTDOC@* `outQuadrature` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let input = [1.0_f64; 50];
+@RUSTDOC@let mut outInPhase = [0.0_f64; 50];
+@RUSTDOC@let mut outQuadrature = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::ht_phasor(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &input,
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outInPhase,
+@RUSTDOC@    &mut outQuadrature,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn ht_phasor(startIdx: usize,
 /* Generated */                  endIdx: usize,
 /* Generated */                  inReal: &[f64],
@@ -451,6 +494,7 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::ht_phasor`].
 /* Generated */ pub fn ht_phasor_s(startIdx: usize,
 /* Generated */                    endIdx: usize,
 /* Generated */                    inReal: &[f32],

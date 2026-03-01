@@ -95,6 +95,15 @@
 /* Generated */                         int           optInSlowD_Period, /* From 1 to 100000 */
 /* Generated */                         MAType        optInSlowD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Lookback period for [`Core::stoch`].
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
+@RUSTDOC@* `optInSlowK_Period` - Smoothing for making the Slow-K line. Usually set to 3 (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInSlowK_MAType` - Type of Moving Average for Slow-K
+@RUSTDOC@* `optInSlowD_Period` - Smoothing for making the Slow-D line (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInSlowD_MAType` - Type of Moving Average for Slow-D
 /* Generated */ pub fn stoch_lookback(
 mut optInFastK_Period: i32,
 /* Generated */                        mut optInSlowK_Period: i32,
@@ -237,6 +246,61 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Stochastic
+@RUSTDOC@
+@RUSTDOC@# Arguments
+@RUSTDOC@
+@RUSTDOC@* `startIdx` - Start index for calculation range
+@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
+@RUSTDOC@* `inHigh` - High price series
+@RUSTDOC@* `inLow` - Low price series
+@RUSTDOC@* `inClose` - Close price series
+@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
+@RUSTDOC@* `optInSlowK_Period` - Smoothing for making the Slow-K line. Usually set to 3 (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInSlowK_MAType` - Type of Moving Average for Slow-K
+@RUSTDOC@* `optInSlowD_Period` - Smoothing for making the Slow-D line (default: 3, range: 1..=100000)
+@RUSTDOC@* `optInSlowD_MAType` - Type of Moving Average for Slow-D
+@RUSTDOC@* `outBegIdx` - First valid output index
+@RUSTDOC@* `outNBElement` - Number of valid output elements
+@RUSTDOC@* `outSlowK` - Output values
+@RUSTDOC@* `outSlowD` - Output values
+@RUSTDOC@
+@RUSTDOC@# Returns
+@RUSTDOC@
+@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
+@RUSTDOC@
+@RUSTDOC@# Example
+@RUSTDOC@
+@RUSTDOC@```
+@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
+@RUSTDOC@
+@RUSTDOC@let in_high = [1.0_f64; 50];
+@RUSTDOC@let in_low = [1.0_f64; 50];
+@RUSTDOC@let in_close = [1.0_f64; 50];
+@RUSTDOC@let mut outSlowK = [0.0_f64; 50];
+@RUSTDOC@let mut outSlowD = [0.0_f64; 50];
+@RUSTDOC@let mut out_beg_idx: usize = 0;
+@RUSTDOC@let mut out_nb_element: usize = 0;
+@RUSTDOC@
+@RUSTDOC@let result = Core::stoch(
+@RUSTDOC@    0,
+@RUSTDOC@    49,
+@RUSTDOC@    &in_high,
+@RUSTDOC@    &in_low,
+@RUSTDOC@    &in_close,
+@RUSTDOC@    5, // optInFastK_Period
+@RUSTDOC@    3, // optInSlowK_Period
+@RUSTDOC@    0, // optInSlowK_MAType
+@RUSTDOC@    3, // optInSlowD_Period
+@RUSTDOC@    0, // optInSlowD_MAType
+@RUSTDOC@    &mut out_beg_idx,
+@RUSTDOC@    &mut out_nb_element,
+@RUSTDOC@    &mut outSlowK,
+@RUSTDOC@    &mut outSlowD,
+@RUSTDOC@);
+@RUSTDOC@
+@RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@```
 /* Generated */ pub fn stoch(startIdx: usize,
 /* Generated */              endIdx: usize,
 /* Generated */              /* Generated */              mut optInFastK_Period: i32,
@@ -644,6 +708,7 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
+@RUSTDOC@Single-precision variant of [`Core::stoch`].
 /* Generated */ pub fn stoch_s(startIdx: usize,
 /* Generated */                endIdx: usize,
 /* Generated */                /* Generated */                mut optInFastK_Period: i32,
