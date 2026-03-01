@@ -53,6 +53,74 @@ pub enum RetCode {
     InternalError,
 }
 
+/// Compatibility mode for technical analysis calculations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Compatibility {
+    /// Default TA-Lib compatibility mode.
+    Default,
+    /// Metastock-compatible calculation mode.
+    Metastock,
+}
+
+/// Identifies functions that have an unstable period.
+///
+/// Some technical analysis functions produce unreliable output during an
+/// initial "unstable" period. This enum identifies each such function so
+/// that a per-function unstable period can be configured.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FuncUnstId {
+    /// Average Directional Movement Index.
+    Adx,
+    /// Average Directional Movement Index Rating.
+    Adxr,
+    /// Average True Range.
+    Atr,
+    /// Chande Momentum Oscillator.
+    Cmo,
+    /// Directional Movement Index.
+    Dx,
+    /// Exponential Moving Average.
+    Ema,
+    /// Hilbert Transform - Dominant Cycle Period.
+    HtDcPeriod,
+    /// Hilbert Transform - Dominant Cycle Phase.
+    HtDcPhase,
+    /// Hilbert Transform - Phasor Components.
+    HtPhasor,
+    /// Hilbert Transform - SineWave.
+    HtSine,
+    /// Hilbert Transform - Instantaneous Trendline.
+    HtTrendline,
+    /// Hilbert Transform - Trend vs Cycle Mode.
+    HtTrendMode,
+    /// Intraday Momentum Index.
+    Imi,
+    /// Kaufman Adaptive Moving Average.
+    Kama,
+    /// MESA Adaptive Moving Average.
+    Mama,
+    /// Money Flow Index.
+    Mfi,
+    /// Minus Directional Indicator.
+    MinusDI,
+    /// Minus Directional Movement.
+    MinusDM,
+    /// Normalized Average True Range.
+    Natr,
+    /// Plus Directional Indicator.
+    PlusDI,
+    /// Plus Directional Movement.
+    PlusDM,
+    /// Relative Strength Index.
+    Rsi,
+    /// Stochastic Relative Strength Index.
+    StochRsi,
+    /// Triple Exponential Moving Average (T3).
+    T3,
+    /// Wildcard: set the unstable period for all functions at once.
+    FuncUnstAll,
+}
+
 /// Core struct providing access to all TA-Lib technical analysis functions.
 ///
 /// Functions are implemented as static methods. No state is preserved between calls.
