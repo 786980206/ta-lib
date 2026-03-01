@@ -4,6 +4,28 @@
 void rustCargoFix(void);
 void rustCargoFormat(void);
 
+/* Check if a function name is in the RUST_SUPPORTED_FUNCS comma-separated list.
+ * Returns 1 if found (or if RUST_SUPPORTED_FUNCS is not defined), 0 if not found.
+ */
+#if defined(RUST_SUPPORTED_FUNCS)
+static int isRustSupportedFunc(const char *funcName)
+{
+    char buf[500];
+    char *token;
+    strncpy(buf, RUST_SUPPORTED_FUNCS, sizeof(buf)-1);
+    buf[sizeof(buf)-1] = '\0';
+    token = strtok(buf, ",");
+    while (token) {
+        /* Skip leading whitespace */
+        while (*token == ' ') token++;
+        if (strcmp(funcName, token) == 0)
+            return 1;
+        token = strtok(NULL, ",");
+    }
+    return 0;
+}
+#endif
+
 static void printRustLookbackFunctionSignature(FILE* out,
                                                const char* prefix, /* Can be NULL */
                                                const TA_FuncInfo* funcInfo)
@@ -37,16 +59,16 @@ static void printRustLookbackFunctionSignature(FILE* out,
         switch (optInputParamInfo->type)
         {
         case TA_OptInput_RealRange:
-            fprintf(out, "%s: f64", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f64", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerRange:
-            fprintf(out, "%s: i32", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32", optInputParamInfo->paramName);
             break;
         case TA_OptInput_IntegerList:
-            fprintf(out, "%s: i32", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: i32", optInputParamInfo->paramName);
             break;
         case TA_OptInput_RealList:
-            fprintf(out, "%s: f64", optInputParamInfo->paramName);
+            fprintf(out, "mut %s: f64", optInputParamInfo->paramName);
             break;
         default:
             printf("Unknown optional input type for %s\n", funcInfo->name);
@@ -331,8 +353,8 @@ void writeRustModLines(const TA_FuncInfo* funcInfo, void* opaque)
     FileHandle* out = params->out;
     char buffer[500];
 
-#if defined(RUST_SINGLE_FUNC)
-    if (strcmp(funcInfo->name,RUST_SINGLE_FUNC) != 0)
+#if defined(RUST_SUPPORTED_FUNCS)
+    if (!isRustSupportedFunc(funcInfo->name))
         return;
 #endif
 
@@ -394,8 +416,8 @@ void genRustCodePhase2(const TA_FuncInfo* funcInfo)
     static int firstTime = 1;
     int ret;
 
-#if defined(RUST_SINGLE_FUNC)
-    if (strcmp(funcInfo->name,RUST_SINGLE_FUNC) != 0)
+#if defined(RUST_SUPPORTED_FUNCS)
+    if (!isRustSupportedFunc(funcInfo->name))
         return;
 #endif
 

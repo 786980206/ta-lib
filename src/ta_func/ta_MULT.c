@@ -200,7 +200,7 @@
    /* Insert TA function code here. */
 
    FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-      outReal[outIdx] = OUTPUT_F64(inReal0[i]*inReal1[i]);
+      outReal[outIdx] = CAST_TO_F64(inReal0[i]*inReal1[i]);
    FOR_EACH_OUTPUT_END(outIdx)
 
    VALUE_HANDLE_DEREF_INDEX(outNBElement, outIdx);
@@ -288,7 +288,7 @@
 /* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-/* Generated */       outReal[outIdx] = OUTPUT_F64(inReal0[i]*inReal1[i]);
+/* Generated */       outReal[outIdx] = CAST_TO_F64(inReal0[i]*inReal1[i]);
 /* Generated */    FOR_EACH_OUTPUT_END(outIdx)
 /* Generated */    VALUE_HANDLE_DEREF_INDEX(outNBElement, outIdx);
 /* Generated */    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;

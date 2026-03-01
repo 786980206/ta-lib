@@ -90,7 +90,7 @@
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
 /* Generated */ pub fn sma_lookback(
-optInTimePeriod: i32) -> i32
+mut optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SMA_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -102,9 +102,9 @@ optInTimePeriod: i32) -> i32
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 30;
-/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -201,9 +201,9 @@ optInTimePeriod: i32) -> i32
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 30;
-/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_JAVA)
@@ -249,6 +249,26 @@ RetCode TA_INT_SMA( int    startIdx,
                     MInteger outBegIdx,
                     MInteger outNBElement,
                     double   outReal[] )
+#elif defined( _RUST )
+#if defined( USE_SINGLE_PRECISION_INPUT )
+fn int_sma_s(
+    mut startIdx: usize,
+    endIdx: usize,
+    inReal: &[f32],
+    optInTimePeriod: i32,
+    outBegIdx: &mut usize,
+    outNBElement: &mut usize,
+    outReal: &mut [f64]) -> RetCode
+#else
+fn int_sma(
+    mut startIdx: usize,
+    endIdx: usize,
+    inReal: &[f64],
+    optInTimePeriod: i32,
+    outBegIdx: &mut usize,
+    outNBElement: &mut usize,
+    outReal: &mut [f64]) -> RetCode
+#endif
 #else
 TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
                                int    endIdx,
@@ -259,19 +279,24 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
                                double  *outReal )
 #endif
 {
-   double periodTotal, tempReal;
-   int i, outIdx, trailingIdx, lookbackTotal;
+   DECLARE_DOUBLE_VAR(periodTotal)
+   DECLARE_DOUBLE_VAR(tempReal)
+   DECLARE_INDEX_VAR(i)
+   DECLARE_INDEX_VAR(outIdx)
+   DECLARE_INDEX_VAR(trailingIdx)
+   DECLARE_INDEX_VAR(lookbackTotal)
 
    /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-   lookbackTotal = (optInTimePeriod-1);
+   lookbackTotal = CAST_TO_INDEX(optInTimePeriod-1);
 
    /* Move up the start index if there is not
     * enough initial data.
     */
-   if( startIdx < lookbackTotal )
+   if( startIdx < lookbackTotal ) {
       startIdx = lookbackTotal;
+   }
 
    /* Make sure there is still something to evaluate. */
    if( startIdx > endIdx )
@@ -283,14 +308,16 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 
    /* Do the MA calculation using tight loops. */
    /* Add-up the initial period, except for the last value. */
-   periodTotal = 0;
-   trailingIdx = startIdx-lookbackTotal;
+   periodTotal = 0.0;
+   trailingIdx = startIdx - lookbackTotal;
 
-   i=trailingIdx;
+   i = trailingIdx;
    if( optInTimePeriod > 1 )
    {
-      while( i < startIdx )
-         periodTotal += inReal[i++];
+      while( i < startIdx ) {
+         periodTotal += CAST_TO_F64(inReal[i]);
+         i = i + 1;
+      }
    }
 
    /* Proceed with the calculation for the requested range.
@@ -298,13 +325,16 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
     * outReal to be the same buffer.
     */
    outIdx = 0;
-   do
+   while( i <= endIdx )
    {
-      periodTotal += inReal[i++];
+      periodTotal += CAST_TO_F64(inReal[i]);
+      i = i + 1;
       tempReal = periodTotal;
-      periodTotal -= inReal[trailingIdx++];
-      outReal[outIdx++] = tempReal / optInTimePeriod;
-   } while( i <= endIdx );
+      periodTotal -= CAST_TO_F64(inReal[trailingIdx]);
+      trailingIdx = trailingIdx + 1;
+      outReal[outIdx] = tempReal / CAST_TO_F64(optInTimePeriod);
+      outIdx = outIdx + 1;
+   }
 
    /* All done. Indicate the output limits and return. */
    VALUE_HANDLE_DEREF(outNBElement) = outIdx;
@@ -384,9 +414,9 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInTimePeriod = 30;
-/* Generated */     } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
+/* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_JAVA)
@@ -426,6 +456,26 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                     MInteger outBegIdx,
 /* Generated */                     MInteger outNBElement,
 /* Generated */                     double   outReal[] )
+/* Generated */ #elif defined( _RUST )
+/* Generated */ #if defined( USE_SINGLE_PRECISION_INPUT )
+/* Generated */ fn int_sma_s(
+/* Generated */     mut startIdx: usize,
+/* Generated */     endIdx: usize,
+/* Generated */     inReal: &[f32],
+/* Generated */     optInTimePeriod: i32,
+/* Generated */     outBegIdx: &mut usize,
+/* Generated */     outNBElement: &mut usize,
+/* Generated */     outReal: &mut [f64]) -> RetCode
+/* Generated */ #else
+/* Generated */ fn int_sma(
+/* Generated */     mut startIdx: usize,
+/* Generated */     endIdx: usize,
+/* Generated */     inReal: &[f64],
+/* Generated */     optInTimePeriod: i32,
+/* Generated */     outBegIdx: &mut usize,
+/* Generated */     outNBElement: &mut usize,
+/* Generated */     outReal: &mut [f64]) -> RetCode
+/* Generated */ #endif
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -436,33 +486,43 @@ TA_RetCode TA_PREFIX(INT_SMA)( int    startIdx,
 /* Generated */                                double  *outReal )
 /* Generated */ #endif
 /* Generated */ {
-/* Generated */    double periodTotal, tempReal;
-/* Generated */    int i, outIdx, trailingIdx, lookbackTotal;
-/* Generated */    lookbackTotal = (optInTimePeriod-1);
-/* Generated */    if( startIdx < lookbackTotal )
+/* Generated */    DECLARE_DOUBLE_VAR(periodTotal)
+/* Generated */    DECLARE_DOUBLE_VAR(tempReal)
+/* Generated */    DECLARE_INDEX_VAR(i)
+/* Generated */    DECLARE_INDEX_VAR(outIdx)
+/* Generated */    DECLARE_INDEX_VAR(trailingIdx)
+/* Generated */    DECLARE_INDEX_VAR(lookbackTotal)
+/* Generated */    lookbackTotal = CAST_TO_INDEX(optInTimePeriod-1);
+/* Generated */    if( startIdx < lookbackTotal ) {
 /* Generated */       startIdx = lookbackTotal;
+/* Generated */    }
 /* Generated */    if( startIdx > endIdx )
 /* Generated */    {
 /* Generated */       VALUE_HANDLE_DEREF_TO_ZERO(outBegIdx);
 /* Generated */       VALUE_HANDLE_DEREF_TO_ZERO(outNBElement);
 /* Generated */       return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
 /* Generated */    }
-/* Generated */    periodTotal = 0;
-/* Generated */    trailingIdx = startIdx-lookbackTotal;
-/* Generated */    i=trailingIdx;
+/* Generated */    periodTotal = 0.0;
+/* Generated */    trailingIdx = startIdx - lookbackTotal;
+/* Generated */    i = trailingIdx;
 /* Generated */    if( optInTimePeriod > 1 )
 /* Generated */    {
-/* Generated */       while( i < startIdx )
-/* Generated */          periodTotal += inReal[i++];
+/* Generated */       while( i < startIdx ) {
+/* Generated */          periodTotal += CAST_TO_F64(inReal[i]);
+/* Generated */          i = i + 1;
+/* Generated */       }
 /* Generated */    }
 /* Generated */    outIdx = 0;
-/* Generated */    do
+/* Generated */    while( i <= endIdx )
 /* Generated */    {
-/* Generated */       periodTotal += inReal[i++];
+/* Generated */       periodTotal += CAST_TO_F64(inReal[i]);
+/* Generated */       i = i + 1;
 /* Generated */       tempReal = periodTotal;
-/* Generated */       periodTotal -= inReal[trailingIdx++];
-/* Generated */       outReal[outIdx++] = tempReal / optInTimePeriod;
-/* Generated */    } while( i <= endIdx );
+/* Generated */       periodTotal -= CAST_TO_F64(inReal[trailingIdx]);
+/* Generated */       trailingIdx = trailingIdx + 1;
+/* Generated */       outReal[outIdx] = tempReal / CAST_TO_F64(optInTimePeriod);
+/* Generated */       outIdx = outIdx + 1;
+/* Generated */    }
 /* Generated */    VALUE_HANDLE_DEREF(outNBElement) = outIdx;
 /* Generated */    VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
 /* Generated */    return ENUM_VALUE(RetCode,TA_SUCCESS,Success);

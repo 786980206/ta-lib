@@ -107,8 +107,9 @@
 #define ENABLE_DOTNET
 #define ENABLE_RUST
 
-// Comment to genereate all functions.
-#define RUST_SINGLE_FUNC "MULT"
+// Comma-separated list of functions to generate for Rust.
+// Comment out to generate all functions.
+#define RUST_SUPPORTED_FUNCS "SMA,MULT"
 
 #if !defined(__WIN32__) && !defined(__MSDOS__) && !defined(WIN32)
    #include <unistd.h>
@@ -3568,9 +3569,9 @@ static void printOptInputValidation( FILE *out,
    case TA_OptInput_IntegerRange:
 	   print(out, "   /* min/max are checked for %s. */\n", name);
    case TA_OptInput_IntegerList:
-	   print(out, "   if( (int)%s == TA_INTEGER_DEFAULT ) {\n", name);
+	   print(out, "   if( CAST_TO_I32(%s) == TA_INTEGER_DEFAULT ) {\n", name);
 	   print(out, "	  %s = %s%d;\n", name, isMAType ? "(TA_MAType)" : "", (int)optInputParamInfo->defaultValue);
-	   print(out, "   } else if( ((int)%s < %d) || ((int)%s > %d) ) {\n",
+	   print(out, "   } else if( (CAST_TO_I32(%s) < %d) || (CAST_TO_I32(%s) > %d) ) {\n",
 	         name, minInt,
 	         name, maxInt);
 	   break;

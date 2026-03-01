@@ -48,9 +48,12 @@
     /* Int32, UInt32, Int64 and UInt64 are built-in for .NET */
     #define INT_MIN (Int32::MinValue)
     #define INT_MAX (Int32::MaxValue)
-  #elif defined( _JAVA ) || defined( _RUST )
+  #elif defined( _JAVA )
     #define INT_MIN Integer.MIN_VALUE
     #define INT_MAX Integer.MAX_VALUE
+  #elif defined( _RUST )
+    #define INT_MIN i32::MIN
+    #define INT_MAX i32::MAX
   #else
     #include <limits.h>
 
@@ -242,11 +245,22 @@
     #define IF_CONDITION(cond) if cond {
     #define IF_CONDITION_END }
     #define ARRAY_ACCESS(arr, idx) arr[idx]
-    #define CAST_TO_USIZE(val) ((val) as usize)
+    #define CAST_TO_INDEX(val) ((val) as usize)
     #define CAST_TO_I32(val) ((val) as i32)
     #define CAST_TO_F64(val) ((val) as f64)
-    /* For Rust, always cast to f64 since output arrays are always f64 */
-    #define OUTPUT_F64(val) CAST_TO_F64(val)
+
+    /* Internal function call mappings for Rust (preprocessor can't do case conversion)
+     * These map C function names to Rust method names
+     * TA_PREFIX gets redefined for single precision (TA_S_##x), so we define both variants
+     */
+    #define TA_INT_SMA Self::int_sma
+    #define TA_S_INT_SMA Self::int_sma_s
+
+    /* Function call macros for Rust
+     * Uses TA_PREFIX which gets redefined in generated code for single precision
+     */
+    #define FUNCTION_CALL(x)        TA_PREFIX(x)
+    #define FUNCTION_CALL_DOUBLE(x) TA_##x
 #else
     #define FOR_EACH_OUTPUT(startVal, endVal, idxVar, outIdxVar) for(idxVar=startVal, outIdxVar=0; idxVar <= endVal; idxVar++, outIdxVar++) {
     #define FOR_EACH_OUTPUT_END(outIdxVar) }
@@ -265,11 +279,9 @@
     #define IF_CONDITION(cond) if (cond) {
     #define IF_CONDITION_END }
     #define ARRAY_ACCESS(arr, idx) arr[idx]
-    #define CAST_TO_USIZE(val) (val)
-    #define CAST_TO_I32(val) (val)
+    #define CAST_TO_INDEX(val) (val)
+    #define CAST_TO_I32(val) (int)(val)
     #define CAST_TO_F64(val) (val)
-    /* For C, no casting needed between float and double in assignment */
-    #define OUTPUT_F64(val) (val)
 #endif
 
 
@@ -277,9 +289,11 @@
  * Needed because Java/.NET allows overloading, while for C the
  * TA_PREFIX allows to select variant of the same function.
  */
+#if !defined(_RUST)
 #define FUNCTION_CALL(x)        TA_PREFIX(x)
 #define FUNCTION_CALL_DOUBLE(x) TA_##x
 #define LOOKBACK_CALL(x)        TA_##x##_Lookback
+#endif
 
 /* min/max value for a TA_Integer */
 #define TA_INTEGER_MIN (INT_MIN+1)
