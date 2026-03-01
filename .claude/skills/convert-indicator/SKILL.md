@@ -167,12 +167,14 @@ git diff -- java/src/com/tictactec/ta/lib/Core.java
 ```markdown
 ## 2026-03-01 -- Short title summarizing the day's work
 
+`git diff 509d6af2^..66fd2f88`
+
 * [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Description of this specific change
 * [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Description from a different commit
 * All 13 Rust tests passing (6 MULT + 7 SMA)
 ```
 
-Rules: one entry per day (amend if pushing again same day), every bullet gets its own `[hash](url)` link to the commit that introduced it, summary bullet at the end with total test count.
+Rules: one entry per day (amend if pushing again same day), copy-pasteable `git diff first^..last` under each heading, every bullet gets its own `[hash](url)` link to the commit that introduced it, summary bullet at the end with total test count.
 
 ## Key files
 
