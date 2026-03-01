@@ -202,8 +202,9 @@ ARRAY_MEMMOVEMIX(dst, di, src, si, n)   // → same with type conversion
 
 ## Current Status
 
-- **MULT** - Complete, all 6 tests pass
-- **SMA** - Complete, all 7 tests pass (basic, single precision, lookback, minimum period, partial range, error conditions double + single)
+- **MULT** - Complete, all 6 tests pass + 1 doctest
+- **SMA** - Complete, all 7 tests pass + 1 doctest (rich hand-written example)
+- **Doc generation** - `printRustFuncDoc` in gen_rust.c generates `///` doc comments from ta_abstract metadata. Zero `missing_docs` warnings. Uses `@RUSTDOC@` markers to survive mcpp. Rich examples override via `src/ta_abstract/rust_examples/<name>.txt`.
 - **RUST_SUPPORTED_FUNCS** - Currently `"SMA,MULT"` in gen_code.c line 111
 - **Price Inputs** - Complex candlestick inputs (OHLCV combinations) not fully supported yet
 

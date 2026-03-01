@@ -23,7 +23,13 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 * [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Added `mut` to optional input params in both double and single precision Rust signatures
 * [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) SMA error condition tests: BadParam for period 0/1/100001, OutOfRangeEndIndex, default period via i32::MIN (double + single precision)
 * [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Replaced `test_sma_period_1` with `test_sma_minimum_period` (period=2, the actual minimum)
-* All 13 Rust tests passing (6 MULT + 7 SMA)
+* [7889054](https://github.com/TA-Lib/ta-lib/commit/78890540) Added doc comments to `RetCode` enum, variants, and `Core` struct in mod.rs template
+* [ef27bf6](https://github.com/TA-Lib/ta-lib/commit/ef27bf6a) Added `printRustFuncDoc` to gen_rust.c — generates `///` doc comments from ta_abstract metadata for all Rust functions
+* [ef27bf6](https://github.com/TA-Lib/ta-lib/commit/ef27bf6a) Uses `@RUSTDOC@` marker encoding to survive mcpp preprocessing (which strips `//` comments)
+* [ef27bf6](https://github.com/TA-Lib/ta-lib/commit/ef27bf6a) Lookback functions get cross-reference + param docs; main functions get full docs with working doctest examples; single-precision gets cross-reference one-liner
+* [f9e9d7a](https://github.com/TA-Lib/ta-lib/commit/f9e9d7ae) Added doc comments to `pub mod` declarations and `lib.rs` module — zero `missing_docs` warnings
+* [24ad5e2](https://github.com/TA-Lib/ta-lib/commit/24ad5e21) Added rich hand-written doctest example for SMA (overrides mechanical generated example via `rust_examples/sma.txt`)
+* All 16 Rust tests passing (6 MULT + 7 SMA + 3 doctests), zero `missing_docs` warnings
 
 ## 2026-01-07 -- Document generated code philosophy and macro-first approach
 
