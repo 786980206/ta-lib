@@ -82,22 +82,28 @@ impl Core {
     /// ```
     /// use ta_lib::ta_func::{Core, RetCode};
     ///
-    /// let input = [1.0_f64; 50];
-    /// let mut out = [0.0_f64; 50];
+    ///
+    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
+    /// let mut out = [0.0_f64; 5];
     /// let mut out_beg_idx: usize = 0;
     /// let mut out_nb_element: usize = 0;
     ///
     /// let result = Core::sma(
     ///  0,
-    ///  49,
-    ///  &input,
-    ///  30,
+    ///  4,
+    ///  &close_prices,
+    ///  3,
     ///  &mut out_beg_idx,
     ///  &mut out_nb_element,
     ///  &mut out,
     /// );
     ///
     /// assert_eq!(result, RetCode::Success);
+    /// assert_eq!(out_beg_idx, 2);
+    /// assert_eq!(out_nb_element, 3);
+    /// assert!((out[0] - 2.0).abs() < 1e-10);
+    /// assert!((out[1] - 3.0).abs() < 1e-10);
+    /// assert!((out[2] - 4.0).abs() < 1e-10);
     /// ```
     pub fn sma(
         startIdx: usize,

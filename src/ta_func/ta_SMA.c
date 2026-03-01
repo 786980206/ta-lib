@@ -181,22 +181,28 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@```
 @RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
 @RUSTDOC@
-@RUSTDOC@let input = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@// Calculate 3-period SMA over a simple price series
+@RUSTDOC@let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
+@RUSTDOC@let mut out = [0.0_f64; 5];
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
 @RUSTDOC@let result = Core::sma(
 @RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &input,
-@RUSTDOC@    30, // optInTimePeriod
+@RUSTDOC@    4,
+@RUSTDOC@    &close_prices,
+@RUSTDOC@    3,
 @RUSTDOC@    &mut out_beg_idx,
 @RUSTDOC@    &mut out_nb_element,
 @RUSTDOC@    &mut out,
 @RUSTDOC@);
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@assert_eq!(out_beg_idx, 2);
+@RUSTDOC@assert_eq!(out_nb_element, 3);
+@RUSTDOC@assert!((out[0] - 2.0).abs() < 1e-10); // avg(1,2,3)
+@RUSTDOC@assert!((out[1] - 3.0).abs() < 1e-10); // avg(2,3,4)
+@RUSTDOC@assert!((out[2] - 4.0).abs() < 1e-10); // avg(3,4,5)
 @RUSTDOC@```
 /* Generated */ pub fn sma(startIdx: usize,
 /* Generated */            endIdx: usize,
