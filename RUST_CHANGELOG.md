@@ -8,9 +8,10 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-03-01 -- RSI complete — first unstable indicator
 
-`git diff f81456aa^..0cdd3190` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/f81456aa...0cdd3190)
+`git diff f81456aa^..1cc09c88` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/b2def6df...1cc09c88)
 
 * [f81456a](https://github.com/TA-Lib/ta-lib/commit/f81456aa) Converted ta_RSI.c logic section to cross-language macros (DECLARE vars, FOR_COUNTDOWN, CAST macros, braces)
+* [e61b232](https://github.com/TA-Lib/ta-lib/commit/e61b232f) Regenerated Java RSI output after logic section macro conversion (cosmetic: braces, split declarations, `today++` → `today = today + 1`)
 * [51a6b82](https://github.com/TA-Lib/ta-lib/commit/51a6b82e) Added RSI to `RUST_SUPPORTED_FUNCS`, template imports via `use super::*`, `mut startIdx` in signatures
 * [51a6b82](https://github.com/TA-Lib/ta-lib/commit/51a6b82e) Fixed `< 0` → `< 0.0` for f64 comparisons, added `CAST_TO_F64(inReal[today])` for single-precision compat
 * [5d9833d](https://github.com/TA-Lib/ta-lib/commit/5d9833de) RSI test suite: 13 tests covering basic, single precision, lookback, error conditions, unstable period, Metastock compat
@@ -19,7 +20,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-03-01 -- Core becomes stateful — infrastructure for unstable indicators
 
-`git diff 59b61e9d^..c78b0a87` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/59b61e9d...c78b0a87)
+`git diff 59b61e9d^..b2def6df` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/561d3b58...b2def6df)
 
 * [59b61e9](https://github.com/TA-Lib/ta-lib/commit/59b61e9d) Added `Compatibility` and `FuncUnstId` enums to Rust template (25 variants)
 * [a5ef144](https://github.com/TA-Lib/ta-lib/commit/a5ef1448) Made Core stateful with `unstable_period` array and `compatibility` field
@@ -33,7 +34,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-03-01 -- SMA complete with full validation and tests
 
-`git diff 509d6af2^..24ad5e21` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/509d6af2...24ad5e21)
+`git diff 509d6af2^..24ad5e21` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/121b4852...24ad5e21)
 
 * [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Removed `TA_FUNC_NO_RANGE_CHECK` which was disabling ALL validation for Rust (caused MULT test regressions)
 * [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Added `CAST_TO_I32` macro to `printOptInputValidation` so `(int)` casts become cross-language
@@ -60,7 +61,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-01-07 -- Document generated code philosophy and macro-first approach
 
-`git diff 121b4852^..121b4852` | [view on GitHub](https://github.com/TA-Lib/ta-lib/commit/121b4852)
+`git diff 121b4852^..121b4852` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/db9c2e71...121b4852)
 
 * [121b485](https://github.com/TA-Lib/ta-lib/commit/121b4852) Major CLAUDE.md update documenting the code generation pipeline
 * [121b485](https://github.com/TA-Lib/ta-lib/commit/121b4852) Macro system reference, type mappings, build commands
@@ -68,7 +69,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-01-06 -- Remove naked conditionals for Rust compatibility
 
-`git diff 02a2d4ec^..02a2d4ec` | [view on GitHub](https://github.com/TA-Lib/ta-lib/commit/02a2d4ec)
+`git diff 02a2d4ec^..02a2d4ec` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/1bdf5438...02a2d4ec)
 
 * [02a2d4e](https://github.com/TA-Lib/ta-lib/commit/02a2d4ec) Added curly braces to all bare if/else in generated validation code
 * [02a2d4e](https://github.com/TA-Lib/ta-lib/commit/02a2d4ec) Rust requires braces on all conditionals; change is syntactically identical in C/Java/.NET
@@ -76,7 +77,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-06-22 -- MULT passes all tests
 
-`git diff 35a19bbc..9ba6d22e` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/35a19bbc...9ba6d22e)
+`git diff 35a19bbc^..9ba6d22e` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/fc92f9d0...9ba6d22e)
 
 * [35a19bb...9ba6d22](https://github.com/TA-Lib/ta-lib/compare/35a19bbc...9ba6d22e) Added MULT test suite (double precision, single precision, error conditions, lookback, partial range, usize validation)
 * [35a19bb...9ba6d22](https://github.com/TA-Lib/ta-lib/compare/35a19bbc...9ba6d22e) Fixed Rust compilation warnings for unused variables and index validation
@@ -84,7 +85,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-06-21 -- Rust functions made public, cargo fix/fmt automated
 
-`git diff be62763a..1562ce87` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/be62763a...1562ce87)
+`git diff be62763a^..1562ce87` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/dfe47891...1562ce87)
 
 * [be62763...1562ce8](https://github.com/TA-Lib/ta-lib/compare/be62763a...1562ce87) Made generated Rust functions `pub` on `Core` struct
 * [be62763...1562ce8](https://github.com/TA-Lib/ta-lib/compare/be62763a...1562ce87) Added `cargo fix` and `cargo fmt` as post-generation steps in gen_code
@@ -92,7 +93,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-06-09 -- MULT compiles in Rust
 
-`git diff 2c95c858..97e7908d` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/2c95c858...97e7908d)
+`git diff 2c95c858^..97e7908d` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/bd4667a9...97e7908d)
 
 * [2c95c85...97e7908](https://github.com/TA-Lib/ta-lib/compare/2c95c858...97e7908d) Capital C `Core` struct
 * [2c95c85...97e7908](https://github.com/TA-Lib/ta-lib/compare/2c95c858...97e7908d) Added FOR_EACH_OUTPUT, VALUE_HANDLE, DECLARE_*_VAR macros
@@ -101,7 +102,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-06-08 -- Macro system and Cargo setup
 
-`git diff a6702544..469f8ed7` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/a6702544...469f8ed7)
+`git diff a6702544^..469f8ed7` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/314de99c...469f8ed7)
 
 * [a670254...469f8ed](https://github.com/TA-Lib/ta-lib/compare/a6702544...469f8ed7) Added curly braces to all generated if/else (Rust requirement, valid in all languages)
 * [a670254...469f8ed](https://github.com/TA-Lib/ta-lib/compare/a6702544...469f8ed7) Created loop and variable declaration macros in ta_defs.h
@@ -111,14 +112,14 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-06-04 -- Claude-assisted development begins
 
-`git diff 6d68e4a1^..6d68e4a1` | [view on GitHub](https://github.com/TA-Lib/ta-lib/commit/6d68e4a1)
+`git diff 6d68e4a1^..6d68e4a1` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/c042ea3a...6d68e4a1)
 
 * [6d68e4a](https://github.com/TA-Lib/ta-lib/commit/6d68e4a1) Added CLAUDE.md project instructions
 * [6d68e4a](https://github.com/TA-Lib/ta-lib/commit/6d68e4a1) Addressed TODOs in gen_rust.c
 
 ## 2025-02-15 -- gen_rust.c split and input validation
 
-`git diff 722a704c..64ed4fd9` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/722a704c...64ed4fd9)
+`git diff 722a704c^..64ed4fd9` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/7412be6f...64ed4fd9)
 
 * [722a704...64ed4fd](https://github.com/TA-Lib/ta-lib/compare/722a704c...64ed4fd9) Moved Rust code generation to dedicated `gen_rust.c` file
 * [722a704...64ed4fd](https://github.com/TA-Lib/ta-lib/compare/722a704c...64ed4fd9) Added input array validation for Rust
@@ -126,21 +127,21 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2025-01-22 -- Function name generation
 
-`git diff a7299da7..66e65076` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/a7299da7...66e65076)
+`git diff a7299da7^..66e65076` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/864e49d6...66e65076)
 
 * [a7299da...66e6507](https://github.com/TA-Lib/ta-lib/compare/a7299da7...66e65076) WIP Rust function name generation (snake_case conversion)
 * [a7299da...66e6507](https://github.com/TA-Lib/ta-lib/compare/a7299da7...66e65076) Removed extra memcopy naming for Rust
 
 ## 2025-01-05 -- Rust function templating
 
-`git diff 470ac693..eabc13b8` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/470ac693...eabc13b8)
+`git diff 470ac693^..eabc13b8` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/caec5738...eabc13b8)
 
 * [470ac69...eabc13b](https://github.com/TA-Lib/ta-lib/compare/470ac693...eabc13b8) First pass at templating Rust function output from gen_code
 * [470ac69...eabc13b](https://github.com/TA-Lib/ta-lib/compare/470ac693...eabc13b8) Added `outputForRust` argument plumbing
 
 ## 2024-12-31 -- Initial Rust preprocessor support
 
-`git diff 6ec3d779..42bbc3d3` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/6ec3d779...42bbc3d3)
+`git diff 6ec3d779^..42bbc3d3` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/b6f8a4de...42bbc3d3)
 
 * [6ec3d77...42bbc3d](https://github.com/TA-Lib/ta-lib/compare/6ec3d779...42bbc3d3) Added `_RUST` define to mcpp preprocessor calls
 * [6ec3d77...42bbc3d](https://github.com/TA-Lib/ta-lib/compare/6ec3d779...42bbc3d3) Regenerated ta_func files with Rust preprocessing support
