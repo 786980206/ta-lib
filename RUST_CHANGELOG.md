@@ -16,6 +16,8 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 * [51a6b82](https://github.com/TA-Lib/ta-lib/commit/51a6b82e) Fixed `< 0` → `< 0.0` for f64 comparisons, added `CAST_TO_F64(inReal[today])` for single-precision compat
 * [5d9833d](https://github.com/TA-Lib/ta-lib/commit/5d9833de) RSI test suite: 13 tests covering basic, single precision, lookback, error conditions, unstable period, Metastock compat
 * [0cdd319](https://github.com/TA-Lib/ta-lib/commit/0cdd3190) Added rich hand-written doctest example for RSI
+* [f8d5677](https://github.com/TA-Lib/ta-lib/commit/f8d5677c) Updated CLAUDE.md status and RUST_CHANGELOG with RSI completion
+* [1cc09c8](https://github.com/TA-Lib/ta-lib/commit/1cc09c88) Fixed formatting in RSI tests and regenerated doctest in ta_RSI.c
 * All 30 Rust tests passing (6 MULT + 7 SMA + 13 RSI + 4 doctests), zero warnings
 
 ## 2026-03-01 -- Core becomes stateful — infrastructure for unstable indicators
