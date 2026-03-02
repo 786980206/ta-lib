@@ -162,19 +162,48 @@ git diff -- java/src/com/tictactec/ta/lib/Core.java
 - Add function to `RUST_SUPPORTED_FUNCS` CSV in gen_code.c when ready
 - Update CLAUDE.md Current Status section
 - `rust/src/ta_func/mod.rs` is updated automatically by gen_code
-- Update `RUST_CHANGELOG.md` — one entry per day, per-bullet commit links:
+- Update `RUST_CHANGELOG.md` using the procedure below
 
-```markdown
-## 2026-03-01 -- Short title summarizing the day's work
+#### Changelog procedure
 
-`git diff 509d6af2^..66fd2f88` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/509d6af2...66fd2f88)
-
-* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Description of this specific change
-* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Description from a different commit
-* All 13 Rust tests passing (6 MULT + 7 SMA)
+**Step 1: Identify the commit range.** Find the first and last commit for this entry:
+```bash
+# Find commits for this work (adjust date or range as needed)
+git log --oneline <previous-entry-last-commit>..HEAD
 ```
 
-Rules: one entry per day (amend if pushing again same day), release diff line with `git diff first^..last` + `[view on GitHub](compare-url)` under each heading, every bullet gets its own `[hash](url)` link to the commit that introduced it, summary bullet at the end with total test count.
+**Step 2: Get the parent hash** of the first commit (needed for inclusive GitHub URLs):
+```bash
+git rev-parse <first-commit>^    # e.g., abc1234 → def5678
+```
+
+**Step 3: Write the entry** using these two lines for the range:
+- Local diff: `` `git diff <first>^..<last>` `` — the `^` makes it inclusive of `<first>`
+- GitHub URL: `[view on GitHub](https://github.com/TA-Lib/ta-lib/compare/<PARENT-of-first>...<last>)` — GitHub `compare/A...B` excludes A, so use the parent to include the first commit
+
+```markdown
+## YYYY-MM-DD -- Short title
+
+`git diff abc1234^..fed9876` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/def5678...fed9876)
+
+* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Description
+* [fed9876](https://github.com/TA-Lib/ta-lib/commit/fed9876) Description
+* All N Rust tests passing (breakdown)
+```
+
+**Step 4: Verify every commit has a bullet.** This is mandatory — no silent commits in the range:
+```bash
+# Count commits in range — must equal number of bulleted lines (excluding summary)
+git log <first>^..<last> --oneline | wc -l
+```
+If the counts don't match, you're missing bullets. Every commit gets at least one bullet, even tracking updates, formatting fixes, and regeneration commits.
+
+**Key rules:**
+- **One entry per day** — amend if pushing more commits on the same day
+- **`^` for inclusive local diffs** — `git diff A^..B` includes A; `git diff A..B` does NOT
+- **Parent hash for GitHub URLs** — `compare/A...B` excludes A; use `compare/<parent-of-A>...B` to include it
+- **Every commit = at least one bullet** — no exceptions, even for "minor" commits
+- **Summary bullet at the end** — total test count to show nothing regressed
 
 ## Key files
 

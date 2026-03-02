@@ -251,17 +251,22 @@ One entry per day. If multiple commits happen on the same day, consolidate into 
 ```markdown
 ## 2026-03-01 -- Short title summarizing the day's work
 
-`git diff 509d6af2^..66fd2f88` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/509d6af2...66fd2f88)
+`git diff abc1234^..fed9876` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/def5678...fed9876)
 
-* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Description of change from this commit
-* [509d6af](https://github.com/TA-Lib/ta-lib/commit/509d6af2) Another change from the same commit
-* [66fd2f8](https://github.com/TA-Lib/ta-lib/commit/66fd2f88) Change from a different commit
+* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Description of change from this commit
+* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Another change from the same commit
+* [fed9876](https://github.com/TA-Lib/ta-lib/commit/fed9876) Change from a different commit
 * All 13 Rust tests passing (6 MULT + 7 SMA)
 ```
 
+**Range inclusivity — critical:**
+- **Local diff**: `git diff first^..last` — the `^` after `first` makes it inclusive (without `^`, `first`'s changes are excluded)
+- **GitHub URL**: `compare/<PARENT-of-first>...last` — GitHub `compare/A...B` excludes A, so use `git rev-parse first^` to get the parent hash and use that in the URL
+- **Verify**: run `git log first^..last --oneline | wc -l` and confirm the count matches the number of bulleted commits (excluding the summary bullet)
+
 Rules:
 - **One entry per day** — amend the existing entry if pushing more commits on the same day
-- **Release diff line** — `` `git diff first^..last` | [view on GitHub](compare-url) `` under each heading (local command + GitHub compare link for the entry's full range)
+- **Every commit = at least one bullet** — no exceptions, even for tracking updates, formatting fixes, or regeneration commits. If it's in the range, it gets a bullet.
 - **Per-bullet commit links** — every bullet gets `[short-hash](commit-url)`, even if multiple bullets share the same commit
 - **Summary bullet at the end** — total test count to show nothing regressed
 - **Amend the changelog commit** when updating the same day's entry
