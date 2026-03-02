@@ -116,6 +116,13 @@ int main(void) {
 
     int first = 1;
 
+    /* Warmup call to prime instruction cache / branch predictor */
+    {
+        double warmup_out[TEST_PRICES_LEN];
+        int wb = 0, wn = 0;
+        TA_SMA(0, TEST_PRICES_LEN - 1, TEST_PRICES, 5, &wb, &wn, warmup_out);
+    }
+
     printf("[\n");
 
     /* === Small correctness tests (100 points) === */

@@ -111,11 +111,19 @@ fn run_mult(core: &Core, in_real0: &[f64], in_real1: &[f64], start_idx: usize, e
 fn main() {
     let core = Core::new();
     let mut first = true;
+    let end_idx = test_data::TEST_PRICES.len() - 1;
+
+    // Warmup call to prime instruction cache / branch predictor
+    {
+        let mut out = vec![0.0_f64; test_data::TEST_PRICES.len()];
+        let mut beg: usize = 0;
+        let mut nb: usize = 0;
+        let _ = core.sma(0, end_idx, &test_data::TEST_PRICES, 5, &mut beg, &mut nb, &mut out);
+    }
 
     println!("[");
 
     // === Small correctness tests (100 points) ===
-    let end_idx = test_data::TEST_PRICES.len() - 1;
 
     run_sma(&core, &test_data::TEST_PRICES, 5, 0, end_idx, &mut first);
     run_sma(&core, &test_data::TEST_PRICES, 10, 0, end_idx, &mut first);
