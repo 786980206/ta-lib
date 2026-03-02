@@ -188,23 +188,36 @@ mut optInTimePeriod: i32) -> i32
 @RUSTDOC@```
 @RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
 @RUSTDOC@
-@RUSTDOC@let input = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
+@RUSTDOC@// Calculate 14-period RSI over a price series
+@RUSTDOC@let prices = [
+@RUSTDOC@    44.0, 44.34, 44.09, 43.61, 44.33, 44.83, 44.32, 44.55,
+@RUSTDOC@    43.93, 44.05, 43.80, 43.64, 43.82, 44.29, 44.09, 44.15,
+@RUSTDOC@    43.61, 44.33, 44.83, 44.32, 44.55, 43.93, 44.05, 43.80,
+@RUSTDOC@    43.64, 43.82, 44.29, 44.09, 44.15, 43.61_f64,
+@RUSTDOC@];
+@RUSTDOC@let mut out = [0.0_f64; 30];
 @RUSTDOC@let mut out_beg_idx: usize = 0;
 @RUSTDOC@let mut out_nb_element: usize = 0;
 @RUSTDOC@
 @RUSTDOC@let core = Core::new();
 @RUSTDOC@let result = core.rsi(
 @RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &input,
-@RUSTDOC@    14, // optInTimePeriod
+@RUSTDOC@    prices.len() - 1,
+@RUSTDOC@    &prices,
+@RUSTDOC@    14,
 @RUSTDOC@    &mut out_beg_idx,
 @RUSTDOC@    &mut out_nb_element,
 @RUSTDOC@    &mut out,
 @RUSTDOC@);
 @RUSTDOC@
 @RUSTDOC@assert_eq!(result, RetCode::Success);
+@RUSTDOC@assert_eq!(out_beg_idx, 14);
+@RUSTDOC@assert!(out_nb_element > 0);
+@RUSTDOC@
+@RUSTDOC@// RSI values are bounded between 0 and 100
+@RUSTDOC@for i in 0..out_nb_element {
+@RUSTDOC@    assert!(out[i] >= 0.0 && out[i] <= 100.0);
+@RUSTDOC@}
 @RUSTDOC@```
 /* Generated */ pub fn rsi(&self, mut startIdx: usize,
 /* Generated */                   endIdx: usize,
