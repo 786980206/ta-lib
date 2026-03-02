@@ -140,6 +140,8 @@ def compare_results(c_results: list[dict], rust_results: list[dict]) -> bool:
         """Format time with auto-scaling units."""
         if us >= 1000:
             return f"{us / 1000:.1f}ms"
+        if us < 1.0:
+            return f"{us * 1000:.0f}ns"
         return f"{us:.1f}us"
 
     # Print results table
