@@ -2,12 +2,50 @@
 //!
 //! This crate provides `extern "C"` functions that match the C TA-Lib API signatures,
 //! allowing the Rust implementations to be linked into C binaries (e.g., ta_regtest).
+//!
+//! Global state (unstable periods, compatibility mode) is managed by the C library.
+//! Each wrapper reads the current state from C globals and applies it to a local
+//! `Core` before calling the Rust implementation.
 
 #![allow(non_snake_case)]
 
-use std::os::raw::{c_double, c_float, c_int};
+use std::os::raw::{c_double, c_float, c_int, c_uint};
 
-use ta_lib::ta_func::{Core, RetCode};
+use ta_lib::ta_func::{Compatibility, Core, FuncUnstId, RetCode};
+
+// ---------------------------------------------------------------------------
+// C global state accessors (defined in ta_utility.c / ta_global.c)
+// These are resolved from ta-lib-static at link time.
+// ---------------------------------------------------------------------------
+extern "C" {
+    fn TA_GetUnstablePeriod(id: c_int) -> c_uint;
+    fn TA_GetCompatibility() -> c_int;
+}
+
+/// Build a Core instance whose state mirrors the C globals.
+///
+/// Reads all unstable periods and the compatibility mode from the C library
+/// so the Rust implementations produce results consistent with the C state.
+fn core_from_c_globals() -> Core {
+    let mut core = Core::new();
+
+    // Sync all unstable periods from C globals
+    let all = FuncUnstId::FuncUnstAll as usize;
+    for i in 0..all {
+        let period = unsafe { TA_GetUnstablePeriod(i as c_int) };
+        core.unstable_period[i] = period as i32;
+    }
+
+    // Sync compatibility mode
+    let compat = unsafe { TA_GetCompatibility() };
+    core.compatibility = if compat == 0 {
+        Compatibility::Default
+    } else {
+        Compatibility::Metastock
+    };
+
+    core
+}
 
 /// Convert a Rust `RetCode` to the corresponding C `TA_RetCode` integer value.
 ///
@@ -37,7 +75,7 @@ pub unsafe extern "C" fn TA_MULT(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input0 = std::slice::from_raw_parts(inReal0, len);
     let input1 = std::slice::from_raw_parts(inReal1, len);
@@ -62,7 +100,7 @@ pub unsafe extern "C" fn TA_S_MULT(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input0 = std::slice::from_raw_parts(inReal0, len);
     let input1 = std::slice::from_raw_parts(inReal1, len);
@@ -79,7 +117,7 @@ pub unsafe extern "C" fn TA_S_MULT(
 
 #[no_mangle]
 pub unsafe extern "C" fn TA_MULT_Lookback() -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     core.mult_lookback()
 }
 
@@ -97,7 +135,7 @@ pub unsafe extern "C" fn TA_SMA(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input = std::slice::from_raw_parts(inReal, len);
     let out = std::slice::from_raw_parts_mut(outReal, len);
@@ -121,7 +159,7 @@ pub unsafe extern "C" fn TA_S_SMA(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input = std::slice::from_raw_parts(inReal, len);
     let out = std::slice::from_raw_parts_mut(outReal, len);
@@ -137,7 +175,7 @@ pub unsafe extern "C" fn TA_S_SMA(
 
 #[no_mangle]
 pub unsafe extern "C" fn TA_SMA_Lookback(optInTimePeriod: c_int) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     core.sma_lookback(optInTimePeriod)
 }
 
@@ -155,7 +193,7 @@ pub unsafe extern "C" fn TA_RSI(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input = std::slice::from_raw_parts(inReal, len);
     let out = std::slice::from_raw_parts_mut(outReal, len);
@@ -179,7 +217,7 @@ pub unsafe extern "C" fn TA_S_RSI(
     outNBElement: *mut c_int,
     outReal: *mut c_double,
 ) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     let len = (endIdx + 1) as usize;
     let input = std::slice::from_raw_parts(inReal, len);
     let out = std::slice::from_raw_parts_mut(outReal, len);
@@ -195,6 +233,6 @@ pub unsafe extern "C" fn TA_S_RSI(
 
 #[no_mangle]
 pub unsafe extern "C" fn TA_RSI_Lookback(optInTimePeriod: c_int) -> c_int {
-    let core = Core::new();
+    let core = core_from_c_globals();
     core.rsi_lookback(optInTimePeriod)
 }
