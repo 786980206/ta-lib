@@ -6,6 +6,22 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-07 -- ta_codegen prototype: YAML+logic multi-language generator
+
+`git diff f3bf0542^..9f295c53` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/1cb68ba0...9f295c53)
+
+* [f3bf054](https://github.com/TA-Lib/ta-lib/commit/f3bf0542) Scaffolded `tools/ta_codegen/` Rust crate + `ta_func_defs/mult/` with YAML metadata and logic pseudocode
+* [87477a3](https://github.com/TA-Lib/ta-lib/commit/87477a31) IR types (`FuncDef`, `Statement`, `Expr`, `BinOp`) + serde-based YAML parser
+* [13b3072](https://github.com/TA-Lib/ta-lib/commit/13b3072d) Recursive descent logic file parser (tokenizer + while/assign/vardecl/compound-assign)
+* [64f5d60](https://github.com/TA-Lib/ta-lib/commit/64f5d601) C backend — generates `TA_MULT` + `TA_S_MULT` + lookback from IR
+* [19e49f2](https://github.com/TA-Lib/ta-lib/commit/19e49f2a) Rust backend — **byte-identical** output to gen_code reference (`mult.rs`)
+* [b26fd0d](https://github.com/TA-Lib/ta-lib/commit/b26fd0dd) Java backend — MInteger output params, lookback method
+* [618b185](https://github.com/TA-Lib/ta-lib/commit/618b1857) .NET backend — SubArray + cli::array overloads, `#define` aliases
+* [b7bac62](https://github.com/TA-Lib/ta-lib/commit/b7bac620) SWIG backend — typemap markers (START_IDX, IN_ARRAY, OUT_ARRAY, etc.)
+* [d0e431e](https://github.com/TA-Lib/ta-lib/commit/d0e431ee) JSON-RPC validation server over stdin/stdout using ta-lib Rust crate
+* [9f295c5](https://github.com/TA-Lib/ta-lib/commit/9f295c53) Integration tests (9 tests), validation harness (8 checks), CLI with `--func`/`--backend` filters
+* All 10 ta_codegen tests passing, Rust output byte-identical to gen_code reference, JSON-RPC server verified
+
 ## 2026-03-07 -- Cross-language ta_regtest via FFI link-time swap
 
 `git diff a8526c1b^..ce037cb9` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/fe84577b...ce037cb9)
