@@ -83,6 +83,9 @@ double worstProfiledCall;
 int insufficientClockPrecision;
 int doExtensiveProfiling;
 
+/* CSV list of function names to test (NULL = test all) */
+static const char *functionFilter = NULL;
+
 /**** Local declarations.              ****/
 /* None */
 
@@ -104,8 +107,6 @@ int main( int argc, char **argv )
 
    ErrorNumber retValue;
 
-   (void)argv;
-
    insufficientClockPrecision = 0;
    timeInProfiledCall = 0.0;
    worstProfiledCall = 0.0;
@@ -116,24 +117,24 @@ int main( int argc, char **argv )
    printf( "ta_regtest V%s - Regression Tests of TA-Lib code\n", TA_GetVersionString() );
    printf( "\n" );
 
-   if( argc == 2 )
    {
-	   /* Detect option to perform extended profiling. */
-	   if( (argv[1][0] == '-') && (argv[1][1] == 'p') && (argv[1][2] == '\0'))
-	   {
-		   doExtensiveProfiling = 1;
-	   }
-	   else
-	   {
-		   printUsage();
-		   return TA_REGTEST_BAD_USER_PARAM;
-	   }
-   }
-
-   if( argc > 2 )
-   {
-      printUsage();
-      return TA_REGTEST_BAD_USER_PARAM;
+      int i;
+      for( i = 1; i < argc; i++ )
+      {
+         if( (argv[i][0] == '-') && (argv[i][1] == 'p') && (argv[i][2] == '\0') )
+         {
+            doExtensiveProfiling = 1;
+         }
+         else if( strncmp(argv[i], "--function=", 11) == 0 )
+         {
+            functionFilter = argv[i] + 11;
+         }
+         else
+         {
+            printUsage();
+            return TA_REGTEST_BAD_USER_PARAM;
+         }
+      }
    }
 
    /* Some tests are using randomness. */
@@ -222,6 +223,30 @@ extern TA_Real      TA_SREF_low_daily_ref_0_PRIV[];
 extern TA_Real      TA_SREF_close_daily_ref_0_PRIV[];
 extern TA_Real      TA_SREF_volume_daily_ref_0_PRIV[];
 
+/* Check if any CSV token in 'filter' appears as a substring in 'tags'.
+ * Returns 1 if match found (or filter is NULL), 0 otherwise.
+ */
+static int matchesFilter(const char *filter, const char *tags)
+{
+   char filterCopy[1024];
+   char *token;
+
+   if( filter == NULL )
+      return 1; /* No filter = run everything */
+
+   strncpy(filterCopy, filter, sizeof(filterCopy) - 1);
+   filterCopy[sizeof(filterCopy) - 1] = '\0';
+
+   token = strtok(filterCopy, ",");
+   while( token != NULL )
+   {
+      if( strstr(tags, token) != NULL )
+         return 1;
+      token = strtok(NULL, ",");
+   }
+   return 0;
+}
+
 static ErrorNumber testTAFunction_ALL( void )
 {
    ErrorNumber retValue;
@@ -241,16 +266,19 @@ static ErrorNumber testTAFunction_ALL( void )
    /* Make tests for each TA functions. */
    #define DO_TEST(func,str) \
       { \
-      printf( "%50s: Testing....", str ); \
-      fflush(stdout); \
-      showFeedback(); \
-      TA_SetCompatibility( TA_COMPATIBILITY_DEFAULT ); \
-      retValue = func( &history ); \
-      if( retValue != TA_TEST_PASS ) \
-         return retValue; \
-      hideFeedback(); \
-      printf( "done.\n" ); \
-      fflush(stdout); \
+      if( matchesFilter(functionFilter, str) ) \
+      { \
+         printf( "%50s: Testing....", str ); \
+         fflush(stdout); \
+         showFeedback(); \
+         TA_SetCompatibility( TA_COMPATIBILITY_DEFAULT ); \
+         retValue = func( &history ); \
+         if( retValue != TA_TEST_PASS ) \
+            return retValue; \
+         hideFeedback(); \
+         printf( "done.\n" ); \
+         fflush(stdout); \
+      } \
       }
    DO_TEST( test_func_1in_1out, "MATH,VECTOR,DCPERIOD/PHASE,TRENDLINE/MODE" );
    DO_TEST( test_func_ma,       "All Moving Averages" );
@@ -280,20 +308,25 @@ static ErrorNumber testTAFunction_ALL( void )
 
 static void printUsage(void)
 {
-      printf( "Usage: ta_regtest [-p]\n" );
+      printf( "Usage: ta_regtest [-p] [--function=NAME[,NAME,...]]\n" );
       printf( "\n" );
       printf( "   No parameter needed for regression testing.\n" );
       printf( "\n" );
       printf( "   This tool will execute a series of tests to\n" );
       printf( "   make sure that the library is behaving as\n" );
       printf( "   expected.\n");
-	  printf( "\n" );
+      printf( "\n" );
       printf( "   ** Must be run from the 'bin' directory.\n" );
       printf( "\n" );
-	  printf( "   OPTION:\n" );
+      printf( "   OPTIONS:\n" );
       printf( "    -p Only generate profiling data on stdout. This is\n" );
       printf( "       intended only for the TA-Lib developers. It is\n" );
       printf( "       not further documented for general use.\n" );
+      printf( "\n" );
+      printf( "    --function=NAME[,NAME,...]\n" );
+      printf( "       Only run test groups whose tags contain at least\n" );
+      printf( "       one of the given names (substring match).\n" );
+      printf( "       Example: --function=RSI,BBANDS\n" );
       printf( "\n" );
       printf( "   On success, the exit code is 0.\n" );
       printf( "   On failure, the exit code is a number that can be\n" );
