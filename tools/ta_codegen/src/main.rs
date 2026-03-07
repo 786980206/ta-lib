@@ -82,4 +82,15 @@ fn main() {
     )
     .unwrap();
     println!("Generated .NET: ta_codegen_output/dotnet/Core_{}.h", func_def.name);
+
+    // Generate SWIG backend output
+    let swig_output = backends::swig::generate(&func_def);
+    let swig_out_dir = Path::new("../../ta_codegen_output/swig");
+    std::fs::create_dir_all(swig_out_dir).unwrap();
+    std::fs::write(
+        swig_out_dir.join(format!("ta_{}.swg", func_def.name)),
+        &swig_output,
+    )
+    .unwrap();
+    println!("Generated SWIG: ta_codegen_output/swig/ta_{}.swg", func_def.name);
 }
