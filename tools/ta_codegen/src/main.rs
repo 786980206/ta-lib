@@ -6,7 +6,7 @@ use std::path::Path;
 
 fn main() {
     let yaml_path = Path::new("../../ta_func_defs/mult/mult.yaml");
-    let (name, group, inputs, opt_inputs, outputs, lookback) =
+    let (name, group, description, inputs, opt_inputs, outputs, lookback) =
         parser::yaml::parse_yaml(yaml_path);
 
     println!("Parsed: {} ({})", name, group);
@@ -21,6 +21,7 @@ fn main() {
     let func_def = ir::FuncDef {
         name,
         group,
+        description,
         inputs,
         optional_inputs: opt_inputs,
         outputs,
@@ -44,5 +45,19 @@ fn main() {
     println!(
         "Generated C: ta_codegen_output/c/ta_{}.c",
         func_def.name
+    );
+
+    // Generate Rust backend output
+    let rust_output = backends::rust_lang::generate(&func_def);
+    let rust_out_dir = Path::new("../../ta_codegen_output/rust");
+    std::fs::create_dir_all(rust_out_dir).unwrap();
+    std::fs::write(
+        rust_out_dir.join(format!("{}.rs", func_def.name.to_lowercase())),
+        &rust_output,
+    )
+    .unwrap();
+    println!(
+        "Generated Rust: ta_codegen_output/rust/{}.rs",
+        func_def.name.to_lowercase()
     );
 }

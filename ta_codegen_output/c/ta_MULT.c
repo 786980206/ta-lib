@@ -64,8 +64,8 @@ TA_LIB_API TA_RetCode TA_MULT( int    startIdx,
       outIdx += 1;
       i += 1;
    }
-   *outBegIdx = startIdx;
    *outNBElement = outIdx;
+   *outBegIdx = startIdx;
 
    return TA_SUCCESS;
 }
@@ -94,8 +94,8 @@ TA_RetCode TA_S_MULT( int    startIdx,
       outIdx += 1;
       i += 1;
    }
-   *outBegIdx = startIdx;
    *outNBElement = outIdx;
+   *outBegIdx = startIdx;
 
    return TA_SUCCESS;
 }

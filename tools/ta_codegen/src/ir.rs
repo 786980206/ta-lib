@@ -3,6 +3,7 @@
 pub struct FuncDef {
     pub name: String,
     pub group: String,
+    pub description: Option<String>,
     pub inputs: Vec<Input>,
     pub optional_inputs: Vec<OptInput>,
     pub outputs: Vec<Output>,

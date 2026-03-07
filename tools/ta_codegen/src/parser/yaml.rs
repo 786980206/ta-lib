@@ -8,6 +8,7 @@ use crate::ir::{Input, LookbackExpr, OptInput, Output, ParamType};
 struct YamlFunc {
     name: String,
     group: String,
+    description: Option<String>,
     inputs: Vec<YamlParam>,
     optional_inputs: Option<Vec<YamlOptParam>>,
     outputs: Vec<YamlParam>,
@@ -63,6 +64,7 @@ pub fn parse_yaml(
 ) -> (
     String,
     String,
+    Option<String>,
     Vec<Input>,
     Vec<OptInput>,
     Vec<Output>,
@@ -106,5 +108,5 @@ pub fn parse_yaml(
 
     let lookback = parse_lookback(&yaml.lookback);
 
-    (yaml.name, yaml.group, inputs, opt_inputs, outputs, lookback)
+    (yaml.name, yaml.group, yaml.description, inputs, opt_inputs, outputs, lookback)
 }
