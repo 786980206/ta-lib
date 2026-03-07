@@ -95,30 +95,32 @@ lookback: optInTimePeriod - 1
 
 ### Logic (mult.logic)
 
-Restricted pseudocode — syntax to be refined during implementation, starting point:
+C-like restricted syntax — no macros, no preprocessor, just the algorithm. See `docs/ta_codegen_logic_syntax.md` for the full reference.
 
-```
-index outIdx = 0
-index i = startIdx
-while i <= endIdx {
-    outReal[outIdx] = inReal0[i] * inReal1[i]
-    outIdx += 1
-    i += 1
+```c
+size_t outIdx = 0;
+size_t i = startIdx;
+while( i <= endIdx ) {
+    outReal[outIdx] = inReal0[i] * inReal1[i];
+    outIdx += 1;
+    i += 1;
 }
-outBegIdx = startIdx
-outNBElement = outIdx
+outNBElement = outIdx;
+outBegIdx = startIdx;
 ```
 
-The logic file uses a minimal set of constructs:
-- Variable declarations with types: `real`, `integer`, `index`
-- Loops: `while condition { ... }`
-- Array access: `arr[i]`
-- Arithmetic: `+`, `-`, `*`, `/`
-- Casts: `to_real(x)`, `to_int(x)`
-- Function calls: `call SMA(...)`
-- Assignment, comparison operators
+Types: `double`, `int`, `size_t` (mapped per language — e.g., `size_t` → `usize` in Rust, `int` in Java).
 
-The exact syntax will emerge from getting MULT working. MULT is ideal because the logic is ~6 lines — syntax friction shows up immediately without algorithmic complexity.
+Key constructs:
+- Variable declarations: `double x = 0.0;`, `size_t i;`
+- Control flow: `if() {}`, `else if() {}`, `else {}`, `while() {}`, `for()`, `switch/case`, `break`, `continue`
+- Casts: `(double)x`, `(size_t)x`, `(int)x`
+- Function calls: `SMA(...)`, `SMA_Lookback(...)` (no prefix — generator adds per language)
+- Built-ins: `UNSTABLE_PERIOD(RSI)`, `COMPATIBILITY`, `IS_ZERO(x)`, `ARRAY_COPY(...)`
+- Math: `sqrt()`, `floor()`, `fabs()`, etc.
+- Early return: `return SUCCESS;`
+
+The generator handles parameter validation, signatures, lookback, and single-precision variants automatically from YAML metadata. The logic file is **only the algorithm**.
 
 ## Output
 
@@ -190,15 +192,21 @@ A small harness (Python or Rust) that:
 
 This keeps ta_regtest completely untouched while proving the validation path works for any language that can run a JSON-RPC server.
 
-## Prototype Scope
+## Scope
 
-MULT only. Success criteria:
-1. `ta_func_defs/mult/mult.yaml` + `mult.logic` exist and fully describe MULT
+Incremental function-by-function implementation, each validated against existing gen_code output:
+
+1. **MULT** (complete) — basic arithmetic, while loops, array access
+2. **SMA** — `if`/`else`, casts, `return`, optional params, lookback expressions
+3. **RSI** — `for` countdown, `UNSTABLE_PERIOD`, `COMPATIBILITY`, `IS_ZERO`, `break`/`continue`
+4. **EMA** — function calls (`SMA_Lookback`, `FUNCTION_CALL`)
+5. **MA** — `switch`/`case`, dispatcher pattern, temp buffer allocation
+
+Success criteria per function:
+1. YAML + logic files fully describe the function
 2. `ta_codegen generate` produces valid code for all 5 backends
-3. Generated C code is equivalent to existing gen_code C output (diff comparison)
-4. Generated Rust code is equivalent to existing gen_code Rust output
-5. JSON-RPC server responds correctly to MULT calls
-6. Validation harness confirms JSON-RPC output matches C reference
+3. Generated Rust code matches existing gen_code Rust output (diff comparison)
+4. JSON-RPC server responds correctly to function calls
 
 ## Relationship to Existing Systems
 
