@@ -563,6 +563,59 @@ if(BUILD_DEV_TOOLS)
 	)
 endif()
 
+# --- Rust FFI Regression Test Target ---
+option(ENABLE_RUST_REGTEST "Build ta_regtest linked against Rust FFI library" OFF)
+
+if(ENABLE_RUST_REGTEST)
+    set(RUST_FFI_DIR "${CMAKE_CURRENT_SOURCE_DIR}/rust/ffi")
+    set(RUST_FFI_LIB "${RUST_FFI_DIR}/target/release/libta_lib_ffi.a")
+
+    add_custom_command(
+        OUTPUT ${RUST_FFI_LIB}
+        COMMAND cargo build --release --manifest-path ${RUST_FFI_DIR}/Cargo.toml
+        WORKING_DIRECTORY ${RUST_FFI_DIR}
+        COMMENT "Building Rust FFI staticlib"
+    )
+    add_custom_target(rust_ffi_lib DEPENDS ${RUST_FFI_LIB})
+
+    add_executable(ta_regtest_rust ${TA_REGTEST_SOURCES})
+    target_include_directories(ta_regtest_rust PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/ta_common"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest"
+        "${CMAKE_CURRENT_SOURCE_DIR}/src/ta_func"
+        "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    )
+
+    # Link Rust FFI lib FIRST so its symbols (TA_SMA, TA_RSI, TA_MULT) take precedence
+    # over the same symbols in ta-lib-static. ta-lib-static is still needed for
+    # ta_common, ta_abstract, reference test data, and all other (non-ported) TA functions.
+    if(APPLE)
+        # macOS linker errors on duplicate symbols between static libs.
+        # -force_load loads all Rust symbols unconditionally so they win.
+        # -dead_strip removes the unused C duplicates.
+        target_link_options(ta_regtest_rust PRIVATE
+            "LINKER:-force_load,${RUST_FFI_LIB}"
+            "LINKER:-dead_strip"
+        )
+        target_link_libraries(ta_regtest_rust PRIVATE
+            ta-lib-static
+            m
+        )
+    else()
+        target_link_libraries(ta_regtest_rust PRIVATE
+            ${RUST_FFI_LIB}
+            ta-lib-static
+            m
+        )
+    endif()
+    add_dependencies(ta_regtest_rust rust_ffi_lib)
+
+    # Copy to bin directory
+    add_custom_command(TARGET ta_regtest_rust POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ta_regtest_rust> "${CMAKE_CURRENT_SOURCE_DIR}/bin/ta_regtest_rust"
+    )
+endif()
+
 #############
 # Packaging #
 #############
