@@ -60,4 +60,15 @@ fn main() {
         "Generated Rust: ta_codegen_output/rust/{}.rs",
         func_def.name.to_lowercase()
     );
+
+    // Generate Java backend output
+    let java_output = backends::java::generate(&func_def);
+    let java_out_dir = Path::new("../../ta_codegen_output/java");
+    std::fs::create_dir_all(java_out_dir).unwrap();
+    std::fs::write(
+        java_out_dir.join(format!("Core_{}.java", func_def.name)),
+        &java_output,
+    )
+    .unwrap();
+    println!("Generated Java: ta_codegen_output/java/Core_{}.java", func_def.name);
 }
