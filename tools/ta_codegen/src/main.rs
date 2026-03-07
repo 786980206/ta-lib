@@ -71,4 +71,15 @@ fn main() {
     )
     .unwrap();
     println!("Generated Java: ta_codegen_output/java/Core_{}.java", func_def.name);
+
+    // Generate .NET backend output
+    let dotnet_output = backends::dotnet::generate(&func_def);
+    let dotnet_out_dir = Path::new("../../ta_codegen_output/dotnet");
+    std::fs::create_dir_all(dotnet_out_dir).unwrap();
+    std::fs::write(
+        dotnet_out_dir.join(format!("Core_{}.h", func_def.name)),
+        &dotnet_output,
+    )
+    .unwrap();
+    println!("Generated .NET: ta_codegen_output/dotnet/Core_{}.h", func_def.name);
 }
