@@ -6,6 +6,20 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-07 -- Cross-language ta_regtest via FFI link-time swap
+
+`git diff a8526c1b^..ce037cb9` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/fe84577b...ce037cb9)
+
+* [a8526c1](https://github.com/TA-Lib/ta-lib/commit/a8526c1b) Design doc for cross-language ta_regtest via FFI link-time swap
+* [c96a058](https://github.com/TA-Lib/ta-lib/commit/c96a058b) Implementation plan for Rust regtest FFI
+* [133451c](https://github.com/TA-Lib/ta-lib/commit/133451c5) Added `--function=CSV` filter to ta_regtest for selective test runs (substring match against test group descriptions)
+* [8eaf0cd](https://github.com/TA-Lib/ta-lib/commit/8eaf0cde) Created `rust/ffi/` staticlib crate with `extern "C"` wrappers for SMA, RSI, MULT matching C signatures
+* [da924a3](https://github.com/TA-Lib/ta-lib/commit/da924a36) Added `ta_regtest_rust` CMake target (`ENABLE_RUST_REGTEST` flag) with macOS `-force_load` handling for duplicate symbols
+* [d2ddd9d](https://github.com/TA-Lib/ta-lib/commit/d2ddd9d8) Fixed FFI: read global state from C via `TA_GetUnstablePeriod()`/`TA_GetCompatibility()` instead of creating default Core (required for RSI range tests)
+* [cfc1de5](https://github.com/TA-Lib/ta-lib/commit/cfc1de5c) Extended gen_code to auto-generate FFI wrappers (`writeRustFfiGenerated()` in gen_rust.c), replaced hand-written wrappers
+* [ce037cb](https://github.com/TA-Lib/ta-lib/commit/ce037cb9) Documented cross-language regression testing workflow in CLAUDE.md
+* All 30 Rust tests passing, ta_regtest_rust passes SMA/RSI/MULT via Rust FFI through full range testing suite
+
 ## 2026-03-01 -- RSI complete — first unstable indicator
 
 `git diff f81456aa^..1cc09c88` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/b2def6df...1cc09c88)
