@@ -135,7 +135,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl { .. } => String::new(),
-        Statement::Assign { target, value } => {
+        Statement::Assign { target, value, compound } => {
             // Handle output scalar assignments via .value
             if let Expr::Var(name) = target {
                 if name == "outBegIdx" || name == "outNBElement" {
@@ -148,26 +148,28 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 }
             }
 
-            // Detect compound assignment
-            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
-                if let Expr::Var(lname) = left.as_ref() {
-                    if lname == tname {
-                        let op_str = match op {
-                            BinOp::Add => "+=",
-                            BinOp::Sub => "-=",
-                            BinOp::Mul => "*=",
-                            BinOp::Div => "/=",
-                            _ => "",
-                        };
-                        if !op_str.is_empty() {
-                            let target_str = render_assign_target(target, single_precision);
-                            return format!(
-                                "{}{} {} {};\n",
-                                pad,
-                                target_str,
-                                op_str,
-                                render_expr(right, single_precision)
-                            );
+            // Only fold compound assignments if the original source used +=/-=/etc.
+            if *compound {
+                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
+                    if let Expr::Var(lname) = left.as_ref() {
+                        if lname == tname {
+                            let op_str = match op {
+                                BinOp::Add => "+=",
+                                BinOp::Sub => "-=",
+                                BinOp::Mul => "*=",
+                                BinOp::Div => "/=",
+                                _ => "",
+                            };
+                            if !op_str.is_empty() {
+                                let target_str = render_assign_target(target, single_precision);
+                                return format!(
+                                    "{}{} {} {};\n",
+                                    pad,
+                                    target_str,
+                                    op_str,
+                                    render_expr(right, single_precision)
+                                );
+                            }
                         }
                     }
                 }
@@ -189,11 +191,47 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out.push_str(&format!("{}}}\n", pad));
             out
         }
-        Statement::If { .. } => {
-            todo!("Java backend: if/else not yet implemented")
+        Statement::If {
+            condition,
+            then_body,
+            else_body,
+        } => {
+            let mut out = format!(
+                "{}if( {} ) {{\n",
+                pad,
+                render_expr(condition, single_precision)
+            );
+            for s in then_body {
+                out.push_str(&render_statement(s, indent + 3, single_precision));
+            }
+            if else_body.is_empty() {
+                out.push_str(&format!("{}}}\n", pad));
+            } else {
+                out.push_str(&format!("{}}} else ", pad));
+                if else_body.len() == 1 {
+                    if let Statement::If { .. } = &else_body[0] {
+                        let if_str = render_statement(&else_body[0], indent, single_precision);
+                        out.push_str(if_str.trim_start());
+                        return out;
+                    }
+                }
+                out.push_str("{\n");
+                for s in else_body {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}}}\n", pad));
+            }
+            out
         }
-        Statement::Return { .. } => {
-            todo!("Java backend: return not yet implemented")
+        Statement::Return { value } => {
+            let ret_val = match value.as_str() {
+                "SUCCESS" => "RetCode.Success",
+                "BadParam" => "RetCode.BadParam",
+                "OutOfRangeEndIndex" => "RetCode.OutOfRangeEndIndex",
+                "OutOfRangeStartIndex" => "RetCode.OutOfRangeStartIndex",
+                _ => value.as_str(),
+            };
+            format!("{}return {} ;\n", pad, ret_val)
         }
     }
 }

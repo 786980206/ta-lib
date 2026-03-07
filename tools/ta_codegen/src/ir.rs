@@ -55,6 +55,8 @@ pub enum Statement {
     Assign {
         target: Expr,
         value: Expr,
+        /// True if originally written as a compound assignment (+=, -=, etc.)
+        compound: bool,
     },
     While {
         condition: Expr,

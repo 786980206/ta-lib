@@ -13,23 +13,37 @@ cargo build --release
 
 echo ""
 echo "=== Generating all backends ==="
-cargo run --release -- generate --func=MULT
+cargo run --release -- generate
 
 echo ""
 echo "=== Comparing generated output against reference files ==="
 
-# --- Rust comparison ---
+# --- Rust MULT comparison ---
 RUST_GEN="../../ta_codegen_output/rust/mult.rs"
 RUST_REF="../../rust/src/ta_func/mult.rs"
 if [ -f "$RUST_REF" ]; then
     if diff -q "$RUST_GEN" "$RUST_REF" > /dev/null 2>&1; then
-        pass "Rust: byte-identical match"
+        pass "Rust MULT: byte-identical match"
     else
-        fail "Rust: differences found"
+        fail "Rust MULT: differences found"
         diff --unified "$RUST_GEN" "$RUST_REF" | head -40 || true
     fi
 else
-    echo "  SKIP: Rust reference file not found at $RUST_REF"
+    echo "  SKIP: Rust MULT reference file not found at $RUST_REF"
+fi
+
+# --- Rust SMA comparison ---
+SMA_GEN="../../ta_codegen_output/rust/sma.rs"
+SMA_REF="../../rust/src/ta_func/sma.rs"
+if [ -f "$SMA_REF" ]; then
+    if diff -q "$SMA_GEN" "$SMA_REF" > /dev/null 2>&1; then
+        pass "Rust SMA: byte-identical match"
+    else
+        fail "Rust SMA: differences found"
+        diff --unified "$SMA_GEN" "$SMA_REF" | head -40 || true
+    fi
+else
+    echo "  SKIP: Rust SMA reference file not found at $SMA_REF"
 fi
 
 # --- Check generated files exist and are non-empty ---
@@ -38,7 +52,12 @@ for f in \
     "../../ta_codegen_output/rust/mult.rs" \
     "../../ta_codegen_output/java/Core_MULT.java" \
     "../../ta_codegen_output/dotnet/Core_MULT.h" \
-    "../../ta_codegen_output/swig/ta_MULT.swg"; do
+    "../../ta_codegen_output/swig/ta_MULT.swg" \
+    "../../ta_codegen_output/c/ta_SMA.c" \
+    "../../ta_codegen_output/rust/sma.rs" \
+    "../../ta_codegen_output/java/Core_SMA.java" \
+    "../../ta_codegen_output/dotnet/Core_SMA.h" \
+    "../../ta_codegen_output/swig/ta_SMA.swg"; do
     if [ -s "$f" ]; then
         pass "Generated file exists: $(basename "$f")"
     else

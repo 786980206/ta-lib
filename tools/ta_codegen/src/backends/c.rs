@@ -213,27 +213,29 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 None => format!("{}{} {};\n", pad, c_type, name),
             }
         }
-        Statement::Assign { target, value } => {
-            // Detect compound assignment: x = x + expr => x += expr
-            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
-                if let Expr::Var(lname) = left.as_ref() {
-                    if lname == tname {
-                        let op_str = match op {
-                            BinOp::Add => "+=",
-                            BinOp::Sub => "-=",
-                            BinOp::Mul => "*=",
-                            BinOp::Div => "/=",
-                            _ => "",
-                        };
-                        if !op_str.is_empty() {
-                            let target_str = render_assign_target(target, single_precision);
-                            return format!(
-                                "{}{}{} {};\n",
-                                pad,
-                                target_str,
-                                op_str,
-                                render_expr(right, single_precision)
-                            );
+        Statement::Assign { target, value, compound } => {
+            // Only fold compound assignments if the original source used +=/-=/etc.
+            if *compound {
+                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
+                    if let Expr::Var(lname) = left.as_ref() {
+                        if lname == tname {
+                            let op_str = match op {
+                                BinOp::Add => "+=",
+                                BinOp::Sub => "-=",
+                                BinOp::Mul => "*=",
+                                BinOp::Div => "/=",
+                                _ => "",
+                            };
+                            if !op_str.is_empty() {
+                                let target_str = render_assign_target(target, single_precision);
+                                return format!(
+                                    "{}{}{} {};\n",
+                                    pad,
+                                    target_str,
+                                    op_str,
+                                    render_expr(right, single_precision)
+                                );
+                            }
                         }
                     }
                 }
@@ -255,11 +257,49 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out.push_str(&format!("{}}}\n", pad));
             out
         }
-        Statement::If { .. } => {
-            todo!("C backend: if/else not yet implemented")
+        Statement::If {
+            condition,
+            then_body,
+            else_body,
+        } => {
+            let mut out = format!(
+                "{}if( {} )\n{}{{\n",
+                pad,
+                render_expr(condition, single_precision),
+                pad
+            );
+            for s in then_body {
+                out.push_str(&render_statement(s, indent + 3, single_precision));
+            }
+            if else_body.is_empty() {
+                out.push_str(&format!("{}}}\n", pad));
+            } else {
+                out.push_str(&format!("{}}} else ", pad));
+                // Check if the else body is a single if statement (else-if chain)
+                if else_body.len() == 1 {
+                    if let Statement::If { .. } = &else_body[0] {
+                        let if_str = render_statement(&else_body[0], indent, single_precision);
+                        out.push_str(if_str.trim_start());
+                        return out;
+                    }
+                }
+                out.push_str(&format!("\n{}{{\n", pad));
+                for s in else_body {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}}}\n", pad));
+            }
+            out
         }
-        Statement::Return { .. } => {
-            todo!("C backend: return not yet implemented")
+        Statement::Return { value } => {
+            let ret_val = match value.as_str() {
+                "SUCCESS" => "TA_SUCCESS",
+                "BadParam" => "TA_BAD_PARAM",
+                "OutOfRangeEndIndex" => "TA_OUT_OF_RANGE_END_INDEX",
+                "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX",
+                _ => value.as_str(),
+            };
+            format!("{}return {};\n", pad, ret_val)
         }
     }
 }

@@ -25,8 +25,30 @@ fn load_mult() -> ir::FuncDef {
     }
 }
 
+/// Helper: parse sma.yaml + sma.logic and build a FuncDef.
+fn load_sma() -> ir::FuncDef {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
+    let logic_path = base.join("../../ta_func_defs/sma/sma.logic");
+
+    let (name, group, description, inputs, opt_inputs, outputs, lookback) =
+        parser::yaml::parse_yaml(&yaml_path);
+    let body = parser::logic::parse_logic(&logic_path);
+
+    ir::FuncDef {
+        name,
+        group,
+        description,
+        inputs,
+        optional_inputs: opt_inputs,
+        outputs,
+        lookback,
+        body,
+    }
+}
+
 // ---------------------------------------------------------------------------
-// Parser sanity checks
+// Parser sanity checks — MULT
 // ---------------------------------------------------------------------------
 
 #[test]
@@ -47,6 +69,52 @@ fn test_parse_mult_logic() {
         !func.body.is_empty(),
         "Body should contain parsed statements"
     );
+}
+
+// ---------------------------------------------------------------------------
+// Parser sanity checks — SMA
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_parse_sma_yaml() {
+    let func = load_sma();
+    assert_eq!(func.name, "SMA");
+    assert_eq!(func.group, "Overlap Studies");
+    assert_eq!(func.description.as_deref(), Some("Simple Moving Average"));
+    assert_eq!(func.inputs.len(), 1);
+    assert_eq!(func.outputs.len(), 1);
+    assert_eq!(func.optional_inputs.len(), 1);
+    assert_eq!(func.optional_inputs[0].name, "optInTimePeriod");
+    assert_eq!(func.optional_inputs[0].default, Some(30));
+    assert_eq!(func.optional_inputs[0].range, Some((2, 100000)));
+    assert!(matches!(
+        func.lookback,
+        ir::LookbackExpr::ParamMinus(_, 1)
+    ));
+}
+
+#[test]
+fn test_parse_sma_logic() {
+    let func = load_sma();
+    assert!(
+        !func.body.is_empty(),
+        "SMA body should contain parsed statements"
+    );
+    // SMA logic has VarDecls, assignments, if statements, while loops, and returns
+    let has_if = func.body.iter().any(|s| matches!(s, ir::Statement::If { .. }));
+    let has_while = func.body.iter().any(|s| matches!(s, ir::Statement::While { .. }));
+    let _has_return = func.body.iter().any(|s| matches!(s, ir::Statement::Return { .. }));
+    assert!(has_if, "SMA body should contain if statements");
+    assert!(has_while, "SMA body should contain while loops");
+    // Return is inside an if body, not top-level
+    let has_nested_return = func.body.iter().any(|s| {
+        if let ir::Statement::If { then_body, .. } = s {
+            then_body.iter().any(|ts| matches!(ts, ir::Statement::Return { .. }))
+        } else {
+            false
+        }
+    });
+    assert!(has_nested_return, "SMA body should contain a return inside an if");
 }
 
 // ---------------------------------------------------------------------------
@@ -102,11 +170,10 @@ fn test_rust_backend_generates_mult() {
 }
 
 #[test]
-fn test_rust_backend_matches_reference() {
+fn test_rust_mult_matches_reference() {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
     let reference_path = base.join("../../rust/src/ta_func/mult.rs");
 
-    // Only run this test if the reference file exists
     if !reference_path.exists() {
         eprintln!(
             "Skipping reference comparison: {} not found",
@@ -119,19 +186,27 @@ fn test_rust_backend_matches_reference() {
     let output = backends::rust_lang::generate(&func);
     let reference = std::fs::read_to_string(&reference_path).unwrap();
 
-    // For now, check structural similarity rather than byte-identical match,
-    // since the new codegen may produce slightly different formatting.
-    // Uncomment the exact match once output is tuned:
-    // assert_eq!(output, reference, "Generated Rust should match reference exactly");
+    assert_eq!(output, reference, "Generated MULT Rust should match reference exactly");
+}
 
-    // Structural checks: both should contain the same key elements
-    for keyword in &["mult_lookback", "fn mult", "outReal", "inReal0", "inReal1"] {
-        assert!(
-            output.contains(keyword) || reference.contains(keyword),
-            "Neither generated nor reference contains '{}'",
-            keyword
+#[test]
+fn test_rust_sma_matches_reference() {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let reference_path = base.join("../../rust/src/ta_func/sma.rs");
+
+    if !reference_path.exists() {
+        eprintln!(
+            "Skipping reference comparison: {} not found",
+            reference_path.display()
         );
+        return;
     }
+
+    let func = load_sma();
+    let output = backends::rust_lang::generate(&func);
+    let reference = std::fs::read_to_string(&reference_path).unwrap();
+
+    assert_eq!(output, reference, "Generated SMA Rust should match reference exactly");
 }
 
 // ---------------------------------------------------------------------------
@@ -209,7 +284,34 @@ fn test_swig_backend_generates_mult() {
 }
 
 // ---------------------------------------------------------------------------
-// All backends produce non-empty output
+// SMA: all backends produce non-empty output
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_sma_all_backends_generate() {
+    let func = load_sma();
+
+    let c_out = backends::c::generate(&func);
+    let rust_out = backends::rust_lang::generate(&func);
+    let java_out = backends::java::generate(&func);
+    let dotnet_out = backends::dotnet::generate(&func);
+    let swig_out = backends::swig::generate(&func);
+
+    assert!(!c_out.is_empty(), "C output is empty");
+    assert!(!rust_out.is_empty(), "Rust output is empty");
+    assert!(!java_out.is_empty(), "Java output is empty");
+    assert!(!dotnet_out.is_empty(), "Dotnet output is empty");
+    assert!(!swig_out.is_empty(), "SWIG output is empty");
+
+    // SMA should have optInTimePeriod in various forms
+    assert!(c_out.contains("optInTimePeriod"), "C output missing optInTimePeriod");
+    assert!(rust_out.contains("optInTimePeriod"), "Rust output missing optInTimePeriod");
+    assert!(java_out.contains("optInTimePeriod"), "Java output missing optInTimePeriod");
+    assert!(swig_out.contains("OPT_INT"), "SWIG output missing OPT_INT typemap");
+}
+
+// ---------------------------------------------------------------------------
+// All backends produce non-empty output (MULT)
 // ---------------------------------------------------------------------------
 
 #[test]

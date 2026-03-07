@@ -383,6 +383,7 @@ impl Parser {
             return Statement::Assign {
                 target: Expr::ArrayAccess(name, Box::new(index_expr)),
                 value,
+                compound: false,
             };
         }
 
@@ -393,6 +394,7 @@ impl Parser {
                 Statement::Assign {
                     target: Expr::Var(name),
                     value,
+                    compound: false,
                 }
             }
             Token::Op(ref op) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
@@ -407,6 +409,7 @@ impl Parser {
                 Statement::Assign {
                     target: Expr::Var(name.clone()),
                     value: Expr::BinOp(Box::new(Expr::Var(name)), bin_op, Box::new(rhs)),
+                    compound: true,
                 }
             }
             other => panic!("Expected '=' or compound assignment, got {:?}", other),

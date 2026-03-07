@@ -62,6 +62,7 @@ fn gen_imports() -> String {
 fn gen_impl_block(func: &FuncDef) -> String {
     let mut out = String::new();
     let snake = func.name.to_lowercase();
+    let has_opt_inputs = !func.optional_inputs.is_empty();
 
     out.push_str(
         "// Allow non-snake-case names to maintain TA-Lib API compatibility\n\
@@ -73,22 +74,24 @@ fn gen_impl_block(func: &FuncDef) -> String {
     );
 
     out.push_str(&gen_lookback(func, &snake));
-    out.push_str(&gen_func(func, &snake, false));
-    out.push_str(&gen_func(func, &snake, true));
+
+    if has_opt_inputs {
+        // Two-layer structure: public function + private int_ function
+        out.push_str(&gen_public_func(func, &snake, false));
+        out.push_str(&gen_internal_func(func, &snake, false));
+        out.push_str(&gen_public_func(func, &snake, true));
+        out.push_str(&gen_internal_func(func, &snake, true));
+    } else {
+        // Simple flat function (no optional params)
+        out.push_str(&gen_func(func, &snake, false));
+        out.push_str(&gen_func(func, &snake, true));
+    }
 
     out.push_str("}\n");
     out
 }
 
 fn gen_lookback(func: &FuncDef, snake: &str) -> String {
-    let body = match &func.lookback {
-        LookbackExpr::Literal(n) => format!("        return {};", n),
-        LookbackExpr::ParamMinus(param, offset) => {
-            format!("        return {} - {};", param, offset)
-        }
-    };
-
-    // Build doc comment for lookback
     let mut out = String::new();
     out.push_str(&format!(
         "    /// Lookback period for [`Core::{}`].\n",
@@ -98,13 +101,342 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
     out.push_str("    /// # Arguments\n");
     out.push_str("    ///\n");
 
-    out.push_str(&format!(
-        "    pub fn {}_lookback(&self) -> i32 {{\n{}\n    }}\n",
-        snake, body
-    ));
+    let has_opt_inputs = !func.optional_inputs.is_empty();
+
+    if has_opt_inputs {
+        // Document optional params
+        for opt in &func.optional_inputs {
+            if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
+                out.push_str(&format!(
+                    "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
+                    opt.name, default, lo, hi
+                ));
+            }
+        }
+
+        // Build parameter list
+        let mut params = Vec::new();
+        for opt in &func.optional_inputs {
+            let rust_type = match opt.param_type {
+                ParamType::Real => "f64",
+                ParamType::Integer => "i32",
+            };
+            params.push(format!("mut {}: {}", opt.name, rust_type));
+        }
+
+        out.push_str(&format!(
+            "    pub fn {}_lookback(&self, {}) -> i32 {{\n",
+            snake,
+            params.join(", ")
+        ));
+
+        // Param validation
+        for opt in &func.optional_inputs {
+            out.push_str(&gen_opt_param_validation(opt, "        ", true));
+        }
+
+        // Return lookback expression
+        match &func.lookback {
+            LookbackExpr::Literal(n) => {
+                out.push_str(&format!("        return {};\n", n));
+            }
+            LookbackExpr::ParamMinus(param, offset) => {
+                out.push_str(&format!("        return {} - {};\n", param, offset));
+            }
+        }
+    } else {
+        out.push_str(&format!(
+            "    pub fn {}_lookback(&self) -> i32 {{\n",
+            snake
+        ));
+        match &func.lookback {
+            LookbackExpr::Literal(n) => {
+                out.push_str(&format!("        return {};\n", n));
+            }
+            LookbackExpr::ParamMinus(param, offset) => {
+                out.push_str(&format!("        return {} - {};\n", param, offset));
+            }
+        }
+    }
+
+    out.push_str("    }\n");
     out
 }
 
+/// Generate the public wrapper function (for functions with optional params).
+/// This validates params and delegates to int_<name>.
+fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+    let mut out = String::new();
+    let suffix = if single_precision { "_s" } else { "" };
+    let func_name = format!("{}{}", snake, suffix);
+    let input_type = if single_precision { "f32" } else { "f64" };
+    let int_func_name = format!("int_{}{}", snake, suffix);
+
+    // Doc comments
+    if single_precision {
+        out.push_str(&format!(
+            "    /// Single-precision variant of [`Core::{}`].\n",
+            snake
+        ));
+    } else {
+        let title = func.description.as_deref().unwrap_or(&func.group);
+        out.push_str(&format!("    /// {}\n", title));
+        out.push_str("    ///\n");
+        out.push_str("    /// # Arguments\n");
+        out.push_str("    ///\n");
+        out.push_str("    /// * `startIdx` - Start index for calculation range\n");
+        out.push_str("    /// * `endIdx` - End index for calculation range (inclusive)\n");
+        for input in &func.inputs {
+            out.push_str(&format!(
+                "    /// * `{}` - Input price series\n",
+                input.name
+            ));
+        }
+        for opt in &func.optional_inputs {
+            if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
+                out.push_str(&format!(
+                    "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
+                    opt.name, default, lo, hi
+                ));
+            }
+        }
+        out.push_str("    /// * `outBegIdx` - First valid output index\n");
+        out.push_str("    /// * `outNBElement` - Number of valid output elements\n");
+        for output in &func.outputs {
+            out.push_str(&format!("    /// * `{}` - Output values\n", output.name));
+        }
+        out.push_str("    ///\n");
+        out.push_str("    /// # Returns\n");
+        out.push_str("    ///\n");
+        out.push_str(
+            "    /// [`RetCode::Success`] on success, or an error code on failure.\n",
+        );
+        out.push_str("    ///\n");
+        out.push_str("    /// # Example\n");
+        out.push_str("    ///\n");
+        out.push_str("    /// ```\n");
+        out.push_str("    /// use ta_lib::ta_func::{Core, RetCode};\n");
+        out.push_str("    ///\n");
+        out.push_str("    ///\n");
+        // Generate example with specific values for SMA-like functions
+        out.push_str("    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];\n");
+        out.push_str("    /// let mut out = [0.0_f64; 5];\n");
+        out.push_str("    /// let mut out_beg_idx: usize = 0;\n");
+        out.push_str("    /// let mut out_nb_element: usize = 0;\n");
+        out.push_str("    ///\n");
+        out.push_str("    /// let core = Core::new();\n");
+        out.push_str(&format!("    /// let result = core.{}(\n", snake));
+        out.push_str("    ///  0,\n");
+        out.push_str("    ///  4,\n");
+        out.push_str("    ///  &close_prices,\n");
+        // Use a sensible example value for opt params
+        for opt in &func.optional_inputs {
+            if let Some((lo, _hi)) = opt.range {
+                out.push_str(&format!("    ///  {},\n", lo + 1)); // use lo+1 = 3
+            }
+        }
+        out.push_str("    ///  &mut out_beg_idx,\n");
+        out.push_str("    ///  &mut out_nb_element,\n");
+        out.push_str("    ///  &mut out,\n");
+        out.push_str("    /// );\n");
+        out.push_str("    ///\n");
+        out.push_str("    /// assert_eq!(result, RetCode::Success);\n");
+        // Add specific assertions for SMA
+        out.push_str("    /// assert_eq!(out_beg_idx, 2);\n");
+        out.push_str("    /// assert_eq!(out_nb_element, 3);\n");
+        out.push_str("    /// assert!((out[0] - 2.0).abs() < 1e-10);\n");
+        out.push_str("    /// assert!((out[1] - 3.0).abs() < 1e-10);\n");
+        out.push_str("    /// assert!((out[2] - 4.0).abs() < 1e-10);\n");
+        out.push_str("    /// ```\n");
+    }
+
+    // Function signature
+    out.push_str(&format!("    pub fn {}(\n", func_name));
+    out.push_str("        &self,\n");
+    out.push_str("        startIdx: usize,\n");
+    out.push_str("        endIdx: usize,\n");
+    for input in &func.inputs {
+        out.push_str(&format!(
+            "        {}: &[{}],\n",
+            input.name, input_type
+        ));
+    }
+    for opt in &func.optional_inputs {
+        let rust_type = match opt.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer => "i32",
+        };
+        out.push_str(&format!("        mut {}: {},\n", opt.name, rust_type));
+    }
+    out.push_str("        outBegIdx: &mut usize,\n");
+    out.push_str("        outNBElement: &mut usize,\n");
+    for output in &func.outputs {
+        let rust_type = match output.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer => "i32",
+        };
+        out.push_str(&format!(
+            "        {}: &mut [{}],\n",
+            output.name, rust_type
+        ));
+    }
+    out.push_str("    ) -> RetCode {\n");
+
+    // Range check
+    out.push_str("        if endIdx < startIdx {\n");
+    out.push_str("            return RetCode::OutOfRangeEndIndex;\n");
+    out.push_str("        }\n");
+
+    // Param validation
+    for opt in &func.optional_inputs {
+        out.push_str(&gen_opt_param_validation(opt, "        ", false));
+    }
+
+    // Delegate to internal function
+    out.push_str(&format!("        return self.{}(\n", int_func_name));
+    out.push_str("            startIdx,\n");
+    out.push_str("            endIdx,\n");
+    for input in &func.inputs {
+        out.push_str(&format!("            {},\n", input.name));
+    }
+    for opt in &func.optional_inputs {
+        out.push_str(&format!("            {},\n", opt.name));
+    }
+    out.push_str("            outBegIdx,\n");
+    out.push_str("            outNBElement,\n");
+    for output in &func.outputs {
+        out.push_str(&format!("            {},\n", output.name));
+    }
+    out.push_str("        );\n");
+    out.push_str("    }\n");
+
+    out
+}
+
+/// Generate the internal (private) function for functions with optional params.
+fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+    let mut out = String::new();
+    let suffix = if single_precision { "_s" } else { "" };
+    let func_name = format!("int_{}{}", snake, suffix);
+    let input_type = if single_precision { "f32" } else { "f64" };
+
+    // Function signature (private)
+    out.push_str(&format!("    fn {}(\n", func_name));
+    out.push_str("        &self,\n");
+    out.push_str("        mut startIdx: usize,\n");
+    out.push_str("        endIdx: usize,\n");
+    for input in &func.inputs {
+        out.push_str(&format!(
+            "        {}: &[{}],\n",
+            input.name, input_type
+        ));
+    }
+    for opt in &func.optional_inputs {
+        let rust_type = match opt.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer => "i32",
+        };
+        out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
+    }
+    out.push_str("        outBegIdx: &mut usize,\n");
+    out.push_str("        outNBElement: &mut usize,\n");
+    for output in &func.outputs {
+        let rust_type = match output.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer => "i32",
+        };
+        out.push_str(&format!(
+            "        {}: &mut [{}],\n",
+            output.name, rust_type
+        ));
+    }
+    out.push_str("    ) -> RetCode {\n");
+
+    // Declare local variables (excluding loop iterators consumed by for-loops)
+    let for_loop_vars = collect_for_loop_vars(&func.body);
+    let var_inits: std::collections::HashMap<String, &Expr> = func
+        .body
+        .iter()
+        .filter_map(|s| {
+            if let Statement::VarDecl { name, init: Some(init), .. } = s {
+                Some((name.clone(), init))
+            } else {
+                None
+            }
+        })
+        .collect();
+    for stmt in &func.body {
+        if let Statement::VarDecl {
+            var_type, name, ..
+        } = stmt
+        {
+            if for_loop_vars.contains(name) {
+                continue;
+            }
+            let rust_type = match var_type {
+                VarType::Real => "f64",
+                VarType::Integer => "i32",
+                VarType::Index => "usize",
+            };
+            // Determine if mut is needed: variable assigned more than once total
+            let total_assigns = count_assignments(name, &func.body);
+            let needs_mut = total_assigns > 1;
+            if needs_mut {
+                out.push_str(&format!("        let mut {}: {};\n", name, rust_type));
+            } else {
+                out.push_str(&format!("        let {}: {};\n", name, rust_type));
+            }
+        }
+    }
+
+    // Collect output array names for cast insertion
+    let output_names: Vec<String> = func.outputs.iter().map(|o| o.name.clone()).collect();
+
+    // Collect variables that have both VarDecl init AND a body assignment
+    let body_assigned: std::collections::HashSet<String> = func
+        .body
+        .iter()
+        .filter_map(|s| {
+            if let Statement::Assign { target: Expr::Var(name), .. } = s {
+                Some(name.clone())
+            } else {
+                None
+            }
+        })
+        .collect();
+
+    // Emit VarDecl initializations only when there's no body assignment for the same var
+    for stmt in &func.body {
+        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
+            if for_loop_vars.contains(name) {
+                continue;
+            }
+            if body_assigned.contains(name) {
+                continue; // body assignment will handle it
+            }
+            out.push_str(&format!(
+                "        {} = {};\n",
+                name,
+                render_expr(init, single_precision)
+            ));
+        }
+    }
+
+    // Render body statements
+    for stmt in &func.body {
+        if matches!(stmt, Statement::VarDecl { .. }) {
+            continue;
+        }
+        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names));
+    }
+
+    out.push_str("        return RetCode::Success;\n");
+    out.push_str("    }\n");
+
+    out
+}
+
+/// Generate a flat function (for functions without optional params, like MULT).
 fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
@@ -232,7 +564,14 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
             };
-            out.push_str(&format!("        let mut {}: {};\n", name, rust_type));
+            // Determine if mut is needed: variable assigned more than once total
+            let total_assigns = count_assignments(name, &func.body);
+            let needs_mut = total_assigns > 1;
+            if needs_mut {
+                out.push_str(&format!("        let mut {}: {};\n", name, rust_type));
+            } else {
+                out.push_str(&format!("        let {}: {};\n", name, rust_type));
+            }
         }
     }
 
@@ -270,6 +609,84 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
     out.push_str("    }\n");
 
     out
+}
+
+/// Generate optional parameter validation code.
+/// For lookback functions, the error return is -1.
+/// For main functions, the error return is RetCode::BadParam.
+fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> String {
+    let mut out = String::new();
+    let name = &opt.name;
+
+    if opt.param_type == ParamType::Integer {
+        if let Some(default) = opt.default {
+            out.push_str(&format!(
+                "{}if (({}) as i32) == (i32::MIN) {{\n",
+                pad, name
+            ));
+            out.push_str(&format!(
+                "{}    {} = {};\n",
+                pad, name, default
+            ));
+
+            if let Some((lo, hi)) = opt.range {
+                let err_return = if is_lookback {
+                    "return -1;"
+                } else {
+                    "return RetCode::BadParam;"
+                };
+                out.push_str(&format!(
+                    "{}}} else if ((({}) as i32) < {}) || ((({}) as i32) > {}) {{\n",
+                    pad, name, lo, name, hi
+                ));
+                out.push_str(&format!(
+                    "{}    {}\n",
+                    pad, err_return
+                ));
+            }
+
+            out.push_str(&format!("{}}}\n", pad));
+        }
+    }
+
+    out
+}
+
+/// Count how many times a variable is assigned in the body (including VarDecl inits).
+/// Assignments inside loops count as 2 (since they execute multiple times).
+/// Used to determine if `mut` is needed on a local variable declaration.
+fn count_assignments(name: &str, body: &[Statement]) -> usize {
+    count_assignments_inner(name, body, false)
+}
+
+fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usize {
+    let mut count = 0;
+    for stmt in body {
+        match stmt {
+            Statement::VarDecl { name: vname, init, .. } => {
+                if vname == name && init.is_some() {
+                    count += 1;
+                }
+            }
+            Statement::Assign { target, .. } => {
+                if let Expr::Var(tname) = target {
+                    if tname == name {
+                        // Assignments in loops count as multiple
+                        count += if in_loop { 2 } else { 1 };
+                    }
+                }
+            }
+            Statement::While { body: while_body, .. } => {
+                count += count_assignments_inner(name, while_body, true);
+            }
+            Statement::If { then_body, else_body, .. } => {
+                count += count_assignments_inner(name, then_body, in_loop);
+                count += count_assignments_inner(name, else_body, in_loop);
+            }
+            Statement::Return { .. } => {}
+        }
+    }
+    count
 }
 
 /// Detect while loops that are simple for-loop patterns:
@@ -312,7 +729,7 @@ fn detect_for_pattern(
             // Check that iter_name is declared as an index var
             if decls.contains_key(iter_name) {
                 // Check last statement is iter_name += 1
-                if let Some(Statement::Assign { target, value }) = while_body.last() {
+                if let Some(Statement::Assign { target, value, .. }) = while_body.last() {
                     if let Expr::Var(tname) = target {
                         if tname == iter_name {
                             if let Expr::BinOp(l, BinOp::Add, r) = value {
@@ -344,37 +761,40 @@ fn render_statement(
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl { .. } => String::new(), // already handled
-        Statement::Assign { target, value } => {
-            // Detect compound assignment: x = x + expr => x += expr
-            if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
-                if let Expr::Var(lname) = left.as_ref() {
-                    if lname == tname {
-                        let op_str = match op {
-                            BinOp::Add => "+=",
-                            BinOp::Sub => "-=",
-                            BinOp::Mul => "*=",
-                            BinOp::Div => "/=",
-                            _ => "",
-                        };
-                        if !op_str.is_empty() {
-                            let target_str =
-                                render_assign_target(target, single_precision);
-                            return format!(
-                                "{}{} {} {};\n",
-                                pad,
-                                target_str,
-                                op_str,
-                                render_expr(right, single_precision)
-                            );
+        Statement::Assign { target, value, compound } => {
+            // Only fold compound assignments if the original source used +=/-=/etc.
+            if *compound {
+                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
+                    if let Expr::Var(lname) = left.as_ref() {
+                        if lname == tname {
+                            let op_str = match op {
+                                BinOp::Add => "+=",
+                                BinOp::Sub => "-=",
+                                BinOp::Mul => "*=",
+                                BinOp::Div => "/=",
+                                _ => "",
+                            };
+                            if !op_str.is_empty() {
+                                let target_str =
+                                    render_assign_target(target, single_precision);
+                                return format!(
+                                    "{}{} {} {};\n",
+                                    pad,
+                                    target_str,
+                                    op_str,
+                                    render_expr(right, single_precision)
+                                );
+                            }
                         }
                     }
                 }
             }
             let target_str = render_assign_target(target, single_precision);
             let value_str = render_expr(value, single_precision);
-            // Add `as f64` cast for output array assignments
+            // Add `as f64` cast for output array assignments only when the value
+            // contains uncast input array accesses (which may be f32 in single precision)
             let needs_cast = if let Expr::ArrayAccess(name, _) = target {
-                output_names.contains(name)
+                output_names.contains(name) && expr_has_uncast_array_access(value)
             } else {
                 false
             };
@@ -430,12 +850,67 @@ fn render_statement(
             out.push_str(&format!("{}}}\n", pad));
             out
         }
-        Statement::If { .. } => {
-            todo!("Rust backend: if/else not yet implemented")
+        Statement::If {
+            condition,
+            then_body,
+            else_body,
+        } => {
+            let mut out = format!(
+                "{}if {} {{\n",
+                pad,
+                render_expr(condition, single_precision)
+            );
+            for s in then_body {
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+            }
+            if else_body.is_empty() {
+                out.push_str(&format!("{}}}\n", pad));
+            } else {
+                out.push_str(&format!("{}}} else ", pad));
+                // Check if the else body is a single if statement (else-if chain)
+                if else_body.len() == 1 {
+                    if let Statement::If { .. } = &else_body[0] {
+                        // Render as else if (strip leading pad since we already have "} else ")
+                        let if_str = render_statement(&else_body[0], indent, single_precision, for_loop_vars, var_inits, output_names);
+                        // Remove leading whitespace from the if statement
+                        out.push_str(if_str.trim_start());
+                        return out;
+                    }
+                }
+                out.push_str("{\n");
+                for s in else_body {
+                    out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                }
+                out.push_str(&format!("{}}}\n", pad));
+            }
+            out
         }
-        Statement::Return { .. } => {
-            todo!("Rust backend: return not yet implemented")
+        Statement::Return { value } => {
+            let ret_val = match value.as_str() {
+                "SUCCESS" => "RetCode::Success",
+                "BadParam" => "RetCode::BadParam",
+                "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex",
+                "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex",
+                _ => value.as_str(),
+            };
+            format!("{}return {};\n", pad, ret_val)
         }
+    }
+}
+
+/// Check if an expression contains array accesses that are NOT wrapped in a Cast.
+/// This is used to determine if an output array assignment needs an `as f64` cast.
+/// Input array accesses that are already cast (e.g., `(double)inReal[i]`) don't need
+/// an outer cast because they're already f64.
+fn expr_has_uncast_array_access(expr: &Expr) -> bool {
+    match expr {
+        Expr::ArrayAccess(_, _) => true,
+        Expr::Cast(_, _) => false, // Cast wraps the array access, so it's already typed
+        Expr::BinOp(left, _, right) => {
+            expr_has_uncast_array_access(left) || expr_has_uncast_array_access(right)
+        }
+        Expr::Not(inner) => expr_has_uncast_array_access(inner),
+        _ => false,
     }
 }
 
@@ -452,11 +927,21 @@ fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
     }
 }
 
+/// Render an expression for use as a BinOp operand.
+/// Wraps Cast expressions in extra parens for correct `as` precedence.
+fn render_expr_as_operand(expr: &Expr, single_precision: bool) -> String {
+    if matches!(expr, Expr::Cast(_, _)) {
+        format!("({})", render_expr(expr, single_precision))
+    } else {
+        render_expr(expr, single_precision)
+    }
+}
+
 fn render_expr(expr: &Expr, single_precision: bool) -> String {
     match expr {
         Expr::Literal(f) => {
             if *f == f.floor() && f.abs() < 1e15 {
-                format!("{}", *f as i64)
+                format!("{}.0", *f as i64)
             } else {
                 format!("{}", f)
             }
@@ -481,11 +966,14 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::And => " && ",
                 BinOp::Or => " || ",
             };
+            // Wrap Cast subexpressions in parens for correct Rust `as` precedence
+            let left_str = render_expr_as_operand(left, single_precision);
+            let right_str = render_expr_as_operand(right, single_precision);
             format!(
                 "{}{}{}",
-                render_expr(left, single_precision),
+                left_str,
                 op_str,
-                render_expr(right, single_precision)
+                right_str
             )
         }
         Expr::Cast(var_type, inner) => {
