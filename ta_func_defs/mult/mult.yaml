@@ -1,0 +1,11 @@
+name: MULT
+group: Math Operators
+inputs:
+  - name: inReal0
+    type: real
+  - name: inReal1
+    type: real
+outputs:
+  - name: outReal
+    type: real
+lookback: 0
