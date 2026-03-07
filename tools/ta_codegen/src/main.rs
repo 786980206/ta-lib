@@ -1,10 +1,21 @@
 mod backends;
 mod ir;
 mod parser;
+mod server;
 
 use std::path::Path;
 
 fn main() {
+    let args: Vec<String> = std::env::args().collect();
+    let command = args.get(1).map(|s| s.as_str()).unwrap_or("generate");
+    match command {
+        "generate" => generate(),
+        "serve" => server::run_server(),
+        _ => eprintln!("Usage: ta_codegen [generate|serve]"),
+    }
+}
+
+fn generate() {
     let yaml_path = Path::new("../../ta_func_defs/mult/mult.yaml");
     let (name, group, description, inputs, opt_inputs, outputs, lookback) =
         parser::yaml::parse_yaml(yaml_path);

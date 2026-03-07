@@ -134,7 +134,12 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_yaml",
+ "ta-lib",
 ]
+
+[[package]]
+name = "ta-lib"
+version = "0.6.4"
 
 [[package]]
 name = "unicode-ident"
