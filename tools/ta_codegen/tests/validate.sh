@@ -88,6 +88,28 @@ else
     echo "    Response: $RESPONSE_LB"
 fi
 
+# Test SMA
+REQUEST_SMA='{"method":"TA_SMA","params":{"startIdx":0,"endIdx":4,"inReal":[1,2,3,4,5],"optInTimePeriod":3}}'
+RESPONSE_SMA=$(echo "$REQUEST_SMA" | cargo run --release -- serve 2>/dev/null)
+EXPECTED_SMA='2.0,3.0,4.0'
+if echo "$RESPONSE_SMA" | grep -q "$EXPECTED_SMA"; then
+    pass "JSON-RPC TA_SMA: correct output"
+else
+    fail "JSON-RPC TA_SMA: unexpected output"
+    echo "    Request:  $REQUEST_SMA"
+    echo "    Response: $RESPONSE_SMA"
+fi
+
+# Test SMA lookback
+REQUEST_SMA_LB='{"method":"TA_SMA_Lookback","params":{"optInTimePeriod":30}}'
+RESPONSE_SMA_LB=$(echo "$REQUEST_SMA_LB" | cargo run --release -- serve 2>/dev/null)
+if echo "$RESPONSE_SMA_LB" | grep -q '"lookback":29'; then
+    pass "JSON-RPC TA_SMA_Lookback: correct output"
+else
+    fail "JSON-RPC TA_SMA_Lookback: unexpected output"
+    echo "    Response: $RESPONSE_SMA_LB"
+fi
+
 echo ""
 echo "=== Running cargo test ==="
 cargo test 2>&1
