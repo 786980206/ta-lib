@@ -3,6 +3,10 @@ name = "ta-codegen"
 version = "0.1.0"
 edition = "2021"
 
+[lib]
+name = "ta_codegen_lib"
+path = "src/lib.rs"
+
 [[bin]]
 name = "ta_codegen"
 path = "src/main.rs"

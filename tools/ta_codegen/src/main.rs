@@ -1,7 +1,7 @@
-mod backends;
-mod ir;
-mod parser;
-mod server;
+use ta_codegen_lib::backends;
+use ta_codegen_lib::ir;
+use ta_codegen_lib::parser;
+use ta_codegen_lib::server;
 
 use std::path::Path;
 
@@ -9,99 +9,146 @@ fn main() {
     let args: Vec<String> = std::env::args().collect();
     let command = args.get(1).map(|s| s.as_str()).unwrap_or("generate");
     match command {
-        "generate" => generate(),
+        "generate" => {
+            let func_filter = find_arg(&args, "--func");
+            let backend_filter = find_arg(&args, "--backend");
+            generate(func_filter.as_deref(), backend_filter.as_deref());
+        }
         "serve" => server::run_server(),
-        _ => eprintln!("Usage: ta_codegen [generate|serve]"),
+        _ => {
+            eprintln!("Usage: ta_codegen <command> [options]");
+            eprintln!();
+            eprintln!("Commands:");
+            eprintln!("  generate  Generate code for all backends (default)");
+            eprintln!("  serve     Start JSON-RPC validation server on stdin/stdout");
+            eprintln!();
+            eprintln!("Options for 'generate':");
+            eprintln!("  --func=NAME[,NAME,...]      Only generate specified functions (default: all)");
+            eprintln!("  --backend=NAME[,NAME,...]    Only generate specified backends (default: all)");
+            eprintln!("                               Backends: c, rust, java, dotnet, swig");
+            std::process::exit(1);
+        }
     }
 }
 
-fn generate() {
-    let yaml_path = Path::new("../../ta_func_defs/mult/mult.yaml");
-    let (name, group, description, inputs, opt_inputs, outputs, lookback) =
-        parser::yaml::parse_yaml(yaml_path);
+fn find_arg(args: &[String], prefix: &str) -> Option<String> {
+    let prefix_eq = format!("{}=", prefix);
+    args.iter()
+        .find(|a| a.starts_with(&prefix_eq))
+        .map(|a| a[prefix_eq.len()..].to_string())
+}
 
-    println!("Parsed: {} ({})", name, group);
-    println!("  Inputs: {:?}", inputs);
-    println!("  OptInputs: {:?}", opt_inputs);
-    println!("  Outputs: {:?}", outputs);
-    println!("  Lookback: {:?}", lookback);
+fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
+    let base = Path::new("../../ta_func_defs");
 
-    let logic_path = Path::new("../../ta_func_defs/mult/mult.logic");
-    let body = parser::logic::parse_logic(logic_path);
+    // Discover all function definition directories
+    let mut func_dirs: Vec<_> = std::fs::read_dir(base)
+        .expect("Cannot read ta_func_defs directory")
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+    func_dirs.sort_by_key(|e| e.file_name());
 
-    let func_def = ir::FuncDef {
-        name,
-        group,
-        description,
-        inputs,
-        optional_inputs: opt_inputs,
-        outputs,
-        lookback,
-        body,
+    let filter_names: Option<Vec<String>> = func_filter.map(|f| {
+        f.split(',')
+            .map(|s| s.trim().to_uppercase())
+            .collect()
+    });
+
+    let backends_to_run: Vec<&str> = match backend_filter {
+        Some(b) => b.split(',').map(|s| s.trim()).collect(),
+        None => vec!["c", "rust", "java", "dotnet", "swig"],
     };
-    println!(
-        "Parsed {} with {} body statements",
-        func_def.name,
-        func_def.body.len()
-    );
-    for (i, stmt) in func_def.body.iter().enumerate() {
-        println!("  stmt[{}]: {:?}", i, stmt);
+
+    for entry in &func_dirs {
+        let dir = entry.path();
+        let func_name_lower = entry.file_name().to_string_lossy().to_string();
+
+        // Apply function filter
+        if let Some(ref names) = filter_names {
+            if !names.iter().any(|n| n == &func_name_lower.to_uppercase()) {
+                continue;
+            }
+        }
+
+        let yaml_path = dir.join(format!("{}.yaml", func_name_lower));
+        let logic_path = dir.join(format!("{}.logic", func_name_lower));
+
+        if !yaml_path.exists() || !logic_path.exists() {
+            eprintln!(
+                "Skipping {}: missing .yaml or .logic file",
+                func_name_lower
+            );
+            continue;
+        }
+
+        let (name, group, description, inputs, opt_inputs, outputs, lookback) =
+            parser::yaml::parse_yaml(&yaml_path);
+        let body = parser::logic::parse_logic(&logic_path);
+
+        let func_def = ir::FuncDef {
+            name,
+            group,
+            description,
+            inputs,
+            optional_inputs: opt_inputs,
+            outputs,
+            lookback,
+            body,
+        };
+
+        for backend in &backends_to_run {
+            generate_backend(&func_def, backend);
+        }
     }
+}
 
-    // Generate C backend output
-    let c_output = backends::c::generate(&func_def);
-    let out_dir = Path::new("../../ta_codegen_output/c");
-    std::fs::create_dir_all(out_dir).unwrap();
-    std::fs::write(out_dir.join(format!("ta_{}.c", func_def.name)), &c_output).unwrap();
-    println!(
-        "Generated C: ta_codegen_output/c/ta_{}.c",
-        func_def.name
-    );
+fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
+    let out_base = Path::new("../../ta_codegen_output");
 
-    // Generate Rust backend output
-    let rust_output = backends::rust_lang::generate(&func_def);
-    let rust_out_dir = Path::new("../../ta_codegen_output/rust");
-    std::fs::create_dir_all(rust_out_dir).unwrap();
-    std::fs::write(
-        rust_out_dir.join(format!("{}.rs", func_def.name.to_lowercase())),
-        &rust_output,
-    )
-    .unwrap();
-    println!(
-        "Generated Rust: ta_codegen_output/rust/{}.rs",
-        func_def.name.to_lowercase()
-    );
-
-    // Generate Java backend output
-    let java_output = backends::java::generate(&func_def);
-    let java_out_dir = Path::new("../../ta_codegen_output/java");
-    std::fs::create_dir_all(java_out_dir).unwrap();
-    std::fs::write(
-        java_out_dir.join(format!("Core_{}.java", func_def.name)),
-        &java_output,
-    )
-    .unwrap();
-    println!("Generated Java: ta_codegen_output/java/Core_{}.java", func_def.name);
-
-    // Generate .NET backend output
-    let dotnet_output = backends::dotnet::generate(&func_def);
-    let dotnet_out_dir = Path::new("../../ta_codegen_output/dotnet");
-    std::fs::create_dir_all(dotnet_out_dir).unwrap();
-    std::fs::write(
-        dotnet_out_dir.join(format!("Core_{}.h", func_def.name)),
-        &dotnet_output,
-    )
-    .unwrap();
-    println!("Generated .NET: ta_codegen_output/dotnet/Core_{}.h", func_def.name);
-
-    // Generate SWIG backend output
-    let swig_output = backends::swig::generate(&func_def);
-    let swig_out_dir = Path::new("../../ta_codegen_output/swig");
-    std::fs::create_dir_all(swig_out_dir).unwrap();
-    std::fs::write(
-        swig_out_dir.join(format!("ta_{}.swg", func_def.name)),
-        &swig_output,
-    )
-    .unwrap();
-    println!("Generated SWIG: ta_codegen_output/swig/ta_{}.swg", func_def.name);
+    match backend {
+        "c" => {
+            let output = backends::c::generate(func_def);
+            let dir = out_base.join("c");
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join(format!("ta_{}.c", func_def.name));
+            std::fs::write(&path, &output).unwrap();
+            println!("  {} -> {}", func_def.name, path.display());
+        }
+        "rust" => {
+            let output = backends::rust_lang::generate(func_def);
+            let dir = out_base.join("rust");
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));
+            std::fs::write(&path, &output).unwrap();
+            println!("  {} -> {}", func_def.name, path.display());
+        }
+        "java" => {
+            let output = backends::java::generate(func_def);
+            let dir = out_base.join("java");
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join(format!("Core_{}.java", func_def.name));
+            std::fs::write(&path, &output).unwrap();
+            println!("  {} -> {}", func_def.name, path.display());
+        }
+        "dotnet" => {
+            let output = backends::dotnet::generate(func_def);
+            let dir = out_base.join("dotnet");
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join(format!("Core_{}.h", func_def.name));
+            std::fs::write(&path, &output).unwrap();
+            println!("  {} -> {}", func_def.name, path.display());
+        }
+        "swig" => {
+            let output = backends::swig::generate(func_def);
+            let dir = out_base.join("swig");
+            std::fs::create_dir_all(&dir).unwrap();
+            let path = dir.join(format!("ta_{}.swg", func_def.name));
+            std::fs::write(&path, &output).unwrap();
+            println!("  {} -> {}", func_def.name, path.display());
+        }
+        _ => {
+            eprintln!("Unknown backend: {}", backend);
+        }
+    }
 }

@@ -386,18 +386,18 @@ mod tests {
             }
             _ => panic!("Expected While"),
         }
-        // Fourth is Assign outBegIdx
+        // Fourth is Assign outNBElement
         match &stmts[3] {
             Statement::Assign { target, .. } => match target {
-                Expr::Var(name) => assert_eq!(name, "outBegIdx"),
+                Expr::Var(name) => assert_eq!(name, "outNBElement"),
                 _ => panic!("Expected Var target"),
             },
             _ => panic!("Expected Assign"),
         }
-        // Fifth is Assign outNBElement
+        // Fifth is Assign outBegIdx
         match &stmts[4] {
             Statement::Assign { target, .. } => match target {
-                Expr::Var(name) => assert_eq!(name, "outNBElement"),
+                Expr::Var(name) => assert_eq!(name, "outBegIdx"),
                 _ => panic!("Expected Var target"),
             },
             _ => panic!("Expected Assign"),
