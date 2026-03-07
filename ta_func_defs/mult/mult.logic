@@ -1,9 +1,9 @@
-index outIdx = 0
-index i = startIdx
-while i <= endIdx {
-    outReal[outIdx] = inReal0[i] * inReal1[i]
-    outIdx += 1
-    i += 1
+size_t outIdx = 0;
+size_t i = startIdx;
+while( i <= endIdx ) {
+    outReal[outIdx] = inReal0[i] * inReal1[i];
+    outIdx += 1;
+    i += 1;
 }
-outNBElement = outIdx
-outBegIdx = startIdx
+outNBElement = outIdx;
+outBegIdx = startIdx;

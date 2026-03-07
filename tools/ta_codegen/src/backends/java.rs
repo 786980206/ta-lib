@@ -107,7 +107,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
 
     // Emit VarDecl initializations
     for stmt in &func.body {
-        if let Statement::VarDecl { name, init, .. } = stmt {
+        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
             out.push_str(&format!(
                 "      {} = {};\n",
                 name,
@@ -189,6 +189,12 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out.push_str(&format!("{}}}\n", pad));
             out
         }
+        Statement::If { .. } => {
+            todo!("Java backend: if/else not yet implemented")
+        }
+        Statement::Return { .. } => {
+            todo!("Java backend: return not yet implemented")
+        }
     }
 }
 
@@ -227,6 +233,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Greater => ">",
                 BinOp::GreaterEq => ">=",
                 BinOp::Eq => "==",
+                BinOp::NotEq => "!=",
+                BinOp::And => "&&",
+                BinOp::Or => "||",
             };
             format!(
                 "({}{}{})",
@@ -242,6 +251,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Index => "int",
             };
             format!("(({}){}))", java_type, render_expr(inner, single_precision))
+        }
+        Expr::Not(inner) => {
+            format!("!({})", render_expr(inner, single_precision))
         }
     }
 }

@@ -13,7 +13,7 @@ cargo build --release
 
 echo ""
 echo "=== Generating all backends ==="
-cargo run --release -- generate
+cargo run --release -- generate --func=MULT
 
 echo ""
 echo "=== Comparing generated output against reference files ==="

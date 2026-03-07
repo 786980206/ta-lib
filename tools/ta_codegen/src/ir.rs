@@ -50,7 +50,7 @@ pub enum Statement {
     VarDecl {
         var_type: VarType,
         name: String,
-        init: Expr,
+        init: Option<Expr>,
     },
     Assign {
         target: Expr,
@@ -59,6 +59,14 @@ pub enum Statement {
     While {
         condition: Expr,
         body: Vec<Statement>,
+    },
+    If {
+        condition: Expr,
+        then_body: Vec<Statement>,
+        else_body: Vec<Statement>,
+    },
+    Return {
+        value: String,
     },
 }
 
@@ -77,6 +85,7 @@ pub enum Expr {
     ArrayAccess(String, Box<Expr>),
     BinOp(Box<Expr>, BinOp, Box<Expr>),
     Cast(VarType, Box<Expr>),
+    Not(Box<Expr>),
 }
 
 #[derive(Debug, Clone)]
@@ -90,4 +99,7 @@ pub enum BinOp {
     Greater,
     GreaterEq,
     Eq,
+    NotEq,
+    And,
+    Or,
 }

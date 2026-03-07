@@ -212,7 +212,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
         .body
         .iter()
         .filter_map(|s| {
-            if let Statement::VarDecl { name, init, .. } = s {
+            if let Statement::VarDecl { name, init: Some(init), .. } = s {
                 Some((name.clone(), init))
             } else {
                 None
@@ -243,7 +243,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
 
     // Emit VarDecl initializations (excluding for-loop vars)
     for stmt in &func.body {
-        if let Statement::VarDecl { name, init, .. } = stmt {
+        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
             if for_loop_vars.contains(name) {
                 continue;
             }
@@ -281,7 +281,7 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
     let decls: std::collections::HashMap<String, &Expr> = body
         .iter()
         .filter_map(|s| {
-            if let Statement::VarDecl { name, init, var_type } = s {
+            if let Statement::VarDecl { name, init: Some(init), var_type } = s {
                 if *var_type == VarType::Index {
                     return Some((name.clone(), init));
                 }
@@ -430,6 +430,12 @@ fn render_statement(
             out.push_str(&format!("{}}}\n", pad));
             out
         }
+        Statement::If { .. } => {
+            todo!("Rust backend: if/else not yet implemented")
+        }
+        Statement::Return { .. } => {
+            todo!("Rust backend: return not yet implemented")
+        }
     }
 }
 
@@ -471,6 +477,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Greater => " > ",
                 BinOp::GreaterEq => " >= ",
                 BinOp::Eq => " == ",
+                BinOp::NotEq => " != ",
+                BinOp::And => " && ",
+                BinOp::Or => " || ",
             };
             format!(
                 "{}{}{}",
@@ -486,6 +495,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Index => "usize",
             };
             format!("({}) as {}", render_expr(inner, single_precision), rust_type)
+        }
+        Expr::Not(inner) => {
+            format!("!({})", render_expr(inner, single_precision))
         }
     }
 }

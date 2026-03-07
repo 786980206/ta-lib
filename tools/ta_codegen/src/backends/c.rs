@@ -153,6 +153,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
             out.push_str(&format!("   {} {};\n", c_type, name));
         }
     }
+    // Return statements are handled by body rendering; skip has no standalone decls.
 
     out.push('\n');
 
@@ -165,7 +166,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
 
     // Emit VarDecl initializations (the declarations were already emitted above)
     for stmt in &func.body {
-        if let Statement::VarDecl { name, init, .. } = stmt {
+        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
             out.push_str(&format!(
                 "   {} = {};\n",
                 name,
@@ -201,13 +202,16 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 VarType::Integer => "int",
                 VarType::Index => "int",
             };
-            format!(
-                "{}{} {} = {};\n",
-                pad,
-                c_type,
-                name,
-                render_expr(init, single_precision)
-            )
+            match init {
+                Some(init_expr) => format!(
+                    "{}{} {} = {};\n",
+                    pad,
+                    c_type,
+                    name,
+                    render_expr(init_expr, single_precision)
+                ),
+                None => format!("{}{} {};\n", pad, c_type, name),
+            }
         }
         Statement::Assign { target, value } => {
             // Detect compound assignment: x = x + expr => x += expr
@@ -251,6 +255,12 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out.push_str(&format!("{}}}\n", pad));
             out
         }
+        Statement::If { .. } => {
+            todo!("C backend: if/else not yet implemented")
+        }
+        Statement::Return { .. } => {
+            todo!("C backend: return not yet implemented")
+        }
     }
 }
 
@@ -292,6 +302,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Greater => ">",
                 BinOp::GreaterEq => ">=",
                 BinOp::Eq => "==",
+                BinOp::NotEq => "!=",
+                BinOp::And => "&&",
+                BinOp::Or => "||",
             };
             format!(
                 "({}{}{})",
@@ -307,6 +320,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Index => "int",
             };
             format!("(({}){})", c_type, render_expr(inner, single_precision))
+        }
+        Expr::Not(inner) => {
+            format!("!({})", render_expr(inner, single_precision))
         }
     }
 }

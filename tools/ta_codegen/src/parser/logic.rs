@@ -14,6 +14,10 @@ enum Token {
     RBrace,
     LBracket,
     RBracket,
+    LParen,
+    RParen,
+    Bang,
+    Semicolon,
     Newline,
 }
 
@@ -31,12 +35,39 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
+        // Skip single-line comments: // ...
+        if c == '/' && i + 1 < chars.len() && chars[i + 1] == '/' {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
+            continue;
+        }
+
         // Newline
         if c == '\n' {
             // Collapse consecutive newlines
             if tokens.last() != Some(&Token::Newline) {
                 tokens.push(Token::Newline);
             }
+            i += 1;
+            continue;
+        }
+
+        // Semicolon
+        if c == ';' {
+            tokens.push(Token::Semicolon);
+            i += 1;
+            continue;
+        }
+
+        // Parentheses
+        if c == '(' {
+            tokens.push(Token::LParen);
+            i += 1;
+            continue;
+        }
+        if c == ')' {
+            tokens.push(Token::RParen);
             i += 1;
             continue;
         }
@@ -63,12 +94,24 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
-        // Two-char operators: <=, >=, ==, +=, -=, *=, /=
+        // Bang (!) — check for != first
+        if c == '!' {
+            if i + 1 < chars.len() && chars[i + 1] == '=' {
+                tokens.push(Token::Op("!=".to_string()));
+                i += 2;
+                continue;
+            }
+            tokens.push(Token::Bang);
+            i += 1;
+            continue;
+        }
+
+        // Two-char operators: <=, >=, ==, +=, -=, *=, /=, &&, ||, --
         if i + 1 < chars.len() {
             let two = format!("{}{}", c, chars[i + 1]);
             if matches!(
                 two.as_str(),
-                "<=" | ">=" | "==" | "+=" | "-=" | "*=" | "/="
+                "<=" | ">=" | "==" | "+=" | "-=" | "*=" | "/=" | "&&" | "||" | "--"
             ) {
                 tokens.push(Token::Op(two));
                 i += 2;
@@ -161,7 +204,7 @@ impl Parser {
     }
 
     fn skip_newlines(&mut self) {
-        while self.peek() == Some(&Token::Newline) {
+        while matches!(self.peek(), Some(&Token::Newline) | Some(&Token::Semicolon)) {
             self.advance();
         }
     }
@@ -182,8 +225,13 @@ impl Parser {
     fn parse_statement(&mut self) -> Statement {
         match self.peek().cloned() {
             Some(Token::Ident(ref s)) if s == "while" => self.parse_while(),
+            Some(Token::Ident(ref s)) if s == "if" => self.parse_if(),
+            Some(Token::Ident(ref s)) if s == "return" => self.parse_return(),
             Some(Token::Ident(ref s))
-                if matches!(s.as_str(), "index" | "real" | "integer") =>
+                if matches!(
+                    s.as_str(),
+                    "index" | "real" | "integer" | "double" | "int" | "size_t"
+                ) =>
             {
                 self.parse_var_decl()
             }
@@ -193,7 +241,18 @@ impl Parser {
 
     fn parse_while(&mut self) -> Statement {
         self.advance(); // consume "while"
-        let condition = self.parse_expr();
+
+        // Handle optional parenthesized condition
+        let condition = if self.peek() == Some(&Token::LParen) {
+            self.advance(); // consume (
+            let cond = self.parse_expr();
+            self.expect(&Token::RParen);
+            cond
+        } else {
+            self.parse_expr()
+        };
+
+        self.skip_newlines();
         self.expect(&Token::LBrace);
         self.skip_newlines();
         let body = self.parse_statements();
@@ -201,13 +260,81 @@ impl Parser {
         Statement::While { condition, body }
     }
 
+    fn parse_if(&mut self) -> Statement {
+        self.advance(); // consume "if"
+
+        // Handle optional parenthesized condition
+        let condition = if self.peek() == Some(&Token::LParen) {
+            self.advance(); // consume (
+            let cond = self.parse_expr();
+            self.expect(&Token::RParen);
+            cond
+        } else {
+            self.parse_expr()
+        };
+
+        self.skip_newlines();
+        self.expect(&Token::LBrace);
+        self.skip_newlines();
+        let then_body = self.parse_statements();
+        self.expect(&Token::RBrace);
+
+        self.skip_newlines();
+
+        let else_body = if let Some(Token::Ident(ref s)) = self.peek() {
+            if s == "else" {
+                self.advance(); // consume "else"
+                self.skip_newlines();
+                if let Some(Token::Ident(ref s2)) = self.peek() {
+                    if s2 == "if" {
+                        // else if — recurse
+                        vec![self.parse_if()]
+                    } else {
+                        // else { ... }
+                        self.expect(&Token::LBrace);
+                        self.skip_newlines();
+                        let body = self.parse_statements();
+                        self.expect(&Token::RBrace);
+                        body
+                    }
+                } else {
+                    // else { ... }
+                    self.expect(&Token::LBrace);
+                    self.skip_newlines();
+                    let body = self.parse_statements();
+                    self.expect(&Token::RBrace);
+                    body
+                }
+            } else {
+                vec![]
+            }
+        } else {
+            vec![]
+        };
+
+        Statement::If {
+            condition,
+            then_body,
+            else_body,
+        }
+    }
+
+    fn parse_return(&mut self) -> Statement {
+        self.advance(); // consume "return"
+        let value = match self.advance() {
+            Token::Ident(s) => s,
+            other => panic!("Expected identifier after return, got {:?}", other),
+        };
+        Statement::Return { value }
+    }
+
     fn parse_var_decl(&mut self) -> Statement {
         let type_tok = self.advance();
         let var_type = match type_tok {
             Token::Ident(ref s) => match s.as_str() {
-                "index" => VarType::Index,
-                "real" => VarType::Real,
-                "integer" => VarType::Integer,
+                "index" | "size_t" => VarType::Index,
+                "real" | "double" => VarType::Real,
+                "integer" | "int" => VarType::Integer,
                 _ => panic!("Unknown type: {}", s),
             },
             _ => panic!("Expected type keyword"),
@@ -216,12 +343,26 @@ impl Parser {
             Token::Ident(s) => s,
             other => panic!("Expected identifier, got {:?}", other),
         };
-        self.expect_op("=");
-        let init = self.parse_expr();
-        Statement::VarDecl {
-            var_type,
-            name,
-            init,
+
+        // Check for init or bare declaration
+        match self.peek() {
+            Some(&Token::Semicolon) | Some(&Token::Newline) | None => {
+                // No initializer
+                Statement::VarDecl {
+                    var_type,
+                    name,
+                    init: None,
+                }
+            }
+            _ => {
+                self.expect_op("=");
+                let init = self.parse_expr();
+                Statement::VarDecl {
+                    var_type,
+                    name,
+                    init: Some(init),
+                }
+            }
         }
     }
 
@@ -275,7 +416,33 @@ impl Parser {
     // Expression parsing with precedence climbing
 
     fn parse_expr(&mut self) -> Expr {
-        self.parse_comparison()
+        self.parse_logical_or()
+    }
+
+    fn parse_logical_or(&mut self) -> Expr {
+        let mut left = self.parse_logical_and();
+        while let Some(Token::Op(ref op)) = self.peek() {
+            if op != "||" {
+                break;
+            }
+            self.advance();
+            let right = self.parse_logical_and();
+            left = Expr::BinOp(Box::new(left), BinOp::Or, Box::new(right));
+        }
+        left
+    }
+
+    fn parse_logical_and(&mut self) -> Expr {
+        let mut left = self.parse_comparison();
+        while let Some(Token::Op(ref op)) = self.peek() {
+            if op != "&&" {
+                break;
+            }
+            self.advance();
+            let right = self.parse_comparison();
+            left = Expr::BinOp(Box::new(left), BinOp::And, Box::new(right));
+        }
+        left
     }
 
     fn parse_comparison(&mut self) -> Expr {
@@ -287,6 +454,7 @@ impl Parser {
                 "<" => BinOp::Less,
                 ">" => BinOp::Greater,
                 "==" => BinOp::Eq,
+                "!=" => BinOp::NotEq,
                 _ => break,
             };
             self.advance();
@@ -312,7 +480,7 @@ impl Parser {
     }
 
     fn parse_multiplicative(&mut self) -> Expr {
-        let mut left = self.parse_primary();
+        let mut left = self.parse_unary();
         while let Some(Token::Op(ref op)) = self.peek() {
             let bin_op = match op.as_str() {
                 "*" => BinOp::Mul,
@@ -320,28 +488,69 @@ impl Parser {
                 _ => break,
             };
             self.advance();
-            let right = self.parse_primary();
+            let right = self.parse_unary();
             left = Expr::BinOp(Box::new(left), bin_op, Box::new(right));
         }
         left
     }
 
+    fn parse_unary(&mut self) -> Expr {
+        if self.peek() == Some(&Token::Bang) {
+            self.advance(); // consume !
+            let operand = self.parse_unary();
+            return Expr::Not(Box::new(operand));
+        }
+        self.parse_primary()
+    }
+
+    fn is_type_keyword(s: &str) -> bool {
+        matches!(s, "double" | "int" | "size_t" | "real" | "integer" | "index")
+    }
+
     fn parse_primary(&mut self) -> Expr {
-        match self.advance() {
-            Token::IntNumber(n) => Expr::IntLiteral(n),
-            Token::Number(n) => Expr::Literal(n),
-            Token::Ident(name) => {
-                // Check for array access
-                if self.peek() == Some(&Token::LBracket) {
-                    self.advance(); // consume [
-                    let index = self.parse_expr();
-                    self.expect(&Token::RBracket);
-                    Expr::ArrayAccess(name, Box::new(index))
-                } else {
-                    Expr::Var(name)
+        match self.peek().cloned() {
+            Some(Token::LParen) => {
+                self.advance(); // consume (
+                // Check if this is a C-style cast: (double), (int), (size_t)
+                if let Some(Token::Ident(ref s)) = self.peek() {
+                    if Self::is_type_keyword(s) {
+                        let type_name = s.clone();
+                        self.advance(); // consume type keyword
+                        self.expect(&Token::RParen);
+                        let var_type = match type_name.as_str() {
+                            "double" | "real" => VarType::Real,
+                            "int" | "integer" => VarType::Integer,
+                            "size_t" | "index" => VarType::Index,
+                            _ => unreachable!(),
+                        };
+                        let operand = self.parse_unary();
+                        return Expr::Cast(var_type, Box::new(operand));
+                    }
+                }
+                // Grouped expression
+                let expr = self.parse_expr();
+                self.expect(&Token::RParen);
+                expr
+            }
+            _ => {
+                let tok = self.advance();
+                match tok {
+                    Token::IntNumber(n) => Expr::IntLiteral(n),
+                    Token::Number(n) => Expr::Literal(n),
+                    Token::Ident(name) => {
+                        // Check for array access
+                        if self.peek() == Some(&Token::LBracket) {
+                            self.advance(); // consume [
+                            let index = self.parse_expr();
+                            self.expect(&Token::RBracket);
+                            Expr::ArrayAccess(name, Box::new(index))
+                        } else {
+                            Expr::Var(name)
+                        }
+                    }
+                    other => panic!("Unexpected token in expression: {:?}", other),
                 }
             }
-            other => panic!("Unexpected token in expression: {:?}", other),
         }
     }
 }
