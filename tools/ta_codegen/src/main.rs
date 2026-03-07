@@ -1,3 +1,4 @@
+mod backends;
 mod ir;
 mod parser;
 
@@ -34,4 +35,14 @@ fn main() {
     for (i, stmt) in func_def.body.iter().enumerate() {
         println!("  stmt[{}]: {:?}", i, stmt);
     }
+
+    // Generate C backend output
+    let c_output = backends::c::generate(&func_def);
+    let out_dir = Path::new("../../ta_codegen_output/c");
+    std::fs::create_dir_all(out_dir).unwrap();
+    std::fs::write(out_dir.join(format!("ta_{}.c", func_def.name)), &c_output).unwrap();
+    println!(
+        "Generated C: ta_codegen_output/c/ta_{}.c",
+        func_def.name
+    );
 }
