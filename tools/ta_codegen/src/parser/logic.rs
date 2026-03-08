@@ -19,6 +19,7 @@ enum Token {
     Bang,
     Semicolon,
     Comma,
+    Colon,
     Newline,
 }
 
@@ -74,6 +75,13 @@ fn tokenize(input: &str) -> Vec<Token> {
         // Comma
         if c == ',' {
             tokens.push(Token::Comma);
+            i += 1;
+            continue;
+        }
+
+        // Colon (used in switch/case labels)
+        if c == ':' {
+            tokens.push(Token::Colon);
             i += 1;
             continue;
         }
@@ -245,11 +253,20 @@ impl Parser {
             Some(Token::Ident(ref s)) if s == "while" => self.parse_while(),
             Some(Token::Ident(ref s)) if s == "for" => self.parse_for(),
             Some(Token::Ident(ref s)) if s == "if" => self.parse_if(),
+            Some(Token::Ident(ref s)) if s == "switch" => self.parse_switch(),
             Some(Token::Ident(ref s)) if s == "return" => self.parse_return(),
+            Some(Token::Ident(ref s)) if s == "break" => {
+                self.advance();
+                Statement::Break
+            }
+            Some(Token::Ident(ref s)) if s == "continue" => {
+                self.advance();
+                Statement::Continue
+            }
             Some(Token::Ident(ref s))
                 if matches!(
                     s.as_str(),
-                    "index" | "real" | "integer" | "double" | "int" | "size_t"
+                    "index" | "real" | "integer" | "double" | "int" | "size_t" | "RetCode"
                 ) =>
             {
                 self.parse_var_decl()
@@ -373,11 +390,97 @@ impl Parser {
         }
     }
 
+    /// Parse: `switch( expr ) { case Label: stmts; break; ... default: stmts; }`
+    fn parse_switch(&mut self) -> Statement {
+        self.advance(); // consume "switch"
+        self.expect(&Token::LParen);
+        let expr = self.parse_expr();
+        self.expect(&Token::RParen);
+        self.skip_newlines();
+        self.expect(&Token::LBrace);
+        self.skip_newlines();
+
+        let mut cases: Vec<(String, Vec<Statement>)> = Vec::new();
+        let mut default_body: Vec<Statement> = Vec::new();
+
+        while self.peek() != Some(&Token::RBrace) {
+            self.skip_newlines();
+            if self.peek() == Some(&Token::RBrace) {
+                break;
+            }
+            match self.peek().cloned() {
+                Some(Token::Ident(ref s)) if s == "case" => {
+                    self.advance(); // consume "case"
+                    // Parse case label (e.g., MAType_SMA)
+                    let label = match self.advance() {
+                        Token::Ident(s) => s,
+                        Token::IntNumber(n) => format!("{}", n),
+                        other => panic!("Expected case label, got {:?}", other),
+                    };
+                    self.expect(&Token::Colon);
+                    self.skip_newlines();
+
+                    // Parse statements until break or next case/default
+                    let mut body = Vec::new();
+                    loop {
+                        self.skip_newlines();
+                        match self.peek() {
+                            Some(Token::RBrace) => break,
+                            Some(Token::Ident(ref s))
+                                if s == "case" || s == "default" =>
+                            {
+                                break
+                            }
+                            Some(Token::Ident(ref s)) if s == "break" => {
+                                self.advance(); // consume break
+                                self.skip_newlines();
+                                break;
+                            }
+                            _ => body.push(self.parse_statement()),
+                        }
+                        self.skip_newlines();
+                    }
+                    cases.push((label, body));
+                }
+                Some(Token::Ident(ref s)) if s == "default" => {
+                    self.advance(); // consume "default"
+                    self.expect(&Token::Colon);
+                    self.skip_newlines();
+
+                    // Parse statements until break or closing brace
+                    loop {
+                        self.skip_newlines();
+                        match self.peek() {
+                            Some(Token::RBrace) => break,
+                            Some(Token::Ident(ref s)) if s == "break" => {
+                                self.advance();
+                                self.skip_newlines();
+                                break;
+                            }
+                            _ => default_body.push(self.parse_statement()),
+                        }
+                        self.skip_newlines();
+                    }
+                }
+                other => panic!("Expected 'case' or 'default' in switch, got {:?}", other),
+            }
+        }
+        self.expect(&Token::RBrace);
+
+        Statement::Switch {
+            expr,
+            cases,
+            default: default_body,
+        }
+    }
+
     fn parse_return(&mut self) -> Statement {
         self.advance(); // consume "return"
         let value = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier after return, got {:?}", other),
+            Token::IntNumber(n) => format!("{}", n),
+            Token::Number(n) => format!("{}", n),
+            other => panic!("Expected identifier or literal after return, got {:?}", other),
         };
         Statement::Return { value }
     }
@@ -389,6 +492,7 @@ impl Parser {
                 "index" | "size_t" => VarType::Index,
                 "real" | "double" => VarType::Real,
                 "integer" | "int" => VarType::Integer,
+                "RetCode" => VarType::RetCodeType,
                 _ => panic!("Unknown type: {}", s),
             },
             _ => panic!("Expected type keyword"),
@@ -622,7 +726,7 @@ impl Parser {
     }
 
     fn is_type_keyword(s: &str) -> bool {
-        matches!(s, "double" | "int" | "size_t" | "real" | "integer" | "index")
+        matches!(s, "double" | "int" | "size_t" | "real" | "integer" | "index" | "RetCode")
     }
 
     fn parse_primary(&mut self) -> Expr {
@@ -639,6 +743,7 @@ impl Parser {
                             "double" | "real" => VarType::Real,
                             "int" | "integer" => VarType::Integer,
                             "size_t" | "index" => VarType::Index,
+                            "RetCode" => VarType::RetCodeType,
                             _ => unreachable!(),
                         };
                         let operand = self.parse_unary();

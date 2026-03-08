@@ -383,6 +383,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> Str
                 VarType::Real => "f64",
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
+                VarType::RetCodeType => "RetCode",
             };
             // Determine if mut is needed: variable assigned more than once total
             let total_assigns = count_assignments(name, &func.body);
@@ -569,6 +570,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
                 VarType::Real => "f64",
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
+                VarType::RetCodeType => "RetCode",
             };
             // Determine if mut is needed: variable assigned more than once total
             let total_assigns = count_assignments(name, &func.body);
@@ -695,7 +697,13 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
                 count += count_assignments_inner(name, then_body, in_loop);
                 count += count_assignments_inner(name, else_body, in_loop);
             }
-            Statement::Return { .. } => {}
+            Statement::Return { .. } | Statement::Break | Statement::Continue => {}
+            Statement::Switch { cases, default, .. } => {
+                for (_, case_body) in cases {
+                    count += count_assignments_inner(name, case_body, in_loop);
+                }
+                count += count_assignments_inner(name, default, in_loop);
+            }
         }
     }
     count
@@ -942,6 +950,46 @@ fn render_statement(
             };
             format!("{}return {};\n", pad, ret_val)
         }
+        Statement::Break => format!("{}break;\n", pad),
+        Statement::Continue => format!("{}continue;\n", pad),
+        Statement::Switch { expr, cases, default } => {
+            let mut out = format!("{}match {} {{\n", pad, render_expr(expr, single_precision));
+            for (label, case_body) in cases {
+                let rust_label = render_switch_label(label);
+                out.push_str(&format!("{}    {} => {{\n", pad, rust_label));
+                for s in case_body {
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names));
+                }
+                out.push_str(&format!("{}    }}\n", pad));
+                }
+            if !default.is_empty() {
+                out.push_str(&format!("{}    _ => {{\n", pad));
+                for s in default {
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names));
+                }
+                out.push_str(&format!("{}    }}\n", pad));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+    }
+}
+
+/// Map a switch case label to Rust. For MA type labels like `MAType_SMA`,
+/// render as the integer constant.
+fn render_switch_label(label: &str) -> String {
+    // MA type enum labels: MAType_SMA -> 0, MAType_EMA -> 1, etc.
+    match label {
+        "MAType_SMA" => "0".to_string(),
+        "MAType_EMA" => "1".to_string(),
+        "MAType_WMA" => "2".to_string(),
+        "MAType_DEMA" => "3".to_string(),
+        "MAType_TEMA" => "4".to_string(),
+        "MAType_TRIMA" => "5".to_string(),
+        "MAType_KAMA" => "6".to_string(),
+        "MAType_MAMA" => "7".to_string(),
+        "MAType_T3" => "8".to_string(),
+        _ => label.to_string(),
     }
 }
 
@@ -1026,6 +1074,8 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             "COMPATIBILITY" => "(self.compatibility)".to_string(),
             "METASTOCK" => "Compatibility::Metastock".to_string(),
             "DEFAULT" => "Compatibility::Default".to_string(),
+            "BAD_PARAM" => "RetCode::BadParam".to_string(),
+            "SUCCESS" => "RetCode::Success".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -1062,6 +1112,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Real => "f64",
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
+                VarType::RetCodeType => "RetCode",
             };
             format!("({}) as {}", render_expr(inner, single_precision), rust_type)
         }
@@ -1085,6 +1136,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
                 VarType::Real => "f64",
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
+                VarType::RetCodeType => "RetCode",
             };
             // Count assignments to determine mutability
             let total_assigns = count_assignments(name, stmts);
@@ -1180,11 +1232,40 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
         let rust_name = fname.to_lowercase();
         let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
+    } else if is_ta_function(fname) {
+        // TA function call: SMA(...) -> self.sma(...) or self.sma_s(...) for single precision
+        let rust_name = if single_precision {
+            format!("{}_s", fname.to_lowercase())
+        } else {
+            fname.to_lowercase()
+        };
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else {
-        // Generic function call
+        // Generic function call (math functions etc.)
         let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
         format!("{}({})", fname, rendered_args.join(", "))
     }
+}
+
+/// Check if a function name is a known TA-Lib function (uppercase name).
+/// These get mapped to self.name() method calls in Rust.
+fn is_ta_function(name: &str) -> bool {
+    // TA function names are all-uppercase (SMA, EMA, RSI, etc.)
+    // Exclude known builtins that are handled separately
+    !name.is_empty()
+        && name.chars().all(|c| c.is_ascii_uppercase() || c == '_')
+        && !matches!(
+            name,
+            "UNSTABLE_PERIOD"
+                | "IS_ZERO"
+                | "ARRAY_COPY"
+                | "PER_TO_K"
+                | "COMPATIBILITY"
+                | "METASTOCK"
+                | "DEFAULT"
+        )
+        && !name.ends_with("_Lookback")
 }
 
 fn gen_footer() -> String {

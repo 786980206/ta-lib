@@ -112,6 +112,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "RetCode",
             };
             out.push_str(&format!("      {} {};\n", java_type, name));
         }
@@ -287,6 +288,43 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             }
             out
         }
+        Statement::Break => format!("{}break;\n", pad),
+        Statement::Continue => format!("{}continue;\n", pad),
+        Statement::Switch { expr, cases, default } => {
+            let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision), pad);
+            for (label, case_body) in cases {
+                let java_label = render_java_switch_label(label);
+                out.push_str(&format!("{}case {}:\n", pad, java_label));
+                for s in case_body {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}   break;\n", pad));
+            }
+            if !default.is_empty() {
+                out.push_str(&format!("{}default:\n", pad));
+                for s in default {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}   break;\n", pad));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+    }
+}
+
+fn render_java_switch_label(label: &str) -> String {
+    match label {
+        "MAType_SMA" => "MAType.Sma".to_string(),
+        "MAType_EMA" => "MAType.Ema".to_string(),
+        "MAType_WMA" => "MAType.Wma".to_string(),
+        "MAType_DEMA" => "MAType.Dema".to_string(),
+        "MAType_TEMA" => "MAType.Tema".to_string(),
+        "MAType_TRIMA" => "MAType.Trima".to_string(),
+        "MAType_KAMA" => "MAType.Kama".to_string(),
+        "MAType_MAMA" => "MAType.Mama".to_string(),
+        "MAType_T3" => "MAType.T3".to_string(),
+        _ => label.to_string(),
     }
 }
 
@@ -314,6 +352,8 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             "COMPATIBILITY" => "this.compatibility".to_string(),
             "METASTOCK" => "Compatibility.Metastock".to_string(),
             "DEFAULT" => "Compatibility.Default".to_string(),
+            "BAD_PARAM" => "RetCode.BadParam".to_string(),
+            "SUCCESS" => "RetCode.Success".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -346,6 +386,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "RetCode",
             };
             format!("(({}){})", java_type, render_expr(inner, single_precision))
         }
@@ -447,6 +488,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "RetCode",
             };
             out.push_str(&format!("      {} {};\n", java_type, name));
         }

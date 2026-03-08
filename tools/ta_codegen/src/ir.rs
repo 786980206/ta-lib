@@ -80,6 +80,14 @@ pub enum Statement {
     Return {
         value: String,
     },
+    Break,
+    Continue,
+    /// switch(expr) { case Value: stmts; break; ... default: stmts; }
+    Switch {
+        expr: Expr,
+        cases: Vec<(String, Vec<Statement>)>,
+        default: Vec<Statement>,
+    },
     /// A block of statements (used for ARRAY_COPY expansion in some backends).
     Block {
         body: Vec<Statement>,
@@ -91,6 +99,7 @@ pub enum VarType {
     Real,
     Integer,
     Index,
+    RetCodeType,
 }
 
 #[derive(Debug, Clone)]

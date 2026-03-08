@@ -6,6 +6,21 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-07 -- ta_codegen: SMA, RSI, EMA, MA support with switch/case dispatch
+
+`git diff 4af160c3^..28388d9` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/9f295c53...28388d9)
+
+* [4af160c](https://github.com/TA-Lib/ta-lib/commit/4af160c3) Logic syntax reference doc and updated ta_codegen design for C-like syntax
+* [48aa690](https://github.com/TA-Lib/ta-lib/commit/48aa690d) SMA implementation plan for ta_codegen
+* [5d6114f](https://github.com/TA-Lib/ta-lib/commit/5d6114ff) Extended IR and parser for C-like logic syntax (semicolons, parens, C types), migrated MULT
+* [09d3278](https://github.com/TA-Lib/ta-lib/commit/09d3278c) SMA function definition: sma.yaml + sma.logic
+* [f3b85bd](https://github.com/TA-Lib/ta-lib/commit/f3b85bd3) If/Return in all backends, SMA generation matching reference
+* [75f7019](https://github.com/TA-Lib/ta-lib/commit/75f17019) SMA JSON-RPC validation server support
+* [8f0424c](https://github.com/TA-Lib/ta-lib/commit/8f0424c6) RSI support: for loops, builtins (UNSTABLE_PERIOD, IS_ZERO, ARRAY_COPY), complex lookback
+* [c68af8f](https://github.com/TA-Lib/ta-lib/commit/c68af8f9) EMA support: PER_TO_K, DEFAULT/METASTOCK compat builtins, smart operator precedence
+* [28388d9] MA support: switch/case/break/continue, RetCodeType, function call dispatch, BAD_PARAM/SUCCESS mapping
+* 33 validations passing (5 functions × 5 backends + byte-identical MULT/SMA + 6 JSON-RPC tests + 13 integration tests)
+
 ## 2026-03-07 -- ta_codegen prototype: YAML+logic multi-language generator
 
 `git diff f3bf0542^..9f295c53` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/1cb68ba0...9f295c53)

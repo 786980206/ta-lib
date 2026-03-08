@@ -67,7 +67,12 @@ for f in \
     "../../ta_codegen_output/rust/ema.rs" \
     "../../ta_codegen_output/java/Core_EMA.java" \
     "../../ta_codegen_output/dotnet/Core_EMA.h" \
-    "../../ta_codegen_output/swig/ta_EMA.swg"; do
+    "../../ta_codegen_output/swig/ta_EMA.swg" \
+    "../../ta_codegen_output/c/ta_MA.c" \
+    "../../ta_codegen_output/rust/ma.rs" \
+    "../../ta_codegen_output/java/Core_MA.java" \
+    "../../ta_codegen_output/dotnet/Core_MA.h" \
+    "../../ta_codegen_output/swig/ta_MA.swg"; do
     if [ -s "$f" ]; then
         pass "Generated file exists: $(basename "$f")"
     else

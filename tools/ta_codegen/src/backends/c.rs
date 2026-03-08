@@ -171,6 +171,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "TA_RetCode",
             };
             out.push_str(&format!("   {} {};\n", c_type, name));
         }
@@ -223,6 +224,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "TA_RetCode",
             };
             match init {
                 Some(init_expr) => format!(
@@ -358,6 +360,43 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             }
             out
         }
+        Statement::Break => format!("{}break;\n", pad),
+        Statement::Continue => format!("{}continue;\n", pad),
+        Statement::Switch { expr, cases, default } => {
+            let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision), pad);
+            for (label, case_body) in cases {
+                let c_label = render_c_switch_label(label);
+                out.push_str(&format!("{}case {}:\n", pad, c_label));
+                for s in case_body {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}   break;\n", pad));
+            }
+            if !default.is_empty() {
+                out.push_str(&format!("{}default:\n", pad));
+                for s in default {
+                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                }
+                out.push_str(&format!("{}   break;\n", pad));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+    }
+}
+
+fn render_c_switch_label(label: &str) -> String {
+    match label {
+        "MAType_SMA" => "ENUM_CASE(MAType, TA_MAType_SMA, Sma)".to_string(),
+        "MAType_EMA" => "ENUM_CASE(MAType, TA_MAType_EMA, Ema)".to_string(),
+        "MAType_WMA" => "ENUM_CASE(MAType, TA_MAType_WMA, Wma)".to_string(),
+        "MAType_DEMA" => "ENUM_CASE(MAType, TA_MAType_DEMA, Dema)".to_string(),
+        "MAType_TEMA" => "ENUM_CASE(MAType, TA_MAType_TEMA, Tema)".to_string(),
+        "MAType_TRIMA" => "ENUM_CASE(MAType, TA_MAType_TRIMA, Trima)".to_string(),
+        "MAType_KAMA" => "ENUM_CASE(MAType, TA_MAType_KAMA, Kama)".to_string(),
+        "MAType_MAMA" => "ENUM_CASE(MAType, TA_MAType_MAMA, Mama)".to_string(),
+        "MAType_T3" => "ENUM_CASE(MAType, TA_MAType_T3, T3)".to_string(),
+        _ => label.to_string(),
     }
 }
 
@@ -392,6 +431,8 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             "DEFAULT" => {
                 "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)".to_string()
             }
+            "BAD_PARAM" => "TA_BAD_PARAM".to_string(),
+            "SUCCESS" => "TA_SUCCESS".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -424,6 +465,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "TA_RetCode",
             };
             format!("(({}){})", c_type, render_expr(inner, single_precision))
         }
@@ -492,9 +534,10 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
         let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
         format!("TA_{}({})", fname, rendered.join(","))
     } else {
-        // Generic: prefix with TA_
+        // TA function call: SMA(...) -> TA_SMA(...) or TA_S_SMA(...) for single precision
         let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
-        format!("TA_{}({})", fname, rendered.join(","))
+        let prefix = if single_precision { "TA_S_" } else { "TA_" };
+        format!("{}{}({})", prefix, fname, rendered.join(","))
     }
 }
 
@@ -509,6 +552,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
                 VarType::Real => "double",
                 VarType::Integer => "int",
                 VarType::Index => "int",
+                VarType::RetCodeType => "TA_RetCode",
             };
             out.push_str(&format!("   {} {};\n", c_type, name));
         }
