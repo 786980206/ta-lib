@@ -1,4 +1,4 @@
-int TA_MA_Lookback(int optInTimePeriod, int optInMAType)
+int ma_lookback(int optInTimePeriod, int optInMAType)
 {
     int retValue;
     if( optInTimePeriod <= 1 ) {
@@ -6,10 +6,10 @@ int TA_MA_Lookback(int optInTimePeriod, int optInMAType)
     }
     switch( optInMAType ) {
         case MAType_SMA:
-            retValue = TA_SMA_Lookback(optInTimePeriod);
+            retValue = sma_lookback(optInTimePeriod);
             break;
         case MAType_EMA:
-            retValue = TA_EMA_Lookback(optInTimePeriod);
+            retValue = ema_lookback(optInTimePeriod);
             break;
         default:
             retValue = 0;
@@ -18,7 +18,7 @@ int TA_MA_Lookback(int optInTimePeriod, int optInMAType)
     return retValue;
 }
 
-TA_RetCode TA_MA(int startIdx, int endIdx,
+TA_RetCode ma_logic(int startIdx, int endIdx,
                  const double inReal[],
                  int optInTimePeriod,
                  int optInMAType,
@@ -46,10 +46,10 @@ TA_RetCode TA_MA(int startIdx, int endIdx,
 
     switch( optInMAType ) {
         case MAType_SMA:
-            retCode = TA_SMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            retCode = sma_logic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             break;
         case MAType_EMA:
-            retCode = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            retCode = ema_logic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             break;
         default:
             retCode = TA_BAD_PARAM;

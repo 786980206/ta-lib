@@ -1,9 +1,9 @@
-int TA_EMA_Lookback(int optInTimePeriod)
+int ema_lookback(int optInTimePeriod)
 {
     return optInTimePeriod - 1 + TA_GetUnstablePeriod(EMA);
 }
 
-TA_RetCode TA_INT_EMA(int startIdx, int endIdx,
+TA_RetCode ema_logic(int startIdx, int endIdx,
                       const double inReal[],
                       int optInTimePeriod,
                       int *outBegIdx, int *outNBElement,
@@ -17,7 +17,7 @@ TA_RetCode TA_INT_EMA(int startIdx, int endIdx,
     size_t lookbackTotal;
     double optInK_1;
 
-    lookbackTotal = (size_t)TA_EMA_Lookback(optInTimePeriod);
+    lookbackTotal = (size_t)ema_lookback(optInTimePeriod);
 
     if( startIdx < lookbackTotal ) {
         startIdx = lookbackTotal;

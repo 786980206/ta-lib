@@ -1,9 +1,9 @@
-int TA_WMA_Lookback(int optInTimePeriod)
+int wma_lookback(int optInTimePeriod)
 {
     return optInTimePeriod - 1;
 }
 
-TA_RetCode TA_INT_WMA(int startIdx, int endIdx,
+TA_RetCode wma_logic(int startIdx, int endIdx,
                       const double inReal[],
                       int optInTimePeriod,
                       int *outBegIdx, int *outNBElement,

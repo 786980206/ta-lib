@@ -1,9 +1,9 @@
-int TA_MULT_Lookback(void)
+int mult_lookback(void)
 {
     return 0;
 }
 
-TA_RetCode TA_MULT(int startIdx, int endIdx,
+TA_RetCode mult_logic(int startIdx, int endIdx,
                    const double inReal0[],
                    const double inReal1[],
                    int *outBegIdx, int *outNBElement,

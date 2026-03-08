@@ -1,4 +1,4 @@
-int TA_RSI_Lookback(int optInTimePeriod)
+int rsi_lookback(int optInTimePeriod)
 {
     int retValue;
     retValue = optInTimePeriod + TA_GetUnstablePeriod(RSI);
@@ -8,7 +8,7 @@ int TA_RSI_Lookback(int optInTimePeriod)
     return retValue;
 }
 
-TA_RetCode TA_RSI(int startIdx, int endIdx,
+TA_RetCode rsi_logic(int startIdx, int endIdx,
                   const double inReal[],
                   int optInTimePeriod,
                   int *outBegIdx, int *outNBElement,
@@ -29,7 +29,7 @@ TA_RetCode TA_RSI(int startIdx, int endIdx,
     *outBegIdx = 0;
     *outNBElement = 0;
 
-    lookbackTotal = (size_t)TA_RSI_Lookback(optInTimePeriod);
+    lookbackTotal = (size_t)rsi_lookback(optInTimePeriod);
 
     if( startIdx < lookbackTotal ) {
         startIdx = lookbackTotal;

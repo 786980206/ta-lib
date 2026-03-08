@@ -1,9 +1,9 @@
-int TA_SMA_Lookback(int optInTimePeriod)
+int sma_lookback(int optInTimePeriod)
 {
     return optInTimePeriod - 1;
 }
 
-TA_RetCode TA_INT_SMA(int startIdx, int endIdx,
+TA_RetCode sma_logic(int startIdx, int endIdx,
                        const double inReal[],
                        int optInTimePeriod,
                        int *outBegIdx, int *outNBElement,

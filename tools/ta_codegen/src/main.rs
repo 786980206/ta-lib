@@ -1,7 +1,6 @@
 use ta_codegen_lib::backends;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
-use ta_codegen_lib::server;
 use ta_codegen_lib::server_gen;
 
 use std::collections::HashMap;
@@ -25,7 +24,6 @@ fn main() {
             let backend_filter = find_arg(&args, "--backend");
             build_servers(backend_filter.as_deref());
         }
-        "serve" => server::run_server(),
         _ => {
             eprintln!("Usage: ta_codegen <command> [options]");
             eprintln!();
