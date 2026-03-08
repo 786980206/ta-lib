@@ -7,6 +7,16 @@
 use crate::ir::{FuncDef, ParamType};
 use std::path::Path;
 
+/// Map function name to its unstable period ID (integer value).
+/// Returns None for functions without unstable period.
+fn func_unst_id(name: &str) -> Option<i32> {
+    match name {
+        "EMA" => Some(0),  // TA_FUNC_UNST_EMA
+        "RSI" => Some(1),  // TA_FUNC_UNST_RSI
+        _ => None,
+    }
+}
+
 /// Replace @@CORE_XXX@@ markers in the Java server template with actual
 /// method bodies read from the generated Core_*.java files.
 pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDef]) -> String {
@@ -68,11 +78,16 @@ pub fn generate_c_header_stub() -> String {
 
     // Cross-language macro stubs for standalone compilation
 
-    // Unstable period: always 0 for standalone server
-    s.push_str("#define TA_GLOBALS_UNSTABLE_PERIOD(id, name) 0\n");
+    // Unstable period: backed by a global array, settable via JSON-RPC
     s.push_str("#define TA_FUNC_UNST_EMA 0\n");
     s.push_str("#define TA_FUNC_UNST_RSI 1\n");
-    s.push_str("#define TA_FUNC_UNST_NONE 0\n\n");
+    s.push_str("#define TA_FUNC_UNST_ALL 2\n");
+    s.push_str("#define TA_FUNC_UNST_NONE 99\n");
+    s.push_str("int ta_unstable_period[TA_FUNC_UNST_ALL];\n");
+    s.push_str("#define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]\n");
+    s.push_str("void TA_SetUnstablePeriod(int id, int period) {\n");
+    s.push_str("    if (id >= 0 && id < TA_FUNC_UNST_ALL) ta_unstable_period[id] = period;\n");
+    s.push_str("}\n\n");
 
     // Compatibility mode: always default
     s.push_str("#define TA_GLOBALS_COMPATIBILITY 0\n");
@@ -270,6 +285,14 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             ));
         }
 
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str(&format!(
+                "        TA_SetUnstablePeriod({}, json_find_int(json, \"unstablePeriod\"));\n",
+                id
+            ));
+        }
+
         // Declare output variables
         s.push_str("        int outBegIdx = 0, outNBElement = 0;\n");
 
@@ -443,6 +466,14 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str(&format!(
+                "            core.unstablePeriod[{}] = jsonInt(json, \"unstablePeriod\");\n",
+                id
+            ));
+        }
+
         // Outputs
         s.push_str("            double[] outReal = new double[endIdx - startIdx + 1];\n");
         s.push_str("            MInteger outBegIdx = new MInteger();\n");
@@ -502,6 +533,10 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("using System.Runtime.InteropServices;\n\n");
 
     s.push_str("public class TaCodegenServe {\n\n");
+
+    // P/Invoke for unstable period setter
+    s.push_str("    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_SetUnstablePeriod\")]\n");
+    s.push_str("    static extern void TA_SetUnstablePeriod(int id, int period);\n\n");
 
     // P/Invoke declarations
     for func in funcs {
@@ -580,6 +615,17 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str(&format!(
+                "                int unstablePeriod = p.TryGetProperty(\"unstablePeriod\", out var _upVal) ? _upVal.GetInt32() : 0;\n"
+            ));
+            s.push_str(&format!(
+                "                TA_SetUnstablePeriod({}, unstablePeriod);\n",
+                id
+            ));
+        }
+
         // Call and return
         s.push_str("                double[] outReal = new double[n];\n");
         s.push_str(&format!(
@@ -645,12 +691,18 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
 
     s.push_str("%module ta_lib\n\n");
 
-    // Inline C header block — type definitions needed by the generated C functions
+    // Inline C header block — type definitions needed by the SWIG wrapper.
+    // We do NOT #include "ta_func.h" here because it would define TA_SetUnstablePeriod
+    // again (already defined in the unity source compiled alongside this wrapper).
     s.push_str("%{\n");
-    s.push_str("#include \"ta_func.h\"\n");
+    s.push_str("typedef int TA_RetCode;\n");
+    s.push_str("typedef double TA_Real;\n");
+    s.push_str("typedef int TA_Integer;\n");
     s.push_str("#define TA_SUCCESS 0\n");
     s.push_str("#define TA_INTEGER_DEFAULT (-2147483648)\n");
     s.push_str("#define TA_REAL_DEFAULT (-4e+37)\n");
+    // Unstable period setter (defined in unity source via ta_func.h)
+    s.push_str("extern void TA_SetUnstablePeriod(int id, int period);\n");
     // Forward-declare all TA functions so the wrapper can call them
     for func in funcs {
         let real_inputs: Vec<&str> = func
@@ -680,8 +732,11 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     }
     s.push_str("%}\n\n");
 
-    // Constants visible to Python
-    s.push_str("#define TA_SUCCESS 0\n\n");
+    // Constants and functions visible to Python
+    s.push_str("#define TA_SUCCESS 0\n");
+    s.push_str("#define TA_FUNC_UNST_EMA 0\n");
+    s.push_str("#define TA_FUNC_UNST_RSI 1\n");
+    s.push_str("extern void TA_SetUnstablePeriod(int id, int period);\n\n");
 
     // ---- Python 3 typemaps (adapted from ta_libc.python.swg) ----
     s.push_str(&generate_swig_python3_typemaps());
@@ -898,6 +953,14 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!(
                 "    {} = params.get('{}', {})\n",
                 opt.name, opt.name, default
+            ));
+        }
+
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str(&format!(
+                "    ta_lib.TA_SetUnstablePeriod({}, params.get('unstablePeriod', 0))\n",
+                id
             ));
         }
 

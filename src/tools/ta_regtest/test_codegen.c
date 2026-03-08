@@ -155,14 +155,6 @@ static void compare_codegen_output(
     if( p->codegenError != TA_TEST_PASS )
         return;
 
-    /* Skip codegen comparison when unstable period is non-zero.
-     * doRangeTest sets various unstable periods to test C implementation stability,
-     * but the codegen server doesn't track this state — it always uses unstablePeriod=0.
-     * Comparing would produce false mismatches. */
-    if( p->unstId != TA_FUNC_UNST_NONE &&
-        TA_GetUnstablePeriod(p->unstId) != 0 )
-        return;
-
     /* Send to codegen pipe */
     ErrorNumber errNb = codegen_pipe_call(p->cp, p->requestBuf,
                                           p->responseBuf, JSON_BUF_SIZE);
@@ -190,8 +182,7 @@ static void compare_codegen_output(
     if( c_retCode != TA_SUCCESS )
         return;
 
-    /* If C produced no output (e.g. range too small for lookback+unstable period),
-     * skip comparison — the codegen server may not have the same unstable period state. */
+    /* If C produced no output (e.g. range too small for lookback), skip comparison */
     if( c_nbElement == 0 )
         return;
 
@@ -316,10 +307,12 @@ static TA_RetCode codegen_range_rsi(
     *lookback = TA_RSI_Lookback(p->optInTimePeriod);
     *isOutputInteger = 0;
 
+    int unstablePeriod = (p->unstId != TA_FUNC_UNST_NONE)
+                         ? (int)TA_GetUnstablePeriod(p->unstId) : 0;
     int pos = snprintf(p->requestBuf, JSON_BUF_SIZE,
         "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-        "\"optInTimePeriod\":%d,\"inReal\":",
-        (int)startIdx, (int)endIdx, p->optInTimePeriod);
+        "\"optInTimePeriod\":%d,\"unstablePeriod\":%d,\"inReal\":",
+        (int)startIdx, (int)endIdx, p->optInTimePeriod, unstablePeriod);
     pos += json_write_double_array(p->requestBuf + pos, JSON_BUF_SIZE - pos,
                                    p->inReal, p->nbBars);
     pos += snprintf(p->requestBuf + pos, JSON_BUF_SIZE - pos, "}}");
@@ -426,13 +419,6 @@ static ErrorNumber test_codegen_for_language(
         params.responseBuf = responseBuf;
         params.codegenError = TA_TEST_PASS;
         params.methodName = def->method;
-
-        /* For RSI: reset unstable period */
-        if( def->unstId == TA_FUNC_UNST_RSI )
-        {
-            TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
-            TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
-        }
 
         /* Run doRangeTest — this calls our callback hundreds of times */
         errNb = doRangeTest(def->callback, def->unstId,

@@ -1,9 +1,9 @@
 use serde_json::{json, Value};
 use std::io::{self, BufRead, Write};
-use ta_lib::ta_func::{Core, RetCode};
+use ta_lib::ta_func::{Core, FuncUnstId, RetCode};
 
 pub fn run_server() {
-    let core = Core::new();
+    let mut core = Core::new();
     let stdin = io::stdin();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
@@ -40,7 +40,7 @@ pub fn run_server() {
             "TA_MULT_Lookback" => handle_mult_lookback(&core),
             "TA_SMA" => handle_sma(&core, params),
             "TA_SMA_Lookback" => handle_sma_lookback(&core, params),
-            "TA_RSI" => handle_rsi(&core, params),
+            "TA_RSI" => handle_rsi(&mut core, params),
             "TA_RSI_Lookback" => handle_rsi_lookback(&core, params),
             // EMA not yet in ta-lib Rust crate — uncomment when available:
             // "TA_EMA" => handle_ema(&core, params),
@@ -137,7 +137,7 @@ fn handle_sma_lookback(core: &Core, params: &Value) -> Value {
     json!({"lookback": core.sma_lookback(opt_in_time_period)})
 }
 
-fn handle_rsi(core: &Core, params: &Value) -> Value {
+fn handle_rsi(core: &mut Core, params: &Value) -> Value {
     let start_idx = params["startIdx"].as_i64().unwrap() as usize;
     let end_idx = params["endIdx"].as_i64().unwrap() as usize;
     let in_real: Vec<f64> = params["inReal"]
@@ -147,6 +147,11 @@ fn handle_rsi(core: &Core, params: &Value) -> Value {
         .map(|v| v.as_f64().unwrap())
         .collect();
     let opt_in_time_period = params["optInTimePeriod"].as_i64().unwrap() as i32;
+
+    // Apply unstable period if provided
+    if let Some(unstable) = params.get("unstablePeriod").and_then(|v| v.as_i64()) {
+        core.set_unstable_period(FuncUnstId::Rsi, unstable as i32);
+    }
 
     let mut out_real = vec![0.0f64; end_idx - start_idx + 1];
     let mut out_beg_idx: usize = 0;
