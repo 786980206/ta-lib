@@ -68,6 +68,7 @@
 
 #include "ta_test_priv.h"
 #include "ta_test_func.h"
+#include "test_codegen.h"
 #include "ta_utility.h"
 
 /**** External functions declarations. ****/
@@ -85,6 +86,7 @@ int doExtensiveProfiling;
 
 /* CSV list of function names to test (NULL = test all) */
 static const char *functionFilter = NULL;
+static int doCodegenTest = 0;
 
 /**** Local declarations.              ****/
 /* None */
@@ -93,6 +95,7 @@ static const char *functionFilter = NULL;
 static ErrorNumber testTAFunction_ALL( void );
 static ErrorNumber test_with_simulator( void );
 static void printUsage(void);
+static ErrorNumber test_codegen_with_simulator( void );
 
 /**** Local variables definitions.     ****/
 /* None */
@@ -129,6 +132,10 @@ int main( int argc, char **argv )
          {
             functionFilter = argv[i] + 11;
          }
+         else if( strcmp(argv[i], "--codegen") == 0 )
+         {
+            doCodegenTest = 1;
+         }
          else
          {
             printUsage();
@@ -162,6 +169,13 @@ int main( int argc, char **argv )
       retValue = test_with_simulator();
       if( retValue != TA_TEST_PASS )
          return retValue;
+
+      if( doCodegenTest )
+      {
+         retValue = test_codegen_with_simulator();
+         if( retValue != TA_TEST_PASS )
+            return retValue;
+      }
 
       if( insufficientClockPrecision != 0 )
       {
@@ -222,6 +236,33 @@ extern TA_Real      TA_SREF_high_daily_ref_0_PRIV[];
 extern TA_Real      TA_SREF_low_daily_ref_0_PRIV[];
 extern TA_Real      TA_SREF_close_daily_ref_0_PRIV[];
 extern TA_Real      TA_SREF_volume_daily_ref_0_PRIV[];
+
+static ErrorNumber test_codegen_with_simulator( void )
+{
+   ErrorNumber retValue;
+   TA_History history;
+
+   retValue = allocLib();
+   if( retValue != TA_TEST_PASS )
+      return retValue;
+
+   history.nbBars = 252;
+   history.open   = TA_SREF_open_daily_ref_0_PRIV;
+   history.high   = TA_SREF_high_daily_ref_0_PRIV;
+   history.low    = TA_SREF_low_daily_ref_0_PRIV;
+   history.close  = TA_SREF_close_daily_ref_0_PRIV;
+   history.volume = TA_SREF_volume_daily_ref_0_PRIV;
+
+   retValue = test_codegen(&history, functionFilter);
+   if( retValue != TA_TEST_PASS )
+      return retValue;
+
+   retValue = freeLib();
+   if( retValue != TA_TEST_PASS )
+      return retValue;
+
+   return TA_TEST_PASS;
+}
 
 /* Check if any CSV token in 'filter' appears as a substring in 'tags'.
  * Returns 1 if match found (or filter is NULL), 0 otherwise.
@@ -327,6 +368,11 @@ static void printUsage(void)
       printf( "       Only run test groups whose tags contain at least\n" );
       printf( "       one of the given names (substring match).\n" );
       printf( "       Example: --function=RSI,BBANDS\n" );
+      printf( "\n" );
+      printf( "    --codegen\n" );
+      printf( "       After normal tests, also verify ta_codegen output\n" );
+      printf( "       against C reference via JSON-RPC subprocess.\n" );
+      printf( "       Requires ./ta_codegen binary in the bin directory.\n" );
       printf( "\n" );
       printf( "   On success, the exit code is 0.\n" );
       printf( "   On failure, the exit code is a number that can be\n" );
