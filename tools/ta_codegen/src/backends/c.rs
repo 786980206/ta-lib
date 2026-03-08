@@ -2,13 +2,17 @@ use std::collections::HashMap;
 
 use crate::ir::*;
 use crate::parser::enums::lookup_variant;
+use crate::registry::{Lang, Registry};
 
-pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
+pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     out.push_str(&gen_header(func));
-    out.push_str(&gen_lookback(func, enums));
-    out.push_str(&gen_func(func, false, enums)); // double-precision
-    out.push_str(&gen_func(func, true, enums)); // single-precision
+    out.push_str(&gen_lookback(func, enums, registry));
+    out.push_str(&gen_func(func, false, false, enums, registry)); // double-precision guarded
+    out.push_str(&gen_func(func, false, true, enums, registry)); // double-precision logic (unguarded)
+    out.push_str(&format!("#define TA_INT_{} TA_{}_Logic\n\n", func.name, func.name));
+    out.push_str(&gen_func(func, true, false, enums, registry)); // single-precision guarded
+    out.push_str(&gen_func(func, true, true, enums, registry)); // single-precision logic (unguarded)
     out
 }
 
@@ -58,7 +62,7 @@ fn gen_header(_func: &FuncDef) -> String {
     out
 }
 
-fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
+fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let name = &func.name;
 
     let has_opt_params = !func.optional_inputs.is_empty();
@@ -87,7 +91,7 @@ fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
         Some(LookbackExpr::ParamMinus(param, offset)) => {
             format!("   return {} - {};\n", param, offset)
         }
-        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums),
+        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums, registry),
         None => "   return 0;\n".to_string(),
     };
 
@@ -100,13 +104,14 @@ fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     )
 }
 
-fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
+fn gen_func(func: &FuncDef, single_precision: bool, logic: bool, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
 
-    let prefix = if single_precision {
-        format!("TA_S_{}", func.name)
-    } else {
-        format!("TA_{}", func.name)
+    let prefix = match (single_precision, logic) {
+        (false, false) => format!("TA_{}", func.name),
+        (false, true) => format!("TA_{}_Logic", func.name),
+        (true, false) => format!("TA_S_{}", func.name),
+        (true, true) => format!("TA_S_{}_Logic", func.name),
     };
 
     let ret_type = if single_precision {
@@ -186,12 +191,14 @@ fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, Enum
 
     out.push('\n');
 
-    // Validation
-    out.push_str("   if( startIdx < 0 )\n");
-    out.push_str("      return TA_OUT_OF_RANGE_START_INDEX;\n");
-    out.push_str("   if( (endIdx < 0) || (endIdx < startIdx) )\n");
-    out.push_str("      return TA_OUT_OF_RANGE_END_INDEX;\n");
-    out.push('\n');
+    // Validation (omitted for Logic/unguarded variant)
+    if !logic {
+        out.push_str("   if( startIdx < 0 )\n");
+        out.push_str("      return TA_OUT_OF_RANGE_START_INDEX;\n");
+        out.push_str("   if( (endIdx < 0) || (endIdx < startIdx) )\n");
+        out.push_str("      return TA_OUT_OF_RANGE_END_INDEX;\n");
+        out.push('\n');
+    }
 
     // Emit VarDecl initializations (the declarations were already emitted above)
     for stmt in &func.body {
@@ -199,7 +206,7 @@ fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, Enum
             out.push_str(&format!(
                 "   {} = {};\n",
                 name,
-                render_expr(init, single_precision)
+                render_expr(init, single_precision, registry)
             ));
         }
     }
@@ -209,7 +216,7 @@ fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, Enum
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 3, single_precision, enums));
+        out.push_str(&render_statement(stmt, 3, single_precision, enums, registry));
     }
 
     out.push_str("\n   return TA_SUCCESS;\n");
@@ -218,7 +225,7 @@ fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, Enum
     out
 }
 
-fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
+fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl {
@@ -238,7 +245,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                     pad,
                     c_type,
                     name,
-                    render_expr(init_expr, single_precision)
+                    render_expr(init_expr, single_precision, registry)
                 ),
                 None => format!("{}{} {};\n", pad, c_type, name),
             }
@@ -251,7 +258,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                         return format!(
                             "{}{};\n",
                             pad,
-                            render_func_call(fname, args, single_precision)
+                            render_func_call(fname, args, single_precision, registry)
                         );
                     }
                 }
@@ -269,32 +276,32 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                                 _ => "",
                             };
                             if !op_str.is_empty() {
-                                let target_str = render_assign_target(target, single_precision);
+                                let target_str = render_assign_target(target, single_precision, registry);
                                 return format!(
                                     "{}{}{} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, single_precision)
+                                    render_expr(right, single_precision, registry)
                                 );
                             }
                         }
                     }
                 }
             }
-            let target_str = render_assign_target(target, single_precision);
-            let value_str = render_expr(value, single_precision);
+            let target_str = render_assign_target(target, single_precision, registry);
+            let value_str = render_expr(value, single_precision, registry);
             format!("{}{}= {};\n", pad, target_str, value_str)
         }
         Statement::While { condition, body } => {
             let mut out = format!(
                 "{}while( {} )\n{}{{\n",
                 pad,
-                render_expr(condition, single_precision),
+                render_expr(condition, single_precision, registry),
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -307,11 +314,11 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
             let mut out = format!(
                 "{}if( {} )\n{}{{\n",
                 pad,
-                render_expr(condition, single_precision),
+                render_expr(condition, single_precision, registry),
                 pad
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
@@ -320,14 +327,14 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                 // Check if the else body is a single if statement (else-if chain)
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement(&else_body[0], indent, single_precision, enums);
+                        let if_str = render_statement(&else_body[0], indent, single_precision, enums, registry);
                         out.push_str(if_str.trim_start());
                         return out;
                     }
                 }
                 out.push_str(&format!("\n{}{{\n", pad));
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -336,7 +343,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
         Statement::Return { value } => {
             match value {
                 Some(expr) => {
-                    let rendered = render_return_expr(expr, single_precision);
+                    let rendered = render_return_expr(expr, single_precision, registry);
                     format!("{}return {};\n", pad, rendered)
                 }
                 None => format!("{}return;\n", pad),
@@ -347,26 +354,26 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                 "{}for( {} = {}; {} > 0; {}-- )\n{}{{\n",
                 pad,
                 var,
-                render_expr(count, single_precision),
+                render_expr(count, single_precision, registry),
                 var,
                 var,
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body } => {
-            let init_str = render_statement(init, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
-            let update_str = render_statement(update, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
+            let init_str = render_statement(init, 0, single_precision, enums, registry).trim().trim_end_matches(';').to_string();
+            let update_str = render_statement(update, 0, single_precision, enums, registry).trim().trim_end_matches(';').to_string();
             let mut out = format!(
                 "{}for( {}; {}; {} )\n{}{{\n",
-                pad, init_str.trim(), render_expr(condition, single_precision), update_str.trim(), pad
+                pad, init_str.trim(), render_expr(condition, single_precision, registry), update_str.trim(), pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -374,26 +381,26 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
         Statement::Block { body } => {
             let mut out = String::new();
             for s in body {
-                out.push_str(&render_statement(s, indent, single_precision, enums));
+                out.push_str(&render_statement(s, indent, single_precision, enums, registry));
             }
             out
         }
         Statement::Break => format!("{}break;\n", pad),
         Statement::Continue => format!("{}continue;\n", pad),
         Statement::Switch { expr, cases, default } => {
-            let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision), pad);
+            let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision, registry), pad);
             for (label, case_body) in cases {
                 let c_label = render_c_switch_label(label, enums);
                 out.push_str(&format!("{}case {}:\n", pad, c_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
             if !default.is_empty() {
                 out.push_str(&format!("{}default:\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
@@ -417,21 +424,21 @@ fn render_c_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> Strin
     }
 }
 
-fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
+fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     match expr {
         Expr::Var(name) if name == "outBegIdx" || name == "outNBElement" => {
             format!("*{} ", name)
         }
         Expr::Var(name) => format!("{} ", name),
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}] ", name, render_expr(idx, single_precision))
+            format!("{}[{}] ", name, render_expr(idx, single_precision, registry))
         }
-        _ => render_expr(expr, single_precision),
+        _ => render_expr(expr, single_precision, registry),
     }
 }
 
 /// Render a return expression, mapping known enum values to C constants.
-fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
+fn render_return_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     // Handle known RetCode enum values when expressed as Var
     if let Expr::Var(name) = expr {
         return match name.as_str() {
@@ -439,13 +446,13 @@ fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
             "BadParam" => "TA_BAD_PARAM".to_string(),
             "OutOfRangeEndIndex" => "TA_OUT_OF_RANGE_END_INDEX".to_string(),
             "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX".to_string(),
-            _ => render_expr(expr, single_precision),
+            _ => render_expr(expr, single_precision, registry),
         };
     }
-    render_expr(expr, single_precision)
+    render_expr(expr, single_precision, registry)
 }
 
-fn render_expr(expr: &Expr, single_precision: bool) -> String {
+fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     match expr {
         Expr::Literal(f) => {
             if *f == f.floor() && f.abs() < 1e15 {
@@ -468,7 +475,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}]", name, render_expr(idx, single_precision))
+            format!("{}[{}]", name, render_expr(idx, single_precision, registry))
         }
         Expr::BinOp(left, op, right) => {
             let op_str = match op {
@@ -488,9 +495,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             };
             format!(
                 "({}{}{})",
-                render_expr(left, single_precision),
+                render_expr(left, single_precision, registry),
                 op_str,
-                render_expr(right, single_precision)
+                render_expr(right, single_precision, registry)
             )
         }
         Expr::Cast(var_type, inner) => {
@@ -500,12 +507,12 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Index => "int",
                 VarType::RetCodeType => "TA_RetCode",
             };
-            format!("(({}){})", c_type, render_expr(inner, single_precision))
+            format!("(({}){})", c_type, render_expr(inner, single_precision, registry))
         }
         Expr::Not(inner) => {
-            format!("!({})", render_expr(inner, single_precision))
+            format!("!({})", render_expr(inner, single_precision, registry))
         }
-        Expr::FuncCall(name, args) => render_func_call(name, args, single_precision),
+        Expr::FuncCall(name, args) => render_func_call(name, args, single_precision, registry),
         Expr::PointerDeref(name) => format!("*{}", name),
     }
 }
@@ -522,7 +529,7 @@ fn to_pascal_case(s: &str) -> String {
 }
 
 /// Render a FuncCall expression to C code.
-fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> String {
+fn render_func_call(fname: &str, args: &[Expr], single_precision: bool, registry: &Registry) -> String {
     if fname == "UNSTABLE_PERIOD" {
         // UNSTABLE_PERIOD(RSI) -> TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi)
         if let Some(Expr::Var(func_name)) = args.first() {
@@ -540,14 +547,14 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> TA_IS_ZERO(x)
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision);
+            let x = render_expr(arg, single_precision, registry);
             return format!("TA_IS_ZERO({})", x);
         }
         "TA_IS_ZERO(0)".to_string()
     } else if fname == "ARRAY_COPY" {
         // ARRAY_COPY(dst, dstOff, src, srcOff, count)
         if args.len() == 5 {
-            let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+            let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
             let macro_name = if single_precision {
                 "ARRAY_MEMMOVEMIX"
             } else {
@@ -562,24 +569,30 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
     } else if fname == "PER_TO_K" {
         // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision);
+            let x = render_expr(arg, single_precision, registry);
             return format!("(2.0 / ((double)({}) + 1.0))", x);
         }
         "0.0".to_string()
-    } else if fname.ends_with("_Lookback") {
-        // RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
-        let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
-        format!("TA_{}({})", fname, rendered.join(","))
     } else {
-        // TA function call: SMA(...) -> TA_SMA(...) or TA_S_SMA(...) for single precision
-        let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
-        let prefix = if single_precision { "TA_S_" } else { "TA_" };
-        format!("{}{}({})", prefix, fname, rendered.join(","))
+        // Try cross-call resolution through the registry
+        let resolved = registry.resolve_call(fname, Lang::C);
+        let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
+        if resolved != fname {
+            // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, ema_logic -> TA_INT_EMA)
+            format!("{}({})", resolved, rendered.join(","))
+        } else if fname.ends_with("_Lookback") {
+            // Legacy: RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
+            format!("TA_{}({})", fname, rendered.join(","))
+        } else {
+            // General TA function call: SMA(...) -> TA_SMA(...) or TA_S_SMA(...) for single precision
+            let prefix = if single_precision { "TA_S_" } else { "TA_" };
+            format!("{}{}({})", prefix, fname, rendered.join(","))
+        }
     }
 }
 
 /// Render a complex lookback body (LookbackExpr::Code) into C code.
-fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -> String {
+fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
 
     // Declare local variables
@@ -601,7 +614,7 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -
             out.push_str(&format!(
                 "   {} = {};\n",
                 name,
-                render_expr(init, false)
+                render_expr(init, false, registry)
             ));
         }
     }
@@ -611,8 +624,107 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 3, false, enums));
+        out.push_str(&render_statement(stmt, 3, false, enums, registry));
     }
 
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::parser;
+    use crate::ir;
+    use std::path::Path;
+
+    /// Helper to load a FuncDef from the ta_func_defs directory.
+    fn load_func(name: &str) -> (FuncDef, HashMap<String, EnumDef>) {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let dir = base.join(name);
+        let yaml_path = dir.join(format!("{}.yaml", name));
+        let c_path = dir.join(format!("{}.c", name));
+
+        let enums_path = base.join("enums.yaml");
+        let enums = if enums_path.exists() {
+            parser::enums::load_enums(&enums_path)
+        } else {
+            HashMap::new()
+        };
+
+        let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+        let parsed = parser::c_source::parse_c_source(&c_path);
+        func_def.body = parsed.functions.first().unwrap().body.clone();
+        func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
+
+        (func_def, enums)
+    }
+
+    fn make_registry() -> Registry {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        Registry::from_dir(&base)
+    }
+
+    #[test]
+    fn test_c_generates_all_variants() {
+        let (func, enums) = load_func("sma");
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        assert!(output.contains("TA_SMA_Lookback"), "Missing lookback");
+        assert!(output.contains("TA_SMA("), "Missing guarded function");
+        assert!(output.contains("TA_SMA_Logic("), "Missing logic function");
+        assert!(output.contains("TA_INT_SMA"), "Missing INT alias");
+        assert!(output.contains("TA_S_SMA("), "Missing single-precision");
+        assert!(output.contains("TA_S_SMA_Logic("), "Missing single-precision logic");
+    }
+
+    #[test]
+    fn test_c_logic_omits_range_checks() {
+        let (func, enums) = load_func("sma");
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        // Find the Logic function and verify it doesn't have range checks
+        let logic_start = output.find("TA_SMA_Logic(").expect("Missing logic function");
+        let guarded_start = output.find("TA_LIB_API TA_RetCode TA_SMA(").expect("Missing guarded function");
+
+        // Extract each function body (up to next function or end)
+        let logic_body = &output[logic_start..];
+        let guarded_body = &output[guarded_start..logic_start];
+
+        // Guarded function should have range checks
+        assert!(guarded_body.contains("TA_OUT_OF_RANGE_START_INDEX"), "Guarded should have start index check");
+        assert!(guarded_body.contains("TA_OUT_OF_RANGE_END_INDEX"), "Guarded should have end index check");
+
+        // Logic function should NOT have range checks (check just the first part before the next function)
+        let logic_end = logic_body.find("#define TA_INT_SMA").unwrap_or(logic_body.len());
+        let logic_section = &logic_body[..logic_end];
+        assert!(!logic_section.contains("TA_OUT_OF_RANGE_START_INDEX"), "Logic should not have start index check");
+        assert!(!logic_section.contains("TA_OUT_OF_RANGE_END_INDEX"), "Logic should not have end index check");
+    }
+
+    #[test]
+    fn test_c_int_alias() {
+        let (func, enums) = load_func("sma");
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        assert!(output.contains("#define TA_INT_SMA TA_SMA_Logic"), "Missing INT alias define");
+    }
+
+    #[test]
+    fn test_c_resolves_cross_calls() {
+        let (func, enums) = load_func("ma");
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        // The MA body has calls like sma_lookback() and ema_lookback()
+        // In generated C, these should become TA_SMA_Lookback() and TA_EMA_Lookback()
+        assert!(output.contains("TA_SMA_Lookback("), "sma_lookback should resolve to TA_SMA_Lookback");
+        assert!(output.contains("TA_EMA_Lookback("), "ema_lookback should resolve to TA_EMA_Lookback");
+
+        // sma_logic and ema_logic should resolve to TA_INT_SMA and TA_INT_EMA
+        assert!(output.contains("TA_INT_SMA("), "sma_logic should resolve to TA_INT_SMA");
+        assert!(output.contains("TA_INT_EMA("), "ema_logic should resolve to TA_INT_EMA");
+    }
 }

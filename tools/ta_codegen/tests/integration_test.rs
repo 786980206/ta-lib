@@ -3,6 +3,7 @@ use std::path::Path;
 use ta_codegen_lib::backends;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
+use ta_codegen_lib::registry::Registry;
 
 /// Empty enum map for tests that don't use enums.
 fn no_enums() -> HashMap<String, ir::EnumDef> {
@@ -14,6 +15,12 @@ fn load_enums() -> HashMap<String, ir::EnumDef> {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
     let enums_path = base.join("../../ta_func_defs/enums.yaml");
     parser::enums::load_enums(&enums_path)
+}
+
+/// Build registry for cross-call resolution.
+fn make_registry() -> Registry {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    Registry::from_dir(&base)
 }
 
 /// Helper: parse mult.yaml + mult.c and build a FuncDef.
@@ -73,7 +80,7 @@ fn load_func(name: &str) -> ir::FuncDef {
 fn test_mult_from_c_generates_all_backends() {
     let func = load_mult();
     let enums = no_enums();
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
@@ -184,7 +191,7 @@ fn test_parse_sma_body() {
 #[test]
 fn test_c_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::c::generate(&func, &no_enums());
+    let output = backends::c::generate(&func, &no_enums(), &make_registry());
     assert!(
         output.contains("TA_MULT_Lookback"),
         "C output missing lookback function"
@@ -332,7 +339,7 @@ fn test_swig_backend_generates_mult() {
 fn test_sma_from_c_generates_all_backends() {
     let func = load_sma();
     let enums = no_enums();
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
@@ -395,7 +402,7 @@ fn test_sma_all_backends_generate() {
     let func = load_sma();
     let enums = no_enums();
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
@@ -422,7 +429,7 @@ fn test_all_backends_produce_nonempty_output() {
     let func = load_mult();
     let enums = no_enums();
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
@@ -454,7 +461,7 @@ fn test_wma_generates_all_backends() {
     assert_eq!(func.hint.as_deref(), Some("Weighted Moving Average"));
     assert!(func.flags.contains(&"overlap".to_string()));
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
     let java_out = backends::java::generate(&func, &enums);
 
@@ -473,7 +480,7 @@ fn test_rsi_generates_all_backends() {
     assert_eq!(func.hint.as_deref(), Some("Relative Strength Index"));
     assert!(func.flags.contains(&"unstable_period".to_string()));
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_RSI_Lookback"), "C missing lookback");
@@ -494,7 +501,7 @@ fn test_ema_generates_all_backends() {
     assert!(func.flags.contains(&"overlap".to_string()));
     assert!(func.flags.contains(&"unstable_period".to_string()));
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_EMA_Lookback"), "C missing lookback");
@@ -512,11 +519,11 @@ fn test_ma_generates_all_backends() {
     assert!(func.flags.contains(&"overlap".to_string()));
     assert_eq!(func.optional_inputs.len(), 2);
 
-    let c_out = backends::c::generate(&func, &enums);
+    let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_MA_Lookback"), "C missing lookback");
-    assert!(c_out.contains("sma_lookback"), "C missing sma_lookback call");
-    assert!(c_out.contains("ema_lookback"), "C missing ema_lookback call");
+    assert!(c_out.contains("TA_SMA_Lookback"), "C missing TA_SMA_Lookback call");
+    assert!(c_out.contains("TA_EMA_Lookback"), "C missing TA_EMA_Lookback call");
     assert!(rust_out.contains("ma_lookback"), "Rust missing lookback");
 }

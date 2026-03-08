@@ -54,7 +54,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     let base = Path::new("../../ta_func_defs");
 
     // Load indicator registry for cross-call resolution
-    let _registry = Registry::from_dir(base);
+    let registry = Registry::from_dir(base);
 
     // Load enum definitions
     let enums_path = base.join("enums.yaml");
@@ -118,7 +118,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
 
         for backend in &backends_to_run {
-            generate_backend(&func_def, backend, &enums);
+            generate_backend(&func_def, backend, &enums, &registry);
         }
     }
 }
@@ -563,12 +563,12 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     }
 }
 
-fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<String, ir::EnumDef>) {
+fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<String, ir::EnumDef>, registry: &Registry) {
     let out_base = Path::new("../../ta_codegen_output");
 
     match backend {
         "c" => {
-            let output = backends::c::generate(func_def, enums);
+            let output = backends::c::generate(func_def, enums, registry);
             let dir = out_base.join("c");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.c", func_def.name));
