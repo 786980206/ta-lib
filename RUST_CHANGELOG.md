@@ -6,6 +6,49 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-08 -- Multi-language codegen regression testing (5 languages × 3 functions)
+
+`git diff 7ac04121^..621d9aa2` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/003492a1...621d9aa2)
+
+* [7ac04121](https://github.com/TA-Lib/ta-lib/commit/7ac04121) Added error codes for codegen verification (TA_CODEGEN_*)
+* [5cf87b5c](https://github.com/TA-Lib/ta-lib/commit/5cf87b5c) Implemented codegen subprocess pipe management (fork/exec/pipe in codegen_pipe.c)
+* [e3a89326](https://github.com/TA-Lib/ta-lib/commit/e3a89326) Added codegen verification test loop for MULT/SMA/RSI
+* [3882c510](https://github.com/TA-Lib/ta-lib/commit/3882c510) Added `--codegen` flag to ta_regtest to enable codegen verification
+* [b8793a39](https://github.com/TA-Lib/ta-lib/commit/b8793a39) CMake `ta_codegen_bin` target to build and install ta_codegen binary
+* [9e18ca88](https://github.com/TA-Lib/ta-lib/commit/9e18ca88) Expanded codegen test coverage with multiple parameter combinations
+* [fa19f381](https://github.com/TA-Lib/ta-lib/commit/fa19f381) Design doc for v2 multi-language codegen regression testing
+* [a4e16367](https://github.com/TA-Lib/ta-lib/commit/a4e16367) Implementation plan for v2 multi-language codegen regression testing
+* [6590e28b](https://github.com/TA-Lib/ta-lib/commit/6590e28b) Refactored codegen_pipe_open to accept argv array for flexible command execution
+* [ce795e41](https://github.com/TA-Lib/ta-lib/commit/ce795e41) Rewrote test_codegen with doRangeTest callbacks and multi-language support (Rust/C/Java/.NET/SWIG)
+* [11d53acb](https://github.com/TA-Lib/ta-lib/commit/11d53acb) Added `--codegen=lang` syntax for per-language testing
+* [a779a920](https://github.com/TA-Lib/ta-lib/commit/a779a920) Fixed unstable period handling and MULT tolerance in codegen doRangeTest
+* [ddc1227b](https://github.com/TA-Lib/ta-lib/commit/ddc1227b) Added `generate-servers` command with C, Java, .NET, SWIG server generators
+* [88837302](https://github.com/TA-Lib/ta-lib/commit/88837302) Java server generation + fixes to C/Java servers
+* [2d907287](https://github.com/TA-Lib/ta-lib/commit/2d907287) Added `build` command to compile all generated language servers
+* [c65d71d7](https://github.com/TA-Lib/ta-lib/commit/c65d71d7) CMake `ta_codegen_servers` target for multi-language server builds
+* [cd3d81ce](https://github.com/TA-Lib/ta-lib/commit/cd3d81ce) Initial .NET (P/Invoke) and Python (ctypes) codegen servers with shared C library
+* [621d9aa2](https://github.com/TA-Lib/ta-lib/commit/621d9aa2) Proper SWIG compilation pipeline — Python server imports SWIG-generated module instead of ctypes
+* All 5 languages (Rust, C, Java, .NET, SWIG/Python) pass all 3 functions (MULT, SMA, RSI) through doRangeTest
+
+## 2026-03-08 -- ta_codegen: migrate from .logic files to C source parser
+
+`git diff 0fc87df0^..003492a1` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/9a24133...003492a1)
+
+* [0fc87df0](https://github.com/TA-Lib/ta-lib/commit/0fc87df0) Fixed changelog hash + rewrote convert-indicator skill for ta_codegen pipeline
+* [ecbc9aa3](https://github.com/TA-Lib/ta-lib/commit/ecbc9aa3) Fixed missing commit URL in RUST_CHANGELOG MA bullet
+* [31151674](https://github.com/TA-Lib/ta-lib/commit/31151674) Enriched IR and YAML parser with IDL metadata fields (flags, hints, display name, etc.)
+* [da06407a](https://github.com/TA-Lib/ta-lib/commit/da06407a) Enriched mult.yaml with IDL metadata fields
+* [20bf4c00](https://github.com/TA-Lib/ta-lib/commit/20bf4c00) Added plain C source for MULT as parser input
+* [0b93958a](https://github.com/TA-Lib/ta-lib/commit/0b93958a) Extended IR with PointerDeref, ForC, optional lookback, BinOp::Mod
+* [62a7060e](https://github.com/TA-Lib/ta-lib/commit/62a7060e) C source parser: tokenizer + function extraction + statement/expression parsing
+* [f58f0cf8](https://github.com/TA-Lib/ta-lib/commit/f58f0cf8) Wired up C source parser, validated MULT end-to-end
+* [c9b7d286](https://github.com/TA-Lib/ta-lib/commit/c9b7d286) Migrated WMA to C source with enriched YAML
+* [580a5f62](https://github.com/TA-Lib/ta-lib/commit/580a5f62) Migrated RSI to C source with enriched YAML
+* [5aff1eb6](https://github.com/TA-Lib/ta-lib/commit/5aff1eb6) Migrated EMA to C source with enriched YAML
+* [cb050d44](https://github.com/TA-Lib/ta-lib/commit/cb050d44) Migrated MA to C source with enriched YAML
+* [003492a1](https://github.com/TA-Lib/ta-lib/commit/003492a1) Deleted .logic parser and files — C source is now the only input format
+* All 5 functions (MULT, SMA, RSI, EMA, MA) generating across 5 backends from C source
+
 ## 2026-03-07 -- ta_codegen: SMA, RSI, EMA, MA support with switch/case dispatch
 
 `git diff 4af160c3^..9a24133` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/9f295c53...9a24133)
