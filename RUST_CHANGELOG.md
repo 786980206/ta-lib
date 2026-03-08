@@ -8,7 +8,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ## 2026-03-08 -- Multi-language codegen regression testing (5 languages × 3 functions)
 
-`git diff f5df7080^..c74b61c2` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/4404a8e4...c74b61c2)
+`git diff f5df7080^..8ed91f59` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/4404a8e4...8ed91f59)
 
 * [f5df7080](https://github.com/TA-Lib/ta-lib/commit/f5df7080) Added error codes for codegen verification (TA_CODEGEN_*)
 * [bc58114c](https://github.com/TA-Lib/ta-lib/commit/bc58114c) Implemented codegen subprocess pipe management (fork/exec/pipe in codegen_pipe.c)
@@ -28,7 +28,10 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 * [133eb320](https://github.com/TA-Lib/ta-lib/commit/133eb320) CMake `ta_codegen_servers` target for multi-language server builds
 * [7f8098b3](https://github.com/TA-Lib/ta-lib/commit/7f8098b3) Initial .NET (P/Invoke) and Python (ctypes) codegen servers with shared C library
 * [c74b61c2](https://github.com/TA-Lib/ta-lib/commit/c74b61c2) Proper SWIG compilation pipeline — Python server imports SWIG-generated module instead of ctypes
-* All 5 languages (Rust, C, Java, .NET, SWIG/Python) pass all 3 functions (MULT, SMA, RSI) through doRangeTest
+* [65b3e7e0](https://github.com/TA-Lib/ta-lib/commit/65b3e7e0) RUST_CHANGELOG entries for C parser migration and multi-language regtest
+* [61deee36](https://github.com/TA-Lib/ta-lib/commit/61deee36) Fixed RUST_CHANGELOG commit hashes after rebase
+* [8ed91f59](https://github.com/TA-Lib/ta-lib/commit/8ed91f59) Unstable period support in all 5 JSON-RPC servers — RSI now tested with full doRangeTest (0-240+ unstable periods)
+* All 5 languages (Rust, C, Java, .NET, SWIG/Python) pass all 3 functions (MULT, SMA, RSI) through doRangeTest including unstable period verification
 
 ## 2026-03-08 -- ta_codegen: migrate from .logic files to C source parser
 
