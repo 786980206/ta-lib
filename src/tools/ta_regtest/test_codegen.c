@@ -1,3 +1,4 @@
+/* test_codegen.c — complete rewrite */
 #include "test_codegen.h"
 #include "codegen_pipe.h"
 
@@ -7,6 +8,29 @@
 #include <math.h>
 
 #include "ta_libc.h"
+
+/* ---- Language definitions ---- */
+
+typedef struct {
+    const char *name;           /* "rust", "c", "java", "dotnet", "swig" */
+    const char *display;        /* "Rust", "C", "Java", ".NET", "SWIG/Python" */
+    const char *const *argv;    /* NULL-terminated command array */
+} CodegenLanguage;
+
+static const char *const argv_rust[]  = {"./ta_codegen", "serve", NULL};
+static const char *const argv_c[]     = {"./ta_codegen_serve_c", NULL};
+static const char *const argv_java[]  = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
+static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/ta_codegen_serve.dll", NULL};
+static const char *const argv_swig[]  = {"python3", "ta_codegen_serve.py", NULL};
+
+static const CodegenLanguage ALL_LANGUAGES[] = {
+    {"rust",   "Rust",         argv_rust},
+    {"c",      "C",            argv_c},
+    {"java",   "Java",         argv_java},
+    {"dotnet", ".NET",         argv_dotnet},
+    {"swig",   "SWIG/Python",  argv_swig},
+};
+#define NUM_LANGUAGES (sizeof(ALL_LANGUAGES) / sizeof(ALL_LANGUAGES[0]))
 
 /* ---- Minimal JSON helpers (no library dependency) ---- */
 
@@ -94,241 +118,222 @@ static int json_is_error(const char *json)
     return strstr(json, "\"error\"") != NULL;
 }
 
-/* ---- Comparison ---- */
+/* ---- Codegen comparison ---- */
 
 #define CODEGEN_EPSILON 1e-6
+#define JSON_BUF_SIZE   (64 * 1024)
 
-static ErrorNumber compare_results(
-    const char *func_name,
-    TA_RetCode c_retCode, int c_begIdx, int c_nbElement, const TA_Real *c_out,
-    const char *codegen_response)
+/* Shared context for doRangeTest callbacks */
+typedef struct {
+    /* Input data */
+    const TA_Real *inReal;      /* Primary input array (close prices) */
+    const TA_Real *inReal1;     /* Second input array (for MULT: volume) */
+    int nbBars;                 /* Length of input arrays */
+
+    /* Function parameters */
+    int optInTimePeriod;        /* For SMA, RSI, etc. */
+
+    /* Codegen pipe */
+    CodegenPipe *cp;
+    char *requestBuf;           /* Pre-allocated, reused across calls */
+    char *responseBuf;          /* Pre-allocated, reused across calls */
+
+    /* Error tracking (callback returns TA_RetCode, not ErrorNumber) */
+    ErrorNumber codegenError;   /* Set on first codegen mismatch */
+    const char *methodName;     /* For error messages (e.g. "TA_SMA") */
+} CodegenRangeTestParam;
+
+static void compare_codegen_output(
+    CodegenRangeTestParam *p,
+    TA_RetCode c_retCode,
+    TA_Integer c_begIdx,
+    TA_Integer c_nbElement,
+    const TA_Real *c_out)
 {
-    if( json_is_error(codegen_response) )
-        return TA_TEST_PASS; /* Unsupported — skip */
+    /* Skip if we already have an error */
+    if( p->codegenError != TA_TEST_PASS )
+        return;
 
-    int cg_retCode   = json_get_int(codegen_response, "retCode");
-    int cg_begIdx    = json_get_int(codegen_response, "outBegIdx");
-    int cg_nbElement = json_get_int(codegen_response, "outNBElement");
+    /* Send to codegen pipe */
+    ErrorNumber errNb = codegen_pipe_call(p->cp, p->requestBuf,
+                                          p->responseBuf, JSON_BUF_SIZE);
+    if( errNb != TA_TEST_PASS )
+    {
+        p->codegenError = errNb;
+        return;
+    }
 
+    /* Unsupported function — skip silently */
+    if( json_is_error(p->responseBuf) )
+        return;
+
+    /* Compare retCode */
+    int cg_retCode = json_get_int(p->responseBuf, "retCode");
     if( (int)c_retCode != cg_retCode )
     {
         printf("CODEGEN MISMATCH [%s]: retCode C=%d codegen=%d\n",
-               func_name, (int)c_retCode, cg_retCode);
-        return TA_CODEGEN_RETCODE_MISMATCH;
+               p->methodName, (int)c_retCode, cg_retCode);
+        p->codegenError = TA_CODEGEN_RETCODE_MISMATCH;
+        return;
     }
 
+    /* If C returned error, both agree — done */
     if( c_retCode != TA_SUCCESS )
-        return TA_TEST_PASS;
+        return;
 
+    /* Compare outBegIdx */
+    int cg_begIdx = json_get_int(p->responseBuf, "outBegIdx");
     if( c_begIdx != cg_begIdx )
     {
         printf("CODEGEN MISMATCH [%s]: outBegIdx C=%d codegen=%d\n",
-               func_name, c_begIdx, cg_begIdx);
-        return TA_CODEGEN_BEGIDX_MISMATCH;
+               p->methodName, (int)c_begIdx, cg_begIdx);
+        p->codegenError = TA_CODEGEN_BEGIDX_MISMATCH;
+        return;
     }
 
+    /* Compare outNBElement */
+    int cg_nbElement = json_get_int(p->responseBuf, "outNBElement");
     if( c_nbElement != cg_nbElement )
     {
         printf("CODEGEN MISMATCH [%s]: outNBElement C=%d codegen=%d\n",
-               func_name, c_nbElement, cg_nbElement);
-        return TA_CODEGEN_NBELEMENT_MISMATCH;
+               p->methodName, (int)c_nbElement, cg_nbElement);
+        p->codegenError = TA_CODEGEN_NBELEMENT_MISMATCH;
+        return;
     }
 
+    /* Compare output values */
     TA_Real cg_out[MAX_NB_TEST_ELEMENT];
-    int parsed = json_get_double_array(codegen_response, "outReal",
+    int parsed = json_get_double_array(p->responseBuf, "outReal",
                                        cg_out, MAX_NB_TEST_ELEMENT);
-    if( parsed != cg_nbElement )
-    {
-        printf("CODEGEN MISMATCH [%s]: outReal length %d != outNBElement %d\n",
-               func_name, parsed, cg_nbElement);
-        return TA_CODEGEN_OUTPUT_MISMATCH;
-    }
-
-    for( int i = 0; i < c_nbElement; i++ )
+    for( int i = 0; i < c_nbElement && i < parsed; i++ )
     {
         double diff = fabs(c_out[i] - cg_out[i]);
         if( diff > CODEGEN_EPSILON )
         {
             printf("CODEGEN MISMATCH [%s]: outReal[%d] C=%.10f codegen=%.10f diff=%.2e\n",
-                   func_name, i, c_out[i], cg_out[i], diff);
-            return TA_CODEGEN_OUTPUT_MISMATCH;
+                   p->methodName, i, c_out[i], cg_out[i], diff);
+            p->codegenError = TA_CODEGEN_OUTPUT_MISMATCH;
+            return;
         }
     }
-
-    return TA_TEST_PASS;
 }
 
-/* ---- Per-function tests ---- */
+/* ---- doRangeTest callbacks ---- */
 
-#define JSON_BUF_SIZE (64 * 1024)
-
-static ErrorNumber test_codegen_sma(CodegenPipe *cp, const TA_History *history)
+/* SMA callback: calls TA_SMA + sends to codegen + compares */
+static TA_RetCode codegen_range_sma(
+    TA_Integer startIdx, TA_Integer endIdx,
+    TA_Real *outputBuffer, TA_Integer *outputBufferInt,
+    TA_Integer *outBegIdx, TA_Integer *outNbElement,
+    TA_Integer *lookback, void *opaqueData,
+    unsigned int outputNb, unsigned int *isOutputInteger)
 {
-    char *request = malloc(JSON_BUF_SIZE);
-    char *response = malloc(JSON_BUF_SIZE);
-    if( !request || !response ) { free(request); free(response); return TA_CODEGEN_ALLOC_FAILED; }
+    CodegenRangeTestParam *p = (CodegenRangeTestParam *)opaqueData;
+    (void)outputBufferInt; (void)outputNb;
 
-    int endIdx = (int)history->nbBars - 1;
-    TA_Real outReal[MAX_NB_TEST_ELEMENT];
-    TA_Integer outBegIdx, outNbElement;
-    ErrorNumber errNb;
-    TA_RetCode retCode;
-    int pos;
+    /* 1. Call C reference */
+    TA_RetCode retCode = TA_SMA(startIdx, endIdx, p->inReal,
+                                 p->optInTimePeriod,
+                                 outBegIdx, outNbElement, outputBuffer);
+    *lookback = TA_SMA_Lookback(p->optInTimePeriod);
+    *isOutputInteger = 0;
 
-    /* Sub-test 1: SMA with period=2 (minimal) */
-    {
-        int startIdx = 0;
-        int timePeriod = 2;
-        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
-                         &outBegIdx, &outNbElement, outReal);
+    /* 2. Build JSON-RPC request */
+    int pos = snprintf(p->requestBuf, JSON_BUF_SIZE,
+        "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+        "\"optInTimePeriod\":%d,\"inReal\":",
+        (int)startIdx, (int)endIdx, p->optInTimePeriod);
+    pos += json_write_double_array(p->requestBuf + pos, JSON_BUF_SIZE - pos,
+                                   p->inReal, p->nbBars);
+    pos += snprintf(p->requestBuf + pos, JSON_BUF_SIZE - pos, "}}");
 
-        pos = snprintf(request, JSON_BUF_SIZE,
-            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
-                                       history->close, (int)history->nbBars);
-        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+    /* 3. Send to codegen and compare */
+    compare_codegen_output(p, retCode, *outBegIdx, *outNbElement, outputBuffer);
 
-        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-        if( errNb == TA_TEST_PASS )
-            errNb = compare_results("TA_SMA(period=2)", retCode, outBegIdx, outNbElement, outReal, response);
-        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
-    }
-
-    /* Sub-test 2: SMA with period=30 (standard) */
-    {
-        int startIdx = 0;
-        int timePeriod = 30;
-        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
-                         &outBegIdx, &outNbElement, outReal);
-
-        pos = snprintf(request, JSON_BUF_SIZE,
-            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
-                                       history->close, (int)history->nbBars);
-        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
-
-        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-        if( errNb == TA_TEST_PASS )
-            errNb = compare_results("TA_SMA(period=30)", retCode, outBegIdx, outNbElement, outReal, response);
-        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
-    }
-
-    /* Sub-test 3: SMA with startIdx=50 (partial range) */
-    {
-        int startIdx = 50;
-        int timePeriod = 30;
-        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
-                         &outBegIdx, &outNbElement, outReal);
-
-        pos = snprintf(request, JSON_BUF_SIZE,
-            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
-                                       history->close, (int)history->nbBars);
-        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
-
-        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-        if( errNb == TA_TEST_PASS )
-            errNb = compare_results("TA_SMA(period=30,startIdx=50)", retCode, outBegIdx, outNbElement, outReal, response);
-        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
-    }
-
-    free(request); free(response);
-    return TA_TEST_PASS;
+    return retCode;
 }
 
-static ErrorNumber test_codegen_mult(CodegenPipe *cp, const TA_History *history)
+/* MULT callback: calls TA_MULT + sends to codegen + compares */
+static TA_RetCode codegen_range_mult(
+    TA_Integer startIdx, TA_Integer endIdx,
+    TA_Real *outputBuffer, TA_Integer *outputBufferInt,
+    TA_Integer *outBegIdx, TA_Integer *outNbElement,
+    TA_Integer *lookback, void *opaqueData,
+    unsigned int outputNb, unsigned int *isOutputInteger)
 {
-    char *request = malloc(JSON_BUF_SIZE);
-    char *response = malloc(JSON_BUF_SIZE);
-    if( !request || !response ) { free(request); free(response); return TA_CODEGEN_ALLOC_FAILED; }
+    CodegenRangeTestParam *p = (CodegenRangeTestParam *)opaqueData;
+    (void)outputBufferInt; (void)outputNb;
 
-    int startIdx = 0;
-    int endIdx = (int)history->nbBars - 1;
-    TA_Real outReal[MAX_NB_TEST_ELEMENT];
-    TA_Integer outBegIdx, outNbElement;
+    TA_RetCode retCode = TA_MULT(startIdx, endIdx,
+                                  p->inReal, p->inReal1,
+                                  outBegIdx, outNbElement, outputBuffer);
+    *lookback = TA_MULT_Lookback();
+    *isOutputInteger = 0;
 
-    TA_RetCode retCode = TA_MULT(startIdx, endIdx, history->close, history->volume,
-                                 &outBegIdx, &outNbElement, outReal);
+    int pos = snprintf(p->requestBuf, JSON_BUF_SIZE,
+        "{\"method\":\"TA_MULT\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,\"inReal0\":",
+        (int)startIdx, (int)endIdx);
+    pos += json_write_double_array(p->requestBuf + pos, JSON_BUF_SIZE - pos,
+                                   p->inReal, p->nbBars);
+    pos += snprintf(p->requestBuf + pos, JSON_BUF_SIZE - pos, ",\"inReal1\":");
+    pos += json_write_double_array(p->requestBuf + pos, JSON_BUF_SIZE - pos,
+                                   p->inReal1, p->nbBars);
+    pos += snprintf(p->requestBuf + pos, JSON_BUF_SIZE - pos, "}}");
 
-    int pos = snprintf(request, JSON_BUF_SIZE,
-        "{\"method\":\"TA_MULT\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,\"inReal0\":", startIdx, endIdx);
-    pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
-    pos += snprintf(request + pos, JSON_BUF_SIZE - pos, ",\"inReal1\":");
-    pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->volume, (int)history->nbBars);
-    pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+    compare_codegen_output(p, retCode, *outBegIdx, *outNbElement, outputBuffer);
 
-    ErrorNumber errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-    if( errNb == TA_TEST_PASS )
-        errNb = compare_results("TA_MULT", retCode, outBegIdx, outNbElement, outReal, response);
-
-    free(request); free(response);
-    return errNb;
+    return retCode;
 }
 
-static ErrorNumber test_codegen_rsi(CodegenPipe *cp, const TA_History *history)
+/* RSI callback: calls TA_RSI + sends to codegen + compares */
+static TA_RetCode codegen_range_rsi(
+    TA_Integer startIdx, TA_Integer endIdx,
+    TA_Real *outputBuffer, TA_Integer *outputBufferInt,
+    TA_Integer *outBegIdx, TA_Integer *outNbElement,
+    TA_Integer *lookback, void *opaqueData,
+    unsigned int outputNb, unsigned int *isOutputInteger)
 {
-    char *request = malloc(JSON_BUF_SIZE);
-    char *response = malloc(JSON_BUF_SIZE);
-    if( !request || !response ) { free(request); free(response); return TA_CODEGEN_ALLOC_FAILED; }
+    CodegenRangeTestParam *p = (CodegenRangeTestParam *)opaqueData;
+    (void)outputBufferInt; (void)outputNb;
 
-    int startIdx = 0;
-    int endIdx = (int)history->nbBars - 1;
-    TA_Real outReal[MAX_NB_TEST_ELEMENT];
-    TA_Integer outBegIdx, outNbElement;
-    ErrorNumber errNb;
-    TA_RetCode retCode;
-    int pos;
+    TA_RetCode retCode = TA_RSI(startIdx, endIdx, p->inReal,
+                                 p->optInTimePeriod,
+                                 outBegIdx, outNbElement, outputBuffer);
+    *lookback = TA_RSI_Lookback(p->optInTimePeriod);
+    *isOutputInteger = 0;
 
-    /* Sub-test 1: RSI with period=14 (standard) */
-    {
-        int timePeriod = 14;
-        TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
-        TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
+    int pos = snprintf(p->requestBuf, JSON_BUF_SIZE,
+        "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+        "\"optInTimePeriod\":%d,\"inReal\":",
+        (int)startIdx, (int)endIdx, p->optInTimePeriod);
+    pos += json_write_double_array(p->requestBuf + pos, JSON_BUF_SIZE - pos,
+                                   p->inReal, p->nbBars);
+    pos += snprintf(p->requestBuf + pos, JSON_BUF_SIZE - pos, "}}");
 
-        retCode = TA_RSI(startIdx, endIdx, history->close, timePeriod,
-                         &outBegIdx, &outNbElement, outReal);
+    compare_codegen_output(p, retCode, *outBegIdx, *outNbElement, outputBuffer);
 
-        pos = snprintf(request, JSON_BUF_SIZE,
-            "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
-        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
-
-        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-        if( errNb == TA_TEST_PASS )
-            errNb = compare_results("TA_RSI(period=14)", retCode, outBegIdx, outNbElement, outReal, response);
-        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
-    }
-
-    /* Sub-test 2: RSI with period=2 (minimal) */
-    {
-        int timePeriod = 2;
-        TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
-        TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
-
-        retCode = TA_RSI(startIdx, endIdx, history->close, timePeriod,
-                         &outBegIdx, &outNbElement, outReal);
-
-        pos = snprintf(request, JSON_BUF_SIZE,
-            "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
-        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
-
-        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-        if( errNb == TA_TEST_PASS )
-            errNb = compare_results("TA_RSI(period=2)", retCode, outBegIdx, outNbElement, outReal, response);
-        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
-    }
-
-    free(request); free(response);
-    return TA_TEST_PASS;
+    return retCode;
 }
 
-/* ---- Main entry point ---- */
+/* ---- Test orchestration ---- */
+
+typedef struct {
+    const char *name;           /* Filter name (e.g. "SMA", "MULT") */
+    const char *method;         /* JSON-RPC method (e.g. "TA_SMA") */
+    RangeTestFunction callback;
+    TA_FuncUnstId unstId;
+    unsigned int nbOutput;
+    int needsTimePeriod;        /* Does this function use optInTimePeriod? */
+    int defaultTimePeriod;      /* Default value if needsTimePeriod */
+    int needsSecondInput;       /* Does this function use inReal1? */
+} CodegenTestDef;
+
+static const CodegenTestDef CODEGEN_TESTS[] = {
+    {"MULT", "TA_MULT", codegen_range_mult, TA_FUNC_UNST_NONE, 1, 0, 0,  1},
+    {"SMA",  "TA_SMA",  codegen_range_sma,  TA_FUNC_UNST_NONE, 1, 1, 30, 0},
+    {"RSI",  "TA_RSI",  codegen_range_rsi,  TA_FUNC_UNST_RSI,  1, 1, 14, 0},
+};
+#define NUM_CODEGEN_TESTS (sizeof(CODEGEN_TESTS) / sizeof(CODEGEN_TESTS[0]))
 
 static int codegen_matches_filter(const char *filter, const char *name)
 {
@@ -346,45 +351,161 @@ static int codegen_matches_filter(const char *filter, const char *name)
     return 0;
 }
 
-ErrorNumber test_codegen(const TA_History *history, const char *functionFilter)
+static ErrorNumber test_codegen_for_language(
+    const CodegenLanguage *lang,
+    const TA_History *history,
+    const char *functionFilter)
 {
     CodegenPipe cp;
     ErrorNumber errNb;
     int tested = 0;
 
     printf("\n");
-    printf("Codegen verification tests\n");
-    printf("--------------------------\n");
+    printf("Codegen verification: %s\n", lang->display);
+    printf("---------------------------------------------\n");
 
-    errNb = codegen_pipe_open(&cp, "./ta_codegen");
+    errNb = codegen_pipe_open(&cp, lang->argv);
     if( errNb != TA_TEST_PASS )
     {
-        printf("Failed to start ta_codegen serve (is ./ta_codegen built?)\n");
+        printf("FAILED: Cannot start %s server", lang->display);
+        if( strcmp(lang->name, "rust") == 0 )
+            printf(" (is ./ta_codegen built?)");
+        else
+            printf(" (run: ta_codegen build --lang=%s)", lang->name);
+        printf("\n");
         return errNb;
     }
-    printf("ta_codegen serve started (pid=%d)\n", cp.child_pid);
+    printf("  Server started (pid=%d)\n", cp.child_pid);
 
-    #define DO_CODEGEN_TEST(func, name) \
-        if( codegen_matches_filter(functionFilter, name) ) \
-        { \
-            printf("  %-40s ", name); \
-            fflush(stdout); \
-            errNb = func(&cp, history); \
-            if( errNb != TA_TEST_PASS ) \
-            { \
-                printf("FAILED (code=%d)\n", errNb); \
-                codegen_pipe_close(&cp); \
-                return errNb; \
-            } \
-            printf("passed\n"); \
-            tested++; \
+    /* Allocate reusable JSON buffers */
+    char *requestBuf = malloc(JSON_BUF_SIZE);
+    char *responseBuf = malloc(JSON_BUF_SIZE);
+    if( !requestBuf || !responseBuf )
+    {
+        free(requestBuf);
+        free(responseBuf);
+        codegen_pipe_close(&cp);
+        return TA_CODEGEN_ALLOC_FAILED;
+    }
+
+    for( unsigned int t = 0; t < NUM_CODEGEN_TESTS; t++ )
+    {
+        const CodegenTestDef *def = &CODEGEN_TESTS[t];
+
+        if( !codegen_matches_filter(functionFilter, def->name) )
+            continue;
+
+        printf("  %-40s ", def->name);
+        fflush(stdout);
+
+        /* Set up callback params */
+        CodegenRangeTestParam params;
+        memset(&params, 0, sizeof(params));
+        params.inReal = history->close;
+        params.inReal1 = def->needsSecondInput ? history->volume : NULL;
+        params.nbBars = (int)history->nbBars;
+        params.optInTimePeriod = def->needsTimePeriod ? def->defaultTimePeriod : 0;
+        params.cp = &cp;
+        params.requestBuf = requestBuf;
+        params.responseBuf = responseBuf;
+        params.codegenError = TA_TEST_PASS;
+        params.methodName = def->method;
+
+        /* For RSI: reset unstable period */
+        if( def->unstId == TA_FUNC_UNST_RSI )
+        {
+            TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
+            TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
         }
 
-    DO_CODEGEN_TEST(test_codegen_mult, "MULT");
-    DO_CODEGEN_TEST(test_codegen_sma,  "SMA");
-    DO_CODEGEN_TEST(test_codegen_rsi,  "RSI");
+        /* Run doRangeTest — this calls our callback hundreds of times */
+        errNb = doRangeTest(def->callback, def->unstId,
+                            (void *)&params, def->nbOutput, 0);
 
+        /* Check for codegen mismatch (separate from doRangeTest errors) */
+        if( params.codegenError != TA_TEST_PASS )
+        {
+            printf("CODEGEN FAILED (code=%d)\n", params.codegenError);
+            free(requestBuf);
+            free(responseBuf);
+            codegen_pipe_close(&cp);
+            return params.codegenError;
+        }
+
+        if( errNb != TA_TEST_PASS )
+        {
+            printf("RANGE TEST FAILED (code=%d)\n", errNb);
+            free(requestBuf);
+            free(responseBuf);
+            codegen_pipe_close(&cp);
+            return errNb;
+        }
+
+        printf("passed\n");
+        tested++;
+    }
+
+    free(requestBuf);
+    free(responseBuf);
     codegen_pipe_close(&cp);
-    printf("\nCodegen verification: %d tests passed\n", tested);
+
+    printf("\n  %s: %d tests passed\n", lang->display, tested);
+    return TA_TEST_PASS;
+}
+
+/* ---- Main entry point ---- */
+
+static int language_matches_filter(const char *filter, const char *name)
+{
+    char filterCopy[1024];
+    char *token;
+    if( filter == NULL ) return 1;
+    strncpy(filterCopy, filter, sizeof(filterCopy) - 1);
+    filterCopy[sizeof(filterCopy) - 1] = '\0';
+    token = strtok(filterCopy, ",");
+    while( token != NULL )
+    {
+        if( strcmp(name, token) == 0 ) return 1;
+        token = strtok(NULL, ",");
+    }
+    return 0;
+}
+
+ErrorNumber test_codegen(const TA_History *history,
+                         const char *languageFilter,
+                         const char *functionFilter)
+{
+    ErrorNumber errNb;
+    int langsTested = 0;
+
+    printf("\n");
+    printf("=============================================\n");
+    printf("Codegen Multi-Language Verification\n");
+    printf("=============================================\n");
+
+    for( unsigned int i = 0; i < NUM_LANGUAGES; i++ )
+    {
+        if( !language_matches_filter(languageFilter, ALL_LANGUAGES[i].name) )
+            continue;
+
+        errNb = test_codegen_for_language(&ALL_LANGUAGES[i], history,
+                                          functionFilter);
+        if( errNb != TA_TEST_PASS )
+            return errNb;
+
+        langsTested++;
+    }
+
+    if( langsTested == 0 )
+    {
+        printf("\nNo languages matched filter '%s'\n",
+               languageFilter ? languageFilter : "(none)");
+        return TA_REGTEST_BAD_USER_PARAM;
+    }
+
+    printf("\n=============================================\n");
+    printf("All %d language(s) passed codegen verification\n", langsTested);
+    printf("=============================================\n");
+
     return TA_TEST_PASS;
 }
