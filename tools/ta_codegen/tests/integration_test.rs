@@ -376,13 +376,13 @@ fn test_sma_from_c_lookback_body() {
 }
 
 #[test]
-fn test_sma_from_c_has_internal_function() {
+fn test_sma_from_c_has_logic_function() {
     let base = Path::new(env!("CARGO_MANIFEST_DIR"));
     let c_path = base.join("../../ta_func_defs/sma/sma.c");
     let parsed = parser::c_source::parse_c_source(&c_path);
 
     assert_eq!(parsed.functions.len(), 1, "Should have one function");
-    assert!(parsed.functions[0].is_internal, "SMA function should be internal (TA_INT_SMA)");
+    assert_eq!(parsed.functions[0].name, "sma_logic", "Function name should be sma_logic");
     assert!(!parsed.functions[0].body.is_empty(), "Function body should not be empty");
 }
 
@@ -516,7 +516,7 @@ fn test_ma_generates_all_backends() {
     let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_MA_Lookback"), "C missing lookback");
-    assert!(c_out.contains("TA_SMA_Lookback"), "C missing SMA_Lookback call");
-    assert!(c_out.contains("TA_EMA_Lookback"), "C missing EMA_Lookback call");
+    assert!(c_out.contains("sma_lookback"), "C missing sma_lookback call");
+    assert!(c_out.contains("ema_lookback"), "C missing ema_lookback call");
     assert!(rust_out.contains("ma_lookback"), "Rust missing lookback");
 }

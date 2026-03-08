@@ -309,10 +309,14 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
     let mut i = 0;
 
     while i < tokens.len() {
-        // Look for lookback function: int TA_XXX_Lookback ( ... ) { body }
+        // Look for lookback function:
+        //   Old: int TA_XXX_Lookback ( ... ) { body }
+        //   New: int xxx_lookback ( ... ) { body }
         if matches!(&tokens[i], Token::Ident(s) if s == "int") {
             if let Some(Token::Ident(name)) = tokens.get(i + 1) {
-                if name.contains("_Lookback") && name.starts_with("TA_") {
+                let is_old_lookback = name.contains("_Lookback") && name.starts_with("TA_");
+                let is_new_lookback = name.ends_with("_lookback");
+                if is_old_lookback || is_new_lookback {
                     // Skip to opening brace
                     if let Some(brace_start) = find_open_brace(tokens, i + 2) {
                         if let Some(brace_end) = find_matching_brace(tokens, brace_start) {
@@ -326,10 +330,14 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
             }
         }
 
-        // Look for implementation function: TA_RetCode TA_XXX ( ... ) { body }
+        // Look for implementation function:
+        //   Old: TA_RetCode TA_XXX ( ... ) { body }
+        //   New: TA_RetCode xxx_logic ( ... ) { body }
         if matches!(&tokens[i], Token::Ident(s) if s == "TA_RetCode") {
             if let Some(Token::Ident(name)) = tokens.get(i + 1) {
-                if name.starts_with("TA_") {
+                let is_old_func = name.starts_with("TA_");
+                let is_new_func = name.ends_with("_logic");
+                if is_old_func || is_new_func {
                     let func_name = name.clone();
                     let is_internal = func_name.starts_with("TA_INT_");
                     if let Some(brace_start) = find_open_brace(tokens, i + 2) {
@@ -1730,6 +1738,36 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
             },
             other => panic!("Expected Not, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn test_extract_prefix_free_functions() {
+        let source = r#"
+int sma_lookback(int optInTimePeriod)
+{
+    return optInTimePeriod - 1;
+}
+
+TA_RetCode sma_logic(int startIdx, int endIdx,
+                       const double inReal[],
+                       int optInTimePeriod,
+                       int *outBegIdx, int *outNBElement,
+                       double outReal[])
+{
+    double periodTotal = 0.0;
+    *outBegIdx = startIdx;
+    *outNBElement = 0;
+    return TA_SUCCESS;
+}
+"#;
+        let parsed = parse_c_source_str(source);
+        assert!(
+            !parsed.lookback_body.is_empty(),
+            "lookback body should be parsed from sma_lookback"
+        );
+        assert_eq!(parsed.functions.len(), 1);
+        assert_eq!(parsed.functions[0].name, "sma_logic");
+        assert!(!parsed.functions[0].is_internal);
     }
 
     #[test]
