@@ -521,6 +521,7 @@ if(BUILD_DEV_TOOLS)
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/ta_test_func/test_trange.c"
 
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/codegen_pipe.c"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/test_codegen.c"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/test_util.c"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/test_data.c"
 		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/test_abstract.c"
