@@ -1,238 +1,171 @@
 ---
 name: convert-indicator
-description: Use when converting TA-Lib technical indicators to Rust, resuming in-progress conversions, or picking the next indicator to convert. Triggers on "convert indicator", "SMA", "RSI", "EMA", or any TA-Lib function name.
+description: Use when adding a new TA-Lib indicator to ta_codegen, resuming in-progress work, or picking the next function to convert. Triggers on "convert indicator", "add indicator", "next function", or any TA-Lib function name (SMA, RSI, EMA, MA, BBANDS, etc).
 ---
 
-# Convert TA-Lib Indicator to Rust
+# Convert Indicator via ta_codegen
 
-Convert a C/Java technical indicator function to cross-language Rust output via the gen_code pipeline.
+Add a TA-Lib indicator to the ta_codegen pipeline by writing YAML metadata + logic file, extending IR/parser/backends as needed, and validating across all 5 target languages.
 
 ## Usage
 
-- `/convert-indicator` — resume current indicator or pick next
-- `/convert-indicator SMA` — work on specific indicator
-
-## Design Principles
-
-### Java is the reference target
-
-**Always match the Java approach.** Java and Rust are the two type-safe targets. When Java uses an enum, Rust should use an enum. When Java skips runtime validation because the type system enforces safety, Rust should do the same. C's weaker type system is not the model.
-
-### Prefer stronger safety
-
-When choosing between runtime validation (C-style `(int)` casts and range checks) and compile-time safety (proper enum types, Rust's type system), always prefer compile-time safety. This means:
-
-- Use proper Rust enums for TA-Lib enums (`MAType`, `RetCode`, `Compatibility`, etc.) — don't flatten to `i32`
-- Add Rust to exclusion guards alongside Java/.NET where type safety makes runtime checks unnecessary (e.g., `#if !defined(_MANAGED) && !defined(_JAVA) && !defined(_RUST)`)
-- Start without `#[repr(i32)]` unless a code path genuinely needs enum↔integer conversion. If the generated code only matches on variants (via `ENUM_CASE`), integer conversion is unnecessary.
-- If integer conversion IS needed later, add `#[repr(i32)]` and `TryFrom<i32>` — don't downgrade the enum to `i32`
-
-### Cross-language verification is mandatory
-
-**Every proposed fix MUST be verified across all language targets before implementation.** A change that fixes Rust can break C, Java, or .NET.
-
-Before applying ANY fix:
-
-1. **Use brainstorming skill** (`superpowers:brainstorming`) to explore the fix design
-2. **Trace the affected code path across ALL languages** — check C, Java, .NET output, not just Rust
-3. **Verify assumptions about types** — a parameter may be `int` for one function and `TA_MAType` (enum) for another, using the same generator code path
-4. **Check for conditional exclusions** — generators use `#if !defined(_JAVA)`, `#if !defined(_MANAGED)` to skip code for certain languages. Rust may inherit C-only code paths that Java/.NET already solved differently.
-5. **Quadruple-check before committing** — if a fix seems "obvious" (like removing a cast), that's when you most need to verify
-
-**Use TDD** (`superpowers:test-driven-development`) for all Rust code changes.
-
-### Zero regressions
-
-**Existing tests must never be deleted or start failing.** Every change must preserve all passing tests across all languages. If a fix causes a previously-passing test to fail, the fix is wrong — find a different approach. This means:
-
-- `TA_FUNC_NO_RANGE_CHECK` is too aggressive — it removes ALL validation including basic range checks like `endIdx < startIdx`, causing test regressions
-- Prefer targeted fixes (macros, exclusion guards) over blunt instruments that disable entire code paths
-- Run ALL tests after every change, not just the indicator you're working on
-
-### Small, reviewable commits
-
-This project requires **small, atomic commits** that are easy for humans to review. Each commit should:
-
-- Do ONE thing — a single macro addition, a single generator fix, a single test
-- Have a clear, descriptive commit message explaining WHY, not just WHAT
-- Be independently verifiable — reviewer can check C/Java/Rust output in one pass
-- Never mix generator changes with unrelated source changes
-
-Bad: "Add SMA support to Rust" (massive commit touching 10 files)
-Good: Sequence of commits like "Add DECLARE_DOUBLE_VAR macro to ta_defs.h", "Use DECLARE_DOUBLE_VAR in ta_SMA.c logic section", "Regenerate SMA output after macro changes"
-
-### Address all warnings
-
-Compiler warnings are bugs waiting to happen. After every rebuild:
-
-- `cargo check` must produce zero warnings (not just zero errors)
-- Fix warnings at the source, not with `#[allow(...)]` unless there's a strong reason (e.g., `non_snake_case` for API compatibility)
-- gen_code runs `cargo fix --allow-dirty` automatically, but verify nothing slipped through
+- `/convert-indicator` — resume current or pick next
+- `/convert-indicator BBANDS` — work on specific indicator
 
 ## Workflow
 
 ```dot
 digraph convert {
-  "Pick indicator" -> "Read source + Java + generated Rust";
-  "Read source + Java + generated Rust" -> "Identify mismatches";
-  "Identify mismatches" -> "Any left?" [label="compile errors or logic diffs"];
-  "Any left?" -> "Trace origin" [label="yes"];
-  "Any left?" -> "Build + test" [label="no"];
-  "Trace origin" -> "Brainstorm fix design";
-  "Brainstorm fix design" -> "How does Java handle this?";
-  "How does Java handle this?" -> "Match Java's approach for Rust";
-  "Match Java's approach for Rust" -> "Verify across ALL languages";
-  "Verify across ALL languages" -> "In logic (GENCODE 3-5)?" [shape=diamond];
-  "In logic (GENCODE 3-5)?" -> "Fix: refactor C or add macro" [label="yes"];
-  "In logic (GENCODE 3-5)?" -> "Fix: modify gen_code.c print functions" [label="no, in scaffolding"];
-  "Fix: refactor C or add macro" -> "Rebuild gen_code + run gen_code";
-  "Fix: modify gen_code.c print functions" -> "Rebuild gen_code + run gen_code";
-  "Rebuild gen_code + run gen_code" -> "Verify C/Java/.NET output unchanged";
-  "Verify C/Java/.NET output unchanged" -> "Identify mismatches";
-  "Build + test" -> "cargo check + cargo test";
-  "cargo check + cargo test" -> "Update CLAUDE.md status";
+    "Pick indicator" -> "Read Java reference in Core.java";
+    "Read Java reference in Core.java" -> "Write name.yaml + name.logic";
+    "Write name.yaml + name.logic" -> "cargo run -- generate";
+    "cargo run -- generate" -> "Parse error?" [shape=diamond];
+    "Parse error?" -> "Extend parser" [label="yes"];
+    "Extend parser" -> "cargo run -- generate";
+    "Parse error?" -> "Review generated output" [label="no"];
+    "Review generated output" -> "New IR node needed?" [shape=diamond];
+    "New IR node needed?" -> "Extend IR + all backends" [label="yes"];
+    "Extend IR + all backends" -> "cargo run -- generate";
+    "New IR node needed?" -> "Output correct?" [label="no"];
+    "Output correct?" -> "Add to validate.sh + commit" [label="yes"];
+    "Output correct?" -> "Fix backend rendering" [label="no"];
+    "Fix backend rendering" -> "cargo run -- generate";
 }
 ```
 
-## Fix Priority (try in order)
-
-1. **Light C refactoring** — remove unnecessary syntax that happens to be invalid in Rust (missing braces, etc.). BUT: verify the syntax is truly unnecessary across all parameter types and languages first.
-2. **New macro in `ta_defs.h`** — when syntax genuinely differs or has semantic meaning in some code paths. MUST include `#else` default for C/Java/.NET.
-3. **Generator change in `gen_code.c`/`gen_rust.c`** — when scaffolding print functions need different output per language.
-
-**Red flag**: If a fix looks like "just remove this" — STOP. Trace every code path that hits the same generator function. Example: `(int)` casts look like no-ops for `int` params but do real enum-to-int conversion for `TA_MAType` params, and the same `printOptInputValidation()` handles both.
-
 ## Step-by-step
 
-### 1. Pick or resume indicator
-
-Check `RUST_SUPPORTED_FUNCS` in `gen_code.c:111` for currently enabled indicators (CSV list). Check `rust/src/ta_func/` for existing `.rs` files. If resuming, run `cargo check` in `rust/` to see current errors.
-
-### 2. Read the three views
-
-| File | Purpose |
-|------|---------|
-| `src/ta_func/ta_XXX.c` | Source of truth — hand-written logic between GENCODE 3-5 |
-| `java/src/com/tictactec/ta/lib/Core.java` | Reference — search for function name, shows working Java output |
-| `rust/src/ta_func/xxx.rs` | Generated Rust — compare against Java for mismatches |
-
-### 3. For each mismatch, brainstorm and trace
-
-**Brainstorm**: Use `superpowers:brainstorming` to explore fix options.
-
-**Ask "How does Java handle this?"** — Java is the reference. If Java uses an enum type, Rust should too. If Java skips a validation block, Rust should too. Don't default to C's approach.
-
-**Trace**: Is the bad syntax in the logic sections (ta_XXX.c between GENCODE 3-5) or in the generated scaffolding (gen_code.c's `printFunc`, `printOptInputValidation`, `writeFuncFile`)?
-
-**Verify cross-language**: Check what C, Java, .NET each generate for this same code path. Look for `#if !defined(_JAVA)` / `#if !defined(_MANAGED)` guards — Rust should often be alongside Java/.NET in these guards, not inheriting C's weaker patterns.
-
-**Fix at the source**:
-- Logic sections: use/create macros in `ta_defs.h`, or refactor C to be cross-language compatible
-- Scaffolding: modify the print function in `gen_code.c` that emits the bad syntax
-- Never hand-edit generated Rust files
-
-### 4. Rebuild and verify (TDD)
-
-Write or update Rust tests FIRST (`superpowers:test-driven-development`), then run the full pipeline:
+### 1. Pick indicator
 
 ```bash
-# 1. Build gen_code (from project root)
-cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make gen_code -j4
-
-# 2. Run gen_code to regenerate all output (must run from bin/)
-cd ../bin && ../cmake-build/bin/gen_code
-
-# 3. Verify Rust compiles
-cd ../rust && cargo check
-
-# 4. Run ALL Rust tests (zero regressions policy — every test must pass)
-cd ../rust && cargo test
-
-# 5. Verify C/Java/.NET output — understand every diff
-git diff -- src/ta_func/ta_XXX.c
-git diff -- java/src/com/tictactec/ta/lib/Core.java
+ls ta_func_defs/           # what exists
+cargo run --release -- generate  # does current generation work?
 ```
 
-**Cosmetic diffs are OK** if you are 100% certain they are safe. Changes like `(int)x` → `(int)(x)` from macro expansion are semantically identical. Commit cosmetic changes alongside the code that caused them so reviewers see the full picture.
+**Progression** (each builds on previous capabilities): MULT -> SMA -> RSI -> EMA -> MA -> BBANDS -> DEMA -> TEMA -> WMA -> TRIMA -> KAMA -> T3 -> STOCH -> MACD -> ADX
 
-**Note**: gen_code automatically runs `cargo fix --allow-dirty` and `cargo fmt` on the generated Rust code. The "Unsupported price input" warnings are expected for OHLCV-based indicators that aren't supported in Rust yet.
+### 2. Read the Java reference
 
-### 5. Update tracking
+Java is the known-working target. Search `Core.java` for the function:
 
-- Add function to `RUST_SUPPORTED_FUNCS` CSV in gen_code.c when ready
-- Update CLAUDE.md Current Status section
-- `rust/src/ta_func/mod.rs` is updated automatically by gen_code
-- Update `RUST_CHANGELOG.md` using the procedure below
-
-#### Changelog procedure
-
-**Step 1: Identify the commit range.** Find the first and last commit for this entry:
 ```bash
-# Find commits for this work (adjust date or range as needed)
-git log --oneline <previous-entry-last-commit>..HEAD
+grep -n "public RetCode functionName" java/src/com/tictactec/ta/lib/Core.java
 ```
 
-**Step 2: Get the parent hash** of the first commit (needed for inclusive GitHub URLs):
+Note: inputs, optional params, outputs, lookback calculation, and the core algorithm.
+
+### 3. Write YAML metadata
+
+Create `ta_func_defs/name/name.yaml`:
+
+```yaml
+name: NAME
+group: Group Name
+description: Human description
+inputs:
+  - name: inReal
+    type: real
+optional_inputs:
+  - name: optInTimePeriod
+    type: integer
+    range: [2, 100000]
+    default: 30
+outputs:
+  - name: outReal
+    type: real
+lookback: optInTimePeriod - 1
+```
+
+**Lookback formats:** literal (`0`), param-minus (`optInTimePeriod - 1`), or multi-line code (`lookback: |` with C-like statements).
+
+### 4. Write the logic file
+
+Create `ta_func_defs/name/name.logic`. Full syntax in `docs/ta_codegen_logic_syntax.md`.
+
+**Rules:**
+- Just the algorithm — no function signature, no validation, no return type
+- C-like syntax: semicolons, parens around conditions, curly braces required
+- Types: `double`, `int`, `size_t` (indices), `RetCode` (return codes)
+- Final `return SUCCESS` is implicit — only use explicit return for early exits
+- Function calls without prefix: `SMA(...)` not `TA_SMA(...)`
+- Builtins: `UNSTABLE_PERIOD(name)`, `IS_ZERO(x)`, `ARRAY_COPY(dst,dOff,src,sOff,count)`, `PER_TO_K(period)`, `COMPATIBILITY`, `DEFAULT`, `METASTOCK`
+
+### 5. Generate and iterate
+
 ```bash
-git rev-parse <first-commit>^    # e.g., abc1234 → def5678
+cd tools/ta_codegen
+cargo run --release -- generate
+cargo test
 ```
 
-**Step 3: Write the entry** using these two lines for the range:
-- Local diff: `` `git diff <first>^..<last>` `` — the `^` makes it inclusive of `<first>`
-- GitHub URL: `[view on GitHub](https://github.com/TA-Lib/ta-lib/compare/<PARENT-of-first>...<last>)` — GitHub `compare/A...B` excludes A, so use the parent to include the first commit
+If the parser panics or output is wrong, extend:
 
-```markdown
-## YYYY-MM-DD -- Short title
+| Missing | Where |
+|---|---|
+| New statement type | `ir.rs` + `parser/logic.rs` + all 5 backends |
+| New expression type | `ir.rs` + `parser/logic.rs` + all 5 backends |
+| New builtin function | `render_func_call()` in each backend |
+| New type keyword | `parser/logic.rs` (parse_var_decl + is_type_keyword) + backends |
+| New variable mapping | `Expr::Var` match in each backend's `render_expr()` |
 
-`git diff abc1234^..fed9876` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/def5678...fed9876)
+**When extending IR, you MUST update ALL 5 backends** or Rust exhaustiveness errors will tell you where.
 
-* [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Description
-* [fed9876](https://github.com/TA-Lib/ta-lib/commit/fed9876) Description
-* All N Rust tests passing (breakdown)
-```
+### 6. Validate and commit
 
-**Step 4: Verify every commit has a bullet.** This is mandatory — no silent commits in the range:
+Add file checks to `tests/validate.sh`, then:
+
 ```bash
-# Count commits in range — must equal number of bulleted lines (excluding summary)
-git log <first>^..<last> --oneline | wc -l
+bash tests/validate.sh    # 0 failures required
 ```
-If the counts don't match, you're missing bullets. Every commit gets at least one bullet, even tracking updates, formatting fixes, and regeneration commits.
 
-**Key rules:**
-- **One entry per day** — amend if pushing more commits on the same day
-- **`^` for inclusive local diffs** — `git diff A^..B` includes A; `git diff A..B` does NOT
-- **Parent hash for GitHub URLs** — `compare/A...B` excludes A; use `compare/<parent-of-A>...B` to include it
-- **Every commit = at least one bullet** — no exceptions, even for "minor" commits
-- **Summary bullet at the end** — total test count to show nothing regressed
+MULT and SMA have byte-identical reference comparisons — if those break, your change is wrong.
 
 ## Key files
 
-- `src/tools/gen_code/gen_code.c` — main generator, `printFunc()` and `printOptInputValidation()` generate GENCODE scaffolding
-- `src/tools/gen_code/gen_rust.c` — Rust signature generation (`printRustDoublePrecisionFunctionSignature`, etc.)
-- `include/ta_defs.h` — cross-language macros, Rust defs around lines 159-188 and 225-274
-- `src/ta_abstract/templates/ta_x.rs.template` — Rust file template
+| File | Purpose |
+|------|---------|
+| `ta_func_defs/name/name.yaml` | Metadata: inputs, outputs, params, lookback |
+| `ta_func_defs/name/name.logic` | Algorithm in C-like syntax |
+| `tools/ta_codegen/src/ir.rs` | IR types (FuncDef, Statement, Expr, VarType) |
+| `tools/ta_codegen/src/parser/logic.rs` | Tokenizer + recursive descent parser |
+| `tools/ta_codegen/src/parser/yaml.rs` | YAML metadata parser |
+| `tools/ta_codegen/src/backends/*.rs` | Language backends (rust_lang, c, java, dotnet, swig) |
+| `tools/ta_codegen/src/server.rs` | JSON-RPC validation server |
+| `tools/ta_codegen/tests/validate.sh` | Full validation harness |
+| `docs/ta_codegen_logic_syntax.md` | Logic syntax reference |
+| `java/src/com/tictactec/ta/lib/Core.java` | Java reference to match |
 
-## Macro rules
+## Backend rendering
 
-- **Check existing macros first** — search `ta_defs.h` for `CAST_TO`, `DECLARE_`, `ENUM_`, etc. before creating anything new. Reuse and fix existing macros rather than adding parallel ones.
-- **Avoid macro sprawl** — if an existing macro almost does what you need, update its definition rather than creating a variant (e.g., fix `CAST_TO_I32`'s C expansion rather than creating `CAST_TO_INT`).
-- **Understand the block structure** — `ta_defs.h` has TWO `#if` blocks: Block 1 (4-way: .NET/Java/Rust/C) for ENUM/VALUE_HANDLE macros, Block 2 (2-way: Rust/else) for CAST/DECLARE/FOR macros. Know which block your macro belongs in.
-- **Name macros by concept, not by Rust type.** Use `CAST_TO_INDEX` (concept: array index) not `CAST_TO_USIZE` (Rust type name). Each language maps the concept to its own type — Rust: `usize`, C: `int`, Java: `int`. This avoids implying C needs a `size_t` when `int` is what TA-Lib actually uses.
-- **Non-Rust expansions should preserve existing behavior.** The macro exists for Rust; the C/Java expansion should match what those languages already do. Don't introduce `size_t` in C or `double` casts where C was doing implicit promotion — minimize churn in working code.
-- **Avoid unnecessary casts.** If a value is already the right type, don't cast it. The non-Rust macro expansion can be a no-op `(val)` when the existing code doesn't need a cast. Only add real casts where the conversion is semantically meaningful (e.g., `CAST_TO_F64` on a float→double conversion).
-- Every new macro needs an `#else` default for C/Java/.NET
-- In logic sections: use macros directly, never `#if defined(_RUST)` conditionals
-- If a macro doesn't exist: add it to `ta_defs.h`, don't add conditionals to source
+Each backend has the same structure:
 
-## Common blockers
+- **`render_statement()`** — Statement variants (VarDecl, Assign, While, If, Switch, etc.)
+- **`render_expr()`** — Expr variants (Var, Literal, BinOp, Cast, FuncCall, etc.)
+- **`render_func_call()`** — builtins + TA function dispatch
 
-| Symptom | Likely cause | Fix approach | Verification needed |
-|---------|-------------|--------------|---------------------|
-| `(int)x` on enum param in Rust | `printOptInputValidation` emits C casts for MAType | Use proper Rust enum + add `_RUST` to exclusion guard (match Java) | Verify enum definition, check Java skips same validation |
-| `(int)x` on int param in Rust | `printOptInputValidation` emits C casts for IntegerRange | Add `CAST_TO_INT` macro — still needed for plain `i32` params | Check ALL param types that hit this code path |
-| Missing braces on if/else | `printFunc` emits braceless conditionals | Add braces in gen_code.c (valid everywhere) | Diff C/Java output unchanged |
-| Bare `int`/`double` in Rust | Logic section uses raw C types | Replace with `DECLARE_*_VAR` macro | Verify macro has C default |
-| `i++` in Rust | C increment syntax | Use `i = i + 1` or add increment macro | Check if used in expressions like `arr[i++]` |
-| Null pointer check in Rust | Generated validation checks `!ptr` | Wrap in `#ifndef TA_FUNC_NO_RANGE_CHECK` | Verify C still validates |
-| Rust inherits C-only code path | Guard checks `!_MANAGED && !_JAVA` but not `!_RUST` | Add `!defined(_RUST)` to guard if Java's approach is type-safe | Verify Java/Rust both skip, C still validates |
-| Test regressions after change | `TA_FUNC_NO_RANGE_CHECK` or similar blunt disable | Don't disable entire validation — use targeted macros (`CAST_TO_INT`, exclusion guards) | Run ALL tests, not just new indicator |
+**Function call dispatch per language:**
+
+| Call in logic | C | Rust | Java |
+|---|---|---|---|
+| `SMA(...)` | `TA_SMA(...)` | `self.sma(...)` | `sma(...)` |
+| `SMA_Lookback(...)` | `TA_SMA_Lookback(...)` | `self.sma_lookback(...)` | `smaLookback(...)` |
+| Single-precision | `TA_S_SMA(...)` | `self.sma_s(...)` | overloaded |
+
+## Complexity tiers
+
+| Tier | Example | Features introduced |
+|---|---|---|
+| Simple loop | MULT | while, assign, array access |
+| Accumulator | SMA | if/else, return, cast, running sum |
+| Stateful | RSI | UNSTABLE_PERIOD, IS_ZERO, for-countdown, ARRAY_COPY, complex lookback |
+| Recursive | EMA | PER_TO_K, DEFAULT/METASTOCK compat, operator precedence |
+| Dispatcher | MA | switch/case, RetCodeType, function call dispatch, BAD_PARAM/SUCCESS |
+| Multi-output | BBANDS | multiple output arrays, temp buffers |
+
+## Changelog
+
+After committing, update `RUST_CHANGELOG.md`:
+- One entry per day, every commit gets a bullet
+- `git diff first^..last` for inclusive local diffs
+- `compare/<parent-of-first>...last` for GitHub URLs
+- Summary bullet with total validation count at end
