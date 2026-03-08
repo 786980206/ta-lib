@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 use crate::ir::*;
+use crate::registry::Registry;
 
-pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>) -> String {
+pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
     let pascal = to_pascal_case(&func.name);
 
@@ -19,6 +20,22 @@ pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>) -> String {
     out.push_str(&gen_cli_array_decl(func, &pascal, true));
     out.push_str("#endif\n");
     out.push('\n');
+
+    // Logic variant declarations (same signatures, different name)
+    out.push_str("#if defined( _MANAGED ) && defined( USE_SUBARRAY )\n");
+    let logic_pascal = format!("{}Logic", pascal);
+    out.push_str(&gen_subarray_decl(func, &logic_pascal, false));
+    out.push('\n');
+    out.push_str(&gen_subarray_decl(func, &logic_pascal, true));
+    out.push('\n');
+    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, false));
+    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, true));
+    out.push_str("#elif defined( _MANAGED )\n");
+    out.push_str(&gen_cli_array_decl(func, &logic_pascal, false));
+    out.push_str(&gen_cli_array_decl(func, &logic_pascal, true));
+    out.push_str("#endif\n");
+    out.push('\n');
+
     out.push_str(&gen_macros(func, &pascal));
 
     out
@@ -226,8 +243,13 @@ fn gen_macros(_func: &FuncDef, pascal: &str) -> String {
     let upper = pascal.to_uppercase();
     format!(
         "         #define TA_{} Core::{}\n\
-         \x20        #define TA_{}_Lookback Core::{}Lookback\n",
-        upper, pascal, upper, pascal
+         \x20        #define TA_{}_Lookback Core::{}Lookback\n\
+         \x20        #define TA_{}_Logic Core::{}Logic\n\
+         \x20        #define TA_INT_{} Core::{}Logic\n",
+        upper, pascal,
+        upper, pascal,
+        upper, pascal,
+        upper, pascal
     )
 }
 
@@ -259,4 +281,48 @@ fn format_decl_inline(pascal: &str, params: &[String]) -> String {
     }
     out.push_str(" )\n");
     out
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use crate::parser;
+    use crate::registry::Registry;
+
+    fn make_registry() -> Registry {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        Registry::from_dir(&base)
+    }
+
+    fn load_sma() -> FuncDef {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
+        let c_path = base.join("../../ta_func_defs/sma/sma.c");
+        let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+        let parsed = parser::c_source::parse_c_source(&c_path);
+        func_def.body = parsed.functions[0].body.clone();
+        func_def.lookback = Some(LookbackExpr::Code(parsed.lookback_body));
+        func_def
+    }
+
+    #[test]
+    fn test_dotnet_generates_logic_declarations() {
+        let func = load_sma();
+        let enums = HashMap::new();
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        // Should contain logic variant declaration
+        assert!(output.contains("SmaLogic("), "Missing SmaLogic declaration");
+
+        // Should contain the TA_INT_SMA macro
+        assert!(output.contains("#define TA_INT_SMA"), "Missing #define TA_INT_SMA");
+
+        // Should contain the TA_SMA_Logic macro
+        assert!(output.contains("#define TA_SMA_Logic Core::SmaLogic"), "Missing #define TA_SMA_Logic");
+
+        // Should contain the TA_INT_SMA macro pointing to Core::SmaLogic
+        assert!(output.contains("#define TA_INT_SMA Core::SmaLogic"), "Missing #define TA_INT_SMA Core::SmaLogic");
+    }
 }

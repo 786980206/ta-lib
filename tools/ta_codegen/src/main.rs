@@ -584,7 +584,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<Strin
             println!("  {} -> {}", func_def.name, path.display());
         }
         "java" => {
-            let output = backends::java::generate(func_def, enums);
+            let output = backends::java::generate(func_def, enums, registry);
             let dir = out_base.join("java");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.java", func_def.name));
@@ -592,7 +592,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<Strin
             println!("  {} -> {}", func_def.name, path.display());
         }
         "dotnet" => {
-            let output = backends::dotnet::generate(func_def, enums);
+            let output = backends::dotnet::generate(func_def, enums, registry);
             let dir = out_base.join("dotnet");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.h", func_def.name));
@@ -600,7 +600,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<Strin
             println!("  {} -> {}", func_def.name, path.display());
         }
         "swig" => {
-            let output = backends::swig::generate(func_def, enums);
+            let output = backends::swig::generate(func_def, enums, registry);
             let dir = out_base.join("swig");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.swg", func_def.name));

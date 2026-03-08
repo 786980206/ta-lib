@@ -82,9 +82,9 @@ fn test_mult_from_c_generates_all_backends() {
     let enums = no_enums();
     let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
-    let java_out = backends::java::generate(&func, &enums);
-    let dotnet_out = backends::dotnet::generate(&func, &enums);
-    let swig_out = backends::swig::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums, &make_registry());
+    let dotnet_out = backends::dotnet::generate(&func, &enums, &make_registry());
+    let swig_out = backends::swig::generate(&func, &enums, &make_registry());
 
     assert!(!c_out.is_empty(), "C output from .c source is empty");
     assert!(!rust_out.is_empty(), "Rust output from .c source is empty");
@@ -264,7 +264,7 @@ fn test_rust_sma_from_c_produces_valid_output() {
 #[test]
 fn test_java_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::java::generate(&func, &no_enums());
+    let output = backends::java::generate(&func, &no_enums(), &make_registry());
     assert!(
         output.contains("multLookback") || output.contains("Lookback"),
         "Java output missing lookback method"
@@ -290,7 +290,7 @@ fn test_java_backend_generates_mult() {
 #[test]
 fn test_dotnet_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::dotnet::generate(&func, &no_enums());
+    let output = backends::dotnet::generate(&func, &no_enums(), &make_registry());
     assert!(
         output.contains("MultLookback") || output.contains("Lookback"),
         ".NET output missing lookback"
@@ -312,7 +312,7 @@ fn test_dotnet_backend_generates_mult() {
 #[test]
 fn test_swig_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::swig::generate(&func, &no_enums());
+    let output = backends::swig::generate(&func, &no_enums(), &make_registry());
     assert!(
         output.contains("TA_MULT") || output.contains("MULT"),
         "SWIG output missing TA_MULT"
@@ -341,9 +341,9 @@ fn test_sma_from_c_generates_all_backends() {
     let enums = no_enums();
     let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
-    let java_out = backends::java::generate(&func, &enums);
-    let dotnet_out = backends::dotnet::generate(&func, &enums);
-    let swig_out = backends::swig::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums, &make_registry());
+    let dotnet_out = backends::dotnet::generate(&func, &enums, &make_registry());
+    let swig_out = backends::swig::generate(&func, &enums, &make_registry());
 
     assert!(!c_out.is_empty(), "C output from .c source is empty");
     assert!(!rust_out.is_empty(), "Rust output from .c source is empty");
@@ -404,9 +404,9 @@ fn test_sma_all_backends_generate() {
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
-    let java_out = backends::java::generate(&func, &enums);
-    let dotnet_out = backends::dotnet::generate(&func, &enums);
-    let swig_out = backends::swig::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums, &make_registry());
+    let dotnet_out = backends::dotnet::generate(&func, &enums, &make_registry());
+    let swig_out = backends::swig::generate(&func, &enums, &make_registry());
 
     assert!(!c_out.is_empty(), "C output is empty");
     assert!(!rust_out.is_empty(), "Rust output is empty");
@@ -431,9 +431,9 @@ fn test_all_backends_produce_nonempty_output() {
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
-    let java_out = backends::java::generate(&func, &enums);
-    let dotnet_out = backends::dotnet::generate(&func, &enums);
-    let swig_out = backends::swig::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums, &make_registry());
+    let dotnet_out = backends::dotnet::generate(&func, &enums, &make_registry());
+    let swig_out = backends::swig::generate(&func, &enums, &make_registry());
 
     assert!(!c_out.is_empty(), "C output is empty");
     assert!(!rust_out.is_empty(), "Rust output is empty");
@@ -463,7 +463,7 @@ fn test_wma_generates_all_backends() {
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
     let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
-    let java_out = backends::java::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums, &make_registry());
 
     assert!(c_out.contains("TA_WMA_Lookback"), "C missing lookback");
     assert!(c_out.contains("optInTimePeriod"), "C missing optInTimePeriod");

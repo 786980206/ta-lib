@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use crate::ir::*;
+use crate::registry::Registry;
 
-pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>) -> String {
+pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
     out.push_str(&gen_comment_block(func));
-    out.push_str(&gen_func_decl(func));
+    out.push_str(&gen_func_decl(func, false));
+    out.push('\n');
+    out.push_str(&gen_func_decl(func, true));
     out.push('\n');
     out.push_str(&gen_lookback_decl(func));
     out.push('\n');
@@ -68,10 +71,15 @@ struct SwigParam {
     trailing_comment: Option<String>,
 }
 
-/// Generate the main function declaration with SWIG typemap markers.
-fn gen_func_decl(func: &FuncDef) -> String {
+/// Generate a function declaration with SWIG typemap markers.
+/// When `logic` is true, generates the Logic variant (TA_<NAME>_Logic).
+fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
     let mut out = String::new();
-    let prefix = format!("TA_{}", func.name);
+    let prefix = if logic {
+        format!("TA_{}_Logic", func.name)
+    } else {
+        format!("TA_{}", func.name)
+    };
 
     // Build parameter list with SWIG typemap markers
     let mut params: Vec<SwigParam> = Vec::new();
@@ -203,5 +211,44 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
                 func.name, params.join(", ")
             );
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::path::Path;
+    use crate::parser;
+    use crate::registry::Registry;
+
+    fn make_registry() -> Registry {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        Registry::from_dir(&base)
+    }
+
+    fn load_sma() -> FuncDef {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
+        let c_path = base.join("../../ta_func_defs/sma/sma.c");
+        let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+        let parsed = parser::c_source::parse_c_source(&c_path);
+        func_def.body = parsed.functions[0].body.clone();
+        func_def.lookback = Some(LookbackExpr::Code(parsed.lookback_body));
+        func_def
+    }
+
+    #[test]
+    fn test_swig_generates_logic_declaration() {
+        let func = load_sma();
+        let enums = HashMap::new();
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry);
+
+        // Should contain the logic variant declaration
+        assert!(output.contains("TA_SMA_Logic("), "Missing TA_SMA_Logic declaration");
+
+        // Should still contain the regular declaration
+        assert!(output.contains("TA_SMA(") || output.contains("TA_RetCode TA_SMA("),
+            "Missing regular TA_SMA declaration");
     }
 }
