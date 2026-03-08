@@ -608,7 +608,7 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 
         // Extract optional params
         for opt in &func.optional_inputs {
-            let default = opt.default.unwrap_or(0);
+            let default = opt.default.unwrap_or(0.0) as i64;
             s.push_str(&format!(
                 "                int {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetInt32() : {};\n",
                 opt.name, opt.name, default
@@ -949,7 +949,7 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
         // Optional params
         for opt in &func.optional_inputs {
-            let default = opt.default.unwrap_or(0);
+            let default = opt.default.unwrap_or(0.0) as i64;
             s.push_str(&format!(
                 "    {} = params.get('{}', {})\n",
                 opt.name, opt.name, default

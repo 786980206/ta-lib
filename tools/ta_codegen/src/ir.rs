@@ -6,7 +6,7 @@ pub struct FuncDef {
     pub description: Option<String>,
     pub camel_case: Option<String>,
     pub hint: Option<String>,
-    pub flags: Option<String>,
+    pub flags: Vec<String>,
     pub inputs: Vec<Input>,
     pub optional_inputs: Vec<OptInput>,
     pub outputs: Vec<Output>,
@@ -25,16 +25,19 @@ pub struct OptInput {
     pub name: String,
     pub param_type: ParamType,
     pub range: Option<(i32, i32)>,
-    pub default: Option<i32>,
+    pub default: Option<f64>,
     pub display_name: Option<String>,
     pub hint: Option<String>,
+    pub flags: Vec<String>,
+    /// Optimization hints: [suggested_start, suggested_end, suggested_increment]
+    pub suggested: Option<(f64, f64, f64)>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Output {
     pub name: String,
     pub param_type: ParamType,
-    pub flags: Option<String>,
+    pub flags: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -2,7 +2,7 @@ name: MA
 camel_case: Ma
 group: Overlap Studies
 hint: Moving average
-flags: overlap
+flags: [overlap]
 inputs:
   - name: inReal
     type: real
@@ -13,6 +13,7 @@ optional_inputs:
     hint: Number of period
     range: [1, 100000]
     default: 30
+    suggested: [1, 200, 1]
   - name: optInMAType
     type: enum:MAType
     display_name: MA Type
@@ -21,4 +22,4 @@ optional_inputs:
 outputs:
   - name: outReal
     type: real
-    flags: line
+    flags: [line]

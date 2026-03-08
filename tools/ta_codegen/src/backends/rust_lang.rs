@@ -112,7 +112,7 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -
             if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
                 out.push_str(&format!(
                     "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
-                    opt.name, default, lo, hi
+                    opt.name, default as i64, lo, hi
                 ));
             }
         }
@@ -211,7 +211,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
             if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
                 out.push_str(&format!(
                     "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
-                    opt.name, default, lo, hi
+                    opt.name, default as i64, lo, hi
                 ));
             }
         }
@@ -643,7 +643,7 @@ fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> Str
             ));
             out.push_str(&format!(
                 "{}    {} = {};\n",
-                pad, name, default
+                pad, name, default as i64
             ));
 
             if let Some((lo, hi)) = opt.range {

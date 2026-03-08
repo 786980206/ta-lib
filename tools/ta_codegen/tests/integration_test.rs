@@ -1,7 +1,20 @@
+use std::collections::HashMap;
 use std::path::Path;
 use ta_codegen_lib::backends;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
+
+/// Empty enum map for tests that don't use enums.
+fn no_enums() -> HashMap<String, ir::EnumDef> {
+    HashMap::new()
+}
+
+/// Load enums from the shared enums.yaml.
+fn load_enums() -> HashMap<String, ir::EnumDef> {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let enums_path = base.join("../../ta_func_defs/enums.yaml");
+    parser::enums::load_enums(&enums_path)
+}
 
 /// Helper: parse mult.yaml + mult.c and build a FuncDef.
 fn load_mult() -> ir::FuncDef {
@@ -59,11 +72,12 @@ fn load_func(name: &str) -> ir::FuncDef {
 #[test]
 fn test_mult_from_c_generates_all_backends() {
     let func = load_mult();
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
-    let java_out = backends::java::generate(&func);
-    let dotnet_out = backends::dotnet::generate(&func);
-    let swig_out = backends::swig::generate(&func);
+    let enums = no_enums();
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums);
+    let dotnet_out = backends::dotnet::generate(&func, &enums);
+    let swig_out = backends::swig::generate(&func, &enums);
 
     assert!(!c_out.is_empty(), "C output from .c source is empty");
     assert!(!rust_out.is_empty(), "Rust output from .c source is empty");
@@ -123,12 +137,12 @@ fn test_parse_sma_yaml() {
     assert_eq!(func.group, "Overlap Studies");
     assert_eq!(func.camel_case.as_deref(), Some("Sma"));
     assert_eq!(func.hint.as_deref(), Some("Simple Moving Average"));
-    assert_eq!(func.flags.as_deref(), Some("overlap"));
+    assert!(func.flags.contains(&"overlap".to_string()));
     assert_eq!(func.inputs.len(), 1);
     assert_eq!(func.outputs.len(), 1);
     assert_eq!(func.optional_inputs.len(), 1);
     assert_eq!(func.optional_inputs[0].name, "optInTimePeriod");
-    assert_eq!(func.optional_inputs[0].default, Some(30));
+    assert_eq!(func.optional_inputs[0].default, Some(30.0));
     assert_eq!(func.optional_inputs[0].range, Some((2, 100000)));
     assert_eq!(
         func.optional_inputs[0].display_name.as_deref(),
@@ -138,7 +152,8 @@ fn test_parse_sma_yaml() {
         func.optional_inputs[0].hint.as_deref(),
         Some("Number of period")
     );
-    assert_eq!(func.outputs[0].flags.as_deref(), Some("line"));
+    assert!(func.outputs[0].flags.contains(&"line".to_string()));
+    assert_eq!(func.optional_inputs[0].suggested, Some((4.0, 200.0, 1.0)));
 }
 
 #[test]
@@ -169,7 +184,7 @@ fn test_parse_sma_body() {
 #[test]
 fn test_c_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::c::generate(&func);
+    let output = backends::c::generate(&func, &no_enums());
     assert!(
         output.contains("TA_MULT_Lookback"),
         "C output missing lookback function"
@@ -199,7 +214,7 @@ fn test_c_backend_generates_mult() {
 #[test]
 fn test_rust_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::rust_lang::generate(&func);
+    let output = backends::rust_lang::generate(&func, &no_enums());
     assert!(
         output.contains("mult_lookback") || output.contains("Lookback"),
         "Rust output missing lookback function"
@@ -222,7 +237,7 @@ fn test_rust_backend_generates_mult() {
 #[test]
 fn test_rust_sma_from_c_produces_valid_output() {
     let func = load_sma();
-    let output = backends::rust_lang::generate(&func);
+    let output = backends::rust_lang::generate(&func, &no_enums());
 
     assert!(output.contains("sma_lookback"), "Missing sma_lookback function");
     assert!(output.contains("fn int_sma"), "Missing int_sma internal function");
@@ -242,7 +257,7 @@ fn test_rust_sma_from_c_produces_valid_output() {
 #[test]
 fn test_java_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::java::generate(&func);
+    let output = backends::java::generate(&func, &no_enums());
     assert!(
         output.contains("multLookback") || output.contains("Lookback"),
         "Java output missing lookback method"
@@ -268,7 +283,7 @@ fn test_java_backend_generates_mult() {
 #[test]
 fn test_dotnet_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::dotnet::generate(&func);
+    let output = backends::dotnet::generate(&func, &no_enums());
     assert!(
         output.contains("MultLookback") || output.contains("Lookback"),
         ".NET output missing lookback"
@@ -290,7 +305,7 @@ fn test_dotnet_backend_generates_mult() {
 #[test]
 fn test_swig_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::swig::generate(&func);
+    let output = backends::swig::generate(&func, &no_enums());
     assert!(
         output.contains("TA_MULT") || output.contains("MULT"),
         "SWIG output missing TA_MULT"
@@ -316,11 +331,12 @@ fn test_swig_backend_generates_mult() {
 #[test]
 fn test_sma_from_c_generates_all_backends() {
     let func = load_sma();
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
-    let java_out = backends::java::generate(&func);
-    let dotnet_out = backends::dotnet::generate(&func);
-    let swig_out = backends::swig::generate(&func);
+    let enums = no_enums();
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums);
+    let dotnet_out = backends::dotnet::generate(&func, &enums);
+    let swig_out = backends::swig::generate(&func, &enums);
 
     assert!(!c_out.is_empty(), "C output from .c source is empty");
     assert!(!rust_out.is_empty(), "Rust output from .c source is empty");
@@ -377,12 +393,13 @@ fn test_sma_from_c_has_internal_function() {
 #[test]
 fn test_sma_all_backends_generate() {
     let func = load_sma();
+    let enums = no_enums();
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
-    let java_out = backends::java::generate(&func);
-    let dotnet_out = backends::dotnet::generate(&func);
-    let swig_out = backends::swig::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums);
+    let dotnet_out = backends::dotnet::generate(&func, &enums);
+    let swig_out = backends::swig::generate(&func, &enums);
 
     assert!(!c_out.is_empty(), "C output is empty");
     assert!(!rust_out.is_empty(), "Rust output is empty");
@@ -403,12 +420,13 @@ fn test_sma_all_backends_generate() {
 #[test]
 fn test_all_backends_produce_nonempty_output() {
     let func = load_mult();
+    let enums = no_enums();
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
-    let java_out = backends::java::generate(&func);
-    let dotnet_out = backends::dotnet::generate(&func);
-    let swig_out = backends::swig::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums);
+    let dotnet_out = backends::dotnet::generate(&func, &enums);
+    let swig_out = backends::swig::generate(&func, &enums);
 
     assert!(!c_out.is_empty(), "C output is empty");
     assert!(!rust_out.is_empty(), "Rust output is empty");
@@ -430,14 +448,15 @@ fn test_all_backends_produce_nonempty_output() {
 #[test]
 fn test_wma_generates_all_backends() {
     let func = load_func("wma");
+    let enums = no_enums();
     assert_eq!(func.name, "WMA");
     assert_eq!(func.camel_case.as_deref(), Some("Wma"));
     assert_eq!(func.hint.as_deref(), Some("Weighted Moving Average"));
-    assert_eq!(func.flags.as_deref(), Some("overlap"));
+    assert!(func.flags.contains(&"overlap".to_string()));
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
-    let java_out = backends::java::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let java_out = backends::java::generate(&func, &enums);
 
     assert!(c_out.contains("TA_WMA_Lookback"), "C missing lookback");
     assert!(c_out.contains("optInTimePeriod"), "C missing optInTimePeriod");
@@ -448,12 +467,14 @@ fn test_wma_generates_all_backends() {
 #[test]
 fn test_rsi_generates_all_backends() {
     let func = load_func("rsi");
+    let enums = no_enums();
     assert_eq!(func.name, "RSI");
     assert_eq!(func.camel_case.as_deref(), Some("Rsi"));
     assert_eq!(func.hint.as_deref(), Some("Relative Strength Index"));
+    assert!(func.flags.contains(&"unstable_period".to_string()));
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_RSI_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_GLOBALS_UNSTABLE_PERIOD"), "C missing UNSTABLE_PERIOD");
@@ -466,13 +487,15 @@ fn test_rsi_generates_all_backends() {
 #[test]
 fn test_ema_generates_all_backends() {
     let func = load_func("ema");
+    let enums = no_enums();
     assert_eq!(func.name, "EMA");
     assert_eq!(func.camel_case.as_deref(), Some("Ema"));
     assert_eq!(func.hint.as_deref(), Some("Exponential Moving Average"));
-    assert_eq!(func.flags.as_deref(), Some("overlap"));
+    assert!(func.flags.contains(&"overlap".to_string()));
+    assert!(func.flags.contains(&"unstable_period".to_string()));
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_EMA_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_GLOBALS_UNSTABLE_PERIOD"), "C missing UNSTABLE_PERIOD");
@@ -482,14 +505,15 @@ fn test_ema_generates_all_backends() {
 #[test]
 fn test_ma_generates_all_backends() {
     let func = load_func("ma");
+    let enums = load_enums();
     assert_eq!(func.name, "MA");
     assert_eq!(func.camel_case.as_deref(), Some("Ma"));
     assert_eq!(func.hint.as_deref(), Some("Moving average"));
-    assert_eq!(func.flags.as_deref(), Some("overlap"));
+    assert!(func.flags.contains(&"overlap".to_string()));
     assert_eq!(func.optional_inputs.len(), 2);
 
-    let c_out = backends::c::generate(&func);
-    let rust_out = backends::rust_lang::generate(&func);
+    let c_out = backends::c::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums);
 
     assert!(c_out.contains("TA_MA_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_SMA_Lookback"), "C missing SMA_Lookback call");
