@@ -20,7 +20,7 @@ typedef struct {
 static const char *const argv_rust[]  = {"./ta_codegen", "serve", NULL};
 static const char *const argv_c[]     = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_java[]  = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
-static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/ta_codegen_serve.dll", NULL};
+static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
 static const char *const argv_swig[]  = {"python3", "ta_codegen_serve.py", NULL};
 
 static const CodegenLanguage ALL_LANGUAGES[] = {

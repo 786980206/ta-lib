@@ -282,10 +282,65 @@ fn build_servers(backend_filter: Option<&str>) {
                 }
             }
             "dotnet" => {
-                println!("  .NET server: skipped (backend needs extension)");
+                // Build shared library from generated C files (needed by .NET P/Invoke)
+                build_shared_lib(out_base, bin_dir);
+
+                print!("  Building .NET server... ");
+                let dotnet_dir = out_base.join("dotnet");
+                let dotnet_out = bin_dir.join("ta_codegen_dotnet");
+                std::fs::create_dir_all(&dotnet_out).ok();
+
+                // Create a minimal .csproj if not present
+                let csproj_path = dotnet_dir.join("TaCodegenServe.csproj");
+                if !csproj_path.exists() {
+                    let csproj = r#"<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+</Project>"#;
+                    std::fs::write(&csproj_path, csproj).unwrap();
+                }
+
+                match std::process::Command::new("dotnet")
+                    .args([
+                        "publish",
+                        "-c", "Release",
+                        "-o", dotnet_out.to_str().unwrap(),
+                        dotnet_dir.to_str().unwrap(),
+                    ])
+                    .status()
+                {
+                    Ok(s) if s.success() => {
+                        // Copy shared lib into dotnet output dir for P/Invoke discovery
+                        let lib_name = if cfg!(target_os = "macos") {
+                            "libta_codegen_funcs.dylib"
+                        } else {
+                            "libta_codegen_funcs.so"
+                        };
+                        let lib_src = bin_dir.join(lib_name);
+                        let lib_dst = dotnet_out.join(lib_name);
+                        if lib_src.exists() {
+                            std::fs::copy(&lib_src, &lib_dst).ok();
+                        }
+                        println!("OK");
+                    }
+                    Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+                    Err(e) => println!("FAILED (dotnet not found: {})", e),
+                }
             }
             "swig" => {
-                println!("  SWIG/Python server: skipped (needs swig + build)");
+                // Build shared library from generated C files (needed by Python ctypes)
+                build_shared_lib(out_base, bin_dir);
+
+                print!("  Copying Python server... ");
+                let src = out_base.join("swig/ta_codegen_serve.py");
+                let dst = bin_dir.join("ta_codegen_serve.py");
+                match std::fs::copy(&src, &dst) {
+                    Ok(_) => println!("OK"),
+                    Err(e) => println!("FAILED ({})", e),
+                }
             }
             "rust" => {
                 println!("  Rust server: built-in (ta_codegen serve)");
@@ -294,6 +349,94 @@ fn build_servers(backend_filter: Option<&str>) {
                 eprintln!("  Unknown backend: {}", backend);
             }
         }
+    }
+}
+
+/// Build a shared library from the generated C files.
+/// This is used by both the Python (ctypes) and .NET (P/Invoke) servers.
+/// The shared lib exports all TA_* functions and is placed in bin/.
+fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
+    let marker = bin_dir.join(".shared_lib_built");
+    if marker.exists() {
+        return; // Already built this run
+    }
+
+    print!("  Building shared library... ");
+    let c_dir = out_base.join("c");
+    let lib_name = if cfg!(target_os = "macos") {
+        "libta_codegen_funcs.dylib"
+    } else {
+        "libta_codegen_funcs.so"
+    };
+    let dst = bin_dir.join(lib_name);
+
+    let shared_flag = if cfg!(target_os = "macos") {
+        "-dynamiclib"
+    } else {
+        "-shared"
+    };
+
+    // Generate a unified source file that includes all individual C files.
+    // This handles forward declarations (e.g., MA calls SMA/EMA/WMA).
+    let mut unity_src = String::new();
+    unity_src.push_str("/* Unity build for shared library */\n");
+    unity_src.push_str("#include \"ta_func.h\"\n");
+
+    let mut c_names: Vec<String> = Vec::new();
+    if let Ok(entries) = std::fs::read_dir(&c_dir) {
+        let mut sorted: Vec<_> = entries.filter_map(|e| e.ok()).collect();
+        sorted.sort_by_key(|e| e.file_name());
+        for entry in sorted {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("ta_") && name.ends_with(".c")
+                && name != "ta_codegen_serve.c"
+                && name != "ta_codegen_funcs.c"
+            {
+                c_names.push(name);
+            }
+        }
+    }
+
+    if c_names.is_empty() {
+        println!("FAILED (no C source files found)");
+        return;
+    }
+
+    // Sort alphabetically, but move MA to end (it calls SMA/EMA/WMA)
+    c_names.sort();
+    if let Some(pos) = c_names.iter().position(|n| n == "ta_MA.c") {
+        let ma = c_names.remove(pos);
+        c_names.push(ma);
+    }
+    for name in &c_names {
+        unity_src.push_str(&format!("#include \"{}\"\n", name));
+    }
+
+    let unity_path = c_dir.join("ta_codegen_funcs.c");
+    std::fs::write(&unity_path, &unity_src).unwrap();
+
+    let args = vec![
+        shared_flag.to_string(),
+        "-fPIC".to_string(),
+        "-o".to_string(),
+        dst.to_str().unwrap().to_string(),
+        unity_path.to_str().unwrap().to_string(),
+        format!("-I{}", c_dir.to_str().unwrap()),
+        "-lm".to_string(),
+        "-O2".to_string(),
+        "-Wno-parentheses-equality".to_string(),
+    ];
+
+    match std::process::Command::new("gcc")
+        .args(&args)
+        .status()
+    {
+        Ok(s) if s.success() => {
+            println!("OK");
+            std::fs::write(&marker, "").ok();
+        }
+        Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+        Err(e) => println!("FAILED (gcc not found: {})", e),
     }
 }
 

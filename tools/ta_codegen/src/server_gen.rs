@@ -494,33 +494,141 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
     s.push_str("// Auto-generated JSON-RPC server for ta_codegen .NET output.\n");
-    s.push_str("// Requires: dotnet 6.0+ (System.Text.Json is built-in)\n");
-    s.push_str("// Build: dotnet build\n");
+    s.push_str("// Uses P/Invoke to call the generated C shared library.\n");
+    s.push_str("// Requires: dotnet 8.0+, libta_codegen_funcs.dylib/.so in bin/\n");
     s.push_str("using System;\n");
-    s.push_str("using System.Text.Json;\n\n");
+    s.push_str("using System.IO;\n");
+    s.push_str("using System.Text.Json;\n");
+    s.push_str("using System.Runtime.InteropServices;\n\n");
 
-    s.push_str("public class TaCodegenServe {\n");
+    s.push_str("public class TaCodegenServe {\n\n");
 
-    // Minimal type stubs
-    s.push_str("    public enum RetCode { Success = 0, BadParam = 2, OutOfRangeStartIndex = 12, OutOfRangeEndIndex = 13 }\n");
-    s.push_str("    public class MInteger { public int value; }\n\n");
-
-    // TODO: include generated C# methods when .NET backend supports full codegen
-    s.push_str("    // TODO: Generated Core methods go here once .NET backend generates C# implementations.\n");
+    // P/Invoke declarations
     for func in funcs {
-        let method_name = format!("TA_{}", func.name);
-        s.push_str(&format!(
-            "    // Placeholder for {} — .NET backend needs extension\n",
-            method_name
-        ));
-    }
-    s.push_str("\n");
+        let func_upper = &func.name;
 
+        let real_inputs: Vec<&str> = func
+            .inputs
+            .iter()
+            .filter(|inp| inp.param_type == ParamType::Real)
+            .map(|inp| inp.name.as_str())
+            .collect();
+
+        s.push_str(&format!(
+            "    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_{}\")]\n",
+            func_upper
+        ));
+        s.push_str(&format!(
+            "    static extern int TA_{}(\n",
+            func_upper
+        ));
+        s.push_str("        int startIdx, int endIdx,\n");
+
+        for name in &real_inputs {
+            s.push_str(&format!("        double[] {},\n", name));
+        }
+
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("        int {},\n", opt.name));
+        }
+
+        s.push_str("        out int outBegIdx, out int outNBElement,\n");
+        s.push_str("        double[] outReal);\n\n");
+    }
+
+    // Dispatch method
+    s.push_str("    static string HandleRequest(string json) {\n");
+    s.push_str("        try {\n");
+    s.push_str("            using var doc = JsonDocument.Parse(json);\n");
+    s.push_str("            var root = doc.RootElement;\n");
+    s.push_str("            string method = root.GetProperty(\"method\").GetString()!;\n");
+    s.push_str("            var p = root.GetProperty(\"params\");\n");
+    s.push_str("            int startIdx = p.GetProperty(\"startIdx\").GetInt32();\n");
+    s.push_str("            int endIdx = p.GetProperty(\"endIdx\").GetInt32();\n");
+    s.push_str("            int n = endIdx - startIdx + 1;\n\n");
+
+    for (i, func) in funcs.iter().enumerate() {
+        let method_name = format!("TA_{}", func.name);
+        let cond = if i == 0 { "if" } else { "else if" };
+
+        let real_inputs: Vec<&str> = func
+            .inputs
+            .iter()
+            .filter(|inp| inp.param_type == ParamType::Real)
+            .map(|inp| inp.name.as_str())
+            .collect();
+
+        s.push_str(&format!(
+            "            {} (method == \"{}\") {{\n",
+            cond, method_name
+        ));
+
+        // Extract input arrays
+        for name in &real_inputs {
+            s.push_str(&format!(
+                "                double[] {} = GetDoubleArray(p, \"{}\");\n",
+                name, name
+            ));
+        }
+
+        // Extract optional params
+        for opt in &func.optional_inputs {
+            let default = opt.default.unwrap_or(0);
+            s.push_str(&format!(
+                "                int {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetInt32() : {};\n",
+                opt.name, opt.name, default
+            ));
+        }
+
+        // Call and return
+        s.push_str("                double[] outReal = new double[n];\n");
+        s.push_str(&format!(
+            "                int rc = TA_{}(startIdx, endIdx, ",
+            func.name
+        ));
+        for name in &real_inputs {
+            s.push_str(&format!("{}, ", name));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("{}, ", opt.name));
+        }
+        s.push_str("out int outBegIdx, out int outNBElement, outReal);\n");
+        s.push_str("                return FormatResponse(rc, outBegIdx, outNBElement, outReal);\n");
+        s.push_str("            }\n");
+    }
+
+    s.push_str("            else {\n");
+    s.push_str("                return $\"{{\\\"error\\\":\\\"Unknown method: {method}\\\"}}\";\n");
+    s.push_str("            }\n");
+    s.push_str("        } catch (Exception ex) {\n");
+    s.push_str("            return $\"{{\\\"error\\\":\\\"{ex.Message.Replace(\"\\\"\", \"'\")}\\\"}}\";\n");
+    s.push_str("        }\n");
+    s.push_str("    }\n\n");
+
+    // Helper: extract double array from JSON
+    s.push_str("    static double[] GetDoubleArray(JsonElement p, string name) {\n");
+    s.push_str("        var arr = p.GetProperty(name);\n");
+    s.push_str("        double[] result = new double[arr.GetArrayLength()];\n");
+    s.push_str("        for (int i = 0; i < result.Length; i++)\n");
+    s.push_str("            result[i] = arr[i].GetDouble();\n");
+    s.push_str("        return result;\n");
+    s.push_str("    }\n\n");
+
+    // Helper: format JSON response
+    s.push_str("    static string FormatResponse(int rc, int outBegIdx, int outNBElement, double[] outReal) {\n");
+    s.push_str("        var parts = new string[outNBElement];\n");
+    s.push_str("        for (int i = 0; i < outNBElement; i++)\n");
+    s.push_str("            parts[i] = outReal[i].ToString(\"G15\");\n");
+    s.push_str("        string arr = \"[\" + string.Join(\",\", parts) + \"]\";\n");
+    s.push_str("        return $\"{{\\\"retCode\\\":{rc},\\\"outBegIdx\\\":{outBegIdx},\\\"outNBElement\\\":{outNBElement},\\\"outReal\\\":{arr}}}\";\n");
+    s.push_str("    }\n\n");
+
+    // Main
     s.push_str("    static void Main(string[] args) {\n");
-    s.push_str("        string line;\n");
+    s.push_str("        string? line;\n");
     s.push_str("        while ((line = Console.ReadLine()) != null) {\n");
     s.push_str("            if (string.IsNullOrWhiteSpace(line)) continue;\n");
-    s.push_str("            Console.WriteLine(\"{\\\"error\\\":\\\"Not yet implemented\\\"}\");\n");
+    s.push_str("            Console.WriteLine(HandleRequest(line));\n");
     s.push_str("            Console.Out.Flush();\n");
     s.push_str("        }\n");
     s.push_str("    }\n");
@@ -529,28 +637,54 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s
 }
 
-/// Generate a Python JSON-RPC server script that uses SWIG bindings.
-///
-/// The generated script imports the SWIG-generated `ta_lib` module and dispatches
-/// JSON-RPC calls through it.
+/// Generate a Python JSON-RPC server script that uses ctypes to call the
+/// generated C shared library (libta_codegen_funcs.dylib/.so).
 pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
     s.push_str("#!/usr/bin/env python3\n");
-    s.push_str("\"\"\"Auto-generated JSON-RPC server for ta_codegen SWIG/Python output.\n");
-    s.push_str("Requires: SWIG bindings compiled (swig -python + gcc -shared).\n");
+    s.push_str("\"\"\"Auto-generated JSON-RPC server for ta_codegen Python output.\n");
+    s.push_str("Uses ctypes to call the generated C shared library.\n");
     s.push_str("\"\"\"\n");
     s.push_str("import sys\n");
+    s.push_str("import os\n");
     s.push_str("import json\n");
-    s.push_str("import ctypes\n\n");
+    s.push_str("import ctypes\n");
+    s.push_str("from ctypes import c_int, c_double, POINTER, byref\n\n");
 
-    // Note: SWIG generates a ta_lib.py + _ta_lib.so pair
-    s.push_str("# Try to import SWIG module; fall back to ctypes if not available\n");
-    s.push_str("try:\n");
-    s.push_str("    import ta_lib\n");
-    s.push_str("    USE_SWIG = True\n");
-    s.push_str("except ImportError:\n");
-    s.push_str("    USE_SWIG = False\n\n");
+    // Load the shared library
+    s.push_str("# Load the shared library from the same directory as this script\n");
+    s.push_str("script_dir = os.path.dirname(os.path.abspath(__file__))\n");
+    s.push_str("if sys.platform == 'darwin':\n");
+    s.push_str("    lib_name = 'libta_codegen_funcs.dylib'\n");
+    s.push_str("else:\n");
+    s.push_str("    lib_name = 'libta_codegen_funcs.so'\n");
+    s.push_str("lib = ctypes.CDLL(os.path.join(script_dir, lib_name))\n\n");
+
+    // Declare function signatures
+    for func in funcs {
+        let func_upper = &func.name;
+        let real_inputs: Vec<&str> = func
+            .inputs
+            .iter()
+            .filter(|inp| inp.param_type == ParamType::Real)
+            .map(|inp| inp.name.as_str())
+            .collect();
+
+        // TA_XXX function
+        s.push_str(&format!("lib.TA_{}.restype = c_int\n", func_upper));
+        s.push_str(&format!("lib.TA_{}.argtypes = [\n", func_upper));
+        s.push_str("    c_int, c_int,  # startIdx, endIdx\n");
+        for _name in &real_inputs {
+            s.push_str("    POINTER(c_double),  # input array\n");
+        }
+        for _opt in &func.optional_inputs {
+            s.push_str("    c_int,  # optional param\n");
+        }
+        s.push_str("    POINTER(c_int), POINTER(c_int),  # outBegIdx, outNBElement\n");
+        s.push_str("    POINTER(c_double),  # outReal\n");
+        s.push_str("]\n\n");
+    }
 
     // Dispatch
     s.push_str("def handle_request(req):\n");
@@ -567,7 +701,7 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
     s.push_str("    return {'error': f'Unknown method: {method}'}\n\n");
 
-    // Per-function handlers
+    // Per-function handlers using ctypes
     for func in funcs {
         let func_lower = func.name.to_lowercase();
         let func_upper = &func.name;
@@ -575,6 +709,7 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         s.push_str(&format!("def handle_{}(params):\n", func_lower));
         s.push_str("    start_idx = params.get('startIdx', 0)\n");
         s.push_str("    end_idx = params.get('endIdx', 0)\n");
+        s.push_str("    n = end_idx - start_idx + 1\n\n");
 
         // Input arrays
         let real_inputs: Vec<&str> = func
@@ -586,8 +721,10 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
         for name in &real_inputs {
             s.push_str(&format!(
-                "    {} = params.get('{}', [])\n",
-                name, name
+                "    {name}_list = params.get('{name}', [])\n"
+            ));
+            s.push_str(&format!(
+                "    {name} = (c_double * len({name}_list))(*{name}_list)\n"
             ));
         }
 
@@ -600,16 +737,13 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Call via SWIG
-        s.push_str(&format!(
-            "    # Call TA_{} via SWIG bindings\n",
-            func_upper
-        ));
-        s.push_str("    out_real = [0.0] * (end_idx - start_idx + 1)\n");
-        s.push_str(&format!(
-            "    rc, out_beg, out_nb, out_real = ta_lib.TA_{}(\n",
-            func_upper
-        ));
+        // Output variables
+        s.push_str("    out_beg = c_int(0)\n");
+        s.push_str("    out_nb = c_int(0)\n");
+        s.push_str("    out_real = (c_double * n)()\n\n");
+
+        // Call via ctypes
+        s.push_str(&format!("    rc = lib.TA_{}(\n", func_upper));
         s.push_str("        start_idx, end_idx,\n");
         for name in &real_inputs {
             s.push_str(&format!("        {},\n", name));
@@ -617,12 +751,13 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         for opt in &func.optional_inputs {
             s.push_str(&format!("        {},\n", opt.name));
         }
+        s.push_str("        byref(out_beg), byref(out_nb), out_real,\n");
         s.push_str("    )\n");
         s.push_str("    return {\n");
         s.push_str("        'retCode': rc,\n");
-        s.push_str("        'outBegIdx': out_beg,\n");
-        s.push_str("        'outNBElement': out_nb,\n");
-        s.push_str("        'outReal': out_real[:out_nb],\n");
+        s.push_str("        'outBegIdx': out_beg.value,\n");
+        s.push_str("        'outNBElement': out_nb.value,\n");
+        s.push_str("        'outReal': list(out_real[:out_nb.value]),\n");
         s.push_str("    }\n\n");
     }
 
