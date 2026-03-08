@@ -618,6 +618,26 @@ if(ENABLE_RUST_REGTEST)
     )
 endif()
 
+# --- ta_codegen build target ---
+# Build the Rust ta_codegen binary and copy to bin/
+set(TA_CODEGEN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/tools/ta_codegen")
+set(TA_CODEGEN_BIN "${TA_CODEGEN_DIR}/target/release/ta_codegen")
+
+add_custom_command(
+    OUTPUT ${TA_CODEGEN_BIN}
+    COMMAND cargo build --release --manifest-path ${TA_CODEGEN_DIR}/Cargo.toml
+    WORKING_DIRECTORY ${TA_CODEGEN_DIR}
+    COMMENT "Building ta_codegen"
+)
+add_custom_target(ta_codegen_bin DEPENDS ${TA_CODEGEN_BIN})
+
+# Copy ta_codegen to bin/ directory
+add_custom_command(TARGET ta_codegen_bin POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${TA_CODEGEN_BIN}
+        "${CMAKE_CURRENT_SOURCE_DIR}/bin/ta_codegen"
+)
+
 #############
 # Packaging #
 #############
