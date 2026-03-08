@@ -190,9 +190,11 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  C server -> {}", path.display());
             }
             "java" => {
-                let output = server_gen::generate_java_server(&funcs);
                 let dir = out_base.join("java");
                 std::fs::create_dir_all(&dir).unwrap();
+
+                let template = server_gen::generate_java_server(&funcs);
+                let output = server_gen::inline_java_core_methods(&template, &dir, &funcs);
                 let path = dir.join("TaCodegenServe.java");
                 std::fs::write(&path, &output).unwrap();
                 println!("  Java server -> {}", path.display());

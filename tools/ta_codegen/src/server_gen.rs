@@ -5,6 +5,43 @@
 //! All servers speak the same protocol as the existing Rust server in server.rs.
 
 use crate::ir::{FuncDef, ParamType};
+use std::path::Path;
+
+/// Replace @@CORE_XXX@@ markers in the Java server template with actual
+/// method bodies read from the generated Core_*.java files.
+pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDef]) -> String {
+    let mut result = template.to_string();
+    for func in funcs {
+        let marker = format!("    // @@CORE_{}@@", func.name);
+        let core_path = java_dir.join(format!("Core_{}.java", func.name));
+        let replacement = if core_path.exists() {
+            let content = std::fs::read_to_string(&core_path).unwrap();
+            // Strip /* Generated */ prefix, remove duplicate consecutive return statements,
+            // and indent properly
+            let mut lines: Vec<String> = Vec::new();
+            let mut prev_was_return = false;
+            for line in content.lines() {
+                let trimmed = line.strip_prefix("/* Generated */").unwrap_or(line);
+                let is_return = trimmed.trim().starts_with("return ");
+                // Skip duplicate consecutive return statements (Java treats these as errors)
+                if is_return && prev_was_return {
+                    continue;
+                }
+                prev_was_return = is_return;
+                if trimmed.trim().is_empty() {
+                    lines.push(String::new());
+                } else {
+                    lines.push(format!("    {}", trimmed));
+                }
+            }
+            lines.join("\n")
+        } else {
+            format!("    // WARNING: {} not found", core_path.display())
+        };
+        result = result.replace(&marker, &replacement);
+    }
+    result
+}
 
 /// Generate a standalone C JSON-RPC server source file.
 ///
@@ -305,13 +342,23 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     // MInteger helper
     s.push_str("class MInteger { public int value; }\n\n");
 
-    // Core class with all function methods pasted in
+    // FuncUnstId and Compatibility enums (referenced by generated Core methods)
+    s.push_str("enum FuncUnstId {\n");
+    s.push_str("    Ema, Rsi, None;\n");
+    s.push_str("}\n\n");
+
+    s.push_str("enum Compatibility {\n");
+    s.push_str("    Default, Metastock;\n");
+    s.push_str("}\n\n");
+
+    // Core class — method bodies are inlined by the caller via inline_java_core_methods()
     s.push_str("class Core {\n");
     s.push_str("    int lookbackTotal, i, outIdx, trailingIdx;\n");
-    s.push_str("    /* Generated methods are pasted from Core_*.java files at build time.\n");
-    s.push_str("     * For now, include them via a build script that concatenates. */\n");
+    s.push_str("    int[] unstablePeriod = new int[FuncUnstId.values().length];\n");
+    s.push_str("    Compatibility compatibility = Compatibility.Default;\n");
+    s.push_str("    int nbElement;\n\n");
     for func in funcs {
-        s.push_str(&format!("    // @@INCLUDE Core_{}.java@@\n", func.name));
+        s.push_str(&format!("    // @@CORE_{}@@\n", func.name));
     }
     s.push_str("}\n\n");
 
@@ -367,7 +414,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         let func_lower = func.name.to_lowercase();
 
         s.push_str(&format!(
-            "        {} (json.contains(\"\\\"{}\\\"\"))) {{\n",
+            "        {} (json.contains(\"\\\"{}\\\"\")) {{\n",
             cond, method_name
         ));
         s.push_str("            int startIdx = jsonInt(json, \"startIdx\");\n");
