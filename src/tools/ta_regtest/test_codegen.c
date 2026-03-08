@@ -168,28 +168,75 @@ static ErrorNumber test_codegen_sma(CodegenPipe *cp, const TA_History *history)
     char *response = malloc(JSON_BUF_SIZE);
     if( !request || !response ) { free(request); free(response); return TA_CODEGEN_ALLOC_FAILED; }
 
-    int startIdx = 0;
     int endIdx = (int)history->nbBars - 1;
-    int timePeriod = 30;
     TA_Real outReal[MAX_NB_TEST_ELEMENT];
     TA_Integer outBegIdx, outNbElement;
+    ErrorNumber errNb;
+    TA_RetCode retCode;
+    int pos;
 
-    TA_RetCode retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
-                                &outBegIdx, &outNbElement, outReal);
+    /* Sub-test 1: SMA with period=2 (minimal) */
+    {
+        int startIdx = 0;
+        int timePeriod = 2;
+        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
+                         &outBegIdx, &outNbElement, outReal);
 
-    int pos = snprintf(request, JSON_BUF_SIZE,
-        "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-        "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-    pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
-                                   history->close, (int)history->nbBars);
-    pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+        pos = snprintf(request, JSON_BUF_SIZE,
+            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
+        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
+                                       history->close, (int)history->nbBars);
+        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
 
-    ErrorNumber errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-    if( errNb == TA_TEST_PASS )
-        errNb = compare_results("TA_SMA(period=30)", retCode, outBegIdx, outNbElement, outReal, response);
+        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
+        if( errNb == TA_TEST_PASS )
+            errNb = compare_results("TA_SMA(period=2)", retCode, outBegIdx, outNbElement, outReal, response);
+        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
+    }
+
+    /* Sub-test 2: SMA with period=30 (standard) */
+    {
+        int startIdx = 0;
+        int timePeriod = 30;
+        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
+                         &outBegIdx, &outNbElement, outReal);
+
+        pos = snprintf(request, JSON_BUF_SIZE,
+            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
+        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
+                                       history->close, (int)history->nbBars);
+        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+
+        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
+        if( errNb == TA_TEST_PASS )
+            errNb = compare_results("TA_SMA(period=30)", retCode, outBegIdx, outNbElement, outReal, response);
+        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
+    }
+
+    /* Sub-test 3: SMA with startIdx=50 (partial range) */
+    {
+        int startIdx = 50;
+        int timePeriod = 30;
+        retCode = TA_SMA(startIdx, endIdx, history->close, timePeriod,
+                         &outBegIdx, &outNbElement, outReal);
+
+        pos = snprintf(request, JSON_BUF_SIZE,
+            "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
+        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos,
+                                       history->close, (int)history->nbBars);
+        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+
+        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
+        if( errNb == TA_TEST_PASS )
+            errNb = compare_results("TA_SMA(period=30,startIdx=50)", retCode, outBegIdx, outNbElement, outReal, response);
+        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
+    }
 
     free(request); free(response);
-    return errNb;
+    return TA_TEST_PASS;
 }
 
 static ErrorNumber test_codegen_mult(CodegenPipe *cp, const TA_History *history)
@@ -229,28 +276,56 @@ static ErrorNumber test_codegen_rsi(CodegenPipe *cp, const TA_History *history)
 
     int startIdx = 0;
     int endIdx = (int)history->nbBars - 1;
-    int timePeriod = 14;
     TA_Real outReal[MAX_NB_TEST_ELEMENT];
     TA_Integer outBegIdx, outNbElement;
+    ErrorNumber errNb;
+    TA_RetCode retCode;
+    int pos;
 
-    TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
-    TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
+    /* Sub-test 1: RSI with period=14 (standard) */
+    {
+        int timePeriod = 14;
+        TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
+        TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
 
-    TA_RetCode retCode = TA_RSI(startIdx, endIdx, history->close, timePeriod,
-                                &outBegIdx, &outNbElement, outReal);
+        retCode = TA_RSI(startIdx, endIdx, history->close, timePeriod,
+                         &outBegIdx, &outNbElement, outReal);
 
-    int pos = snprintf(request, JSON_BUF_SIZE,
-        "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
-        "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
-    pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
-    pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+        pos = snprintf(request, JSON_BUF_SIZE,
+            "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
+        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
+        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
 
-    ErrorNumber errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
-    if( errNb == TA_TEST_PASS )
-        errNb = compare_results("TA_RSI(period=14)", retCode, outBegIdx, outNbElement, outReal, response);
+        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
+        if( errNb == TA_TEST_PASS )
+            errNb = compare_results("TA_RSI(period=14)", retCode, outBegIdx, outNbElement, outReal, response);
+        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
+    }
+
+    /* Sub-test 2: RSI with period=2 (minimal) */
+    {
+        int timePeriod = 2;
+        TA_SetUnstablePeriod(TA_FUNC_UNST_RSI, 0);
+        TA_SetCompatibility(TA_COMPATIBILITY_DEFAULT);
+
+        retCode = TA_RSI(startIdx, endIdx, history->close, timePeriod,
+                         &outBegIdx, &outNbElement, outReal);
+
+        pos = snprintf(request, JSON_BUF_SIZE,
+            "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,"
+            "\"optInTimePeriod\":%d,\"inReal\":", startIdx, endIdx, timePeriod);
+        pos += json_write_double_array(request + pos, JSON_BUF_SIZE - pos, history->close, (int)history->nbBars);
+        pos += snprintf(request + pos, JSON_BUF_SIZE - pos, "}}");
+
+        errNb = codegen_pipe_call(cp, request, response, JSON_BUF_SIZE);
+        if( errNb == TA_TEST_PASS )
+            errNb = compare_results("TA_RSI(period=2)", retCode, outBegIdx, outNbElement, outReal, response);
+        if( errNb != TA_TEST_PASS ) { free(request); free(response); return errNb; }
+    }
 
     free(request); free(response);
-    return errNb;
+    return TA_TEST_PASS;
 }
 
 /* ---- Main entry point ---- */
