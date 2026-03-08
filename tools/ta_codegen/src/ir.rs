@@ -84,7 +84,7 @@ pub enum Statement {
         else_body: Vec<Statement>,
     },
     Return {
-        value: String,
+        value: Option<Expr>,
     },
     Break,
     Continue,

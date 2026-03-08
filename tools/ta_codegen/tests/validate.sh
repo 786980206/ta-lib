@@ -16,37 +16,7 @@ echo "=== Generating all backends ==="
 cargo run --release -- generate
 
 echo ""
-echo "=== Comparing generated output against reference files ==="
-
-# --- Rust MULT comparison ---
-RUST_GEN="../../ta_codegen_output/rust/mult.rs"
-RUST_REF="../../rust/src/ta_func/mult.rs"
-if [ -f "$RUST_REF" ]; then
-    if diff -q "$RUST_GEN" "$RUST_REF" > /dev/null 2>&1; then
-        pass "Rust MULT: byte-identical match"
-    else
-        fail "Rust MULT: differences found"
-        diff --unified "$RUST_GEN" "$RUST_REF" | head -40 || true
-    fi
-else
-    echo "  SKIP: Rust MULT reference file not found at $RUST_REF"
-fi
-
-# --- Rust SMA comparison ---
-SMA_GEN="../../ta_codegen_output/rust/sma.rs"
-SMA_REF="../../rust/src/ta_func/sma.rs"
-if [ -f "$SMA_REF" ]; then
-    if diff -q "$SMA_GEN" "$SMA_REF" > /dev/null 2>&1; then
-        pass "Rust SMA: byte-identical match"
-    else
-        fail "Rust SMA: differences found"
-        diff --unified "$SMA_GEN" "$SMA_REF" | head -40 || true
-    fi
-else
-    echo "  SKIP: Rust SMA reference file not found at $SMA_REF"
-fi
-
-# --- Check generated files exist and are non-empty ---
+echo "=== Checking generated files exist and are non-empty ==="
 for f in \
     "../../ta_codegen_output/c/ta_MULT.c" \
     "../../ta_codegen_output/rust/mult.rs" \

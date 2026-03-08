@@ -792,47 +792,43 @@ impl Parser {
     fn parse_return(&mut self) -> Statement {
         self.advance(); // consume "return"
 
-        // Collect tokens until semicolon to build the return value string
-        let mut parts: Vec<String> = Vec::new();
-        while self.peek() != Some(&Token::Semicolon) && self.pos < self.tokens.len() {
-            match self.peek().cloned() {
-                Some(Token::Ident(ref s)) => {
-                    // Strip TA_ prefix from enum-like values
-                    let stripped = strip_ta_prefix(s);
-                    parts.push(stripped);
-                    self.advance();
-                }
-                Some(Token::IntNumber(n)) => {
-                    parts.push(format!("{}", n));
-                    self.advance();
-                }
-                Some(Token::Number(n)) => {
-                    parts.push(format!("{}", n));
-                    self.advance();
-                }
-                Some(Token::Op(ref op)) => {
-                    parts.push(format!(" {} ", op));
-                    self.advance();
-                }
-                Some(Token::Star) => {
-                    parts.push("*".to_string());
-                    self.advance();
-                }
-                Some(Token::LParen) => {
-                    parts.push("(".to_string());
-                    self.advance();
-                }
-                Some(Token::RParen) => {
-                    parts.push(")".to_string());
-                    self.advance();
-                }
-                _ => break,
-            }
+        // Check for bare return (just semicolon)
+        if self.peek() == Some(&Token::Semicolon) {
+            self.consume_semicolon();
+            return Statement::Return { value: None };
         }
+
+        // Parse the return expression, but first handle TA_ prefix stripping
+        // for identifiers that look like enum values (e.g., TA_SUCCESS -> SUCCESS)
+        let expr = self.parse_return_expr();
         self.consume_semicolon();
 
-        let value = parts.join("").trim().to_string();
-        Statement::Return { value }
+        Statement::Return { value: Some(expr) }
+    }
+
+    /// Parse a return value expression, stripping TA_ prefixes from identifiers.
+    fn parse_return_expr(&mut self) -> Expr {
+        // Use the normal expression parser, but we need to handle TA_ prefix stripping.
+        // We'll do this by peeking at the tokens and transforming TA_ prefixed idents.
+        // The simplest approach: temporarily replace TA_ prefixed idents in-place.
+        let start = self.pos;
+
+        // Scan forward to find the semicolon, stripping TA_ prefixes
+        let mut end = self.pos;
+        while end < self.tokens.len() && self.tokens[end] != Token::Semicolon {
+            end += 1;
+        }
+        // Strip TA_ prefixes in the range [start..end]
+        for i in start..end {
+            if let Token::Ident(ref s) = self.tokens[i].clone() {
+                let stripped = strip_ta_prefix(s);
+                if stripped != *s {
+                    self.tokens[i] = Token::Ident(stripped);
+                }
+            }
+        }
+
+        self.parse_expr()
     }
 
     fn parse_assignment_or_expr_stmt(&mut self) -> Statement {
@@ -1158,7 +1154,14 @@ impl Parser {
 // --- Helper functions ---
 
 /// Strip `TA_` prefix from enum-like identifiers (all caps after TA_).
+/// Also strips `TA_COMPATIBILITY_` prefix to just the enum variant name.
 fn strip_ta_prefix(name: &str) -> String {
+    // Handle TA_COMPATIBILITY_XXX -> strip to just the variant (METASTOCK, DEFAULT)
+    if let Some(rest) = name.strip_prefix("TA_COMPATIBILITY_") {
+        if rest.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit()) {
+            return rest.to_string();
+        }
+    }
     if let Some(rest) = name.strip_prefix("TA_") {
         // Only strip if the rest looks like an enum value (uppercase/underscores)
         if rest.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit()) {
@@ -1644,8 +1647,8 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         // Lookback body
         assert_eq!(parsed.lookback_body.len(), 1);
         match &parsed.lookback_body[0] {
-            Statement::Return { value } => assert_eq!(value, "0"),
-            other => panic!("Expected Return, got {:?}", other),
+            Statement::Return { value: Some(Expr::IntLiteral(0)) } => {}
+            other => panic!("Expected Return with IntLiteral(0), got {:?}", other),
         }
 
         // Main function
@@ -1668,8 +1671,8 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
 
         // Check return
         match &body[7] {
-            Statement::Return { value } => assert_eq!(value, "SUCCESS"),
-            other => panic!("Expected Return, got {:?}", other),
+            Statement::Return { value: Some(Expr::Var(s)) } if s == "SUCCESS" => {}
+            other => panic!("Expected Return with Var(SUCCESS), got {:?}", other),
         }
     }
 
@@ -1735,10 +1738,17 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Return { value } => {
-                assert_eq!(value, "optInTimePeriod - 1");
+            Statement::Return { value: Some(Expr::BinOp(left, BinOp::Sub, right)) } => {
+                match left.as_ref() {
+                    Expr::Var(s) => assert_eq!(s, "optInTimePeriod"),
+                    other => panic!("Expected Var, got {:?}", other),
+                }
+                match right.as_ref() {
+                    Expr::IntLiteral(1) => {}
+                    other => panic!("Expected IntLiteral(1), got {:?}", other),
+                }
             }
-            other => panic!("Expected Return, got {:?}", other),
+            other => panic!("Expected Return with BinOp, got {:?}", other),
         }
     }
 }

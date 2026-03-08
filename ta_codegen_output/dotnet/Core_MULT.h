@@ -1,4 +1,4 @@
-         static int MultLookback(  );
+         static int MultLookback( void );
 
 #if defined( _MANAGED ) && defined( USE_SUBARRAY )
          static enum class RetCode Mult( int    startIdx,

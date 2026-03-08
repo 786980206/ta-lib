@@ -146,10 +146,6 @@ impl Core {
     ) -> RetCode {
         let mut periodTotal: f64;
         let mut tempReal: f64;
-        let mut i: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -165,21 +161,22 @@ impl Core {
         if optInTimePeriod > 1 {
             while i < startIdx {
                 periodTotal += (inReal[i]) as f64;
-                i = i + 1;
+                i += 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
             periodTotal += (inReal[i]) as f64;
-            i = i + 1;
+            i += 1;
             tempReal = periodTotal;
             periodTotal -= (inReal[trailingIdx]) as f64;
-            trailingIdx = trailingIdx + 1;
+            trailingIdx += 1;
             outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
-            outIdx = outIdx + 1;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
     /// Single-precision variant of [`Core::sma`].
@@ -223,10 +220,6 @@ impl Core {
     ) -> RetCode {
         let mut periodTotal: f64;
         let mut tempReal: f64;
-        let mut i: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -242,21 +235,22 @@ impl Core {
         if optInTimePeriod > 1 {
             while i < startIdx {
                 periodTotal += (inReal[i]) as f64;
-                i = i + 1;
+                i += 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
             periodTotal += (inReal[i]) as f64;
-            i = i + 1;
+            i += 1;
             tempReal = periodTotal;
             periodTotal -= (inReal[trailingIdx]) as f64;
-            trailingIdx = trailingIdx + 1;
+            trailingIdx += 1;
             outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
-            outIdx = outIdx + 1;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
 }

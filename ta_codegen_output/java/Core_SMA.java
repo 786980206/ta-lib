@@ -1,7 +1,8 @@
 /* Generated */
    public int smaLookback( int optInTimePeriod )
    {
-      return optInTimePeriod - 1;
+      return (optInTimePeriod-1) ;
+
    }
    public RetCode sma( int startIdx,
                        int endIdx,
@@ -13,10 +14,6 @@
    {
       double periodTotal;
       double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -39,21 +36,22 @@
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             periodTotal += ((double)inReal[i]);
-            i = (i+1);
+            i += 1;
          }
       }
       outIdx = 0;
       while( (i<=endIdx) ) {
          periodTotal += ((double)inReal[i]);
-         i = (i+1);
+         i += 1;
          tempReal = periodTotal;
          periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
+         trailingIdx += 1;
          outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         outIdx += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }
    public RetCode sma( int startIdx,
@@ -66,10 +64,6 @@
    {
       double periodTotal;
       double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -92,20 +86,21 @@
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
             periodTotal += ((double)inReal[i]);
-            i = (i+1);
+            i += 1;
          }
       }
       outIdx = 0;
       while( (i<=endIdx) ) {
          periodTotal += ((double)inReal[i]);
-         i = (i+1);
+         i += 1;
          tempReal = periodTotal;
          periodTotal -= ((double)inReal[trailingIdx]);
-         trailingIdx = (trailingIdx+1);
+         trailingIdx += 1;
          outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-         outIdx = (outIdx+1);
+         outIdx += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }

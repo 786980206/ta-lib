@@ -258,14 +258,13 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out
         }
         Statement::Return { value } => {
-            let ret_val = match value.as_str() {
-                "SUCCESS" => "RetCode.Success",
-                "BadParam" => "RetCode.BadParam",
-                "OutOfRangeEndIndex" => "RetCode.OutOfRangeEndIndex",
-                "OutOfRangeStartIndex" => "RetCode.OutOfRangeStartIndex",
-                _ => value.as_str(),
-            };
-            format!("{}return {} ;\n", pad, ret_val)
+            match value {
+                Some(expr) => {
+                    let rendered = render_return_expr(expr, single_precision);
+                    format!("{}return {} ;\n", pad, rendered)
+                }
+                None => format!("{}return ;\n", pad),
+            }
         }
         Statement::For { var, count, body } => {
             let mut out = format!(
@@ -350,6 +349,20 @@ fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
         }
         _ => render_expr(expr, single_precision),
     }
+}
+
+/// Render a return expression, mapping known enum values to Java constants.
+fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
+    if let Expr::Var(name) = expr {
+        return match name.as_str() {
+            "SUCCESS" => "RetCode.Success".to_string(),
+            "BadParam" => "RetCode.BadParam".to_string(),
+            "OutOfRangeEndIndex" => "RetCode.OutOfRangeEndIndex".to_string(),
+            "OutOfRangeStartIndex" => "RetCode.OutOfRangeStartIndex".to_string(),
+            _ => render_expr(expr, single_precision),
+        };
+    }
+    render_expr(expr, single_precision)
 }
 
 fn render_expr(expr: &Expr, single_precision: bool) -> String {
@@ -451,6 +464,9 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             return format!("this.unstablePeriod[FuncUnstId.{}.ordinal()]", pascal);
         }
         "this.unstablePeriod[0]".to_string()
+    } else if fname == "COMPATIBILITY" {
+        // COMPATIBILITY() -> this.compatibility
+        "this.compatibility".to_string()
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> inline epsilon check
         if let Some(arg) = args.first() {

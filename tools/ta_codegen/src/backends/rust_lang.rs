@@ -965,14 +965,13 @@ fn render_statement(
             out
         }
         Statement::Return { value } => {
-            let ret_val = match value.as_str() {
-                "SUCCESS" => "RetCode::Success",
-                "BadParam" => "RetCode::BadParam",
-                "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex",
-                "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex",
-                _ => value.as_str(),
-            };
-            format!("{}return {};\n", pad, ret_val)
+            match value {
+                Some(expr) => {
+                    let rendered = render_return_expr(expr, single_precision);
+                    format!("{}return {};\n", pad, rendered)
+                }
+                None => format!("{}return;\n", pad),
+            }
         }
         Statement::Break => format!("{}break;\n", pad),
         Statement::Continue => format!("{}continue;\n", pad),
@@ -1082,6 +1081,20 @@ fn render_binop_operand(
         }
         _ => render_expr(expr, single_precision),
     }
+}
+
+/// Render a return expression, mapping known enum values to Rust constants.
+fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
+    if let Expr::Var(name) = expr {
+        return match name.as_str() {
+            "SUCCESS" => "RetCode::Success".to_string(),
+            "BadParam" => "RetCode::BadParam".to_string(),
+            "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex".to_string(),
+            "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex".to_string(),
+            _ => render_expr(expr, single_precision),
+        };
+    }
+    render_expr(expr, single_precision)
 }
 
 fn render_expr(expr: &Expr, single_precision: bool) -> String {
@@ -1213,6 +1226,9 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             return format!("self.unstable_period[FuncUnstId::{} as usize]", pascal);
         }
         "self.unstable_period[0]".to_string()
+    } else if fname == "COMPATIBILITY" {
+        // COMPATIBILITY() -> self.compatibility
+        "self.compatibility".to_string()
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> ((-(0.00000000000001)) < x) && (x < (0.00000000000001))
         if let Some(arg) = args.first() {

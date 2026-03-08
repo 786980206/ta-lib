@@ -181,25 +181,25 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
             )
         }
         Some(LookbackExpr::Code(_)) => {
-            // Code lookback uses optional params — same signature as ParamMinus
-            let mut parts = Vec::new();
-            for opt in &func.optional_inputs {
-                let c_type = match opt {
-                    o => match o.param_type {
-                        ParamType::Real => "double",
-                        ParamType::Integer => "int",
-                    },
+            if func.optional_inputs.is_empty() {
+                return format!("int TA_{}_Lookback( void );\n", func.name);
+            }
+            // Code lookback uses optional params
+            let params: Vec<String> = func.optional_inputs.iter().map(|opt| {
+                let c_type = match opt.param_type {
+                    ParamType::Real => "double",
+                    ParamType::Integer => "int",
                 };
                 let range_comment = match opt.range {
                     Some((min, max)) => format!("  /* From {} to {} */", min, max),
                     None => String::new(),
                 };
-                parts.push(format!(
-                    "int TA_{}_Lookback( {}           {} );{}\n",
-                    func.name, c_type, opt.name, range_comment
-                ));
-            }
-            return parts.join("");
+                format!("{}           {}{}", c_type, opt.name, range_comment)
+            }).collect();
+            return format!(
+                "int TA_{}_Lookback( {} );\n",
+                func.name, params.join(", ")
+            );
         }
     }
 }

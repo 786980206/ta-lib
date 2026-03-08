@@ -329,14 +329,13 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out
         }
         Statement::Return { value } => {
-            let ret_val = match value.as_str() {
-                "SUCCESS" => "TA_SUCCESS",
-                "BadParam" => "TA_BAD_PARAM",
-                "OutOfRangeEndIndex" => "TA_OUT_OF_RANGE_END_INDEX",
-                "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX",
-                _ => value.as_str(),
-            };
-            format!("{}return {};\n", pad, ret_val)
+            match value {
+                Some(expr) => {
+                    let rendered = render_return_expr(expr, single_precision);
+                    format!("{}return {};\n", pad, rendered)
+                }
+                None => format!("{}return;\n", pad),
+            }
         }
         Statement::For { var, count, body } => {
             let mut out = format!(
@@ -425,6 +424,21 @@ fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
         }
         _ => render_expr(expr, single_precision),
     }
+}
+
+/// Render a return expression, mapping known enum values to C constants.
+fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
+    // Handle known RetCode enum values when expressed as Var
+    if let Expr::Var(name) = expr {
+        return match name.as_str() {
+            "SUCCESS" => "TA_SUCCESS".to_string(),
+            "BadParam" => "TA_BAD_PARAM".to_string(),
+            "OutOfRangeEndIndex" => "TA_OUT_OF_RANGE_END_INDEX".to_string(),
+            "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX".to_string(),
+            _ => render_expr(expr, single_precision),
+        };
+    }
+    render_expr(expr, single_precision)
 }
 
 fn render_expr(expr: &Expr, single_precision: bool) -> String {
@@ -516,6 +530,9 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             );
         }
         "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
+    } else if fname == "COMPATIBILITY" {
+        // COMPATIBILITY() -> TA_GLOBALS_COMPATIBILITY
+        "TA_GLOBALS_COMPATIBILITY".to_string()
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> TA_IS_ZERO(x)
         if let Some(arg) = args.first() {

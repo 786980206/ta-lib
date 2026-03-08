@@ -57,17 +57,19 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
             }
         }
         Some(LookbackExpr::Code(_)) => {
-            // Code lookback uses optional params — generate same signature as ParamMinus
-            let mut param_parts = Vec::new();
-            for opt in &func.optional_inputs {
-                let c_type = match opt.param_type {
-                    ParamType::Real => "double",
-                    ParamType::Integer => "int",
-                };
-                let range = opt.range.map(|r| format!("  /* From {} to {} */", r.0, r.1)).unwrap_or_default();
-                param_parts.push(format!("{}           {}{}",  c_type, opt.name, range));
+            if func.optional_inputs.is_empty() {
+                "void".to_string()
+            } else {
+                let param_parts: Vec<String> = func.optional_inputs.iter().map(|opt| {
+                    let c_type = match opt.param_type {
+                        ParamType::Real => "double",
+                        ParamType::Integer => "int",
+                    };
+                    let range = opt.range.map(|r| format!("  /* From {} to {} */", r.0, r.1)).unwrap_or_default();
+                    format!("{}           {}{}", c_type, opt.name, range)
+                }).collect();
+                param_parts.join(", ")
             }
-            param_parts.join(", ")
         }
     };
 
