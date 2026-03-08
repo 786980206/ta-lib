@@ -16,7 +16,7 @@ struct YamlFunc {
     inputs: Vec<YamlParam>,
     optional_inputs: Option<Vec<YamlOptParam>>,
     outputs: Vec<YamlParam>,
-    lookback: serde_yaml::Value,
+    lookback: Option<serde_yaml::Value>,
 }
 
 #[derive(Deserialize)]
@@ -119,7 +119,10 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         })
         .collect();
 
-    let lookback = parse_lookback(&yaml.lookback);
+    let lookback = match &yaml.lookback {
+        Some(value) => parse_lookback(value),
+        None => LookbackExpr::Literal(0),
+    };
 
     FuncDef {
         name: yaml.name,

@@ -1,6 +1,7 @@
 name: MULT
+camel_case: Mult
 group: Math Operators
-description: Vector Arithmetic Mult
+hint: Vector Arithmetic Mult
 inputs:
   - name: inReal0
     type: real
@@ -9,4 +10,4 @@ inputs:
 outputs:
   - name: outReal
     type: real
-lookback: 0
+    flags: line

@@ -185,7 +185,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
             snake
         ));
     } else {
-        let title = func.description.as_deref().unwrap_or(&func.group);
+        let title = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&func.group);
         out.push_str(&format!("    /// {}\n", title));
         out.push_str("    ///\n");
         out.push_str("    /// # Arguments\n");
@@ -456,7 +456,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
             snake
         ));
     } else {
-        let title = func.description.as_deref().unwrap_or(&func.group);
+        let title = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&func.group);
         out.push_str(&format!("    /// {}\n", title));
         out.push_str("    ///\n");
         out.push_str("    /// # Arguments\n");

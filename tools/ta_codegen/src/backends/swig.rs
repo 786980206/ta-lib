@@ -14,7 +14,7 @@ pub fn generate(func: &FuncDef) -> String {
 fn gen_comment_block(func: &FuncDef) -> String {
     let mut out = String::new();
     let default_desc = format!("TA_{}", func.name);
-    let desc = func.description.as_deref().unwrap_or(&default_desc);
+    let desc = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&default_desc);
 
     out.push_str("/*\n");
     out.push_str(&format!(" * TA_{} - {}\n", func.name, desc));

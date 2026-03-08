@@ -41,6 +41,13 @@ fn test_parse_mult_yaml() {
 }
 
 #[test]
+fn test_parse_mult_yaml_enriched() {
+    let func = load_mult();
+    assert_eq!(func.camel_case.as_deref(), Some("Mult"));
+    assert_eq!(func.hint.as_deref(), Some("Vector Arithmetic Mult"));
+}
+
+#[test]
 fn test_parse_mult_logic() {
     let func = load_mult();
     assert!(
