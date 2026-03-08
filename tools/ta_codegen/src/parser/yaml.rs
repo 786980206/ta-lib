@@ -47,9 +47,15 @@ fn parse_lookback(value: &serde_yaml::Value) -> LookbackExpr {
         }
         serde_yaml::Value::String(s) => {
             let trimmed = s.trim();
-            // Check if this is a multi-line code block (contains semicolons or newlines with statements)
+            // Check if this is a multi-line code block (contains semicolons or braces)
             if trimmed.contains(';') || trimmed.contains('{') {
                 let stmts = parse_logic_str(trimmed);
+                LookbackExpr::Code(stmts)
+            } else if trimmed.contains('(') {
+                // Expression with function calls (e.g., "optInTimePeriod - 1 + UNSTABLE_PERIOD(EMA)")
+                // Wrap as "return <expr>;" and parse as code
+                let wrapped = format!("int retValue;\nretValue = {};\nreturn retValue;", trimmed);
+                let stmts = parse_logic_str(&wrapped);
                 LookbackExpr::Code(stmts)
             } else {
                 // Parse "optInTimePeriod - 1" style expressions

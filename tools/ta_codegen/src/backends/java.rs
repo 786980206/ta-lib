@@ -313,6 +313,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
         Expr::Var(name) => match name.as_str() {
             "COMPATIBILITY" => "this.compatibility".to_string(),
             "METASTOCK" => "Compatibility.Metastock".to_string(),
+            "DEFAULT" => "Compatibility.Default".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -415,6 +416,13 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             );
         }
         "/* ARRAY_COPY: bad args */".to_string()
+    } else if fname == "PER_TO_K" {
+        // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision);
+            return format!("(2.0 / ((double)({}) + 1.0))", x);
+        }
+        "0.0".to_string()
     } else if fname.ends_with("_Lookback") {
         // RSI_Lookback(args...) -> rsiLookback(args...)
         let java_name = to_camel_case(fname);

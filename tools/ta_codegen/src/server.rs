@@ -42,6 +42,9 @@ pub fn run_server() {
             "TA_SMA_Lookback" => handle_sma_lookback(&core, params),
             "TA_RSI" => handle_rsi(&core, params),
             "TA_RSI_Lookback" => handle_rsi_lookback(&core, params),
+            // EMA not yet in ta-lib Rust crate — uncomment when available:
+            // "TA_EMA" => handle_ema(&core, params),
+            // "TA_EMA_Lookback" => handle_ema_lookback(&core, params),
             _ => json!({"error": format!("Unknown method: {}", method)}),
         };
 

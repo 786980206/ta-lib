@@ -389,6 +389,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             "METASTOCK" => {
                 "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)".to_string()
             }
+            "DEFAULT" => {
+                "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)".to_string()
+            }
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -477,6 +480,13 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             );
         }
         "/* ARRAY_COPY: bad args */".to_string()
+    } else if fname == "PER_TO_K" {
+        // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision);
+            return format!("(2.0 / ((double)({}) + 1.0))", x);
+        }
+        "0.0".to_string()
     } else if fname.ends_with("_Lookback") {
         // RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
         let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();

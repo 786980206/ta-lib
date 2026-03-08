@@ -1,0 +1,15 @@
+name: EMA
+group: Overlap Studies
+description: Exponential Moving Average
+inputs:
+  - name: inReal
+    type: real
+optional_inputs:
+  - name: optInTimePeriod
+    type: integer
+    range: [2, 100000]
+    default: 30
+outputs:
+  - name: outReal
+    type: real
+lookback: optInTimePeriod - 1 + UNSTABLE_PERIOD(EMA)

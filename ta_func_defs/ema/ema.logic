@@ -1,0 +1,60 @@
+// EMA - Exponential Moving Average
+// Inlined INT_EMA algorithm.
+
+double tempReal;
+double prevMA;
+int i;
+size_t today;
+size_t outIdx;
+size_t lookbackTotal;
+double optInK_1;
+
+lookbackTotal = (size_t)EMA_Lookback(optInTimePeriod);
+
+if( startIdx < lookbackTotal ) {
+    startIdx = lookbackTotal;
+}
+
+if( startIdx > endIdx ) {
+    outBegIdx = 0;
+    outNBElement = 0;
+    return SUCCESS;
+}
+
+optInK_1 = PER_TO_K(optInTimePeriod);
+outBegIdx = startIdx;
+
+// Seed the EMA: Classic uses SMA of first period, Metastock uses first bar
+if( COMPATIBILITY == DEFAULT ) {
+    today = startIdx - lookbackTotal;
+    i = optInTimePeriod;
+    tempReal = 0.0;
+    for( i = optInTimePeriod; i > 0; i-- ) {
+        tempReal += (double)inReal[today];
+        today = today + 1;
+    }
+    prevMA = tempReal / (double)optInTimePeriod;
+} else {
+    prevMA = (double)inReal[0];
+    today = 1;
+}
+
+// Skip the unstable period
+while( today <= startIdx ) {
+    prevMA = (((double)inReal[today] - prevMA) * optInK_1) + prevMA;
+    today = today + 1;
+}
+
+// Write the first value
+outReal[0] = prevMA;
+outIdx = 1;
+
+// Calculate the remaining range
+while( today <= endIdx ) {
+    prevMA = (((double)inReal[today] - prevMA) * optInK_1) + prevMA;
+    today = today + 1;
+    outReal[outIdx] = prevMA;
+    outIdx = outIdx + 1;
+}
+
+outNBElement = outIdx;

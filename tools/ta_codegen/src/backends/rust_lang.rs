@@ -975,13 +975,40 @@ fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
     }
 }
 
-/// Render an expression for use as a BinOp operand.
-/// Wraps Cast expressions in extra parens for correct `as` precedence.
-fn render_expr_as_operand(expr: &Expr, single_precision: bool) -> String {
-    if matches!(expr, Expr::Cast(_, _)) {
-        format!("({})", render_expr(expr, single_precision))
-    } else {
-        render_expr(expr, single_precision)
+/// Get operator precedence (higher = binds tighter).
+fn op_precedence(op: &BinOp) -> u8 {
+    match op {
+        BinOp::Or => 1,
+        BinOp::And => 2,
+        BinOp::Eq | BinOp::NotEq => 3,
+        BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 4,
+        BinOp::Add | BinOp::Sub => 5,
+        BinOp::Mul | BinOp::Div => 6,
+    }
+}
+
+/// Render a BinOp operand, adding parens when the child BinOp has lower precedence
+/// (or same precedence on the right side for left-associative ops).
+/// Also wraps Cast expressions for correct `as` precedence.
+fn render_binop_operand(
+    expr: &Expr,
+    parent_op: &BinOp,
+    is_left: bool,
+    single_precision: bool,
+) -> String {
+    match expr {
+        Expr::Cast(_, _) => format!("({})", render_expr(expr, single_precision)),
+        Expr::BinOp(_, child_op, _) => {
+            let parent_prec = op_precedence(parent_op);
+            let child_prec = op_precedence(child_op);
+            // Need parens if child has lower precedence, or same precedence on right side
+            if child_prec < parent_prec || (!is_left && child_prec == parent_prec) {
+                format!("({})", render_expr(expr, single_precision))
+            } else {
+                render_expr(expr, single_precision)
+            }
+        }
+        _ => render_expr(expr, single_precision),
     }
 }
 
@@ -1021,8 +1048,8 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Or => " || ",
             };
             // Wrap Cast subexpressions in parens for correct Rust `as` precedence
-            let left_str = render_expr_as_operand(left, single_precision);
-            let right_str = render_expr_as_operand(right, single_precision);
+            let left_str = render_binop_operand(left, op, true, single_precision);
+            let right_str = render_binop_operand(right, op, false, single_precision);
             format!(
                 "{}{}{}",
                 left_str,
@@ -1141,6 +1168,13 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
             }
         }
         "/* ARRAY_COPY: bad args */".to_string()
+    } else if fname == "PER_TO_K" {
+        // PER_TO_K(period) -> 2.0_f64 / ((period) as f64 + 1.0_f64)
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision);
+            return format!("2.0_f64 / (({}) as f64 + 1.0_f64)", x);
+        }
+        "0.0_f64".to_string()
     } else if fname.ends_with("_Lookback") {
         // RSI_Lookback(args...) -> self.rsi_lookback(args...)
         let rust_name = fname.to_lowercase();

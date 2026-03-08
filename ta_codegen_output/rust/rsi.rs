@@ -204,7 +204,7 @@ impl Core {
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
             tempValue1 = tempValue2 + tempValue1;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * tempValue2 / tempValue1;
+                outReal[outIdx] = 100.0 * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;
@@ -237,7 +237,7 @@ impl Core {
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * prevGain / tempValue1;
+                outReal[outIdx] = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;
@@ -276,7 +276,7 @@ impl Core {
             prevGain /= (optInTimePeriod) as f64;
             tempValue1 = prevGain + prevLoss;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * prevGain / tempValue1;
+                outReal[outIdx] = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;
@@ -383,7 +383,7 @@ impl Core {
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
             tempValue1 = tempValue2 + tempValue1;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * tempValue2 / tempValue1;
+                outReal[outIdx] = 100.0 * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;
@@ -416,7 +416,7 @@ impl Core {
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * prevGain / tempValue1;
+                outReal[outIdx] = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;
@@ -455,7 +455,7 @@ impl Core {
             prevGain /= (optInTimePeriod) as f64;
             tempValue1 = prevGain + prevLoss;
             if !(((-(0.00000000000001)) < tempValue1) && (tempValue1 < (0.00000000000001))) {
-                outReal[outIdx] = 100.0 * prevGain / tempValue1;
+                outReal[outIdx] = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
                 outReal[outIdx] = 0.0;

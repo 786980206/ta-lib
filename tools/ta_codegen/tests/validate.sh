@@ -62,7 +62,12 @@ for f in \
     "../../ta_codegen_output/rust/rsi.rs" \
     "../../ta_codegen_output/java/Core_RSI.java" \
     "../../ta_codegen_output/dotnet/Core_RSI.h" \
-    "../../ta_codegen_output/swig/ta_RSI.swg"; do
+    "../../ta_codegen_output/swig/ta_RSI.swg" \
+    "../../ta_codegen_output/c/ta_EMA.c" \
+    "../../ta_codegen_output/rust/ema.rs" \
+    "../../ta_codegen_output/java/Core_EMA.java" \
+    "../../ta_codegen_output/dotnet/Core_EMA.h" \
+    "../../ta_codegen_output/swig/ta_EMA.swg"; do
     if [ -s "$f" ]; then
         pass "Generated file exists: $(basename "$f")"
     else
@@ -134,6 +139,8 @@ else
     fail "JSON-RPC TA_RSI_Lookback: unexpected output"
     echo "    Response: $RESPONSE_RSI_LB"
 fi
+
+# EMA JSON-RPC tests skipped — EMA not yet in ta-lib Rust crate
 
 echo ""
 echo "=== Running cargo test ==="
