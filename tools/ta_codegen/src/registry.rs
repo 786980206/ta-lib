@@ -1,4 +1,3 @@
-use std::collections::HashSet;
 use std::path::Path;
 
 /// Target language for cross-call resolution.
@@ -17,13 +16,14 @@ pub enum Lang {
 /// then translates prefix-free calls (e.g. `sma_lookback`) to
 /// language-specific names (e.g. `TA_SMA_Lookback` for C).
 pub struct Registry {
-    indicators: HashSet<String>,
+    /// Sorted by descending length so longest-match wins in parse_func_name.
+    indicators: Vec<String>,
 }
 
 impl Registry {
     /// Build a registry by scanning `base_dir` for subdirectories containing `.yaml` files.
     pub fn from_dir(base_dir: &Path) -> Self {
-        let mut indicators = HashSet::new();
+        let mut indicators = Vec::new();
 
         if let Ok(entries) = std::fs::read_dir(base_dir) {
             for entry in entries.filter_map(|e| e.ok()) {
@@ -34,17 +34,20 @@ impl Registry {
                 let dir_name = entry.file_name().to_string_lossy().to_string();
                 let yaml_path = path.join(format!("{}.yaml", dir_name));
                 if yaml_path.exists() {
-                    indicators.insert(dir_name);
+                    indicators.push(dir_name);
                 }
             }
         }
+
+        // Sort by descending length so longest-match wins (e.g. "stochrsi" before "stoch")
+        indicators.sort_by(|a, b| b.len().cmp(&a.len()).then(a.cmp(b)));
 
         Registry { indicators }
     }
 
     /// Check if an indicator exists in the registry.
     pub fn contains(&self, name: &str) -> bool {
-        self.indicators.contains(name)
+        self.indicators.iter().any(|n| n == name)
     }
 
     /// Resolve a prefix-free function call to a language-specific name.
@@ -77,7 +80,7 @@ impl Registry {
 
     /// Parse a prefix-free function name into (indicator, suffix).
     /// e.g. "sma_lookback" -> ("sma", "lookback"), "ema_logic" -> ("ema", "logic")
-    fn parse_func_name<'a>(&self, func_name: &'a str) -> Option<(String, String)> {
+    fn parse_func_name(&self, func_name: &str) -> Option<(String, String)> {
         // Try matching known indicators by checking if func_name starts with
         // an indicator name followed by underscore
         for indicator in &self.indicators {
@@ -185,6 +188,14 @@ mod tests {
             registry.resolve_type("sma_lookback", Lang::C),
             registry.resolve_call("sma_lookback", Lang::C)
         );
+    }
+
+    #[test]
+    fn test_registry_bare_name_returns_unchanged() {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let registry = Registry::from_dir(&base);
+        // A bare indicator name with no suffix should pass through unchanged
+        assert_eq!(registry.resolve_call("sma", Lang::C), "sma");
     }
 
     #[test]
