@@ -2,7 +2,7 @@ use std::path::Path;
 
 use serde::Deserialize;
 
-use crate::ir::{Input, LookbackExpr, OptInput, Output, ParamType};
+use crate::ir::{FuncDef, Input, LookbackExpr, OptInput, Output, ParamType};
 use super::logic::parse_logic_str;
 
 #[derive(Deserialize)]
@@ -10,6 +10,9 @@ struct YamlFunc {
     name: String,
     group: String,
     description: Option<String>,
+    camel_case: Option<String>,
+    hint: Option<String>,
+    flags: Option<String>,
     inputs: Vec<YamlParam>,
     optional_inputs: Option<Vec<YamlOptParam>>,
     outputs: Vec<YamlParam>,
@@ -21,6 +24,7 @@ struct YamlParam {
     name: String,
     #[serde(rename = "type")]
     param_type: String,
+    flags: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -30,6 +34,8 @@ struct YamlOptParam {
     param_type: String,
     range: Option<Vec<i32>>,
     default: Option<i32>,
+    display_name: Option<String>,
+    hint: Option<String>,
 }
 
 fn parse_param_type(s: &str) -> ParamType {
@@ -73,17 +79,7 @@ fn parse_lookback(value: &serde_yaml::Value) -> LookbackExpr {
     }
 }
 
-pub fn parse_yaml(
-    path: &Path,
-) -> (
-    String,
-    String,
-    Option<String>,
-    Vec<Input>,
-    Vec<OptInput>,
-    Vec<Output>,
-    LookbackExpr,
-) {
+pub fn parse_yaml(path: &Path) -> FuncDef {
     let content = std::fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
 
@@ -108,6 +104,8 @@ pub fn parse_yaml(
             param_type: parse_param_type(&p.param_type),
             range: p.range.map(|r| (r[0], r[1])),
             default: p.default,
+            display_name: p.display_name,
+            hint: p.hint,
         })
         .collect();
 
@@ -117,10 +115,23 @@ pub fn parse_yaml(
         .map(|p| Output {
             name: p.name,
             param_type: parse_param_type(&p.param_type),
+            flags: p.flags,
         })
         .collect();
 
     let lookback = parse_lookback(&yaml.lookback);
 
-    (yaml.name, yaml.group, yaml.description, inputs, opt_inputs, outputs, lookback)
+    FuncDef {
+        name: yaml.name,
+        group: yaml.group,
+        description: yaml.description,
+        camel_case: yaml.camel_case,
+        hint: yaml.hint,
+        flags: yaml.flags,
+        inputs,
+        optional_inputs: opt_inputs,
+        outputs,
+        lookback,
+        body: vec![],
+    }
 }

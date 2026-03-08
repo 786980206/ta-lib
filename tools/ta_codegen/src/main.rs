@@ -82,20 +82,8 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
             continue;
         }
 
-        let (name, group, description, inputs, opt_inputs, outputs, lookback) =
-            parser::yaml::parse_yaml(&yaml_path);
-        let body = parser::logic::parse_logic(&logic_path);
-
-        let func_def = ir::FuncDef {
-            name,
-            group,
-            description,
-            inputs,
-            optional_inputs: opt_inputs,
-            outputs,
-            lookback,
-            body,
-        };
+        let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+        func_def.body = parser::logic::parse_logic(&logic_path);
 
         for backend in &backends_to_run {
             generate_backend(&func_def, backend);

@@ -4,6 +4,9 @@ pub struct FuncDef {
     pub name: String,
     pub group: String,
     pub description: Option<String>,
+    pub camel_case: Option<String>,
+    pub hint: Option<String>,
+    pub flags: Option<String>,
     pub inputs: Vec<Input>,
     pub optional_inputs: Vec<OptInput>,
     pub outputs: Vec<Output>,
@@ -23,12 +26,15 @@ pub struct OptInput {
     pub param_type: ParamType,
     pub range: Option<(i32, i32)>,
     pub default: Option<i32>,
+    pub display_name: Option<String>,
+    pub hint: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct Output {
     pub name: String,
     pub param_type: ParamType,
+    pub flags: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]

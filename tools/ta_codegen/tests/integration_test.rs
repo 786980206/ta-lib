@@ -9,20 +9,9 @@ fn load_mult() -> ir::FuncDef {
     let yaml_path = base.join("../../ta_func_defs/mult/mult.yaml");
     let logic_path = base.join("../../ta_func_defs/mult/mult.logic");
 
-    let (name, group, description, inputs, opt_inputs, outputs, lookback) =
-        parser::yaml::parse_yaml(&yaml_path);
-    let body = parser::logic::parse_logic(&logic_path);
-
-    ir::FuncDef {
-        name,
-        group,
-        description,
-        inputs,
-        optional_inputs: opt_inputs,
-        outputs,
-        lookback,
-        body,
-    }
+    let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+    func_def.body = parser::logic::parse_logic(&logic_path);
+    func_def
 }
 
 /// Helper: parse sma.yaml + sma.logic and build a FuncDef.
@@ -31,20 +20,9 @@ fn load_sma() -> ir::FuncDef {
     let yaml_path = base.join("../../ta_func_defs/sma/sma.yaml");
     let logic_path = base.join("../../ta_func_defs/sma/sma.logic");
 
-    let (name, group, description, inputs, opt_inputs, outputs, lookback) =
-        parser::yaml::parse_yaml(&yaml_path);
-    let body = parser::logic::parse_logic(&logic_path);
-
-    ir::FuncDef {
-        name,
-        group,
-        description,
-        inputs,
-        optional_inputs: opt_inputs,
-        outputs,
-        lookback,
-        body,
-    }
+    let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+    func_def.body = parser::logic::parse_logic(&logic_path);
+    func_def
 }
 
 // ---------------------------------------------------------------------------
