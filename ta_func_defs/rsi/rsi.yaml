@@ -1,0 +1,21 @@
+name: RSI
+group: Momentum Indicators
+description: Relative Strength Index
+inputs:
+  - name: inReal
+    type: real
+optional_inputs:
+  - name: optInTimePeriod
+    type: integer
+    range: [2, 100000]
+    default: 14
+outputs:
+  - name: outReal
+    type: real
+lookback: |
+  int retValue;
+  retValue = optInTimePeriod + UNSTABLE_PERIOD(RSI);
+  if( COMPATIBILITY == METASTOCK ) {
+      retValue = retValue - 1;
+  }
+  return retValue;

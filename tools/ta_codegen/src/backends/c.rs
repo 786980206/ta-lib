@@ -57,19 +57,41 @@ fn gen_header(_func: &FuncDef) -> String {
 
 fn gen_lookback(func: &FuncDef) -> String {
     let name = &func.name;
+
+    let has_opt_params = !func.optional_inputs.is_empty();
+
+    // Build parameter list for signature
+    let param_str = if has_opt_params {
+        let params: Vec<String> = func
+            .optional_inputs
+            .iter()
+            .map(|opt| {
+                let c_type = match opt.param_type {
+                    ParamType::Real => "double",
+                    ParamType::Integer => "int",
+                };
+                format!("{} {}", c_type, opt.name)
+            })
+            .collect();
+        format!(" {} ", params.join(", "))
+    } else {
+        " void ".to_string()
+    };
+
     let body = match &func.lookback {
         LookbackExpr::Literal(n) => format!("   return {};\n", n),
         LookbackExpr::ParamMinus(param, offset) => {
             format!("   return {} - {};\n", param, offset)
         }
+        LookbackExpr::Code(stmts) => render_lookback_code(stmts),
     };
 
     format!(
-        "TA_LIB_API int TA_{}_Lookback( void )\n\
+        "TA_LIB_API int TA_{}_Lookback({})\n\
          {{\n\
          {}\
          }}\n\n",
-        name, body
+        name, param_str, body
     )
 }
 
@@ -214,6 +236,18 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             }
         }
         Statement::Assign { target, value, compound } => {
+            // Statement-level FuncCall: when target is Var("_"), render just the expansion
+            if let Expr::Var(tname) = target {
+                if tname == "_" {
+                    if let Expr::FuncCall(fname, args) = value {
+                        return format!(
+                            "{}{};\n",
+                            pad,
+                            render_func_call(fname, args, single_precision)
+                        );
+                    }
+                }
+            }
             // Only fold compound assignments if the original source used +=/-=/etc.
             if *compound {
                 if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
@@ -301,6 +335,29 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             };
             format!("{}return {};\n", pad, ret_val)
         }
+        Statement::For { var, count, body } => {
+            let mut out = format!(
+                "{}for( {} = {}; {} > 0; {}-- )\n{}{{\n",
+                pad,
+                var,
+                render_expr(count, single_precision),
+                var,
+                var,
+                pad
+            );
+            for s in body {
+                out.push_str(&render_statement(s, indent + 3, single_precision));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+        Statement::Block { body } => {
+            let mut out = String::new();
+            for s in body {
+                out.push_str(&render_statement(s, indent, single_precision));
+            }
+            out
+        }
     }
 }
 
@@ -327,7 +384,13 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             }
         }
         Expr::IntLiteral(i) => format!("{}", i),
-        Expr::Var(name) => name.clone(),
+        Expr::Var(name) => match name.as_str() {
+            "COMPATIBILITY" => "TA_GLOBALS_COMPATIBILITY".to_string(),
+            "METASTOCK" => {
+                "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)".to_string()
+            }
+            _ => name.clone(),
+        },
         Expr::ArrayAccess(name, idx) => {
             format!("{}[{}]", name, render_expr(idx, single_precision))
         }
@@ -364,5 +427,101 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
         Expr::Not(inner) => {
             format!("!({})", render_expr(inner, single_precision))
         }
+        Expr::FuncCall(name, args) => render_func_call(name, args, single_precision),
     }
+}
+
+/// Convert a function identifier to PascalCase.
+/// e.g., "RSI" -> "Rsi", "SMA" -> "Sma"
+fn to_pascal_case(s: &str) -> String {
+    let lower = s.to_lowercase();
+    let mut chars = lower.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
+/// Render a FuncCall expression to C code.
+fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> String {
+    if fname == "UNSTABLE_PERIOD" {
+        // UNSTABLE_PERIOD(RSI) -> TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi)
+        if let Some(Expr::Var(func_name)) = args.first() {
+            let upper = func_name.to_uppercase();
+            let pascal = to_pascal_case(func_name);
+            return format!(
+                "TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_{},{})",
+                upper, pascal
+            );
+        }
+        "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
+    } else if fname == "IS_ZERO" {
+        // IS_ZERO(x) -> TA_IS_ZERO(x)
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision);
+            return format!("TA_IS_ZERO({})", x);
+        }
+        "TA_IS_ZERO(0)".to_string()
+    } else if fname == "ARRAY_COPY" {
+        // ARRAY_COPY(dst, dstOff, src, srcOff, count)
+        if args.len() == 5 {
+            let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+            let macro_name = if single_precision {
+                "ARRAY_MEMMOVEMIX"
+            } else {
+                "ARRAY_MEMMOVE"
+            };
+            return format!(
+                "{}({},{},{},{},{})",
+                macro_name, rendered[0], rendered[1], rendered[2], rendered[3], rendered[4]
+            );
+        }
+        "/* ARRAY_COPY: bad args */".to_string()
+    } else if fname.ends_with("_Lookback") {
+        // RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
+        let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        format!("TA_{}({})", fname, rendered.join(","))
+    } else {
+        // Generic: prefix with TA_
+        let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        format!("TA_{}({})", fname, rendered.join(","))
+    }
+}
+
+/// Render a complex lookback body (LookbackExpr::Code) into C code.
+fn render_lookback_code(stmts: &[Statement]) -> String {
+    let mut out = String::new();
+
+    // Declare local variables
+    for stmt in stmts {
+        if let Statement::VarDecl { var_type, name, .. } = stmt {
+            let c_type = match var_type {
+                VarType::Real => "double",
+                VarType::Integer => "int",
+                VarType::Index => "int",
+            };
+            out.push_str(&format!("   {} {};\n", c_type, name));
+        }
+    }
+
+    // Emit VarDecl initializations
+    for stmt in stmts {
+        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
+            out.push_str(&format!(
+                "   {} = {};\n",
+                name,
+                render_expr(init, false)
+            ));
+        }
+    }
+
+    // Render non-VarDecl statements
+    for stmt in stmts {
+        if matches!(stmt, Statement::VarDecl { .. }) {
+            continue;
+        }
+        out.push_str(&render_statement(stmt, 3, false));
+    }
+
+    out
 }

@@ -35,7 +35,7 @@
 #include <math.h>
 #include "ta_func.h"
 
-TA_LIB_API int TA_SMA_Lookback( void )
+TA_LIB_API int TA_SMA_Lookback( int optInTimePeriod )
 {
    return optInTimePeriod - 1;
 }

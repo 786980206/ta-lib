@@ -41,6 +41,9 @@ pub enum ParamType {
 pub enum LookbackExpr {
     Literal(i32),
     ParamMinus(String, i32),
+    /// Complex lookback body (parsed from multi-line YAML string).
+    /// Contains the full lookback function body as statements.
+    Code(Vec<Statement>),
 }
 
 // --- Logic AST ---
@@ -62,6 +65,13 @@ pub enum Statement {
         condition: Expr,
         body: Vec<Statement>,
     },
+    /// Countdown for loop: `for( var = count; var > 0; var-- ) { body }`
+    /// Renders as `for var in (1..=count).rev()` in Rust.
+    For {
+        var: String,
+        count: Expr,
+        body: Vec<Statement>,
+    },
     If {
         condition: Expr,
         then_body: Vec<Statement>,
@@ -69,6 +79,10 @@ pub enum Statement {
     },
     Return {
         value: String,
+    },
+    /// A block of statements (used for ARRAY_COPY expansion in some backends).
+    Block {
+        body: Vec<Statement>,
     },
 }
 
@@ -88,6 +102,9 @@ pub enum Expr {
     BinOp(Box<Expr>, BinOp, Box<Expr>),
     Cast(VarType, Box<Expr>),
     Not(Box<Expr>),
+    /// Function/builtin call: UNSTABLE_PERIOD(RSI), IS_ZERO(x), ARRAY_COPY(...),
+    /// RSI_Lookback(params...), etc.
+    FuncCall(String, Vec<Expr>),
 }
 
 #[derive(Debug, Clone)]

@@ -180,5 +180,26 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
                 func.name, c_type, param, range_comment
             )
         }
+        LookbackExpr::Code(_) => {
+            // Code lookback uses optional params — same signature as ParamMinus
+            let mut parts = Vec::new();
+            for opt in &func.optional_inputs {
+                let c_type = match opt {
+                    o => match o.param_type {
+                        ParamType::Real => "double",
+                        ParamType::Integer => "int",
+                    },
+                };
+                let range_comment = match opt.range {
+                    Some((min, max)) => format!("  /* From {} to {} */", min, max),
+                    None => String::new(),
+                };
+                parts.push(format!(
+                    "int TA_{}_Lookback( {}           {} );{}\n",
+                    func.name, c_type, opt.name, range_comment
+                ));
+            }
+            return parts.join("");
+        }
     }
 }

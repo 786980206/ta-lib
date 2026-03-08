@@ -1,0 +1,153 @@
+// RSI - Relative Strength Index
+// Algorithm based on Wilder's original work.
+
+size_t outIdx = 0;
+size_t today;
+size_t lookbackTotal;
+int unstablePeriod;
+int i;
+double prevGain;
+double prevLoss;
+double prevValue;
+double savePrevValue;
+double tempValue1;
+double tempValue2;
+
+outBegIdx = 0;
+outNBElement = 0;
+
+lookbackTotal = (size_t)RSI_Lookback(optInTimePeriod);
+
+if( startIdx < lookbackTotal ) {
+    startIdx = lookbackTotal;
+}
+
+if( startIdx > endIdx ) {
+    return SUCCESS;
+}
+
+outIdx = 0;
+
+// Trap special case where period is 1 — just copy input to output
+if( optInTimePeriod == 1 ) {
+    outBegIdx = startIdx;
+    i = (int)((endIdx - startIdx) + 1);
+    outNBElement = (size_t)i;
+    ARRAY_COPY(outReal, 0, inReal, startIdx, i);
+    return SUCCESS;
+}
+
+today = startIdx - lookbackTotal;
+prevValue = (double)inReal[today];
+
+unstablePeriod = UNSTABLE_PERIOD(RSI);
+
+// Metastock compatibility: calculate additional initial bar
+if( (unstablePeriod == 0) && (COMPATIBILITY == METASTOCK) ) {
+    savePrevValue = prevValue;
+    prevGain = 0.0;
+    prevLoss = 0.0;
+    for( i = optInTimePeriod; i > 0; i-- ) {
+        tempValue1 = (double)inReal[today]; today = today + 1;
+        tempValue2 = tempValue1 - prevValue;
+        prevValue = tempValue1;
+        if( tempValue2 < 0.0 ) {
+            prevLoss -= tempValue2;
+        } else {
+            prevGain += tempValue2;
+        }
+    }
+
+    tempValue1 = prevLoss / (double)optInTimePeriod;
+    tempValue2 = prevGain / (double)optInTimePeriod;
+
+    tempValue1 = tempValue2 + tempValue1;
+    if( !IS_ZERO(tempValue1) ) {
+        outReal[outIdx] = 100.0 * (tempValue2 / tempValue1); outIdx = outIdx + 1;
+    } else {
+        outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+    }
+
+    if( today > endIdx ) {
+        outBegIdx = startIdx;
+        outNBElement = outIdx;
+        return SUCCESS;
+    }
+
+    today = today - (size_t)optInTimePeriod;
+    prevValue = savePrevValue;
+}
+
+// Accumulate initial gains and losses
+prevGain = 0.0;
+prevLoss = 0.0;
+today = today + 1;
+for( i = optInTimePeriod; i > 0; i-- ) {
+    tempValue1 = (double)inReal[today]; today = today + 1;
+    tempValue2 = tempValue1 - prevValue;
+    prevValue = tempValue1;
+    if( tempValue2 < 0.0 ) {
+        prevLoss -= tempValue2;
+    } else {
+        prevGain += tempValue2;
+    }
+}
+
+prevLoss /= (double)optInTimePeriod;
+prevGain /= (double)optInTimePeriod;
+
+if( today > startIdx ) {
+    tempValue1 = prevGain + prevLoss;
+    if( !IS_ZERO(tempValue1) ) {
+        outReal[outIdx] = 100.0 * (prevGain / tempValue1); outIdx = outIdx + 1;
+    } else {
+        outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+    }
+} else {
+    // Skip the unstable period
+    while( today < startIdx ) {
+        tempValue1 = (double)inReal[today];
+        tempValue2 = tempValue1 - prevValue;
+        prevValue = tempValue1;
+
+        prevLoss *= (double)(optInTimePeriod - 1);
+        prevGain *= (double)(optInTimePeriod - 1);
+        if( tempValue2 < 0.0 ) {
+            prevLoss -= tempValue2;
+        } else {
+            prevGain += tempValue2;
+        }
+
+        prevLoss /= (double)optInTimePeriod;
+        prevGain /= (double)optInTimePeriod;
+
+        today = today + 1;
+    }
+}
+
+// Main output loop
+while( today <= endIdx ) {
+    tempValue1 = (double)inReal[today]; today = today + 1;
+    tempValue2 = tempValue1 - prevValue;
+    prevValue = tempValue1;
+
+    prevLoss *= (double)(optInTimePeriod - 1);
+    prevGain *= (double)(optInTimePeriod - 1);
+    if( tempValue2 < 0.0 ) {
+        prevLoss -= tempValue2;
+    } else {
+        prevGain += tempValue2;
+    }
+
+    prevLoss /= (double)optInTimePeriod;
+    prevGain /= (double)optInTimePeriod;
+    tempValue1 = prevGain + prevLoss;
+    if( !IS_ZERO(tempValue1) ) {
+        outReal[outIdx] = 100.0 * (prevGain / tempValue1); outIdx = outIdx + 1;
+    } else {
+        outReal[outIdx] = 0.0; outIdx = outIdx + 1;
+    }
+}
+
+outBegIdx = startIdx;
+outNBElement = outIdx;

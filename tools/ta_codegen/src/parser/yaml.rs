@@ -3,6 +3,7 @@ use std::path::Path;
 use serde::Deserialize;
 
 use crate::ir::{Input, LookbackExpr, OptInput, Output, ParamType};
+use super::logic::parse_logic_str;
 
 #[derive(Deserialize)]
 struct YamlFunc {
@@ -45,14 +46,21 @@ fn parse_lookback(value: &serde_yaml::Value) -> LookbackExpr {
             LookbackExpr::Literal(n.as_i64().expect("lookback must be an integer") as i32)
         }
         serde_yaml::Value::String(s) => {
-            // Parse "optInTimePeriod - 1" style expressions
-            let parts: Vec<&str> = s.split_whitespace().collect();
-            if parts.len() == 3 && parts[1] == "-" {
-                let param = parts[0].to_string();
-                let offset: i32 = parts[2].parse().expect("lookback offset must be an integer");
-                LookbackExpr::ParamMinus(param, offset)
+            let trimmed = s.trim();
+            // Check if this is a multi-line code block (contains semicolons or newlines with statements)
+            if trimmed.contains(';') || trimmed.contains('{') {
+                let stmts = parse_logic_str(trimmed);
+                LookbackExpr::Code(stmts)
             } else {
-                panic!("Unsupported lookback expression: {}", s);
+                // Parse "optInTimePeriod - 1" style expressions
+                let parts: Vec<&str> = trimmed.split_whitespace().collect();
+                if parts.len() == 3 && parts[1] == "-" {
+                    let param = parts[0].to_string();
+                    let offset: i32 = parts[2].parse().expect("lookback offset must be an integer");
+                    LookbackExpr::ParamMinus(param, offset)
+                } else {
+                    panic!("Unsupported lookback expression: {}", s);
+                }
             }
         }
         _ => panic!("Unsupported lookback value: {:?}", value),

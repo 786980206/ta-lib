@@ -1,5 +1,5 @@
 /* Generated */
-   public int smaLookback( )
+   public int smaLookback( int optInTimePeriod )
    {
       return optInTimePeriod - 1;
    }
@@ -24,7 +24,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       periodTotal = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1)));
+      lookbackTotal = ((int)(optInTimePeriod-1));
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -38,18 +38,18 @@
       i = trailingIdx;
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]));
+            periodTotal += ((double)inReal[i]);
             i = (i+1);
          }
       }
       outIdx = 0;
       while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]));
+         periodTotal += ((double)inReal[i]);
          i = (i+1);
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]));
+         periodTotal -= ((double)inReal[trailingIdx]);
          trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod)));
+         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
          outIdx = (outIdx+1);
       }
       outNBElement.value = outIdx;
@@ -77,7 +77,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       periodTotal = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1)));
+      lookbackTotal = ((int)(optInTimePeriod-1));
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -91,18 +91,18 @@
       i = trailingIdx;
       if( (optInTimePeriod>1) ) {
          while( (i<startIdx) ) {
-            periodTotal += ((double)inReal[i]));
+            periodTotal += ((double)inReal[i]);
             i = (i+1);
          }
       }
       outIdx = 0;
       while( (i<=endIdx) ) {
-         periodTotal += ((double)inReal[i]));
+         periodTotal += ((double)inReal[i]);
          i = (i+1);
          tempReal = periodTotal;
-         periodTotal -= ((double)inReal[trailingIdx]));
+         periodTotal -= ((double)inReal[trailingIdx]);
          trailingIdx = (trailingIdx+1);
-         outReal[outIdx] = (tempReal/((double)optInTimePeriod)));
+         outReal[outIdx] = (tempReal/((double)optInTimePeriod));
          outIdx = (outIdx+1);
       }
       outNBElement.value = outIdx;

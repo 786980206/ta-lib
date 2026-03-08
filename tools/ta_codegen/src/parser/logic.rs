@@ -18,6 +18,7 @@ enum Token {
     RParen,
     Bang,
     Semicolon,
+    Comma,
     Newline,
 }
 
@@ -43,6 +44,16 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
+        // Skip multi-line comments: /* ... */
+        if c == '/' && i + 1 < chars.len() && chars[i + 1] == '*' {
+            i += 2;
+            while i + 1 < chars.len() && !(chars[i] == '*' && chars[i + 1] == '/') {
+                i += 1;
+            }
+            i += 2; // skip */
+            continue;
+        }
+
         // Newline
         if c == '\n' {
             // Collapse consecutive newlines
@@ -56,6 +67,13 @@ fn tokenize(input: &str) -> Vec<Token> {
         // Semicolon
         if c == ';' {
             tokens.push(Token::Semicolon);
+            i += 1;
+            continue;
+        }
+
+        // Comma
+        if c == ',' {
+            tokens.push(Token::Comma);
             i += 1;
             continue;
         }
@@ -126,7 +144,7 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
-        // Numbers
+        // Numbers (including negative literals like -0.00000000000001)
         if c.is_ascii_digit() {
             let start = i;
             while i < chars.len() && chars[i].is_ascii_digit() {
@@ -225,6 +243,7 @@ impl Parser {
     fn parse_statement(&mut self) -> Statement {
         match self.peek().cloned() {
             Some(Token::Ident(ref s)) if s == "while" => self.parse_while(),
+            Some(Token::Ident(ref s)) if s == "for" => self.parse_for(),
             Some(Token::Ident(ref s)) if s == "if" => self.parse_if(),
             Some(Token::Ident(ref s)) if s == "return" => self.parse_return(),
             Some(Token::Ident(ref s))
@@ -235,7 +254,7 @@ impl Parser {
             {
                 self.parse_var_decl()
             }
-            _ => self.parse_assignment(),
+            _ => self.parse_assignment_or_expr_stmt(),
         }
     }
 
@@ -258,6 +277,41 @@ impl Parser {
         let body = self.parse_statements();
         self.expect(&Token::RBrace);
         Statement::While { condition, body }
+    }
+
+    /// Parse: `for( var = count; var > 0; var-- ) { body }`
+    /// This is the countdown for loop pattern used by TA-Lib.
+    fn parse_for(&mut self) -> Statement {
+        self.advance(); // consume "for"
+        self.expect(&Token::LParen);
+
+        // Parse: var = count
+        let var = match self.advance() {
+            Token::Ident(s) => s,
+            other => panic!("Expected identifier in for loop, got {:?}", other),
+        };
+        self.expect_op("=");
+        let count = self.parse_expr();
+        self.expect(&Token::Semicolon);
+
+        // Parse: var > 0 (skip — we know the pattern)
+        let _cond_var = self.advance(); // var
+        self.advance(); // > operator
+        self.advance(); // 0
+        self.expect(&Token::Semicolon);
+
+        // Parse: var-- (skip — we know the pattern)
+        let _dec_var = self.advance(); // var
+        self.advance(); // -- operator
+        self.expect(&Token::RParen);
+
+        self.skip_newlines();
+        self.expect(&Token::LBrace);
+        self.skip_newlines();
+        let body = self.parse_statements();
+        self.expect(&Token::RBrace);
+
+        Statement::For { var, count, body }
     }
 
     fn parse_if(&mut self) -> Statement {
@@ -366,12 +420,42 @@ impl Parser {
         }
     }
 
-    fn parse_assignment(&mut self) -> Statement {
-        // Could be: ident = expr, ident[expr] = expr, or ident += expr
+    fn parse_assignment_or_expr_stmt(&mut self) -> Statement {
+        // Could be: ident = expr, ident[expr] = expr, ident += expr,
+        // or a function call statement like ARRAY_COPY(...)
         let name = match self.advance() {
             Token::Ident(s) => s,
             other => panic!("Expected identifier, got {:?}", other),
         };
+
+        // Check for function call statement: FUNC(args...)
+        if self.peek() == Some(&Token::LParen) {
+            // Could be a function call used as a statement (like ARRAY_COPY)
+            // But also could be a function call in an assignment context
+            // Check if this looks like a standalone call (followed by ; or newline after closing paren)
+            let save_pos = self.pos;
+            self.advance(); // consume (
+            let args = self.parse_call_args();
+            self.expect(&Token::RParen);
+
+            // If followed by ; or newline, it's a statement-level function call
+            // For now, treat it as an assignment to a dummy to get it rendered
+            // Actually, we need a proper expression statement or handle it as a special statement.
+            // For ARRAY_COPY, it's essentially a statement. Let's create an Assign
+            // with the FuncCall as the value and no real target.
+            // Actually, let's check if there's an = after
+            if matches!(self.peek(), Some(&Token::Semicolon) | Some(&Token::Newline) | None) {
+                // Statement-level function call (like ARRAY_COPY)
+                return Statement::Assign {
+                    target: Expr::Var("_".to_string()),
+                    value: Expr::FuncCall(name, args),
+                    compound: false,
+                };
+            }
+
+            // Not a standalone call — backtrack and treat as assignment
+            self.pos = save_pos;
+        }
 
         // Check for array access
         if self.peek() == Some(&Token::LBracket) {
@@ -414,6 +498,20 @@ impl Parser {
             }
             other => panic!("Expected '=' or compound assignment, got {:?}", other),
         }
+    }
+
+    /// Parse comma-separated function call arguments.
+    fn parse_call_args(&mut self) -> Vec<Expr> {
+        let mut args = Vec::new();
+        if self.peek() == Some(&Token::RParen) {
+            return args;
+        }
+        args.push(self.parse_expr());
+        while self.peek() == Some(&Token::Comma) {
+            self.advance(); // consume ,
+            args.push(self.parse_expr());
+        }
+        args
     }
 
     // Expression parsing with precedence climbing
@@ -503,6 +601,23 @@ impl Parser {
             let operand = self.parse_unary();
             return Expr::Not(Box::new(operand));
         }
+        // Handle unary minus for negative number literals
+        if let Some(Token::Op(ref op)) = self.peek() {
+            if op == "-" {
+                // Check if this is a unary minus (negative literal)
+                let save_pos = self.pos;
+                self.advance(); // consume -
+                if let Some(Token::Number(n)) = self.peek().cloned() {
+                    self.advance();
+                    return Expr::Literal(-n);
+                } else if let Some(Token::IntNumber(n)) = self.peek().cloned() {
+                    self.advance();
+                    return Expr::IntLiteral(-n);
+                }
+                // Not a number — backtrack
+                self.pos = save_pos;
+            }
+        }
         self.parse_primary()
     }
 
@@ -541,6 +656,13 @@ impl Parser {
                     Token::IntNumber(n) => Expr::IntLiteral(n),
                     Token::Number(n) => Expr::Literal(n),
                     Token::Ident(name) => {
+                        // Check for function call: IDENT(args...)
+                        if self.peek() == Some(&Token::LParen) {
+                            self.advance(); // consume (
+                            let args = self.parse_call_args();
+                            self.expect(&Token::RParen);
+                            return Expr::FuncCall(name, args);
+                        }
                         // Check for array access
                         if self.peek() == Some(&Token::LBracket) {
                             self.advance(); // consume [
@@ -562,7 +684,12 @@ impl Parser {
 pub fn parse_logic(path: &Path) -> Vec<Statement> {
     let input = std::fs::read_to_string(path)
         .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
-    let tokens = tokenize(&input);
+    parse_logic_str(&input)
+}
+
+/// Parse a logic code string into a list of AST statements.
+pub fn parse_logic_str(input: &str) -> Vec<Statement> {
+    let tokens = tokenize(input);
     let mut parser = Parser::new(tokens);
     parser.parse_statements()
 }

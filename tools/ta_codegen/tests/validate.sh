@@ -57,7 +57,12 @@ for f in \
     "../../ta_codegen_output/rust/sma.rs" \
     "../../ta_codegen_output/java/Core_SMA.java" \
     "../../ta_codegen_output/dotnet/Core_SMA.h" \
-    "../../ta_codegen_output/swig/ta_SMA.swg"; do
+    "../../ta_codegen_output/swig/ta_SMA.swg" \
+    "../../ta_codegen_output/c/ta_RSI.c" \
+    "../../ta_codegen_output/rust/rsi.rs" \
+    "../../ta_codegen_output/java/Core_RSI.java" \
+    "../../ta_codegen_output/dotnet/Core_RSI.h" \
+    "../../ta_codegen_output/swig/ta_RSI.swg"; do
     if [ -s "$f" ]; then
         pass "Generated file exists: $(basename "$f")"
     else
@@ -108,6 +113,26 @@ if echo "$RESPONSE_SMA_LB" | grep -q '"lookback":29'; then
 else
     fail "JSON-RPC TA_SMA_Lookback: unexpected output"
     echo "    Response: $RESPONSE_SMA_LB"
+fi
+
+# Test RSI
+REQUEST_RSI='{"method":"TA_RSI","params":{"startIdx":0,"endIdx":29,"inReal":[44.0,44.34,44.09,43.61,44.33,44.83,44.32,44.55,43.93,44.05,43.80,43.64,43.82,44.29,44.09,44.15,43.61,44.33,44.83,44.32,44.55,43.93,44.05,43.80,43.64,43.82,44.29,44.09,44.15,43.61],"optInTimePeriod":14}}'
+RESPONSE_RSI=$(echo "$REQUEST_RSI" | cargo run --release -- serve 2>/dev/null)
+if echo "$RESPONSE_RSI" | grep -q '"outBegIdx":14'; then
+    pass "JSON-RPC TA_RSI: correct output"
+else
+    fail "JSON-RPC TA_RSI: unexpected output"
+    echo "    Response: $RESPONSE_RSI"
+fi
+
+# Test RSI lookback
+REQUEST_RSI_LB='{"method":"TA_RSI_Lookback","params":{"optInTimePeriod":14}}'
+RESPONSE_RSI_LB=$(echo "$REQUEST_RSI_LB" | cargo run --release -- serve 2>/dev/null)
+if echo "$RESPONSE_RSI_LB" | grep -q '"lookback":14'; then
+    pass "JSON-RPC TA_RSI_Lookback: correct output"
+else
+    fail "JSON-RPC TA_RSI_Lookback: unexpected output"
+    echo "    Response: $RESPONSE_RSI_LB"
 fi
 
 echo ""

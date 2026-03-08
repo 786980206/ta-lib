@@ -143,6 +143,9 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
             LookbackExpr::ParamMinus(param, offset) => {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
+            LookbackExpr::Code(stmts) => {
+                out.push_str(&render_lookback_code(stmts));
+            }
         }
     } else {
         out.push_str(&format!(
@@ -155,6 +158,9 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
             }
             LookbackExpr::ParamMinus(param, offset) => {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
+            }
+            LookbackExpr::Code(stmts) => {
+                out.push_str(&render_lookback_code(stmts));
             }
         }
     }
@@ -679,6 +685,12 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
             Statement::While { body: while_body, .. } => {
                 count += count_assignments_inner(name, while_body, true);
             }
+            Statement::For { body: for_body, .. } => {
+                count += count_assignments_inner(name, for_body, true);
+            }
+            Statement::Block { body: block_body } => {
+                count += count_assignments_inner(name, block_body, in_loop);
+            }
             Statement::If { then_body, else_body, .. } => {
                 count += count_assignments_inner(name, then_body, in_loop);
                 count += count_assignments_inner(name, else_body, in_loop);
@@ -708,10 +720,15 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
         .collect();
 
     for stmt in body {
-        if let Statement::While { condition, body: while_body } = stmt {
-            if let Some(iter_var) = detect_for_pattern(condition, while_body, &decls) {
-                vars.push(iter_var);
+        match stmt {
+            Statement::While { condition, body: while_body } => {
+                if let Some(iter_var) = detect_for_pattern(condition, while_body, &decls) {
+                    vars.push(iter_var);
+                }
             }
+            // Statement::For is already a for loop from the parser, not a while-to-for candidate
+            Statement::For { .. } | Statement::Block { .. } => {}
+            _ => {}
         }
     }
     vars
@@ -761,7 +778,37 @@ fn render_statement(
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl { .. } => String::new(), // already handled
+        Statement::Block { body: block_body } => {
+            let mut out = String::new();
+            for s in block_body {
+                out.push_str(&render_statement(s, indent, single_precision, for_loop_vars, var_inits, output_names));
+            }
+            out
+        }
+        Statement::For { var, count, body: for_body } => {
+            let mut out = format!(
+                "{}for {} in (1..={}).rev() {{\n",
+                pad, var, render_expr(count, single_precision)
+            );
+            for s in for_body {
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
         Statement::Assign { target, value, compound } => {
+            // Statement-level FuncCall: when target is Var("_"), render just the expansion
+            if let Expr::Var(tname) = target {
+                if tname == "_" {
+                    if let Expr::FuncCall(fname, args) = value {
+                        return format!(
+                            "{}{};\n",
+                            pad,
+                            render_func_call(fname, args, single_precision)
+                        );
+                    }
+                }
+            }
             // Only fold compound assignments if the original source used +=/-=/etc.
             if *compound {
                 if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
@@ -910,6 +957,7 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
             expr_has_uncast_array_access(left) || expr_has_uncast_array_access(right)
         }
         Expr::Not(inner) => expr_has_uncast_array_access(inner),
+        Expr::FuncCall(_, args) => args.iter().any(|a| expr_has_uncast_array_access(a)),
         _ => false,
     }
 }
@@ -947,10 +995,16 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             }
         }
         Expr::IntLiteral(i) => format!("{}", i),
-        Expr::Var(name) => name.clone(),
+        Expr::Var(name) => match name.as_str() {
+            "COMPATIBILITY" => "(self.compatibility)".to_string(),
+            "METASTOCK" => "Compatibility::Metastock".to_string(),
+            "DEFAULT" => "Compatibility::Default".to_string(),
+            _ => name.clone(),
+        },
         Expr::ArrayAccess(name, idx) => {
             format!("{}[{}]", name, render_expr(idx, single_precision))
         }
+        Expr::FuncCall(fname, args) => render_func_call(fname, args, single_precision),
         Expr::BinOp(left, op, right) => {
             let op_str = match op {
                 BinOp::Add => " + ",
@@ -987,6 +1041,115 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
         Expr::Not(inner) => {
             format!("!({})", render_expr(inner, single_precision))
         }
+    }
+}
+
+/// Render a complex lookback body (LookbackExpr::Code) into Rust code.
+fn render_lookback_code(stmts: &[Statement]) -> String {
+    let mut out = String::new();
+    let empty_for_loop_vars: Vec<String> = Vec::new();
+    let empty_var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
+    let empty_output_names: Vec<String> = Vec::new();
+
+    // Declare local variables from VarDecl statements
+    for stmt in stmts {
+        if let Statement::VarDecl { var_type, name, .. } = stmt {
+            let rust_type = match var_type {
+                VarType::Real => "f64",
+                VarType::Integer => "i32",
+                VarType::Index => "usize",
+            };
+            // Count assignments to determine mutability
+            let total_assigns = count_assignments(name, stmts);
+            let needs_mut = total_assigns > 1;
+            if needs_mut {
+                out.push_str(&format!("        let mut {}: {};\n", name, rust_type));
+            } else {
+                out.push_str(&format!("        let {}: {};\n", name, rust_type));
+            }
+        }
+    }
+
+    // Render non-VarDecl statements
+    for stmt in stmts {
+        if matches!(stmt, Statement::VarDecl { .. }) {
+            continue;
+        }
+        out.push_str(&render_statement(
+            stmt,
+            8,
+            false, // lookback doesn't depend on single_precision
+            &empty_for_loop_vars,
+            &empty_var_inits,
+            &empty_output_names,
+        ));
+    }
+
+    out
+}
+
+/// Convert a function identifier to PascalCase for FuncUnstId enum.
+/// e.g., "RSI" -> "Rsi", "SMA" -> "Sma"
+fn to_pascal_case(s: &str) -> String {
+    let lower = s.to_lowercase();
+    let mut chars = lower.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    }
+}
+
+/// Render a FuncCall expression to Rust code.
+fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> String {
+    if fname == "UNSTABLE_PERIOD" {
+        // UNSTABLE_PERIOD(RSI) -> self.unstable_period[FuncUnstId::Rsi as usize]
+        if let Some(Expr::Var(func_name)) = args.first() {
+            let pascal = to_pascal_case(func_name);
+            return format!("self.unstable_period[FuncUnstId::{} as usize]", pascal);
+        }
+        "self.unstable_period[0]".to_string()
+    } else if fname == "IS_ZERO" {
+        // IS_ZERO(x) -> ((-(0.00000000000001)) < x) && (x < (0.00000000000001))
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision);
+            return format!(
+                "((-(0.00000000000001)) < {}) && ({} < (0.00000000000001))",
+                x, x
+            );
+        }
+        "false".to_string()
+    } else if fname == "ARRAY_COPY" {
+        // ARRAY_COPY(dst, dstOff, src, srcOff, count)
+        if args.len() == 5 {
+            let dst = render_expr(&args[0], single_precision);
+            let dst_off = render_expr(&args[1], single_precision);
+            let src = render_expr(&args[2], single_precision);
+            let src_off = render_expr(&args[3], single_precision);
+            let count = render_expr(&args[4], single_precision);
+            if single_precision {
+                // f32 -> f64: element-wise loop
+                return format!(
+                    "{{\n            let _n = ({}) as usize;\n            let _di = ({}) as usize;\n            let _si = ({}) as usize;\n            for _k in 0.._n {{\n                {}[_di + _k] = {}[_si + _k] as f64;\n            }}\n        }}",
+                    count, dst_off, src_off, dst, src
+                );
+            } else {
+                // f64 -> f64: copy_from_slice
+                return format!(
+                    "{{\n            let _n = ({}) as usize;\n            let _di = ({}) as usize;\n            let _si = ({}) as usize;\n            {}[_di.._di + _n].copy_from_slice(&{}[_si.._si + _n]);\n        }}",
+                    count, dst_off, src_off, dst, src
+                );
+            }
+        }
+        "/* ARRAY_COPY: bad args */".to_string()
+    } else if fname.ends_with("_Lookback") {
+        // RSI_Lookback(args...) -> self.rsi_lookback(args...)
+        let rust_name = fname.to_lowercase();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        format!("self.{}({})", rust_name, rendered_args.join(", "))
+    } else {
+        // Generic function call
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        format!("{}({})", fname, rendered_args.join(", "))
     }
 }
 
