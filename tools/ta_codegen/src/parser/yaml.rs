@@ -119,10 +119,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         })
         .collect();
 
-    let lookback = match &yaml.lookback {
-        Some(value) => parse_lookback(value),
-        None => LookbackExpr::Literal(0),
-    };
+    let lookback = yaml.lookback.as_ref().map(parse_lookback);
 
     FuncDef {
         name: yaml.name,

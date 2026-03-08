@@ -137,14 +137,17 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
 
         // Return lookback expression
         match &func.lookback {
-            LookbackExpr::Literal(n) => {
+            Some(LookbackExpr::Literal(n)) => {
                 out.push_str(&format!("        return {};\n", n));
             }
-            LookbackExpr::ParamMinus(param, offset) => {
+            Some(LookbackExpr::ParamMinus(param, offset)) => {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
-            LookbackExpr::Code(stmts) => {
+            Some(LookbackExpr::Code(stmts)) => {
                 out.push_str(&render_lookback_code(stmts));
+            }
+            None => {
+                out.push_str("        return 0;\n");
             }
         }
     } else {
@@ -153,14 +156,17 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
             snake
         ));
         match &func.lookback {
-            LookbackExpr::Literal(n) => {
+            Some(LookbackExpr::Literal(n)) => {
                 out.push_str(&format!("        return {};\n", n));
             }
-            LookbackExpr::ParamMinus(param, offset) => {
+            Some(LookbackExpr::ParamMinus(param, offset)) => {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
-            LookbackExpr::Code(stmts) => {
+            Some(LookbackExpr::Code(stmts)) => {
                 out.push_str(&render_lookback_code(stmts));
+            }
+            None => {
+                out.push_str("        return 0;\n");
             }
         }
     }
@@ -687,7 +693,7 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
             Statement::While { body: while_body, .. } => {
                 count += count_assignments_inner(name, while_body, true);
             }
-            Statement::For { body: for_body, .. } => {
+            Statement::For { body: for_body, .. } | Statement::ForC { body: for_body, .. } => {
                 count += count_assignments_inner(name, for_body, true);
             }
             Statement::Block { body: block_body } => {
@@ -734,8 +740,8 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
                     vars.push(iter_var);
                 }
             }
-            // Statement::For is already a for loop from the parser, not a while-to-for candidate
-            Statement::For { .. } | Statement::Block { .. } => {}
+            // Statement::For/ForC is already a for loop from the parser, not a while-to-for candidate
+            Statement::For { .. } | Statement::ForC { .. } | Statement::Block { .. } => {}
             _ => {}
         }
     }
@@ -801,6 +807,24 @@ fn render_statement(
             for s in for_body {
                 out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
             }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+        Statement::ForC { init, condition, update, body: for_body } => {
+            let init_str = render_statement(init, 0, single_precision, for_loop_vars, var_inits, output_names);
+            let init_trimmed = init_str.trim().trim_end_matches(';');
+            let update_str = render_statement(update, 0, single_precision, for_loop_vars, var_inits, output_names);
+            let update_trimmed = update_str.trim().trim_end_matches(';');
+            let mut out = format!(
+                "{}// for( {}; {}; {} )\n",
+                pad, init_trimmed, render_expr(condition, single_precision), update_trimmed
+            );
+            out.push_str(&format!("{}{};\n", pad, init_trimmed));
+            out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, single_precision)));
+            for s in for_body {
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+            }
+            out.push_str(&format!("{}    {};\n", pad, update_trimmed));
             out.push_str(&format!("{}}}\n", pad));
             out
         }
@@ -1031,7 +1055,7 @@ fn op_precedence(op: &BinOp) -> u8 {
         BinOp::Eq | BinOp::NotEq => 3,
         BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 4,
         BinOp::Add | BinOp::Sub => 5,
-        BinOp::Mul | BinOp::Div => 6,
+        BinOp::Mul | BinOp::Div | BinOp::Mod => 6,
     }
 }
 
@@ -1088,6 +1112,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Sub => " - ",
                 BinOp::Mul => " * ",
                 BinOp::Div => " / ",
+                BinOp::Mod => " % ",
                 BinOp::LessEq => " <= ",
                 BinOp::Less => " < ",
                 BinOp::Greater => " > ",
@@ -1119,6 +1144,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
         Expr::Not(inner) => {
             format!("!({})", render_expr(inner, single_precision))
         }
+        Expr::PointerDeref(name) => format!("(*{})", name),
     }
 }
 

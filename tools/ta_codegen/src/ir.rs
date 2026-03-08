@@ -10,7 +10,7 @@ pub struct FuncDef {
     pub inputs: Vec<Input>,
     pub optional_inputs: Vec<OptInput>,
     pub outputs: Vec<Output>,
-    pub lookback: LookbackExpr,
+    pub lookback: Option<LookbackExpr>,
     pub body: Vec<Statement>,
 }
 
@@ -94,6 +94,13 @@ pub enum Statement {
         cases: Vec<(String, Vec<Statement>)>,
         default: Vec<Statement>,
     },
+    /// C-style for loop: for(init; cond; update) { body }
+    ForC {
+        init: Box<Statement>,
+        condition: Expr,
+        update: Box<Statement>,
+        body: Vec<Statement>,
+    },
     /// A block of statements (used for ARRAY_COPY expansion in some backends).
     Block {
         body: Vec<Statement>,
@@ -120,6 +127,8 @@ pub enum Expr {
     /// Function/builtin call: UNSTABLE_PERIOD(RSI), IS_ZERO(x), ARRAY_COPY(...),
     /// RSI_Lookback(params...), etc.
     FuncCall(String, Vec<Expr>),
+    /// Pointer dereference: *outBegIdx
+    PointerDeref(String),
 }
 
 #[derive(Debug, Clone)]
@@ -128,6 +137,7 @@ pub enum BinOp {
     Sub,
     Mul,
     Div,
+    Mod,  // % operator
     LessEq,
     Less,
     Greater,

@@ -37,7 +37,7 @@ fn test_parse_mult_yaml() {
     assert_eq!(func.inputs.len(), 2);
     assert_eq!(func.outputs.len(), 1);
     assert!(func.optional_inputs.is_empty());
-    assert!(matches!(func.lookback, ir::LookbackExpr::Literal(0)));
+    assert!(func.lookback.is_none(), "MULT has no lookback field");
 }
 
 #[test]
@@ -74,7 +74,7 @@ fn test_parse_sma_yaml() {
     assert_eq!(func.optional_inputs[0].range, Some((2, 100000)));
     assert!(matches!(
         func.lookback,
-        ir::LookbackExpr::ParamMinus(_, 1)
+        Some(ir::LookbackExpr::ParamMinus(_, 1))
     ));
 }
 

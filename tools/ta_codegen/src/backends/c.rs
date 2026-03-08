@@ -79,11 +79,12 @@ fn gen_lookback(func: &FuncDef) -> String {
     };
 
     let body = match &func.lookback {
-        LookbackExpr::Literal(n) => format!("   return {};\n", n),
-        LookbackExpr::ParamMinus(param, offset) => {
+        Some(LookbackExpr::Literal(n)) => format!("   return {};\n", n),
+        Some(LookbackExpr::ParamMinus(param, offset)) => {
             format!("   return {} - {};\n", param, offset)
         }
-        LookbackExpr::Code(stmts) => render_lookback_code(stmts),
+        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts),
+        None => "   return 0;\n".to_string(),
     };
 
     format!(
@@ -353,6 +354,19 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
             out.push_str(&format!("{}}}\n", pad));
             out
         }
+        Statement::ForC { init, condition, update, body } => {
+            let init_str = render_statement(init, 0, single_precision).trim().trim_end_matches(';').to_string();
+            let update_str = render_statement(update, 0, single_precision).trim().trim_end_matches(';').to_string();
+            let mut out = format!(
+                "{}for( {}; {}; {} )\n{}{{\n",
+                pad, init_str.trim(), render_expr(condition, single_precision), update_str.trim(), pad
+            );
+            for s in body {
+                out.push_str(&render_statement(s, indent + 3, single_precision));
+            }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
         Statement::Block { body } => {
             let mut out = String::new();
             for s in body {
@@ -444,6 +458,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Sub => "-",
                 BinOp::Mul => "*",
                 BinOp::Div => "/",
+                BinOp::Mod => "%",
                 BinOp::LessEq => "<=",
                 BinOp::Less => "<",
                 BinOp::Greater => ">",
@@ -473,6 +488,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             format!("!({})", render_expr(inner, single_precision))
         }
         Expr::FuncCall(name, args) => render_func_call(name, args, single_precision),
+        Expr::PointerDeref(name) => format!("*{}", name),
     }
 }
 

@@ -34,8 +34,8 @@ fn to_pascal_case(name: &str) -> String {
 
 fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
     let params = match &func.lookback {
-        LookbackExpr::Literal(_) => "void".to_string(),
-        LookbackExpr::ParamMinus(param, _) => {
+        Some(LookbackExpr::Literal(_)) | None => "void".to_string(),
+        Some(LookbackExpr::ParamMinus(param, _)) => {
             // Find the opt input to get range info
             let opt = func.optional_inputs.iter().find(|o| o.name == *param);
             if let Some(opt) = opt {
@@ -56,7 +56,7 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
                 "void".to_string()
             }
         }
-        LookbackExpr::Code(_) => {
+        Some(LookbackExpr::Code(_)) => {
             // Code lookback uses optional params — generate same signature as ParamMinus
             let mut param_parts = Vec::new();
             for opt in &func.optional_inputs {

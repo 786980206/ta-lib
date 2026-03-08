@@ -156,10 +156,10 @@ fn gen_func_decl(func: &FuncDef) -> String {
 /// Generate the lookback function declaration.
 fn gen_lookback_decl(func: &FuncDef) -> String {
     match &func.lookback {
-        LookbackExpr::Literal(_) => {
+        Some(LookbackExpr::Literal(_)) | None => {
             format!("int TA_{}_Lookback( void );\n", func.name)
         }
-        LookbackExpr::ParamMinus(param, _) => {
+        Some(LookbackExpr::ParamMinus(param, _)) => {
             let opt = func
                 .optional_inputs
                 .iter()
@@ -180,7 +180,7 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
                 func.name, c_type, param, range_comment
             )
         }
-        LookbackExpr::Code(_) => {
+        Some(LookbackExpr::Code(_)) => {
             // Code lookback uses optional params — same signature as ParamMinus
             let mut parts = Vec::new();
             for opt in &func.optional_inputs {
