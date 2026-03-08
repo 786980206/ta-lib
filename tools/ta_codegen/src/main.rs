@@ -1,6 +1,7 @@
 use ta_codegen_lib::backends;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
+use ta_codegen_lib::registry::Registry;
 use ta_codegen_lib::server_gen;
 
 use std::collections::HashMap;
@@ -51,6 +52,9 @@ fn find_arg(args: &[String], prefix: &str) -> Option<String> {
 
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     let base = Path::new("../../ta_func_defs");
+
+    // Load indicator registry for cross-call resolution
+    let _registry = Registry::from_dir(base);
 
     // Load enum definitions
     let enums_path = base.join("enums.yaml");
