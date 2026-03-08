@@ -18,7 +18,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 * [75f7019](https://github.com/TA-Lib/ta-lib/commit/75f17019) SMA JSON-RPC validation server support
 * [8f0424c](https://github.com/TA-Lib/ta-lib/commit/8f0424c6) RSI support: for loops, builtins (UNSTABLE_PERIOD, IS_ZERO, ARRAY_COPY), complex lookback
 * [c68af8f](https://github.com/TA-Lib/ta-lib/commit/c68af8f9) EMA support: PER_TO_K, DEFAULT/METASTOCK compat builtins, smart operator precedence
-* [9a24133] MA support: switch/case/break/continue, RetCodeType, function call dispatch, BAD_PARAM/SUCCESS mapping
+* [9a24133](https://github.com/TA-Lib/ta-lib/commit/9a241336) MA support: switch/case/break/continue, RetCodeType, function call dispatch, BAD_PARAM/SUCCESS mapping
 * 33 validations passing (5 functions × 5 backends + byte-identical MULT/SMA + 6 JSON-RPC tests + 13 integration tests)
 
 ## 2026-03-07 -- ta_codegen prototype: YAML+logic multi-language generator
