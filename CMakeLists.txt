@@ -638,6 +638,16 @@ add_custom_command(TARGET ta_codegen_bin POST_BUILD
         "${CMAKE_CURRENT_SOURCE_DIR}/bin/ta_codegen"
 )
 
+# Generate and build multi-language JSON-RPC servers
+add_custom_target(ta_codegen_servers
+    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
+            cargo run --release -- generate-servers
+    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
+            cargo run --release -- build
+    DEPENDS ta_codegen_bin
+    COMMENT "Generating and building codegen language servers"
+)
+
 #############
 # Packaging #
 #############
