@@ -8,7 +8,7 @@
 #include <sys/wait.h>
 #include <errno.h>
 
-ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *binary_path)
+ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *const argv[])
 {
     int parent_to_child[2]; /* parent writes, child reads (child's stdin) */
     int child_to_parent[2]; /* child writes, parent reads (child's stdout) */
@@ -49,9 +49,9 @@ ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *binary_path)
         close(parent_to_child[0]);
         close(child_to_parent[1]);
 
-        execl(binary_path, "ta_codegen", "serve", (char *)NULL);
+        execvp(argv[0], (char *const *)argv);
 
-        /* If execl returns, it failed */
+        /* If execvp returns, it failed */
         _exit(127);
     }
 

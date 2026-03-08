@@ -10,11 +10,13 @@ typedef struct {
     int child_pid;      /* pid of ta_codegen process */
 } CodegenPipe;
 
-/* Start ta_codegen serve subprocess.
- * binary_path: path to ta_codegen binary (e.g. "./ta_codegen")
+/* Start a JSON-RPC subprocess.
+ * argv: NULL-terminated array of strings (program + args).
+ *   e.g. {"./ta_codegen", "serve", NULL}
+ *   e.g. {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL}
  * Returns TA_TEST_PASS on success, error code on failure.
  */
-ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *binary_path);
+ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *const argv[]);
 
 /* Send a JSON-RPC request line and read the response line.
  * request: null-terminated JSON string (newline will be appended)
