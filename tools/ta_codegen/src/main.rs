@@ -20,6 +20,10 @@ fn main() {
             let backend_filter = find_arg(&args, "--backend");
             generate_servers(func_filter.as_deref(), backend_filter.as_deref());
         }
+        "build" => {
+            let backend_filter = find_arg(&args, "--backend");
+            build_servers(backend_filter.as_deref());
+        }
         "serve" => server::run_server(),
         _ => {
             eprintln!("Usage: ta_codegen <command> [options]");
@@ -27,9 +31,10 @@ fn main() {
             eprintln!("Commands:");
             eprintln!("  generate         Generate code for all backends (default)");
             eprintln!("  generate-servers  Generate JSON-RPC server wrappers for each language");
+            eprintln!("  build            Compile generated server source into executables");
             eprintln!("  serve            Start JSON-RPC validation server on stdin/stdout");
             eprintln!();
-            eprintln!("Options for 'generate' / 'generate-servers':");
+            eprintln!("Options for 'generate' / 'generate-servers' / 'build':");
             eprintln!("  --func=NAME[,NAME,...]      Only generate specified functions (default: all)");
             eprintln!("  --backend=NAME[,NAME,...]    Only generate specified backends (default: all)");
             eprintln!("                               Backends: c, rust, java, dotnet, swig");
@@ -225,6 +230,71 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
     }
 
     println!("Server source files generated for {} function(s).", funcs.len());
+}
+
+fn build_servers(backend_filter: Option<&str>) {
+    let backends_to_build: Vec<&str> = match backend_filter {
+        Some(b) => b.split(',').map(|s| s.trim()).collect(),
+        None => vec!["c", "java", "dotnet", "swig"],
+    };
+
+    let out_base = Path::new("../../ta_codegen_output");
+    let bin_dir = Path::new("../../bin");
+
+    for backend in &backends_to_build {
+        match *backend {
+            "c" => {
+                print!("  Building C server... ");
+                let src = out_base.join("c/ta_codegen_serve.c");
+                let dst = bin_dir.join("ta_codegen_serve_c");
+                match std::process::Command::new("gcc")
+                    .args([
+                        "-o",
+                        dst.to_str().unwrap(),
+                        src.to_str().unwrap(),
+                        "-lm",
+                        "-O2",
+                        "-Wno-parentheses-equality",
+                    ])
+                    .status()
+                {
+                    Ok(s) if s.success() => println!("OK"),
+                    Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+                    Err(e) => println!("FAILED (gcc not found: {})", e),
+                }
+            }
+            "java" => {
+                print!("  Building Java server... ");
+                let java_dir = out_base.join("java");
+                let class_dir = bin_dir.join("ta_codegen_java");
+                std::fs::create_dir_all(&class_dir).ok();
+                match std::process::Command::new("javac")
+                    .args([
+                        "-d",
+                        class_dir.to_str().unwrap(),
+                        java_dir.join("TaCodegenServe.java").to_str().unwrap(),
+                    ])
+                    .status()
+                {
+                    Ok(s) if s.success() => println!("OK"),
+                    Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+                    Err(e) => println!("FAILED (javac not found: {})", e),
+                }
+            }
+            "dotnet" => {
+                println!("  .NET server: skipped (backend needs extension)");
+            }
+            "swig" => {
+                println!("  SWIG/Python server: skipped (needs swig + build)");
+            }
+            "rust" => {
+                println!("  Rust server: built-in (ta_codegen serve)");
+            }
+            _ => {
+                eprintln!("  Unknown backend: {}", backend);
+            }
+        }
+    }
 }
 
 fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
