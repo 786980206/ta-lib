@@ -1,11 +1,14 @@
-use crate::ir::*;
+use std::collections::HashMap;
 
-pub fn generate(func: &FuncDef) -> String {
+use crate::ir::*;
+use crate::parser::enums::lookup_variant;
+
+pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     out.push_str(&gen_header(func));
-    out.push_str(&gen_lookback(func));
-    out.push_str(&gen_func(func, false)); // double-precision
-    out.push_str(&gen_func(func, true)); // single-precision
+    out.push_str(&gen_lookback(func, enums));
+    out.push_str(&gen_func(func, false, enums)); // double-precision
+    out.push_str(&gen_func(func, true, enums)); // single-precision
     out
 }
 
@@ -55,7 +58,7 @@ fn gen_header(_func: &FuncDef) -> String {
     out
 }
 
-fn gen_lookback(func: &FuncDef) -> String {
+fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let name = &func.name;
 
     let has_opt_params = !func.optional_inputs.is_empty();
@@ -66,9 +69,10 @@ fn gen_lookback(func: &FuncDef) -> String {
             .optional_inputs
             .iter()
             .map(|opt| {
-                let c_type = match opt.param_type {
-                    ParamType::Real => "double",
-                    ParamType::Integer => "int",
+                let c_type = match &opt.param_type {
+                    ParamType::Real => "double".to_string(),
+                    ParamType::Integer => "int".to_string(),
+                    ParamType::Enum(name) => format!("TA_{}", name),
                 };
                 format!("{} {}", c_type, opt.name)
             })
@@ -83,7 +87,7 @@ fn gen_lookback(func: &FuncDef) -> String {
         Some(LookbackExpr::ParamMinus(param, offset)) => {
             format!("   return {} - {};\n", param, offset)
         }
-        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts),
+        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums),
         None => "   return 0;\n".to_string(),
     };
 
@@ -96,7 +100,7 @@ fn gen_lookback(func: &FuncDef) -> String {
     )
 }
 
-fn gen_func(func: &FuncDef, single_precision: bool) -> String {
+fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
 
     let prefix = if single_precision {
@@ -120,21 +124,22 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
         let c_type = if single_precision {
             match input.param_type {
                 ParamType::Real => "const float",
-                ParamType::Integer => "const int",
+                ParamType::Integer | ParamType::Enum(_) => "const int",
             }
         } else {
             match input.param_type {
                 ParamType::Real => "const double",
-                ParamType::Integer => "const int",
+                ParamType::Integer | ParamType::Enum(_) => "const int",
             }
         };
         params.push(format!("{} {}[]", c_type, input.name));
     }
 
     for opt in &func.optional_inputs {
-        let c_type = match opt.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
+        let c_type = match &opt.param_type {
+            ParamType::Real => "double".to_string(),
+            ParamType::Integer => "int".to_string(),
+            ParamType::Enum(name) => format!("TA_{}", name),
         };
         params.push(format!("{} {}", c_type, opt.name));
     }
@@ -146,7 +151,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
     for output in &func.outputs {
         let c_type = match output.param_type {
             ParamType::Real => "double",
-            ParamType::Integer => "int",
+            ParamType::Integer | ParamType::Enum(_) => "int",
         };
         params.push(format!("{}        {}[]", c_type, output.name));
     }
@@ -204,7 +209,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 3, single_precision));
+        out.push_str(&render_statement(stmt, 3, single_precision, enums));
     }
 
     out.push_str("\n   return TA_SUCCESS;\n");
@@ -213,7 +218,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
     out
 }
 
-fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> String {
+fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl {
@@ -289,7 +294,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -306,7 +311,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 pad
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
@@ -315,14 +320,14 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 // Check if the else body is a single if statement (else-if chain)
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement(&else_body[0], indent, single_precision);
+                        let if_str = render_statement(&else_body[0], indent, single_precision, enums);
                         out.push_str(if_str.trim_start());
                         return out;
                     }
                 }
                 out.push_str(&format!("\n{}{{\n", pad));
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -348,20 +353,20 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body } => {
-            let init_str = render_statement(init, 0, single_precision).trim().trim_end_matches(';').to_string();
-            let update_str = render_statement(update, 0, single_precision).trim().trim_end_matches(';').to_string();
+            let init_str = render_statement(init, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
+            let update_str = render_statement(update, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
             let mut out = format!(
                 "{}for( {}; {}; {} )\n{}{{\n",
                 pad, init_str.trim(), render_expr(condition, single_precision), update_str.trim(), pad
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -369,7 +374,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
         Statement::Block { body } => {
             let mut out = String::new();
             for s in body {
-                out.push_str(&render_statement(s, indent, single_precision));
+                out.push_str(&render_statement(s, indent, single_precision, enums));
             }
             out
         }
@@ -378,17 +383,17 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
         Statement::Switch { expr, cases, default } => {
             let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision), pad);
             for (label, case_body) in cases {
-                let c_label = render_c_switch_label(label);
+                let c_label = render_c_switch_label(label, enums);
                 out.push_str(&format!("{}case {}:\n", pad, c_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
             if !default.is_empty() {
                 out.push_str(&format!("{}default:\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
@@ -398,18 +403,17 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
     }
 }
 
-fn render_c_switch_label(label: &str) -> String {
-    match label {
-        "MAType_SMA" => "ENUM_CASE(MAType, TA_MAType_SMA, Sma)".to_string(),
-        "MAType_EMA" => "ENUM_CASE(MAType, TA_MAType_EMA, Ema)".to_string(),
-        "MAType_WMA" => "ENUM_CASE(MAType, TA_MAType_WMA, Wma)".to_string(),
-        "MAType_DEMA" => "ENUM_CASE(MAType, TA_MAType_DEMA, Dema)".to_string(),
-        "MAType_TEMA" => "ENUM_CASE(MAType, TA_MAType_TEMA, Tema)".to_string(),
-        "MAType_TRIMA" => "ENUM_CASE(MAType, TA_MAType_TRIMA, Trima)".to_string(),
-        "MAType_KAMA" => "ENUM_CASE(MAType, TA_MAType_KAMA, Kama)".to_string(),
-        "MAType_MAMA" => "ENUM_CASE(MAType, TA_MAType_MAMA, Mama)".to_string(),
-        "MAType_T3" => "ENUM_CASE(MAType, TA_MAType_T3, T3)".to_string(),
-        _ => label.to_string(),
+/// Render a switch case label for C output.
+/// Looks up the label in the enum registry to generate `ENUM_CASE(Type, C_Name, Pascal)`.
+/// Falls back to the raw label if not an enum variant.
+fn render_c_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
+    if let Some((enum_name, variant)) = lookup_variant(label, enums) {
+        format!(
+            "ENUM_CASE({}, {}, {})",
+            enum_name, variant.c_name, variant.pascal_name
+        )
+    } else {
+        label.to_string()
     }
 }
 
@@ -575,7 +579,7 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
 }
 
 /// Render a complex lookback body (LookbackExpr::Code) into C code.
-fn render_lookback_code(stmts: &[Statement]) -> String {
+fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
 
     // Declare local variables
@@ -607,7 +611,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 3, false));
+        out.push_str(&render_statement(stmt, 3, false, enums));
     }
 
     out

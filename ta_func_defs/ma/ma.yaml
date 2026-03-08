@@ -14,10 +14,9 @@ optional_inputs:
     range: [1, 100000]
     default: 30
   - name: optInMAType
-    type: integer
+    type: enum:MAType
     display_name: MA Type
     hint: Type of Moving Average
-    range: [0, 8]
     default: 0
 outputs:
   - name: outReal

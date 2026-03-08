@@ -1,5 +1,5 @@
 /* Generated */
-   public int maLookback( int optInTimePeriod, int optInMAType )
+   public int maLookback( int optInTimePeriod, MAType optInMAType )
    {
       int retValue;
       if( (optInTimePeriod<=1) ) {
@@ -7,10 +7,10 @@
       }
       switch( optInMAType )
       {
-      case 0:
+      case MAType.Sma:
          retValue = smaLookback(optInTimePeriod);
          break;
-      case 1:
+      case MAType.Ema:
          retValue = emaLookback(optInTimePeriod);
          break;
       default:
@@ -24,7 +24,7 @@
                       int endIdx,
                       double inReal[],
                       int optInTimePeriod,
-                      int optInMAType,
+                      MAType optInMAType,
                       MInteger outBegIdx,
                       MInteger outNBElement,
                       double outReal[] )
@@ -54,10 +54,10 @@
       }
       switch( optInMAType )
       {
-      case 0:
+      case MAType.Sma:
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case 1:
+      case MAType.Ema:
          retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       default:
@@ -71,7 +71,7 @@
                       int endIdx,
                       float inReal[],
                       int optInTimePeriod,
-                      int optInMAType,
+                      MAType optInMAType,
                       MInteger outBegIdx,
                       MInteger outNBElement,
                       double outReal[] )
@@ -101,10 +101,10 @@
       }
       switch( optInMAType )
       {
-      case 0:
+      case MAType.Sma:
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case 1:
+      case MAType.Ema:
          retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       default:

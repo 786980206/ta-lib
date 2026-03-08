@@ -1,10 +1,13 @@
-use crate::ir::*;
+use std::collections::HashMap;
 
-pub fn generate(func: &FuncDef) -> String {
+use crate::ir::*;
+use crate::parser::enums::lookup_variant;
+
+pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     out.push_str(&gen_header());
     out.push_str(&gen_imports());
-    out.push_str(&gen_impl_block(func));
+    out.push_str(&gen_impl_block(func, enums));
     out.push_str(&gen_footer());
     out
 }
@@ -59,7 +62,7 @@ fn gen_imports() -> String {
         .to_string()
 }
 
-fn gen_impl_block(func: &FuncDef) -> String {
+fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let snake = func.name.to_lowercase();
     let has_opt_inputs = !func.optional_inputs.is_empty();
@@ -73,25 +76,25 @@ fn gen_impl_block(func: &FuncDef) -> String {
          impl Core {\n",
     );
 
-    out.push_str(&gen_lookback(func, &snake));
+    out.push_str(&gen_lookback(func, &snake, enums));
 
     if has_opt_inputs {
         // Two-layer structure: public function + private int_ function
         out.push_str(&gen_public_func(func, &snake, false));
-        out.push_str(&gen_internal_func(func, &snake, false));
+        out.push_str(&gen_internal_func(func, &snake, false, enums));
         out.push_str(&gen_public_func(func, &snake, true));
-        out.push_str(&gen_internal_func(func, &snake, true));
+        out.push_str(&gen_internal_func(func, &snake, true, enums));
     } else {
         // Simple flat function (no optional params)
-        out.push_str(&gen_func(func, &snake, false));
-        out.push_str(&gen_func(func, &snake, true));
+        out.push_str(&gen_func(func, &snake, false, enums));
+        out.push_str(&gen_func(func, &snake, true, enums));
     }
 
     out.push_str("}\n");
     out
 }
 
-fn gen_lookback(func: &FuncDef, snake: &str) -> String {
+fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     out.push_str(&format!(
         "    /// Lookback period for [`Core::{}`].\n",
@@ -119,7 +122,7 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
         for opt in &func.optional_inputs {
             let rust_type = match opt.param_type {
                 ParamType::Real => "f64",
-                ParamType::Integer => "i32",
+                ParamType::Integer | ParamType::Enum(_) => "i32",
             };
             params.push(format!("mut {}: {}", opt.name, rust_type));
         }
@@ -144,7 +147,7 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts));
+                out.push_str(&render_lookback_code(stmts, enums));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -163,7 +166,7 @@ fn gen_lookback(func: &FuncDef, snake: &str) -> String {
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts));
+                out.push_str(&render_lookback_code(stmts, enums));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -276,7 +279,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!("        mut {}: {},\n", opt.name, rust_type));
     }
@@ -285,7 +288,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -326,7 +329,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
 }
 
 /// Generate the internal (private) function for functions with optional params.
-fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
     let func_name = format!("int_{}{}", snake, suffix);
@@ -346,7 +349,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> Str
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
     }
@@ -355,7 +358,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> Str
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -440,7 +443,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> Str
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names));
+        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums));
     }
 
     out.push_str("        return RetCode::Success;\n");
@@ -450,7 +453,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool) -> Str
 }
 
 /// Generate a flat function (for functions without optional params, like MULT).
-fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
     let func_name = format!("{}{}", snake, suffix);
@@ -532,7 +535,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
     }
@@ -541,7 +544,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer => "i32",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -616,7 +619,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names));
+        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums));
     }
 
     out.push_str("        return RetCode::Success;\n");
@@ -788,6 +791,7 @@ fn render_statement(
     for_loop_vars: &[String],
     var_inits: &std::collections::HashMap<String, &Expr>,
     output_names: &[String],
+    enums: &HashMap<String, EnumDef>,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -795,7 +799,7 @@ fn render_statement(
         Statement::Block { body: block_body } => {
             let mut out = String::new();
             for s in block_body {
-                out.push_str(&render_statement(s, indent, single_precision, for_loop_vars, var_inits, output_names));
+                out.push_str(&render_statement(s, indent, single_precision, for_loop_vars, var_inits, output_names, enums));
             }
             out
         }
@@ -805,15 +809,15 @@ fn render_statement(
                 pad, var, render_expr(count, single_precision)
             );
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body: for_body } => {
-            let init_str = render_statement(init, 0, single_precision, for_loop_vars, var_inits, output_names);
+            let init_str = render_statement(init, 0, single_precision, for_loop_vars, var_inits, output_names, enums);
             let init_trimmed = init_str.trim().trim_end_matches(';');
-            let update_str = render_statement(update, 0, single_precision, for_loop_vars, var_inits, output_names);
+            let update_str = render_statement(update, 0, single_precision, for_loop_vars, var_inits, output_names, enums);
             let update_trimmed = update_str.trim().trim_end_matches(';');
             let mut out = format!(
                 "{}// for( {}; {}; {} )\n",
@@ -822,7 +826,7 @@ fn render_statement(
             out.push_str(&format!("{}{};\n", pad, init_trimmed));
             out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, single_precision)));
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
             }
             out.push_str(&format!("{}    {};\n", pad, update_trimmed));
             out.push_str(&format!("{}}}\n", pad));
@@ -910,6 +914,7 @@ fn render_statement(
                                 for_loop_vars,
                                 var_inits,
                                 output_names,
+                                enums,
                             ));
                         }
                         out.push_str(&format!("{}}}\n", pad));
@@ -924,7 +929,7 @@ fn render_statement(
                 render_expr(condition, single_precision)
             );
             for s in while_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -940,7 +945,7 @@ fn render_statement(
                 render_expr(condition, single_precision)
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
@@ -950,7 +955,7 @@ fn render_statement(
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
                         // Render as else if (strip leading pad since we already have "} else ")
-                        let if_str = render_statement(&else_body[0], indent, single_precision, for_loop_vars, var_inits, output_names);
+                        let if_str = render_statement(&else_body[0], indent, single_precision, for_loop_vars, var_inits, output_names, enums);
                         // Remove leading whitespace from the if statement
                         out.push_str(if_str.trim_start());
                         return out;
@@ -958,7 +963,7 @@ fn render_statement(
                 }
                 out.push_str("{\n");
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names));
+                    out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -978,17 +983,17 @@ fn render_statement(
         Statement::Switch { expr, cases, default } => {
             let mut out = format!("{}match {} {{\n", pad, render_expr(expr, single_precision));
             for (label, case_body) in cases {
-                let rust_label = render_switch_label(label);
+                let rust_label = render_switch_label(label, enums);
                 out.push_str(&format!("{}    {} => {{\n", pad, rust_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names));
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
                 }
             if !default.is_empty() {
                 out.push_str(&format!("{}    _ => {{\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names));
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
             }
@@ -998,21 +1003,13 @@ fn render_statement(
     }
 }
 
-/// Map a switch case label to Rust. For MA type labels like `MAType_SMA`,
-/// render as the integer constant.
-fn render_switch_label(label: &str) -> String {
-    // MA type enum labels: MAType_SMA -> 0, MAType_EMA -> 1, etc.
-    match label {
-        "MAType_SMA" => "0".to_string(),
-        "MAType_EMA" => "1".to_string(),
-        "MAType_WMA" => "2".to_string(),
-        "MAType_DEMA" => "3".to_string(),
-        "MAType_TEMA" => "4".to_string(),
-        "MAType_TRIMA" => "5".to_string(),
-        "MAType_KAMA" => "6".to_string(),
-        "MAType_MAMA" => "7".to_string(),
-        "MAType_T3" => "8".to_string(),
-        _ => label.to_string(),
+/// Map a switch case label to Rust. For enum variant labels like `MAType_SMA`,
+/// look up the integer value from the enum definitions.
+fn render_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
+    if let Some((_enum_name, variant)) = lookup_variant(label, enums) {
+        format!("{}", variant.value)
+    } else {
+        label.to_string()
     }
 }
 
@@ -1162,7 +1159,7 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
 }
 
 /// Render a complex lookback body (LookbackExpr::Code) into Rust code.
-fn render_lookback_code(stmts: &[Statement]) -> String {
+fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let empty_for_loop_vars: Vec<String> = Vec::new();
     let empty_var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
@@ -1200,6 +1197,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
             &empty_for_loop_vars,
             &empty_var_inits,
             &empty_output_names,
+            enums,
         ));
     }
 

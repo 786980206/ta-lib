@@ -1,4 +1,4 @@
-         static int MaLookback( int           optInTimePeriod  /* From 1 to 100000 */, int           optInMAType  /* From 0 to 8 */ );
+         static int MaLookback( int           optInTimePeriod  /* From 1 to 100000 */, int           optInMAType );
 
 #if defined( _MANAGED ) && defined( USE_SUBARRAY )
          static enum class RetCode Ma( int    startIdx,

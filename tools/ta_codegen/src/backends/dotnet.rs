@@ -1,6 +1,7 @@
+use std::collections::HashMap;
 use crate::ir::*;
 
-pub fn generate(func: &FuncDef) -> String {
+pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let pascal = to_pascal_case(&func.name);
 
@@ -32,6 +33,38 @@ fn to_pascal_case(name: &str) -> String {
     }
 }
 
+/// Map a ParamType to the C++/CLI type string for optional inputs.
+fn opt_input_type(pt: &ParamType) -> &'static str {
+    match pt {
+        ParamType::Real => "double",
+        ParamType::Integer => "int",
+        ParamType::Enum(_) => "int",
+    }
+}
+
+/// Map a ParamType to a C++/CLI type string for inputs (non-single-precision).
+fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
+    if single_precision {
+        match pt {
+            ParamType::Real => "float",
+            ParamType::Integer | ParamType::Enum(_) => "int",
+        }
+    } else {
+        match pt {
+            ParamType::Real => "double",
+            ParamType::Integer | ParamType::Enum(_) => "int",
+        }
+    }
+}
+
+/// Map a ParamType to a C++/CLI type string for outputs.
+fn output_type(pt: &ParamType) -> &'static str {
+    match pt {
+        ParamType::Real => "double",
+        ParamType::Integer | ParamType::Enum(_) => "int",
+    }
+}
+
 fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
     let params = match &func.lookback {
         Some(LookbackExpr::Literal(_)) | None => "void".to_string(),
@@ -39,10 +72,7 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
             // Find the opt input to get range info
             let opt = func.optional_inputs.iter().find(|o| o.name == *param);
             if let Some(opt) = opt {
-                let c_type = match opt.param_type {
-                    ParamType::Real => "double",
-                    ParamType::Integer => "int",
-                };
+                let c_type = opt_input_type(&opt.param_type);
                 if let Some((lo, hi)) = opt.range {
                     format!(
                         "{}           {} );\
@@ -61,10 +91,7 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
                 "void".to_string()
             } else {
                 let param_parts: Vec<String> = func.optional_inputs.iter().map(|opt| {
-                    let c_type = match opt.param_type {
-                        ParamType::Real => "double",
-                        ParamType::Integer => "int",
-                    };
+                    let c_type = opt_input_type(&opt.param_type);
                     let range = opt.range.map(|r| format!("  /* From {} to {} */", r.0, r.1)).unwrap_or_default();
                     format!("{}           {}{}", c_type, opt.name, range)
                 }).collect();
@@ -82,25 +109,12 @@ fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> St
     params.push("int    endIdx".to_string());
 
     for input in &func.inputs {
-        let typ = if single_precision {
-            match input.param_type {
-                ParamType::Real => "float",
-                ParamType::Integer => "int",
-            }
-        } else {
-            match input.param_type {
-                ParamType::Real => "double",
-                ParamType::Integer => "int",
-            }
-        };
+        let typ = input_type(&input.param_type, single_precision);
         params.push(format!("SubArray<{}>^ {}", typ, input.name));
     }
 
     for opt in &func.optional_inputs {
-        let typ = match opt.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = opt_input_type(&opt.param_type);
         params.push(format!("{} {}", typ, opt.name));
     }
 
@@ -108,10 +122,7 @@ fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> St
     params.push("[Out]int%    outNBElement".to_string());
 
     for output in &func.outputs {
-        let typ = match output.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = output_type(&output.param_type);
         params.push(format!("SubArray<{}>^  {}", typ, output.name));
     }
 
@@ -124,25 +135,12 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
     params.push("int    endIdx".to_string());
 
     for input in &func.inputs {
-        let typ = if single_precision {
-            match input.param_type {
-                ParamType::Real => "float",
-                ParamType::Integer => "int",
-            }
-        } else {
-            match input.param_type {
-                ParamType::Real => "double",
-                ParamType::Integer => "int",
-            }
-        };
+        let typ = input_type(&input.param_type, single_precision);
         params.push(format!("cli::array<{}>^ {}", typ, input.name));
     }
 
     for opt in &func.optional_inputs {
-        let typ = match opt.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = opt_input_type(&opt.param_type);
         params.push(format!("{} {}", typ, opt.name));
     }
 
@@ -150,10 +148,7 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
     params.push("[Out]int%    outNBElement".to_string());
 
     for output in &func.outputs {
-        let typ = match output.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = output_type(&output.param_type);
         params.push(format!("cli::array<{}>^  {}", typ, output.name));
     }
 
@@ -164,17 +159,7 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
 
     // Wrap inputs
     for input in &func.inputs {
-        let typ = if single_precision {
-            match input.param_type {
-                ParamType::Real => "float",
-                ParamType::Integer => "int",
-            }
-        } else {
-            match input.param_type {
-                ParamType::Real => "double",
-                ParamType::Integer => "int",
-            }
-        };
+        let typ = input_type(&input.param_type, single_precision);
         out.push_str(&format!(
             "                         gcnew SubArrayFrom1D<{}>({},0),\n",
             typ, input.name
@@ -192,10 +177,7 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
 
     // Wrap outputs
     for (i, output) in func.outputs.iter().enumerate() {
-        let typ = match output.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = output_type(&output.param_type);
         if i == func.outputs.len() - 1 {
             out.push_str(&format!(
                 "               gcnew SubArrayFrom1D<{}>({},0) );\n",
@@ -220,25 +202,12 @@ fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> S
     params.push("int    endIdx".to_string());
 
     for input in &func.inputs {
-        let typ = if single_precision {
-            match input.param_type {
-                ParamType::Real => "float",
-                ParamType::Integer => "int",
-            }
-        } else {
-            match input.param_type {
-                ParamType::Real => "double",
-                ParamType::Integer => "int",
-            }
-        };
+        let typ = input_type(&input.param_type, single_precision);
         params.push(format!("cli::array<{}>^ {}", typ, input.name));
     }
 
     for opt in &func.optional_inputs {
-        let typ = match opt.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = opt_input_type(&opt.param_type);
         params.push(format!("{} {}", typ, opt.name));
     }
 
@@ -246,10 +215,7 @@ fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> S
     params.push("[Out]int%    outNBElement".to_string());
 
     for output in &func.outputs {
-        let typ = match output.param_type {
-            ParamType::Real => "double",
-            ParamType::Integer => "int",
-        };
+        let typ = output_type(&output.param_type);
         params.push(format!("cli::array<{}>^  {}", typ, output.name));
     }
 

@@ -1,15 +1,17 @@
+use std::collections::HashMap;
 use crate::ir::*;
+use crate::parser::enums::lookup_variant;
 
-pub fn generate(func: &FuncDef) -> String {
+pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     out.push_str("/* Generated */\n");
-    out.push_str(&gen_lookback(func));
-    out.push_str(&gen_func(func, false)); // double-precision
-    out.push_str(&gen_func(func, true)); // single-precision (float inputs)
+    out.push_str(&gen_lookback(func, enums));
+    out.push_str(&gen_func(func, false, enums)); // double-precision
+    out.push_str(&gen_func(func, true, enums)); // single-precision (float inputs)
     out
 }
 
-fn gen_lookback(func: &FuncDef) -> String {
+fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
     let name = func.name.to_lowercase();
 
     // Build parameter list for signature
@@ -18,9 +20,10 @@ fn gen_lookback(func: &FuncDef) -> String {
             .optional_inputs
             .iter()
             .map(|opt| {
-                let java_type = match opt.param_type {
+                let java_type = match &opt.param_type {
                     ParamType::Real => "double",
                     ParamType::Integer => "int",
+                    ParamType::Enum(ref name) => name.as_str(),
                 };
                 format!("{} {}", java_type, opt.name)
             })
@@ -35,7 +38,7 @@ fn gen_lookback(func: &FuncDef) -> String {
         Some(LookbackExpr::ParamMinus(param, offset)) => {
             format!("      return {} - {};", param, offset)
         }
-        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts),
+        Some(LookbackExpr::Code(stmts)) => render_lookback_code(stmts, enums),
         None => "      return 0;".to_string(),
     };
 
@@ -48,7 +51,7 @@ fn gen_lookback(func: &FuncDef) -> String {
     )
 }
 
-fn gen_func(func: &FuncDef, single_precision: bool) -> String {
+fn gen_func(func: &FuncDef, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
     let name = func.name.to_lowercase();
 
@@ -59,23 +62,24 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
 
     for input in &func.inputs {
         let java_type = if single_precision {
-            match input.param_type {
+            match &input.param_type {
                 ParamType::Real => "float",
-                ParamType::Integer => "int",
+                ParamType::Integer | ParamType::Enum(_) => "int",
             }
         } else {
-            match input.param_type {
+            match &input.param_type {
                 ParamType::Real => "double",
-                ParamType::Integer => "int",
+                ParamType::Integer | ParamType::Enum(_) => "int",
             }
         };
         params.push(format!("{} {}[]", java_type, input.name));
     }
 
     for opt in &func.optional_inputs {
-        let java_type = match opt.param_type {
+        let java_type = match &opt.param_type {
             ParamType::Real => "double",
             ParamType::Integer => "int",
+            ParamType::Enum(ref name) => name.as_str(),
         };
         params.push(format!("{} {}", java_type, opt.name));
     }
@@ -84,9 +88,9 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
     params.push("MInteger outNBElement".to_string());
 
     for output in &func.outputs {
-        let java_type = match output.param_type {
+        let java_type = match &output.param_type {
             ParamType::Real => "double",
-            ParamType::Integer => "int",
+            ParamType::Integer | ParamType::Enum(_) => "int",
         };
         params.push(format!("{} {}[]", java_type, output.name));
     }
@@ -143,7 +147,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 6, single_precision));
+        out.push_str(&render_statement(stmt, 6, single_precision, enums));
     }
 
     // Assign output scalars and return
@@ -153,7 +157,7 @@ fn gen_func(func: &FuncDef, single_precision: bool) -> String {
     out
 }
 
-fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> String {
+fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
     let pad = " ".repeat(indent);
     match stmt {
         Statement::VarDecl { .. } => String::new(),
@@ -220,7 +224,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 render_expr(condition, single_precision)
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -236,7 +240,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 render_expr(condition, single_precision)
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
@@ -244,14 +248,14 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 out.push_str(&format!("{}}} else ", pad));
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
-                        let if_str = render_statement(&else_body[0], indent, single_precision);
+                        let if_str = render_statement(&else_body[0], indent, single_precision, enums);
                         out.push_str(if_str.trim_start());
                         return out;
                     }
                 }
                 out.push_str("{\n");
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -276,20 +280,20 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
                 var,
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body } => {
-            let init_str = render_statement(init, 0, single_precision).trim().trim_end_matches(';').to_string();
-            let update_str = render_statement(update, 0, single_precision).trim().trim_end_matches(';').to_string();
+            let init_str = render_statement(init, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
+            let update_str = render_statement(update, 0, single_precision, enums).trim().trim_end_matches(';').to_string();
             let mut out = format!(
                 "{}for( {}; {}; {} ) {{\n",
                 pad, init_str.trim(), render_expr(condition, single_precision), update_str.trim()
             );
             for s in body {
-                out.push_str(&render_statement(s, indent + 3, single_precision));
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -297,7 +301,7 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
         Statement::Block { body } => {
             let mut out = String::new();
             for s in body {
-                out.push_str(&render_statement(s, indent, single_precision));
+                out.push_str(&render_statement(s, indent, single_precision, enums));
             }
             out
         }
@@ -306,17 +310,17 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
         Statement::Switch { expr, cases, default } => {
             let mut out = format!("{}switch( {} )\n{}{{\n", pad, render_expr(expr, single_precision), pad);
             for (label, case_body) in cases {
-                let java_label = render_java_switch_label(label);
+                let java_label = render_java_switch_label(label, enums);
                 out.push_str(&format!("{}case {}:\n", pad, java_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
             if !default.is_empty() {
                 out.push_str(&format!("{}default:\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 3, single_precision));
+                    out.push_str(&render_statement(s, indent + 3, single_precision, enums));
                 }
                 out.push_str(&format!("{}   break;\n", pad));
             }
@@ -326,18 +330,11 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool) -> 
     }
 }
 
-fn render_java_switch_label(label: &str) -> String {
-    match label {
-        "MAType_SMA" => "MAType.Sma".to_string(),
-        "MAType_EMA" => "MAType.Ema".to_string(),
-        "MAType_WMA" => "MAType.Wma".to_string(),
-        "MAType_DEMA" => "MAType.Dema".to_string(),
-        "MAType_TEMA" => "MAType.Tema".to_string(),
-        "MAType_TRIMA" => "MAType.Trima".to_string(),
-        "MAType_KAMA" => "MAType.Kama".to_string(),
-        "MAType_MAMA" => "MAType.Mama".to_string(),
-        "MAType_T3" => "MAType.T3".to_string(),
-        _ => label.to_string(),
+fn render_java_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
+    if let Some((enum_name, variant)) = lookup_variant(label, enums) {
+        format!("{}.{}", enum_name, variant.pascal_name)
+    } else {
+        label.to_string()
     }
 }
 
@@ -513,7 +510,7 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
 }
 
 /// Render a complex lookback body (LookbackExpr::Code) into Java code.
-fn render_lookback_code(stmts: &[Statement]) -> String {
+fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -> String {
     let mut out = String::new();
 
     // Declare local variables
@@ -545,7 +542,7 @@ fn render_lookback_code(stmts: &[Statement]) -> String {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 6, false));
+        out.push_str(&render_statement(stmt, 6, false, enums));
     }
 
     out

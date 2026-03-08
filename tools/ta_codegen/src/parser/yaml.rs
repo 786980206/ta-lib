@@ -40,6 +40,9 @@ fn parse_param_type(s: &str) -> ParamType {
     match s {
         "real" => ParamType::Real,
         "integer" => ParamType::Integer,
+        other if other.starts_with("enum:") => {
+            ParamType::Enum(other["enum:".len()..].to_string())
+        }
         other => panic!("Unknown param type: {}", other),
     }
 }

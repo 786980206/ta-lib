@@ -41,6 +41,29 @@ pub struct Output {
 pub enum ParamType {
     Real,
     Integer,
+    /// An enum parameter type, e.g. `Enum("MAType")`.
+    /// The string is the enum name as defined in `enums.yaml`.
+    Enum(String),
+}
+
+/// An enum type definition (loaded from `enums.yaml`).
+#[derive(Debug, Clone)]
+pub struct EnumDef {
+    pub name: String,
+    pub variants: Vec<EnumVariant>,
+}
+
+/// A single variant of an enum type.
+#[derive(Debug, Clone)]
+pub struct EnumVariant {
+    /// C constant name, e.g. `TA_MAType_SMA`
+    pub c_name: String,
+    /// PascalCase name used in Java/.NET, e.g. `Sma`
+    pub pascal_name: String,
+    /// UPPER_CASE short name used in source labels, e.g. `SMA`
+    pub short_name: String,
+    /// Integer value
+    pub value: i32,
 }
 
 #[derive(Debug, Clone)]

@@ -53,16 +53,10 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    /// * `optInMAType` - Number of period (default: 0, range: 0..=8)
     pub fn ma_lookback(&self, mut optInTimePeriod: i32, mut optInMAType: i32) -> i32 {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
-        }
-        if ((optInMAType) as i32) == (i32::MIN) {
-            optInMAType = 0;
-        } else if (((optInMAType) as i32) < 0) || (((optInMAType) as i32) > 8) {
             return -1;
         }
         let mut retValue: i32;
@@ -90,7 +84,6 @@ impl Core {
     /// * `endIdx` - End index for calculation range (inclusive)
     /// * `inReal` - Input price series
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    /// * `optInMAType` - Number of period (default: 0, range: 0..=8)
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
@@ -116,7 +109,6 @@ impl Core {
     ///  4,
     ///  &close_prices,
     ///  2,
-    ///  1,
     ///  &mut out_beg_idx,
     ///  &mut out_nb_element,
     ///  &mut out,
@@ -146,11 +138,6 @@ impl Core {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return RetCode::BadParam;
-        }
-        if ((optInMAType) as i32) == (i32::MIN) {
-            optInMAType = 0;
-        } else if (((optInMAType) as i32) < 0) || (((optInMAType) as i32) > 8) {
             return RetCode::BadParam;
         }
         return self.int_ma(
@@ -224,11 +211,6 @@ impl Core {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return RetCode::BadParam;
-        }
-        if ((optInMAType) as i32) == (i32::MIN) {
-            optInMAType = 0;
-        } else if (((optInMAType) as i32) < 0) || (((optInMAType) as i32) > 8) {
             return RetCode::BadParam;
         }
         return self.int_ma_s(

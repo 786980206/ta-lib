@@ -35,7 +35,7 @@
 #include <math.h>
 #include "ta_func.h"
 
-TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, int optInMAType )
+TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, TA_MAType optInMAType )
 {
    int retValue;
    if( (optInTimePeriod<=1) )
@@ -44,10 +44,10 @@ TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, int optInMAType )
    }
    switch( optInMAType )
    {
-   case 0:
+   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
       retValue = TA_SMA_Lookback(optInTimePeriod);
       break;
-   case 1:
+   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
       retValue = TA_EMA_Lookback(optInTimePeriod);
       break;
    default:
@@ -61,7 +61,7 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
                              int    endIdx,
                              const double inReal[],
                              int optInTimePeriod,
-                             int optInMAType,
+                             TA_MAType optInMAType,
                              int          *outBegIdx,
                              int          *outNBElement,
                              double        outReal[] )
@@ -93,10 +93,10 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
    }
    switch( optInMAType )
    {
-   case 0:
+   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
       retCode = TA_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
-   case 1:
+   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
       retCode = TA_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    default:
@@ -112,7 +112,7 @@ TA_RetCode TA_S_MA( int    startIdx,
                     int    endIdx,
                     const float inReal[],
                     int optInTimePeriod,
-                    int optInMAType,
+                    TA_MAType optInMAType,
                     int          *outBegIdx,
                     int          *outNBElement,
                     double        outReal[] )
@@ -144,10 +144,10 @@ TA_RetCode TA_S_MA( int    startIdx,
    }
    switch( optInMAType )
    {
-   case 0:
+   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
       retCode = TA_S_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
-   case 1:
+   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
       retCode = TA_S_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    default:

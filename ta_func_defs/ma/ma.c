@@ -5,10 +5,10 @@ int TA_MA_Lookback(int optInTimePeriod, int optInMAType)
         return 0;
     }
     switch( optInMAType ) {
-        case 0:
+        case MAType_SMA:
             retValue = TA_SMA_Lookback(optInTimePeriod);
             break;
-        case 1:
+        case MAType_EMA:
             retValue = TA_EMA_Lookback(optInTimePeriod);
             break;
         default:
@@ -45,10 +45,10 @@ TA_RetCode TA_MA(int startIdx, int endIdx,
     }
 
     switch( optInMAType ) {
-        case 0:
+        case MAType_SMA:
             retCode = TA_SMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             break;
-        case 1:
+        case MAType_EMA:
             retCode = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             break;
         default:

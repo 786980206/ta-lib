@@ -4,6 +4,7 @@ use ta_codegen_lib::parser;
 use ta_codegen_lib::server;
 use ta_codegen_lib::server_gen;
 
+use std::collections::HashMap;
 use std::path::Path;
 
 fn main() {
@@ -52,6 +53,14 @@ fn find_arg(args: &[String], prefix: &str) -> Option<String> {
 
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     let base = Path::new("../../ta_func_defs");
+
+    // Load enum definitions
+    let enums_path = base.join("enums.yaml");
+    let enums = if enums_path.exists() {
+        parser::enums::load_enums(&enums_path)
+    } else {
+        HashMap::new()
+    };
 
     // Discover all function definition directories
     let mut func_dirs: Vec<_> = std::fs::read_dir(base)
@@ -107,7 +116,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
 
         for backend in &backends_to_run {
-            generate_backend(&func_def, backend);
+            generate_backend(&func_def, backend, &enums);
         }
     }
 }
@@ -552,12 +561,12 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     }
 }
 
-fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
+fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<String, ir::EnumDef>) {
     let out_base = Path::new("../../ta_codegen_output");
 
     match backend {
         "c" => {
-            let output = backends::c::generate(func_def);
+            let output = backends::c::generate(func_def, enums);
             let dir = out_base.join("c");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.c", func_def.name));
@@ -565,7 +574,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
             println!("  {} -> {}", func_def.name, path.display());
         }
         "rust" => {
-            let output = backends::rust_lang::generate(func_def);
+            let output = backends::rust_lang::generate(func_def, enums);
             let dir = out_base.join("rust");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));
@@ -573,7 +582,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
             println!("  {} -> {}", func_def.name, path.display());
         }
         "java" => {
-            let output = backends::java::generate(func_def);
+            let output = backends::java::generate(func_def, enums);
             let dir = out_base.join("java");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.java", func_def.name));
@@ -581,7 +590,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
             println!("  {} -> {}", func_def.name, path.display());
         }
         "dotnet" => {
-            let output = backends::dotnet::generate(func_def);
+            let output = backends::dotnet::generate(func_def, enums);
             let dir = out_base.join("dotnet");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.h", func_def.name));
@@ -589,7 +598,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str) {
             println!("  {} -> {}", func_def.name, path.display());
         }
         "swig" => {
-            let output = backends::swig::generate(func_def);
+            let output = backends::swig::generate(func_def, enums);
             let dir = out_base.join("swig");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.swg", func_def.name));
