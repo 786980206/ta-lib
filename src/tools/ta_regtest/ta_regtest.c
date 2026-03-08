@@ -87,6 +87,7 @@ int doExtensiveProfiling;
 /* CSV list of function names to test (NULL = test all) */
 static const char *functionFilter = NULL;
 static int doCodegenTest = 0;
+static const char *codegenLanguageFilter = NULL;
 
 /**** Local declarations.              ****/
 /* None */
@@ -135,6 +136,11 @@ int main( int argc, char **argv )
          else if( strcmp(argv[i], "--codegen") == 0 )
          {
             doCodegenTest = 1;
+         }
+         else if( strncmp(argv[i], "--codegen=", 10) == 0 )
+         {
+            doCodegenTest = 1;
+            codegenLanguageFilter = argv[i] + 10;
          }
          else
          {
@@ -253,7 +259,7 @@ static ErrorNumber test_codegen_with_simulator( void )
    history.close  = TA_SREF_close_daily_ref_0_PRIV;
    history.volume = TA_SREF_volume_daily_ref_0_PRIV;
 
-   retValue = test_codegen(&history, functionFilter);
+   retValue = test_codegen(&history, codegenLanguageFilter, functionFilter);
    if( retValue != TA_TEST_PASS )
       return retValue;
 
@@ -369,10 +375,13 @@ static void printUsage(void)
       printf( "       one of the given names (substring match).\n" );
       printf( "       Example: --function=RSI,BBANDS\n" );
       printf( "\n" );
-      printf( "    --codegen\n" );
-      printf( "       After normal tests, also verify ta_codegen output\n" );
-      printf( "       against C reference via JSON-RPC subprocess.\n" );
-      printf( "       Requires ./ta_codegen binary in the bin directory.\n" );
+      printf( "    --codegen[=LANG[,LANG,...]]\n" );
+      printf( "       After normal tests, verify ta_codegen output against C reference.\n" );
+      printf( "       Languages: rust, c, java, dotnet, swig (default: all)\n" );
+      printf( "       Example: --codegen=rust,java\n" );
+      printf( "\n" );
+      printf( "       Requires language server binaries in the bin directory.\n" );
+      printf( "       Build with: ta_codegen build\n" );
       printf( "\n" );
       printf( "   On success, the exit code is 0.\n" );
       printf( "   On failure, the exit code is a number that can be\n" );
