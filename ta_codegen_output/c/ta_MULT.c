@@ -57,15 +57,16 @@ TA_LIB_API TA_RetCode TA_MULT( int    startIdx,
       return TA_OUT_OF_RANGE_END_INDEX;
 
    outIdx = 0;
-   i = startIdx;
-   while( (i<=endIdx) )
+   i = ((int)startIdx);
+   while( (i<=((int)endIdx)) )
    {
       outReal[outIdx] = (inReal0[i]*inReal1[i]);
       outIdx += 1;
       i += 1;
    }
-   *outNBElement = outIdx;
-   *outBegIdx = startIdx;
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }
@@ -87,15 +88,16 @@ TA_RetCode TA_S_MULT( int    startIdx,
       return TA_OUT_OF_RANGE_END_INDEX;
 
    outIdx = 0;
-   i = startIdx;
-   while( (i<=endIdx) )
+   i = ((int)startIdx);
+   while( (i<=((int)endIdx)) )
    {
       outReal[outIdx] = (inReal0[i]*inReal1[i]);
       outIdx += 1;
       i += 1;
    }
-   *outNBElement = outIdx;
-   *outBegIdx = startIdx;
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }

@@ -25,6 +25,49 @@ fn load_sma() -> ir::FuncDef {
     func_def
 }
 
+/// Helper: parse mult.yaml + mult.c and build a FuncDef via C source parser.
+fn load_mult_from_c() -> ir::FuncDef {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let yaml_path = base.join("../../ta_func_defs/mult/mult.yaml");
+    let c_path = base.join("../../ta_func_defs/mult/mult.c");
+
+    let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+    let parsed = parser::c_source::parse_c_source(&c_path);
+    func_def.body = parsed.functions[0].body.clone();
+    func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
+    func_def
+}
+
+// ---------------------------------------------------------------------------
+// C source parser — MULT from .c file
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_mult_from_c_generates_all_backends() {
+    let func = load_mult_from_c();
+    let c_out = backends::c::generate(&func);
+    let rust_out = backends::rust_lang::generate(&func);
+    let java_out = backends::java::generate(&func);
+    let dotnet_out = backends::dotnet::generate(&func);
+    let swig_out = backends::swig::generate(&func);
+
+    assert!(!c_out.is_empty(), "C output from .c source is empty");
+    assert!(!rust_out.is_empty(), "Rust output from .c source is empty");
+    assert!(!java_out.is_empty(), "Java output from .c source is empty");
+    assert!(!dotnet_out.is_empty(), "Dotnet output from .c source is empty");
+    assert!(!swig_out.is_empty(), "SWIG output from .c source is empty");
+
+    // Verify key content in C output
+    assert!(
+        c_out.contains("TA_SUCCESS"),
+        "C output from .c source missing TA_SUCCESS"
+    );
+    assert!(
+        c_out.contains("TA_MULT_Lookback"),
+        "C output from .c source missing lookback"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Parser sanity checks — MULT
 // ---------------------------------------------------------------------------

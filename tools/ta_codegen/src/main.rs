@@ -72,18 +72,33 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         }
 
         let yaml_path = dir.join(format!("{}.yaml", func_name_lower));
+        let c_path = dir.join(format!("{}.c", func_name_lower));
         let logic_path = dir.join(format!("{}.logic", func_name_lower));
 
-        if !yaml_path.exists() || !logic_path.exists() {
-            eprintln!(
-                "Skipping {}: missing .yaml or .logic file",
-                func_name_lower
-            );
+        if !yaml_path.exists() {
+            eprintln!("Skipping {}: missing .yaml file", func_name_lower);
             continue;
         }
 
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
-        func_def.body = parser::logic::parse_logic(&logic_path);
+
+        if c_path.exists() {
+            // New path: parse C source file
+            let parsed = parser::c_source::parse_c_source(&c_path);
+            func_def.body = parsed
+                .functions
+                .first()
+                .expect("C source must contain at least one function")
+                .body
+                .clone();
+            func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
+        } else if logic_path.exists() {
+            // Legacy path: parse .logic file
+            func_def.body = parser::logic::parse_logic(&logic_path);
+        } else {
+            eprintln!("Skipping {}: no .c or .logic file", func_name_lower);
+            continue;
+        }
 
         for backend in &backends_to_run {
             generate_backend(&func_def, backend);

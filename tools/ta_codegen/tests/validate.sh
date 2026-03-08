@@ -72,7 +72,12 @@ for f in \
     "../../ta_codegen_output/rust/ma.rs" \
     "../../ta_codegen_output/java/Core_MA.java" \
     "../../ta_codegen_output/dotnet/Core_MA.h" \
-    "../../ta_codegen_output/swig/ta_MA.swg"; do
+    "../../ta_codegen_output/swig/ta_MA.swg" \
+    "../../ta_codegen_output/c/ta_WMA.c" \
+    "../../ta_codegen_output/rust/wma.rs" \
+    "../../ta_codegen_output/java/Core_WMA.java" \
+    "../../ta_codegen_output/dotnet/Core_WMA.h" \
+    "../../ta_codegen_output/swig/ta_WMA.swg"; do
     if [ -s "$f" ]; then
         pass "Generated file exists: $(basename "$f")"
     else
@@ -146,6 +151,8 @@ else
 fi
 
 # EMA JSON-RPC tests skipped — EMA not yet in ta-lib Rust crate
+
+# WMA JSON-RPC tests skipped — WMA not yet in ta-lib Rust crate
 
 echo ""
 echo "=== Running cargo test ==="

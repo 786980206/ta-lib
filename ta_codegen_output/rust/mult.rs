@@ -106,16 +106,20 @@ impl Core {
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
+        let mut i: usize;
         if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        i = (startIdx) as usize;
+        while i <= ((endIdx) as usize) {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
+            i += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
     /// Single-precision variant of [`Core::mult`].
@@ -130,16 +134,20 @@ impl Core {
         outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize;
+        let mut i: usize;
         if endIdx < startIdx {
             return RetCode::OutOfRangeEndIndex;
         }
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        i = (startIdx) as usize;
+        while i <= ((endIdx) as usize) {
             outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
+            i += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
 }

@@ -13,5 +13,4 @@ TA_RetCode TA_MULT( int           START_IDX,
                     int          *OUT_SIZE,
                     double       *OUT_ARRAY /* outReal */ );
 
-int TA_MULT_Lookback( void );
 

@@ -1,7 +1,8 @@
 /* Generated */
    public int multLookback( )
    {
-      return 0;
+      return 0 ;
+
    }
    public RetCode mult( int startIdx,
                         int endIdx,
@@ -20,14 +21,15 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       outIdx = 0;
-      i = startIdx;
-      while( (i<=endIdx) ) {
+      i = ((int)startIdx);
+      while( (i<=((int)endIdx)) ) {
          outReal[outIdx] = (inReal0[i]*inReal1[i]);
          outIdx += 1;
          i += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }
    public RetCode mult( int startIdx,
@@ -47,13 +49,14 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       outIdx = 0;
-      i = startIdx;
-      while( (i<=endIdx) ) {
+      i = ((int)startIdx);
+      while( (i<=((int)endIdx)) ) {
          outReal[outIdx] = (inReal0[i]*inReal1[i]);
          outIdx += 1;
          i += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }
