@@ -59,7 +59,7 @@
          savePrevValue = prevValue;
          prevGain = 0;
          prevLoss = 0;
-         for( i = optInTimePeriod; i > 0; i-- ) {
+         for( i = optInTimePeriod; (i>0); i -= 1 ) {
             tempValue1 = ((double)inReal[today]);
             today = (today+1);
             tempValue2 = (tempValue1-prevValue);
@@ -91,7 +91,7 @@
       prevGain = 0;
       prevLoss = 0;
       today = (today+1);
-      for( i = optInTimePeriod; i > 0; i-- ) {
+      for( i = optInTimePeriod; (i>0); i -= 1 ) {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
          tempValue2 = (tempValue1-prevValue);
@@ -156,6 +156,7 @@
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
       return RetCode.Success ;
+      return RetCode.Success ;
    }
    public RetCode rsi( int startIdx,
                        int endIdx,
@@ -207,7 +208,7 @@
          savePrevValue = prevValue;
          prevGain = 0;
          prevLoss = 0;
-         for( i = optInTimePeriod; i > 0; i-- ) {
+         for( i = optInTimePeriod; (i>0); i -= 1 ) {
             tempValue1 = ((double)inReal[today]);
             today = (today+1);
             tempValue2 = (tempValue1-prevValue);
@@ -239,7 +240,7 @@
       prevGain = 0;
       prevLoss = 0;
       today = (today+1);
-      for( i = optInTimePeriod; i > 0; i-- ) {
+      for( i = optInTimePeriod; (i>0); i -= 1 ) {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
          tempValue2 = (tempValue1-prevValue);
@@ -303,5 +304,6 @@
       }
       outBegIdx.value = startIdx;
       outNBElement.value = outIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }

@@ -72,8 +72,8 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       return TA_OUT_OF_RANGE_END_INDEX;
 
    outIdx = 0;
-   *outBegIdx = 0;
-   *outNBElement = 0;
+   *outBegIdx= 0;
+   *outNBElement= 0;
    lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
    if( (startIdx<lookbackTotal) )
    {
@@ -86,9 +86,9 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    outIdx = 0;
    if( (optInTimePeriod==1) )
    {
-      *outBegIdx = startIdx;
+      *outBegIdx= startIdx;
       i = ((int)((endIdx-startIdx)+1));
-      *outNBElement = ((int)i);
+      *outNBElement= ((int)i);
       ARRAY_MEMMOVE(outReal,0,inReal,startIdx,i);
       return TA_SUCCESS;
    }
@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       savePrevValue = prevValue;
       prevGain = 0;
       prevLoss = 0;
-      for( i = optInTimePeriod; i > 0; i-- )
+      for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
@@ -128,8 +128,8 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       }
       if( (today>endIdx) )
       {
-         *outBegIdx = startIdx;
-         *outNBElement = outIdx;
+         *outBegIdx= startIdx;
+         *outNBElement= outIdx;
          return TA_SUCCESS;
       }
       today = (today-((int)optInTimePeriod));
@@ -138,7 +138,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    prevGain = 0;
    prevLoss = 0;
    today = (today+1);
-   for( i = optInTimePeriod; i > 0; i-- )
+   for( i = optInTimePeriod; (i>0); i -= 1 )
    {
       tempValue1 = ((double)inReal[today]);
       today = (today+1);
@@ -215,8 +215,9 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
          outIdx = (outIdx+1);
       }
    }
-   *outBegIdx = startIdx;
-   *outNBElement = outIdx;
+   *outBegIdx= startIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }
@@ -247,8 +248,8 @@ TA_RetCode TA_S_RSI( int    startIdx,
       return TA_OUT_OF_RANGE_END_INDEX;
 
    outIdx = 0;
-   *outBegIdx = 0;
-   *outNBElement = 0;
+   *outBegIdx= 0;
+   *outNBElement= 0;
    lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
    if( (startIdx<lookbackTotal) )
    {
@@ -261,9 +262,9 @@ TA_RetCode TA_S_RSI( int    startIdx,
    outIdx = 0;
    if( (optInTimePeriod==1) )
    {
-      *outBegIdx = startIdx;
+      *outBegIdx= startIdx;
       i = ((int)((endIdx-startIdx)+1));
-      *outNBElement = ((int)i);
+      *outNBElement= ((int)i);
       ARRAY_MEMMOVEMIX(outReal,0,inReal,startIdx,i);
       return TA_SUCCESS;
    }
@@ -275,7 +276,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       savePrevValue = prevValue;
       prevGain = 0;
       prevLoss = 0;
-      for( i = optInTimePeriod; i > 0; i-- )
+      for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
@@ -303,8 +304,8 @@ TA_RetCode TA_S_RSI( int    startIdx,
       }
       if( (today>endIdx) )
       {
-         *outBegIdx = startIdx;
-         *outNBElement = outIdx;
+         *outBegIdx= startIdx;
+         *outNBElement= outIdx;
          return TA_SUCCESS;
       }
       today = (today-((int)optInTimePeriod));
@@ -313,7 +314,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
    prevGain = 0;
    prevLoss = 0;
    today = (today+1);
-   for( i = optInTimePeriod; i > 0; i-- )
+   for( i = optInTimePeriod; (i>0); i -= 1 )
    {
       tempValue1 = ((double)inReal[today]);
       today = (today+1);
@@ -390,8 +391,9 @@ TA_RetCode TA_S_RSI( int    startIdx,
          outIdx = (outIdx+1);
       }
    }
-   *outBegIdx = startIdx;
-   *outNBElement = outIdx;
+   *outBegIdx= startIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }

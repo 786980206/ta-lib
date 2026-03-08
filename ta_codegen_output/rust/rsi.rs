@@ -61,7 +61,7 @@ impl Core {
         }
         let mut retValue: i32;
         retValue = optInTimePeriod + self.unstable_period[FuncUnstId::Rsi as usize];
-        if (self.compatibility) == Compatibility::Metastock {
+        if self.compatibility == Compatibility::Metastock {
             retValue = retValue - 1;
         }
         return retValue;
@@ -185,11 +185,13 @@ impl Core {
         today = startIdx - lookbackTotal;
         prevValue = (inReal[today]) as f64;
         unstablePeriod = self.unstable_period[FuncUnstId::Rsi as usize];
-        if unstablePeriod == 0 && (self.compatibility) == Compatibility::Metastock {
+        if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
             prevGain = 0.0;
             prevLoss = 0.0;
-            for i in (1..=optInTimePeriod).rev() {
+            // for( i = optInTimePeriod; i > 0; i -= 1 )
+            i = optInTimePeriod;
+            while i > 0 {
                 tempValue1 = (inReal[today]) as f64;
                 today = today + 1;
                 tempValue2 = tempValue1 - prevValue;
@@ -199,6 +201,7 @@ impl Core {
                 } else {
                     prevGain += tempValue2;
                 }
+                i -= 1;
             }
             tempValue1 = prevLoss / ((optInTimePeriod) as f64);
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
@@ -221,7 +224,9 @@ impl Core {
         prevGain = 0.0;
         prevLoss = 0.0;
         today = today + 1;
-        for i in (1..=optInTimePeriod).rev() {
+        // for( i = optInTimePeriod; i > 0; i -= 1 )
+        i = optInTimePeriod;
+        while i > 0 {
             tempValue1 = (inReal[today]) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
@@ -231,6 +236,7 @@ impl Core {
             } else {
                 prevGain += tempValue2;
             }
+            i -= 1;
         }
         prevLoss /= (optInTimePeriod) as f64;
         prevGain /= (optInTimePeriod) as f64;
@@ -285,6 +291,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
     /// Single-precision variant of [`Core::rsi`].
@@ -364,11 +371,13 @@ impl Core {
         today = startIdx - lookbackTotal;
         prevValue = (inReal[today]) as f64;
         unstablePeriod = self.unstable_period[FuncUnstId::Rsi as usize];
-        if unstablePeriod == 0 && (self.compatibility) == Compatibility::Metastock {
+        if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
             prevGain = 0.0;
             prevLoss = 0.0;
-            for i in (1..=optInTimePeriod).rev() {
+            // for( i = optInTimePeriod; i > 0; i -= 1 )
+            i = optInTimePeriod;
+            while i > 0 {
                 tempValue1 = (inReal[today]) as f64;
                 today = today + 1;
                 tempValue2 = tempValue1 - prevValue;
@@ -378,6 +387,7 @@ impl Core {
                 } else {
                     prevGain += tempValue2;
                 }
+                i -= 1;
             }
             tempValue1 = prevLoss / ((optInTimePeriod) as f64);
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
@@ -400,7 +410,9 @@ impl Core {
         prevGain = 0.0;
         prevLoss = 0.0;
         today = today + 1;
-        for i in (1..=optInTimePeriod).rev() {
+        // for( i = optInTimePeriod; i > 0; i -= 1 )
+        i = optInTimePeriod;
+        while i > 0 {
             tempValue1 = (inReal[today]) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
@@ -410,6 +422,7 @@ impl Core {
             } else {
                 prevGain += tempValue2;
             }
+            i -= 1;
         }
         prevLoss /= (optInTimePeriod) as f64;
         prevGain /= (optInTimePeriod) as f64;
@@ -464,6 +477,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
 }
