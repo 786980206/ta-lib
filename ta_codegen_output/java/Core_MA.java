@@ -7,10 +7,10 @@
       }
       switch( optInMAType )
       {
-      case MAType.Sma:
+      case 0:
          retValue = smaLookback(optInTimePeriod);
          break;
-      case MAType.Ema:
+      case 1:
          retValue = emaLookback(optInTimePeriod);
          break;
       default:
@@ -54,10 +54,10 @@
       }
       switch( optInMAType )
       {
-      case MAType.Sma:
+      case 0:
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case MAType.Ema:
+      case 1:
          retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       default:
@@ -101,10 +101,10 @@
       }
       switch( optInMAType )
       {
-      case MAType.Sma:
+      case 0:
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case MAType.Ema:
+      case 1:
          retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       default:

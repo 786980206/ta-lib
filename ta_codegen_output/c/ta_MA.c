@@ -44,10 +44,10 @@ TA_LIB_API int TA_MA_Lookback( int optInTimePeriod, int optInMAType )
    }
    switch( optInMAType )
    {
-   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
+   case 0:
       retValue = TA_SMA_Lookback(optInTimePeriod);
       break;
-   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
+   case 1:
       retValue = TA_EMA_Lookback(optInTimePeriod);
       break;
    default:
@@ -79,7 +79,7 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
    if( (optInTimePeriod==1) )
    {
       nbElement = ((endIdx-startIdx)+1);
-      *outNBElement = nbElement;
+      *outNBElement= nbElement;
       todayIdx = startIdx;
       outIdx = 0;
       while( (outIdx<nbElement) )
@@ -88,15 +88,15 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
          outIdx = (outIdx+1);
          todayIdx = (todayIdx+1);
       }
-      *outBegIdx = startIdx;
+      *outBegIdx= startIdx;
       return TA_SUCCESS;
    }
    switch( optInMAType )
    {
-   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
+   case 0:
       retCode = TA_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
-   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
+   case 1:
       retCode = TA_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    default:
@@ -130,7 +130,7 @@ TA_RetCode TA_S_MA( int    startIdx,
    if( (optInTimePeriod==1) )
    {
       nbElement = ((endIdx-startIdx)+1);
-      *outNBElement = nbElement;
+      *outNBElement= nbElement;
       todayIdx = startIdx;
       outIdx = 0;
       while( (outIdx<nbElement) )
@@ -139,15 +139,15 @@ TA_RetCode TA_S_MA( int    startIdx,
          outIdx = (outIdx+1);
          todayIdx = (todayIdx+1);
       }
-      *outBegIdx = startIdx;
+      *outBegIdx= startIdx;
       return TA_SUCCESS;
    }
    switch( optInMAType )
    {
-   case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
+   case 0:
       retCode = TA_S_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
-   case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
+   case 1:
       retCode = TA_S_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    default:

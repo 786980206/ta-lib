@@ -19,6 +19,5 @@ TA_RetCode TA_MA( int           START_IDX,
                   int          *OUT_SIZE,
                   double       *OUT_ARRAY /* outReal */ );
 
-int TA_MA_Lookback( int           optInTimePeriod );  /* From 1 to 100000 */
-int TA_MA_Lookback( int           optInMAType );  /* From 0 to 8 */
+int TA_MA_Lookback( int           optInTimePeriod  /* From 1 to 100000 */, int           optInMAType  /* From 0 to 8 */ );
 

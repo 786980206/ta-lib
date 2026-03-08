@@ -1,35 +1,25 @@
 name: MA
+camel_case: Ma
 group: Overlap Studies
-description: Moving average
+hint: Moving average
+flags: overlap
 inputs:
   - name: inReal
     type: real
 optional_inputs:
   - name: optInTimePeriod
     type: integer
+    display_name: Time Period
+    hint: Number of period
     range: [1, 100000]
     default: 30
   - name: optInMAType
     type: integer
+    display_name: MA Type
+    hint: Type of Moving Average
     range: [0, 8]
     default: 0
 outputs:
   - name: outReal
     type: real
-lookback: |
-  int retValue;
-  if( optInTimePeriod <= 1 ) {
-    return 0;
-  }
-  switch( optInMAType ) {
-    case MAType_SMA:
-      retValue = SMA_Lookback(optInTimePeriod);
-      break;
-    case MAType_EMA:
-      retValue = EMA_Lookback(optInTimePeriod);
-      break;
-    default:
-      retValue = 0;
-      break;
-  }
-  return retValue;
+    flags: line
