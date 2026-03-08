@@ -2,12 +2,13 @@ use std::collections::HashMap;
 
 use crate::ir::*;
 use crate::parser::enums::lookup_variant;
+use crate::registry::Registry;
 
-pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
+pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     out.push_str(&gen_header());
     out.push_str(&gen_imports());
-    out.push_str(&gen_impl_block(func, enums));
+    out.push_str(&gen_impl_block(func, enums, registry));
     out.push_str(&gen_footer());
     out
 }
@@ -62,7 +63,7 @@ fn gen_imports() -> String {
         .to_string()
 }
 
-fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
+fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     let snake = func.name.to_lowercase();
     let has_opt_inputs = !func.optional_inputs.is_empty();
@@ -76,25 +77,29 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>) -> String {
          impl Core {\n",
     );
 
-    out.push_str(&gen_lookback(func, &snake, enums));
+    out.push_str(&gen_lookback(func, &snake, enums, registry));
 
     if has_opt_inputs {
-        // Two-layer structure: public function + private int_ function
-        out.push_str(&gen_public_func(func, &snake, false));
-        out.push_str(&gen_internal_func(func, &snake, false, enums));
-        out.push_str(&gen_public_func(func, &snake, true));
-        out.push_str(&gen_internal_func(func, &snake, true, enums));
+        // Two-layer structure: public function + private logic function
+        out.push_str(&gen_public_func(func, &snake, false, registry));
+        out.push_str(&gen_internal_func(func, &snake, false, enums, registry));
+        out.push_str(&gen_public_func(func, &snake, true, registry));
+        out.push_str(&gen_internal_func(func, &snake, true, enums, registry));
     } else {
         // Simple flat function (no optional params)
-        out.push_str(&gen_func(func, &snake, false, enums));
-        out.push_str(&gen_func(func, &snake, true, enums));
+        out.push_str(&gen_func(func, &snake, false, enums, registry));
+        out.push_str(&gen_func(func, &snake, true, enums, registry));
     }
+
+    // Generate unsafe variants (double and single precision)
+    out.push_str(&gen_unsafe_func(func, &snake, false));
+    out.push_str(&gen_unsafe_func(func, &snake, true));
 
     out.push_str("}\n");
     out
 }
 
-fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -> String {
+fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     out.push_str(&format!(
         "    /// Lookback period for [`Core::{}`].\n",
@@ -147,7 +152,7 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums));
+                out.push_str(&render_lookback_code(stmts, enums, registry));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -166,7 +171,7 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -
                 out.push_str(&format!("        return {} - {};\n", param, offset));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums));
+                out.push_str(&render_lookback_code(stmts, enums, registry));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -179,13 +184,13 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>) -
 }
 
 /// Generate the public wrapper function (for functions with optional params).
-/// This validates params and delegates to int_<name>.
-fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+/// This validates params and delegates to <name>_logic.
+fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool, _registry: &Registry) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
     let func_name = format!("{}{}", snake, suffix);
     let input_type = if single_precision { "f32" } else { "f64" };
-    let int_func_name = format!("int_{}{}", snake, suffix);
+    let logic_func_name = format!("{}_logic{}", snake, suffix);
 
     // Doc comments
     if single_precision {
@@ -307,8 +312,8 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
         out.push_str(&gen_opt_param_validation(opt, "        ", false));
     }
 
-    // Delegate to internal function
-    out.push_str(&format!("        return self.{}(\n", int_func_name));
+    // Delegate to logic function
+    out.push_str(&format!("        return self.{}(\n", logic_func_name));
     out.push_str("            startIdx,\n");
     out.push_str("            endIdx,\n");
     for input in &func.inputs {
@@ -328,11 +333,11 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
     out
 }
 
-/// Generate the internal (private) function for functions with optional params.
-fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
+/// Generate the logic (private) function for functions with optional params.
+fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
-    let func_name = format!("int_{}{}", snake, suffix);
+    let func_name = format!("{}_logic{}", snake, suffix);
     let input_type = if single_precision { "f32" } else { "f64" };
 
     // Function signature (private)
@@ -433,7 +438,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums:
             out.push_str(&format!(
                 "        {} = {};\n",
                 name,
-                render_expr(init, single_precision)
+                render_expr(init, single_precision, registry)
             ));
         }
     }
@@ -443,7 +448,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums:
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums));
+        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums, registry));
     }
 
     out.push_str("        return RetCode::Success;\n");
@@ -453,7 +458,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums:
 }
 
 /// Generate a flat function (for functions without optional params, like MULT).
-fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>) -> String {
+fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     let suffix = if single_precision { "_s" } else { "" };
     let func_name = format!("{}{}", snake, suffix);
@@ -606,7 +611,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap
             out.push_str(&format!(
                 "        {} = {};\n",
                 name,
-                render_expr(init, single_precision)
+                render_expr(init, single_precision, registry)
             ));
         }
     }
@@ -619,11 +624,61 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums));
+        out.push_str(&render_statement(stmt, 8, single_precision, &for_loop_vars, &var_inits, &output_names, enums, registry));
     }
 
     out.push_str("        return RetCode::Success;\n");
     out.push_str("    }\n");
+
+    out
+}
+
+/// Generate an unsafe raw-pointer variant that wraps the logic/guarded function.
+/// Uses `*const f64` / `*mut f64` instead of slices for FFI compatibility.
+fn gen_unsafe_func(func: &FuncDef, snake: &str, single_precision: bool) -> String {
+    let mut out = String::new();
+    let suffix = if single_precision { "_s" } else { "" };
+    let func_name = format!("{}_unsafe{}", snake, suffix);
+    let input_type = if single_precision { "f32" } else { "f64" };
+    let delegate_name = format!("{}{}", snake, suffix);
+
+    out.push_str(&format!(
+        "    // TODO: unsafe variant — thin wrapper around {} with raw pointer API\n",
+        delegate_name
+    ));
+    out.push_str(&format!(
+        "    // pub unsafe fn {}(\n",
+        func_name
+    ));
+    out.push_str("    //     &self,\n");
+    out.push_str("    //     startIdx: usize,\n");
+    out.push_str("    //     endIdx: usize,\n");
+    for input in &func.inputs {
+        out.push_str(&format!(
+            "    //     {}: *const {},\n",
+            input.name, input_type
+        ));
+    }
+    for opt in &func.optional_inputs {
+        let rust_type = match opt.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
+        };
+        out.push_str(&format!("    //     {}: {},\n", opt.name, rust_type));
+    }
+    out.push_str("    //     outBegIdx: *mut usize,\n");
+    out.push_str("    //     outNBElement: *mut usize,\n");
+    for output in &func.outputs {
+        let rust_type = match output.param_type {
+            ParamType::Real => "f64",
+            ParamType::Integer | ParamType::Enum(_) => "i32",
+        };
+        out.push_str(&format!(
+            "    //     {}: *mut {},\n",
+            output.name, rust_type
+        ));
+    }
+    out.push_str("    // ) -> RetCode { ... }\n");
 
     out
 }
@@ -792,6 +847,7 @@ fn render_statement(
     var_inits: &std::collections::HashMap<String, &Expr>,
     output_names: &[String],
     enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -799,34 +855,34 @@ fn render_statement(
         Statement::Block { body: block_body } => {
             let mut out = String::new();
             for s in block_body {
-                out.push_str(&render_statement(s, indent, single_precision, for_loop_vars, var_inits, output_names, enums));
+                out.push_str(&render_statement(s, indent, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
             out
         }
         Statement::For { var, count, body: for_body } => {
             let mut out = format!(
                 "{}for {} in (1..={}).rev() {{\n",
-                pad, var, render_expr(count, single_precision)
+                pad, var, render_expr(count, single_precision, registry)
             );
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body: for_body } => {
-            let init_str = render_statement(init, 0, single_precision, for_loop_vars, var_inits, output_names, enums);
+            let init_str = render_statement(init, 0, single_precision, for_loop_vars, var_inits, output_names, enums, registry);
             let init_trimmed = init_str.trim().trim_end_matches(';');
-            let update_str = render_statement(update, 0, single_precision, for_loop_vars, var_inits, output_names, enums);
+            let update_str = render_statement(update, 0, single_precision, for_loop_vars, var_inits, output_names, enums, registry);
             let update_trimmed = update_str.trim().trim_end_matches(';');
             let mut out = format!(
                 "{}// for( {}; {}; {} )\n",
-                pad, init_trimmed, render_expr(condition, single_precision), update_trimmed
+                pad, init_trimmed, render_expr(condition, single_precision, registry), update_trimmed
             );
             out.push_str(&format!("{}{};\n", pad, init_trimmed));
-            out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, single_precision)));
+            out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, single_precision, registry)));
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
             out.push_str(&format!("{}    {};\n", pad, update_trimmed));
             out.push_str(&format!("{}}}\n", pad));
@@ -840,7 +896,7 @@ fn render_statement(
                         return format!(
                             "{}{};\n",
                             pad,
-                            render_func_call(fname, args, single_precision)
+                            render_func_call(fname, args, single_precision, registry)
                         );
                     }
                 }
@@ -859,21 +915,21 @@ fn render_statement(
                             };
                             if !op_str.is_empty() {
                                 let target_str =
-                                    render_assign_target(target, single_precision);
+                                    render_assign_target(target, single_precision, registry);
                                 return format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, single_precision)
+                                    render_expr(right, single_precision, registry)
                                 );
                             }
                         }
                     }
                 }
             }
-            let target_str = render_assign_target(target, single_precision);
-            let value_str = render_expr(value, single_precision);
+            let target_str = render_assign_target(target, single_precision, registry);
+            let value_str = render_expr(value, single_precision, registry);
             // Add `as f64` cast for output array assignments only when the value
             // contains uncast input array accesses (which may be f32 in single precision)
             let needs_cast = if let Expr::ArrayAccess(name, _) = target {
@@ -896,11 +952,11 @@ fn render_statement(
                 if let Expr::Var(iter_name) = left.as_ref() {
                     if for_loop_vars.contains(iter_name) {
                         let start_expr = if let Some(init) = var_inits.get(iter_name) {
-                            render_expr(init, single_precision)
+                            render_expr(init, single_precision, registry)
                         } else {
                             iter_name.clone()
                         };
-                        let end_expr = render_expr(right, single_precision);
+                        let end_expr = render_expr(right, single_precision, registry);
                         let mut out = format!(
                             "{}for {} in ({} as usize)..=({} as usize) {{\n",
                             pad, iter_name, start_expr, end_expr
@@ -915,6 +971,7 @@ fn render_statement(
                                 var_inits,
                                 output_names,
                                 enums,
+                                registry,
                             ));
                         }
                         out.push_str(&format!("{}}}\n", pad));
@@ -926,10 +983,10 @@ fn render_statement(
             let mut out = format!(
                 "{}while {} {{\n",
                 pad,
-                render_expr(condition, single_precision)
+                render_expr(condition, single_precision, registry)
             );
             for s in while_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
@@ -942,10 +999,10 @@ fn render_statement(
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
-                render_expr(condition, single_precision)
+                render_expr(condition, single_precision, registry)
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
@@ -955,7 +1012,7 @@ fn render_statement(
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
                         // Render as else if (strip leading pad since we already have "} else ")
-                        let if_str = render_statement(&else_body[0], indent, single_precision, for_loop_vars, var_inits, output_names, enums);
+                        let if_str = render_statement(&else_body[0], indent, single_precision, for_loop_vars, var_inits, output_names, enums, registry);
                         // Remove leading whitespace from the if statement
                         out.push_str(if_str.trim_start());
                         return out;
@@ -963,7 +1020,7 @@ fn render_statement(
                 }
                 out.push_str("{\n");
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums));
+                    out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -972,7 +1029,7 @@ fn render_statement(
         Statement::Return { value } => {
             match value {
                 Some(expr) => {
-                    let rendered = render_return_expr(expr, single_precision);
+                    let rendered = render_return_expr(expr, single_precision, registry);
                     format!("{}return {};\n", pad, rendered)
                 }
                 None => format!("{}return;\n", pad),
@@ -981,19 +1038,19 @@ fn render_statement(
         Statement::Break => format!("{}break;\n", pad),
         Statement::Continue => format!("{}continue;\n", pad),
         Statement::Switch { expr, cases, default } => {
-            let mut out = format!("{}match {} {{\n", pad, render_expr(expr, single_precision));
+            let mut out = format!("{}match {} {{\n", pad, render_expr(expr, single_precision, registry));
             for (label, case_body) in cases {
                 let rust_label = render_switch_label(label, enums);
                 out.push_str(&format!("{}    {} => {{\n", pad, rust_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums));
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
                 }
             if !default.is_empty() {
                 out.push_str(&format!("{}    _ => {{\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums));
+                    out.push_str(&render_statement(s, indent + 8, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
             }
@@ -1030,16 +1087,16 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
     }
 }
 
-fn render_assign_target(expr: &Expr, single_precision: bool) -> String {
+fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     match expr {
         Expr::Var(name) if name == "outBegIdx" || name == "outNBElement" => {
             format!("(*{})", name)
         }
         Expr::Var(name) => name.clone(),
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}]", name, render_expr(idx, single_precision))
+            format!("{}[{}]", name, render_expr(idx, single_precision, registry))
         }
-        _ => render_expr(expr, single_precision),
+        _ => render_expr(expr, single_precision, registry),
     }
 }
 
@@ -1063,38 +1120,39 @@ fn render_binop_operand(
     parent_op: &BinOp,
     is_left: bool,
     single_precision: bool,
+    registry: &Registry,
 ) -> String {
     match expr {
-        Expr::Cast(_, _) => format!("({})", render_expr(expr, single_precision)),
+        Expr::Cast(_, _) => format!("({})", render_expr(expr, single_precision, registry)),
         Expr::BinOp(_, child_op, _) => {
             let parent_prec = op_precedence(parent_op);
             let child_prec = op_precedence(child_op);
             // Need parens if child has lower precedence, or same precedence on right side
             if child_prec < parent_prec || (!is_left && child_prec == parent_prec) {
-                format!("({})", render_expr(expr, single_precision))
+                format!("({})", render_expr(expr, single_precision, registry))
             } else {
-                render_expr(expr, single_precision)
+                render_expr(expr, single_precision, registry)
             }
         }
-        _ => render_expr(expr, single_precision),
+        _ => render_expr(expr, single_precision, registry),
     }
 }
 
 /// Render a return expression, mapping known enum values to Rust constants.
-fn render_return_expr(expr: &Expr, single_precision: bool) -> String {
+fn render_return_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     if let Expr::Var(name) = expr {
         return match name.as_str() {
             "SUCCESS" => "RetCode::Success".to_string(),
             "BadParam" => "RetCode::BadParam".to_string(),
             "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex".to_string(),
             "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex".to_string(),
-            _ => render_expr(expr, single_precision),
+            _ => render_expr(expr, single_precision, registry),
         };
     }
-    render_expr(expr, single_precision)
+    render_expr(expr, single_precision, registry)
 }
 
-fn render_expr(expr: &Expr, single_precision: bool) -> String {
+fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> String {
     match expr {
         Expr::Literal(f) => {
             if *f == f.floor() && f.abs() < 1e15 {
@@ -1113,9 +1171,9 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}]", name, render_expr(idx, single_precision))
+            format!("{}[{}]", name, render_expr(idx, single_precision, registry))
         }
-        Expr::FuncCall(fname, args) => render_func_call(fname, args, single_precision),
+        Expr::FuncCall(fname, args) => render_func_call(fname, args, single_precision, registry),
         Expr::BinOp(left, op, right) => {
             let op_str = match op {
                 BinOp::Add => " + ",
@@ -1133,8 +1191,8 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 BinOp::Or => " || ",
             };
             // Wrap Cast subexpressions in parens for correct Rust `as` precedence
-            let left_str = render_binop_operand(left, op, true, single_precision);
-            let right_str = render_binop_operand(right, op, false, single_precision);
+            let left_str = render_binop_operand(left, op, true, single_precision, registry);
+            let right_str = render_binop_operand(right, op, false, single_precision, registry);
             format!(
                 "{}{}{}",
                 left_str,
@@ -1149,17 +1207,17 @@ fn render_expr(expr: &Expr, single_precision: bool) -> String {
                 VarType::Index => "usize",
                 VarType::RetCodeType => "RetCode",
             };
-            format!("({}) as {}", render_expr(inner, single_precision), rust_type)
+            format!("({}) as {}", render_expr(inner, single_precision, registry), rust_type)
         }
         Expr::Not(inner) => {
-            format!("!({})", render_expr(inner, single_precision))
+            format!("!({})", render_expr(inner, single_precision, registry))
         }
         Expr::PointerDeref(name) => format!("(*{})", name),
     }
 }
 
 /// Render a complex lookback body (LookbackExpr::Code) into Rust code.
-fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -> String {
+fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     let empty_for_loop_vars: Vec<String> = Vec::new();
     let empty_var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
@@ -1198,6 +1256,7 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>) -
             &empty_var_inits,
             &empty_output_names,
             enums,
+            registry,
         ));
     }
 
@@ -1216,7 +1275,7 @@ fn to_pascal_case(s: &str) -> String {
 }
 
 /// Render a FuncCall expression to Rust code.
-fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> String {
+fn render_func_call(fname: &str, args: &[Expr], single_precision: bool, registry: &Registry) -> String {
     if fname == "UNSTABLE_PERIOD" {
         // UNSTABLE_PERIOD(RSI) -> self.unstable_period[FuncUnstId::Rsi as usize]
         if let Some(Expr::Var(func_name)) = args.first() {
@@ -1230,7 +1289,7 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> ((-(0.00000000000001)) < x) && (x < (0.00000000000001))
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision);
+            let x = render_expr(arg, single_precision, registry);
             return format!(
                 "((-(0.00000000000001)) < {}) && ({} < (0.00000000000001))",
                 x, x
@@ -1240,11 +1299,11 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
     } else if fname == "ARRAY_COPY" {
         // ARRAY_COPY(dst, dstOff, src, srcOff, count)
         if args.len() == 5 {
-            let dst = render_expr(&args[0], single_precision);
-            let dst_off = render_expr(&args[1], single_precision);
-            let src = render_expr(&args[2], single_precision);
-            let src_off = render_expr(&args[3], single_precision);
-            let count = render_expr(&args[4], single_precision);
+            let dst = render_expr(&args[0], single_precision, registry);
+            let dst_off = render_expr(&args[1], single_precision, registry);
+            let src = render_expr(&args[2], single_precision, registry);
+            let src_off = render_expr(&args[3], single_precision, registry);
+            let count = render_expr(&args[4], single_precision, registry);
             if single_precision {
                 // f32 -> f64: element-wise loop
                 return format!(
@@ -1263,14 +1322,27 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
     } else if fname == "PER_TO_K" {
         // PER_TO_K(period) -> 2.0_f64 / ((period) as f64 + 1.0_f64)
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision);
+            let x = render_expr(arg, single_precision, registry);
             return format!("2.0_f64 / (({}) as f64 + 1.0_f64)", x);
         }
         "0.0_f64".to_string()
     } else if fname.ends_with("_Lookback") {
         // RSI_Lookback(args...) -> self.rsi_lookback(args...)
         let rust_name = fname.to_lowercase();
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
+        format!("self.{}({})", rust_name, rendered_args.join(", "))
+    } else if fname.ends_with("_lookback") {
+        // sma_lookback(args...) -> self.sma_lookback(args...)  (prefix-free names from C source)
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
+        format!("self.{}({})", fname, rendered_args.join(", "))
+    } else if fname.ends_with("_logic") {
+        // sma_logic(args...) -> self.sma_logic(args...) or self.sma_logic_s(args...) for single precision
+        let rust_name = if single_precision {
+            format!("{}_s", fname)
+        } else {
+            fname.to_string()
+        };
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if is_ta_function(fname) {
         // TA function call: SMA(...) -> self.sma(...) or self.sma_s(...) for single precision
@@ -1279,11 +1351,11 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool) -> Strin
         } else {
             fname.to_lowercase()
         };
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else {
         // Generic function call (math functions etc.)
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         format!("{}({})", fname, rendered_args.join(", "))
     }
 }

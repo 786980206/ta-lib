@@ -576,7 +576,7 @@ fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<Strin
             println!("  {} -> {}", func_def.name, path.display());
         }
         "rust" => {
-            let output = backends::rust_lang::generate(func_def, enums);
+            let output = backends::rust_lang::generate(func_def, enums, registry);
             let dir = out_base.join("rust");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));

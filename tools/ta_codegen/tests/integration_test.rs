@@ -81,7 +81,7 @@ fn test_mult_from_c_generates_all_backends() {
     let func = load_mult();
     let enums = no_enums();
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
     let swig_out = backends::swig::generate(&func, &enums);
@@ -221,7 +221,7 @@ fn test_c_backend_generates_mult() {
 #[test]
 fn test_rust_backend_generates_mult() {
     let func = load_mult();
-    let output = backends::rust_lang::generate(&func, &no_enums());
+    let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
     assert!(
         output.contains("mult_lookback") || output.contains("Lookback"),
         "Rust output missing lookback function"
@@ -244,10 +244,10 @@ fn test_rust_backend_generates_mult() {
 #[test]
 fn test_rust_sma_from_c_produces_valid_output() {
     let func = load_sma();
-    let output = backends::rust_lang::generate(&func, &no_enums());
+    let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
     assert!(output.contains("sma_lookback"), "Missing sma_lookback function");
-    assert!(output.contains("fn int_sma"), "Missing int_sma internal function");
+    assert!(output.contains("fn sma_logic"), "Missing sma_logic internal function");
     assert!(output.contains("RetCode::Success"), "Missing Success return");
     assert!(output.contains("optInTimePeriod"), "Missing optInTimePeriod");
     assert!(output.contains("periodTotal"), "Missing periodTotal variable");
@@ -340,7 +340,7 @@ fn test_sma_from_c_generates_all_backends() {
     let func = load_sma();
     let enums = no_enums();
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
     let swig_out = backends::swig::generate(&func, &enums);
@@ -403,7 +403,7 @@ fn test_sma_all_backends_generate() {
     let enums = no_enums();
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
     let swig_out = backends::swig::generate(&func, &enums);
@@ -430,7 +430,7 @@ fn test_all_backends_produce_nonempty_output() {
     let enums = no_enums();
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
     let java_out = backends::java::generate(&func, &enums);
     let dotnet_out = backends::dotnet::generate(&func, &enums);
     let swig_out = backends::swig::generate(&func, &enums);
@@ -462,7 +462,7 @@ fn test_wma_generates_all_backends() {
     assert!(func.flags.contains(&"overlap".to_string()));
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
     let java_out = backends::java::generate(&func, &enums);
 
     assert!(c_out.contains("TA_WMA_Lookback"), "C missing lookback");
@@ -481,7 +481,7 @@ fn test_rsi_generates_all_backends() {
     assert!(func.flags.contains(&"unstable_period".to_string()));
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
 
     assert!(c_out.contains("TA_RSI_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_GLOBALS_UNSTABLE_PERIOD"), "C missing UNSTABLE_PERIOD");
@@ -502,7 +502,7 @@ fn test_ema_generates_all_backends() {
     assert!(func.flags.contains(&"unstable_period".to_string()));
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
 
     assert!(c_out.contains("TA_EMA_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_GLOBALS_UNSTABLE_PERIOD"), "C missing UNSTABLE_PERIOD");
@@ -520,10 +520,47 @@ fn test_ma_generates_all_backends() {
     assert_eq!(func.optional_inputs.len(), 2);
 
     let c_out = backends::c::generate(&func, &enums, &make_registry());
-    let rust_out = backends::rust_lang::generate(&func, &enums);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &make_registry());
 
     assert!(c_out.contains("TA_MA_Lookback"), "C missing lookback");
     assert!(c_out.contains("TA_SMA_Lookback"), "C missing TA_SMA_Lookback call");
     assert!(c_out.contains("TA_EMA_Lookback"), "C missing TA_EMA_Lookback call");
     assert!(rust_out.contains("ma_lookback"), "Rust missing lookback");
+}
+
+// ---------------------------------------------------------------------------
+// Rust backend: verify _logic variant names (renamed from int_)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_rust_generates_logic_variant() {
+    let func = load_sma();
+    let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
+
+    // _logic variants (renamed from int_)
+    assert!(output.contains("fn sma_logic("), "Missing sma_logic function");
+    assert!(output.contains("fn sma_logic_s("), "Missing sma_logic_s function");
+
+    // Guarded functions should delegate to _logic
+    assert!(output.contains("self.sma_logic("), "Guarded fn should delegate to sma_logic");
+    assert!(output.contains("self.sma_logic_s("), "Guarded fn should delegate to sma_logic_s");
+
+    // Should NOT contain the old int_ naming
+    assert!(!output.contains("fn int_sma("), "Should not contain old int_sma naming");
+    assert!(!output.contains("fn int_sma_s("), "Should not contain old int_sma_s naming");
+
+    // Unsafe variant placeholder should be present
+    assert!(output.contains("sma_unsafe"), "Missing sma_unsafe placeholder");
+    assert!(output.contains("sma_unsafe_s"), "Missing sma_unsafe_s placeholder");
+}
+
+#[test]
+fn test_rust_mult_generates_logic_names() {
+    let func = load_mult();
+    let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
+
+    // MULT has no optional inputs, so no separate _logic function.
+    // But unsafe placeholders should still exist.
+    assert!(output.contains("mult_unsafe"), "Missing mult_unsafe placeholder");
+    assert!(output.contains("mult_unsafe_s"), "Missing mult_unsafe_s placeholder");
 }
