@@ -637,33 +637,22 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s
 }
 
-/// Generate a Python JSON-RPC server script that uses ctypes to call the
-/// generated C shared library (libta_codegen_funcs.dylib/.so).
-pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
+/// Generate a SWIG interface file (.i) that includes Python 3 typemaps
+/// and function declarations from the generated .swg files.
+/// This is compiled with `swig -python` + gcc to produce `_ta_lib.so`.
+pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
-    s.push_str("#!/usr/bin/env python3\n");
-    s.push_str("\"\"\"Auto-generated JSON-RPC server for ta_codegen Python output.\n");
-    s.push_str("Uses ctypes to call the generated C shared library.\n");
-    s.push_str("\"\"\"\n");
-    s.push_str("import sys\n");
-    s.push_str("import os\n");
-    s.push_str("import json\n");
-    s.push_str("import ctypes\n");
-    s.push_str("from ctypes import c_int, c_double, POINTER, byref\n\n");
+    s.push_str("%module ta_lib\n\n");
 
-    // Load the shared library
-    s.push_str("# Load the shared library from the same directory as this script\n");
-    s.push_str("script_dir = os.path.dirname(os.path.abspath(__file__))\n");
-    s.push_str("if sys.platform == 'darwin':\n");
-    s.push_str("    lib_name = 'libta_codegen_funcs.dylib'\n");
-    s.push_str("else:\n");
-    s.push_str("    lib_name = 'libta_codegen_funcs.so'\n");
-    s.push_str("lib = ctypes.CDLL(os.path.join(script_dir, lib_name))\n\n");
-
-    // Declare function signatures
+    // Inline C header block — type definitions needed by the generated C functions
+    s.push_str("%{\n");
+    s.push_str("#include \"ta_func.h\"\n");
+    s.push_str("#define TA_SUCCESS 0\n");
+    s.push_str("#define TA_INTEGER_DEFAULT (-2147483648)\n");
+    s.push_str("#define TA_REAL_DEFAULT (-4e+37)\n");
+    // Forward-declare all TA functions so the wrapper can call them
     for func in funcs {
-        let func_upper = &func.name;
         let real_inputs: Vec<&str> = func
             .inputs
             .iter()
@@ -671,20 +660,198 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             .map(|inp| inp.name.as_str())
             .collect();
 
-        // TA_XXX function
-        s.push_str(&format!("lib.TA_{}.restype = c_int\n", func_upper));
-        s.push_str(&format!("lib.TA_{}.argtypes = [\n", func_upper));
-        s.push_str("    c_int, c_int,  # startIdx, endIdx\n");
-        for _name in &real_inputs {
-            s.push_str("    POINTER(c_double),  # input array\n");
+        s.push_str(&format!("extern TA_RetCode TA_{}(int, int", func.name));
+        for _ in &real_inputs {
+            s.push_str(", const double*");
         }
-        for _opt in &func.optional_inputs {
-            s.push_str("    c_int,  # optional param\n");
+        for _ in &func.optional_inputs {
+            s.push_str(", int");
         }
-        s.push_str("    POINTER(c_int), POINTER(c_int),  # outBegIdx, outNBElement\n");
-        s.push_str("    POINTER(c_double),  # outReal\n");
-        s.push_str("]\n\n");
+        s.push_str(", int*, int*, double*);\n");
+
+        // Lookback
+        s.push_str(&format!("extern int TA_{}_Lookback(", func.name));
+        let opt_params: Vec<String> = func.optional_inputs.iter().map(|_| "int".to_string()).collect();
+        s.push_str(&opt_params.join(", "));
+        if opt_params.is_empty() {
+            s.push_str("void");
+        }
+        s.push_str(");\n");
     }
+    s.push_str("%}\n\n");
+
+    // Constants visible to Python
+    s.push_str("#define TA_SUCCESS 0\n\n");
+
+    // ---- Python 3 typemaps (adapted from ta_libc.python.swg) ----
+    s.push_str(&generate_swig_python3_typemaps());
+
+    // ---- Function declarations from generated .swg files ----
+    // These use the special parameter names (START_IDX, IN_ARRAY, etc.)
+    // that the typemaps above match on.
+    for func in funcs {
+        s.push_str(&format!(
+            "\n/* TA_{} */\n",
+            func.name
+        ));
+
+        // Include the generated .swg file
+        s.push_str(&format!("%include \"ta_{}.swg\"\n", func.name));
+    }
+
+    s
+}
+
+fn generate_swig_python3_typemaps() -> String {
+    // Python 3 typemaps for SWIG, adapted from the existing ta_libc.python.swg
+    r#"/* ---- Python 3 typemaps for TA-Lib functions ---- */
+
+%{
+static int convert_darray(PyObject *input, double *ptr, int size) {
+    int i, len;
+    if (!PySequence_Check(input)) {
+        PyErr_SetString(PyExc_TypeError, "Expecting a sequence");
+        return 0;
+    }
+    len = (int)PyObject_Length(input);
+    if (len > size) len = size;
+    for (i = 0; i < len; i++) {
+        PyObject *o = PySequence_GetItem(input, i);
+        if (PyFloat_Check(o)) {
+            ptr[i] = PyFloat_AsDouble(o);
+        } else if (PyLong_Check(o)) {
+            ptr[i] = (double)PyLong_AsLong(o);
+        } else {
+            PyErr_SetString(PyExc_ValueError, "Expecting a sequence of numbers");
+            Py_DECREF(o);
+            return 0;
+        }
+        Py_DECREF(o);
+    }
+    return 1;
+}
+%}
+
+/* TA_RetCode: return None on success, raise exception on failure */
+%typemap(out) TA_RetCode {
+    if ($1 != TA_SUCCESS) {
+        char text[200];
+        snprintf(text, sizeof(text)-1, "TA function failed with code %d", $1);
+        PyErr_SetString(PyExc_RuntimeError, text);
+        SWIG_fail;
+    }
+    Py_INCREF(Py_None);
+    $result = Py_None;
+}
+
+/* START_IDX and END_IDX */
+%typemap(in) int START_IDX (int startIdx) {
+    $1 = (int)PyLong_AsLong($input);
+    if ($1 < 0) $1 = 0;
+    startIdx = $1;
+}
+
+%typemap(in) int END_IDX (int endIdx) {
+    $1 = (int)PyLong_AsLong($input);
+    if ($1 < startIdx1) $1 = startIdx1;
+    endIdx = $1;
+}
+
+/* Input arrays */
+%typemap(in) const double *IN_ARRAY {
+    int array_size = endIdx2 + 1;
+    $1 = ($1_ltype) calloc(array_size, sizeof($*1_ltype));
+    if (!convert_darray($input, $1, array_size)) goto fail;
+}
+
+%typemap(freearg) const double *IN_ARRAY
+    "free($1);";
+
+/* Optional integer params */
+%typemap(default) int OPT_INT
+    "$1 = TA_INTEGER_DEFAULT;"
+
+%typemap(in) int OPT_INT {
+    if (PyLong_Check($input)) {
+        $1 = ($1_ltype)PyLong_AsLong($input);
+    }
+}
+
+/* outBegIdx */
+%typemap(in,numinputs=0) int *BEG_IDX(int temp = 0)
+    "$1 = &temp;";
+
+%typemap(argout) int *BEG_IDX {
+    if (result == TA_SUCCESS) {
+        PyObject *o = PyLong_FromLong((long)(*$1));
+        $result = SWIG_Python_AppendOutput($result, o, 0);
+    }
+}
+
+/* outNBElement */
+%typemap(arginit) int *OUT_SIZE
+    "int outNbElement = 0;";
+
+%typemap(in,numinputs=0) int *OUT_SIZE
+    "$1 = &outNbElement;";
+
+/* Output arrays */
+%typemap(in,numinputs=0) double *OUT_ARRAY, int *OUT_ARRAY
+    "/* $1 ignored on input */";
+
+%typemap(check) double *OUT_ARRAY, int *OUT_ARRAY {
+    int array_size = endIdx2 - startIdx1 + 1;
+    $1 = ($1_ltype) calloc(array_size, sizeof($*1_ltype));
+}
+
+%typemap(argout) double *OUT_ARRAY {
+    if (result == TA_SUCCESS) {
+        int idx;
+        PyObject *list = PyList_New(outNbElement);
+        for (idx = 0; idx < outNbElement; idx++) {
+            PyObject *o = PyFloat_FromDouble($1[idx]);
+            PyList_SET_ITEM(list, idx, o);
+        }
+        $result = SWIG_Python_AppendOutput($result, list, 0);
+    }
+}
+
+%typemap(argout) int *OUT_ARRAY {
+    if (result == TA_SUCCESS) {
+        int idx;
+        PyObject *list = PyList_New(outNbElement);
+        for (idx = 0; idx < outNbElement; idx++) {
+            PyObject *o = PyLong_FromLong($1[idx]);
+            PyList_SET_ITEM(list, idx, o);
+        }
+        $result = SWIG_Python_AppendOutput($result, list, 0);
+    }
+}
+
+%typemap(freearg) double *OUT_ARRAY, int *OUT_ARRAY
+    "free($1);";
+
+"#
+    .to_string()
+}
+
+/// Generate a Python JSON-RPC server script that uses the SWIG-generated
+/// `ta_lib` module to call TA functions.
+pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
+    let mut s = String::new();
+
+    s.push_str("#!/usr/bin/env python3\n");
+    s.push_str("\"\"\"Auto-generated JSON-RPC server for ta_codegen SWIG/Python output.\n");
+    s.push_str("Uses the SWIG-generated ta_lib module to call TA functions.\n");
+    s.push_str("\"\"\"\n");
+    s.push_str("import sys\n");
+    s.push_str("import os\n");
+    s.push_str("import json\n\n");
+
+    // Add script directory to Python path so ta_lib module is found
+    s.push_str("# Add script directory to path for SWIG module import\n");
+    s.push_str("sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))\n");
+    s.push_str("import ta_lib\n\n");
 
     // Dispatch
     s.push_str("def handle_request(req):\n");
@@ -701,7 +868,7 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
     s.push_str("    return {'error': f'Unknown method: {method}'}\n\n");
 
-    // Per-function handlers using ctypes
+    // Per-function handlers
     for func in funcs {
         let func_lower = func.name.to_lowercase();
         let func_upper = &func.name;
@@ -709,7 +876,6 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         s.push_str(&format!("def handle_{}(params):\n", func_lower));
         s.push_str("    start_idx = params.get('startIdx', 0)\n");
         s.push_str("    end_idx = params.get('endIdx', 0)\n");
-        s.push_str("    n = end_idx - start_idx + 1\n\n");
 
         // Input arrays
         let real_inputs: Vec<&str> = func
@@ -721,10 +887,8 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
         for name in &real_inputs {
             s.push_str(&format!(
-                "    {name}_list = params.get('{name}', [])\n"
-            ));
-            s.push_str(&format!(
-                "    {name} = (c_double * len({name}_list))(*{name}_list)\n"
+                "    {} = [float(x) for x in params.get('{}', [])]\n",
+                name, name
             ));
         }
 
@@ -737,28 +901,30 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Output variables
-        s.push_str("    out_beg = c_int(0)\n");
-        s.push_str("    out_nb = c_int(0)\n");
-        s.push_str("    out_real = (c_double * n)()\n\n");
-
-        // Call via ctypes
-        s.push_str(&format!("    rc = lib.TA_{}(\n", func_upper));
-        s.push_str("        start_idx, end_idx,\n");
+        // Call via SWIG module — returns (outBegIdx, outReal) on success
+        s.push_str("    try:\n");
+        s.push_str(&format!("        result = ta_lib.TA_{}(\n", func_upper));
+        s.push_str("            start_idx, end_idx,\n");
         for name in &real_inputs {
-            s.push_str(&format!("        {},\n", name));
+            s.push_str(&format!("            {},\n", name));
         }
         for opt in &func.optional_inputs {
-            s.push_str(&format!("        {},\n", opt.name));
+            s.push_str(&format!("            {},\n", opt.name));
         }
-        s.push_str("        byref(out_beg), byref(out_nb), out_real,\n");
-        s.push_str("    )\n");
-        s.push_str("    return {\n");
-        s.push_str("        'retCode': rc,\n");
-        s.push_str("        'outBegIdx': out_beg.value,\n");
-        s.push_str("        'outNBElement': out_nb.value,\n");
-        s.push_str("        'outReal': list(out_real[:out_nb.value]),\n");
-        s.push_str("    }\n\n");
+        s.push_str("        )\n");
+
+        // SWIG returns [None, outBegIdx, outReal_list] on TA_SUCCESS
+        // result[0] is None (retCode mapped away), [1] is outBegIdx, [2] is outReal
+        s.push_str("        out_beg = result[1]\n");
+        s.push_str("        out_real = list(result[2])\n");
+        s.push_str("        return {\n");
+        s.push_str("            'retCode': 0,\n");
+        s.push_str("            'outBegIdx': out_beg,\n");
+        s.push_str("            'outNBElement': len(out_real),\n");
+        s.push_str("            'outReal': out_real,\n");
+        s.push_str("        }\n");
+        s.push_str("    except RuntimeError as e:\n");
+        s.push_str("        return {'error': str(e)}\n\n");
     }
 
     // Main loop

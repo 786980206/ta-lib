@@ -213,9 +213,17 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  .NET server -> {}", path.display());
             }
             "swig" => {
-                let output = server_gen::generate_swig_server(&funcs);
                 let dir = out_base.join("swig");
                 std::fs::create_dir_all(&dir).unwrap();
+
+                // Generate the SWIG interface file (.i)
+                let iface = server_gen::generate_swig_interface(&funcs);
+                let iface_path = dir.join("ta_codegen.i");
+                std::fs::write(&iface_path, &iface).unwrap();
+                println!("  SWIG interface -> {}", iface_path.display());
+
+                // Generate the Python JSON-RPC server script
+                let output = server_gen::generate_swig_server(&funcs);
                 let path = dir.join("ta_codegen_serve.py");
                 std::fs::write(&path, &output).unwrap();
                 println!("  SWIG/Python server -> {}", path.display());
@@ -331,16 +339,120 @@ fn build_servers(backend_filter: Option<&str>) {
                 }
             }
             "swig" => {
-                // Build shared library from generated C files (needed by Python ctypes)
-                build_shared_lib(out_base, bin_dir);
+                let swig_dir = out_base.join("swig");
+                let c_dir = out_base.join("c");
 
-                print!("  Copying Python server... ");
-                let src = out_base.join("swig/ta_codegen_serve.py");
-                let dst = bin_dir.join("ta_codegen_serve.py");
-                match std::fs::copy(&src, &dst) {
-                    Ok(_) => println!("OK"),
-                    Err(e) => println!("FAILED ({})", e),
+                // Step 1: Run swig to generate wrapper C code + ta_lib.py
+                print!("  Running swig... ");
+                match std::process::Command::new("swig")
+                    .args([
+                        "-python",
+                        "-o", swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
+                        "-outdir", swig_dir.to_str().unwrap(),
+                        swig_dir.join("ta_codegen.i").to_str().unwrap(),
+                    ])
+                    .status()
+                {
+                    Ok(s) if s.success() => println!("OK"),
+                    Ok(s) => {
+                        println!("FAILED (exit {})", s.code().unwrap_or(-1));
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("FAILED (swig not found: {})", e);
+                        continue;
+                    }
                 }
+
+                // Step 2: Compile wrapper + generated C functions into _ta_lib.so
+                print!("  Compiling SWIG module... ");
+                let python_include = std::process::Command::new("python3")
+                    .args(["-c", "import sysconfig; print(sysconfig.get_path('include'))"])
+                    .output()
+                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                    .unwrap_or_default();
+
+                let ext_suffix = std::process::Command::new("python3")
+                    .args(["-c", "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"])
+                    .output()
+                    .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
+                    .unwrap_or_else(|_| ".so".to_string());
+
+                // Build a unity source that includes the wrapper + all C functions
+                let mut unity = String::new();
+                unity.push_str("#include \"ta_func.h\"\n");
+                let mut c_names: Vec<String> = Vec::new();
+                if let Ok(entries) = std::fs::read_dir(&c_dir) {
+                    let mut sorted: Vec<_> = entries.filter_map(|e| e.ok()).collect();
+                    sorted.sort_by_key(|e| e.file_name());
+                    for entry in sorted {
+                        let name = entry.file_name().to_string_lossy().to_string();
+                        if name.starts_with("ta_") && name.ends_with(".c")
+                            && name != "ta_codegen_serve.c"
+                            && name != "ta_codegen_funcs.c"
+                        {
+                            c_names.push(name);
+                        }
+                    }
+                }
+                c_names.sort();
+                if let Some(pos) = c_names.iter().position(|n| n == "ta_MA.c") {
+                    let ma = c_names.remove(pos);
+                    c_names.push(ma);
+                }
+                for name in &c_names {
+                    unity.push_str(&format!("#include \"{}\"\n", name));
+                }
+                let swig_unity_path = swig_dir.join("ta_funcs_unity.c");
+                std::fs::write(&swig_unity_path, &unity).unwrap();
+
+                let so_name = format!("_ta_lib{}", ext_suffix);
+                let so_path = bin_dir.join(&so_name);
+
+                let shared_flag = if cfg!(target_os = "macos") {
+                    "-dynamiclib"
+                } else {
+                    "-shared"
+                };
+
+                match std::process::Command::new("gcc")
+                    .args([
+                        shared_flag,
+                        "-fPIC",
+                        "-o", so_path.to_str().unwrap(),
+                        swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
+                        swig_unity_path.to_str().unwrap(),
+                        &format!("-I{}", python_include),
+                        &format!("-I{}", c_dir.to_str().unwrap()),
+                        &format!("-I{}", swig_dir.to_str().unwrap()),
+                        "-lm", "-O2",
+                        "-Wno-parentheses-equality",
+                        "-Wno-unused-function",
+                        "-undefined", "dynamic_lookup",
+                    ])
+                    .status()
+                {
+                    Ok(s) if s.success() => println!("OK"),
+                    Ok(s) => {
+                        println!("FAILED (exit {})", s.code().unwrap_or(-1));
+                        continue;
+                    }
+                    Err(e) => {
+                        println!("FAILED (gcc not found: {})", e);
+                        continue;
+                    }
+                }
+
+                // Step 3: Copy ta_lib.py (SWIG-generated module) and server script to bin/
+                let swig_py = swig_dir.join("ta_lib.py");
+                if swig_py.exists() {
+                    std::fs::copy(&swig_py, bin_dir.join("ta_lib.py")).ok();
+                }
+                std::fs::copy(
+                    swig_dir.join("ta_codegen_serve.py"),
+                    bin_dir.join("ta_codegen_serve.py"),
+                ).ok();
+                println!("  SWIG/Python server installed");
             }
             "rust" => {
                 println!("  Rust server: built-in (ta_codegen serve)");
