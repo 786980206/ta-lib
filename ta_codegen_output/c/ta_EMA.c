@@ -37,9 +37,7 @@
 
 TA_LIB_API int TA_EMA_Lookback( int optInTimePeriod )
 {
-   int retValue;
-   retValue = ((optInTimePeriod-1)+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_EMA,Ema));
-   return retValue;
+   return ((optInTimePeriod-1)+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_EMA,Ema));
 }
 
 TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
@@ -70,18 +68,18 @@ TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
-      *outBegIdx = 0;
-      *outNBElement = 0;
+      *outBegIdx= 0;
+      *outNBElement= 0;
       return TA_SUCCESS;
    }
    optInK_1 = (2.0 / ((double)(optInTimePeriod) + 1.0));
-   *outBegIdx = startIdx;
+   *outBegIdx= startIdx;
    if( (TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)) )
    {
       today = (startIdx-lookbackTotal);
       i = optInTimePeriod;
       tempReal = 0;
-      for( i = optInTimePeriod; i > 0; i-- )
+      for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempReal += ((double)inReal[today]);
          today = (today+1);
@@ -106,7 +104,8 @@ TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
       outReal[outIdx] = prevMA;
       outIdx = (outIdx+1);
    }
-   *outNBElement = outIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }
@@ -139,18 +138,18 @@ TA_RetCode TA_S_EMA( int    startIdx,
    }
    if( (startIdx>endIdx) )
    {
-      *outBegIdx = 0;
-      *outNBElement = 0;
+      *outBegIdx= 0;
+      *outNBElement= 0;
       return TA_SUCCESS;
    }
    optInK_1 = (2.0 / ((double)(optInTimePeriod) + 1.0));
-   *outBegIdx = startIdx;
+   *outBegIdx= startIdx;
    if( (TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)) )
    {
       today = (startIdx-lookbackTotal);
       i = optInTimePeriod;
       tempReal = 0;
-      for( i = optInTimePeriod; i > 0; i-- )
+      for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempReal += ((double)inReal[today]);
          today = (today+1);
@@ -175,7 +174,8 @@ TA_RetCode TA_S_EMA( int    startIdx,
       outReal[outIdx] = prevMA;
       outIdx = (outIdx+1);
    }
-   *outNBElement = outIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
 
    return TA_SUCCESS;
 }

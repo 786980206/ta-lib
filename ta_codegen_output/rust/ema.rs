@@ -59,9 +59,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return -1;
         }
-        let retValue: i32;
-        retValue = optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize];
-        return retValue;
+        return optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize];
     }
     /// Exponential Moving Average
     ///
@@ -164,13 +162,16 @@ impl Core {
         }
         optInK_1 = 2.0_f64 / ((optInTimePeriod) as f64 + 1.0_f64);
         (*outBegIdx) = startIdx;
-        if (self.compatibility) == Compatibility::Default {
+        if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
             i = optInTimePeriod;
             tempReal = 0.0;
-            for i in (1..=optInTimePeriod).rev() {
+            // for( i = optInTimePeriod; i > 0; i -= 1 )
+            i = optInTimePeriod;
+            while i > 0 {
                 tempReal += (inReal[today]) as f64;
                 today = today + 1;
+                i -= 1;
             }
             prevMA = tempReal / ((optInTimePeriod) as f64);
         } else {
@@ -190,6 +191,7 @@ impl Core {
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
     /// Single-precision variant of [`Core::ema`].
@@ -249,13 +251,16 @@ impl Core {
         }
         optInK_1 = 2.0_f64 / ((optInTimePeriod) as f64 + 1.0_f64);
         (*outBegIdx) = startIdx;
-        if (self.compatibility) == Compatibility::Default {
+        if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
             i = optInTimePeriod;
             tempReal = 0.0;
-            for i in (1..=optInTimePeriod).rev() {
+            // for( i = optInTimePeriod; i > 0; i -= 1 )
+            i = optInTimePeriod;
+            while i > 0 {
                 tempReal += (inReal[today]) as f64;
                 today = today + 1;
+                i -= 1;
             }
             prevMA = tempReal / ((optInTimePeriod) as f64);
         } else {
@@ -275,6 +280,7 @@ impl Core {
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;
+        return RetCode::Success;
         return RetCode::Success;
     }
 }

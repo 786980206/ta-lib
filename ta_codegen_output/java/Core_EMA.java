@@ -1,9 +1,7 @@
 /* Generated */
    public int emaLookback( int optInTimePeriod )
    {
-      int retValue;
-      retValue = ((optInTimePeriod-1)+this.unstablePeriod[FuncUnstId.Ema.ordinal()]);
-      return retValue ;
+      return ((optInTimePeriod-1)+this.unstablePeriod[FuncUnstId.Ema.ordinal()]) ;
 
    }
    public RetCode ema( int startIdx,
@@ -42,7 +40,7 @@
          today = (startIdx-lookbackTotal);
          i = optInTimePeriod;
          tempReal = 0;
-         for( i = optInTimePeriod; i > 0; i-- ) {
+         for( i = optInTimePeriod; (i>0); i -= 1 ) {
             tempReal += ((double)inReal[today]);
             today = (today+1);
          }
@@ -64,6 +62,7 @@
          outIdx = (outIdx+1);
       }
       outNBElement.value = outIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }
    public RetCode ema( int startIdx,
@@ -102,7 +101,7 @@
          today = (startIdx-lookbackTotal);
          i = optInTimePeriod;
          tempReal = 0;
-         for( i = optInTimePeriod; i > 0; i-- ) {
+         for( i = optInTimePeriod; (i>0); i -= 1 ) {
             tempReal += ((double)inReal[today]);
             today = (today+1);
          }
@@ -124,5 +123,6 @@
          outIdx = (outIdx+1);
       }
       outNBElement.value = outIdx;
+      return RetCode.Success ;
       return RetCode.Success ;
    }

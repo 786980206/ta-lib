@@ -17,5 +17,5 @@ TA_RetCode TA_EMA( int           START_IDX,
                    int          *OUT_SIZE,
                    double       *OUT_ARRAY /* outReal */ );
 
-int TA_EMA_Lookback( int           optInTimePeriod );  /* From 2 to 100000 */
+int TA_EMA_Lookback( int           optInTimePeriod  /* From 2 to 100000 */ );
 
