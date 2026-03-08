@@ -6,9 +6,18 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-03-08 -- Generic enum type support in ta_codegen
+
+`git diff d5c67b85^..d5c67b85` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/92a3d581...d5c67b85)
+
+* [d5c67b85](https://github.com/TA-Lib/ta-lib/commit/d5c67b85) Generic enum type support — `enums.yaml` defines enum variants, `ParamType::Enum(String)` in IR, `lookup_variant()` replaces hardcoded switch label tables in all 5 backends
+* [d5c67b85](https://github.com/TA-Lib/ta-lib/commit/d5c67b85) MA source uses named case labels (`MAType_SMA`), YAML uses `type: enum:MAType`
+* [d5c67b85](https://github.com/TA-Lib/ta-lib/commit/d5c67b85) Generated output: C → `TA_MAType` + `ENUM_CASE()`, Java → `MAType` enum, Rust → `i32`
+* Adding new enum types requires only `enums.yaml` entries — zero backend code changes
+
 ## 2026-03-08 -- Multi-language codegen regression testing (5 languages × 3 functions)
 
-`git diff f5df7080^..8ed91f59` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/4404a8e4...8ed91f59)
+`git diff f5df7080^..92a3d581` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/4404a8e4...92a3d581)
 
 * [f5df7080](https://github.com/TA-Lib/ta-lib/commit/f5df7080) Added error codes for codegen verification (TA_CODEGEN_*)
 * [bc58114c](https://github.com/TA-Lib/ta-lib/commit/bc58114c) Implemented codegen subprocess pipe management (fork/exec/pipe in codegen_pipe.c)
@@ -31,6 +40,7 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 * [65b3e7e0](https://github.com/TA-Lib/ta-lib/commit/65b3e7e0) RUST_CHANGELOG entries for C parser migration and multi-language regtest
 * [61deee36](https://github.com/TA-Lib/ta-lib/commit/61deee36) Fixed RUST_CHANGELOG commit hashes after rebase
 * [8ed91f59](https://github.com/TA-Lib/ta-lib/commit/8ed91f59) Unstable period support in all 5 JSON-RPC servers — RSI now tested with full doRangeTest (0-240+ unstable periods)
+* [92a3d581](https://github.com/TA-Lib/ta-lib/commit/92a3d581) Updated RUST_CHANGELOG with unstable period support entry
 * All 5 languages (Rust, C, Java, .NET, SWIG/Python) pass all 3 functions (MULT, SMA, RSI) through doRangeTest including unstable period verification
 
 ## 2026-03-08 -- ta_codegen: migrate from .logic files to C source parser
