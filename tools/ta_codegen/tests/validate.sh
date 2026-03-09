@@ -32,72 +32,45 @@ fi
 
 echo ""
 echo "=== Checking generated files exist and are non-empty ==="
-for f in \
-    "../../ta_codegen_output/c/ta_MULT.c" \
-    "../../ta_codegen_output/rust/mult.rs" \
-    "../../ta_codegen_output/java/Core_MULT.java" \
-    "../../ta_codegen_output/dotnet/Core_MULT.h" \
-    "../../ta_codegen_output/swig/ta_MULT.swg" \
-    "../../ta_codegen_output/c/ta_SMA.c" \
-    "../../ta_codegen_output/rust/sma.rs" \
-    "../../ta_codegen_output/java/Core_SMA.java" \
-    "../../ta_codegen_output/dotnet/Core_SMA.h" \
-    "../../ta_codegen_output/swig/ta_SMA.swg" \
-    "../../ta_codegen_output/c/ta_RSI.c" \
-    "../../ta_codegen_output/rust/rsi.rs" \
-    "../../ta_codegen_output/java/Core_RSI.java" \
-    "../../ta_codegen_output/dotnet/Core_RSI.h" \
-    "../../ta_codegen_output/swig/ta_RSI.swg" \
-    "../../ta_codegen_output/c/ta_EMA.c" \
-    "../../ta_codegen_output/rust/ema.rs" \
-    "../../ta_codegen_output/java/Core_EMA.java" \
-    "../../ta_codegen_output/dotnet/Core_EMA.h" \
-    "../../ta_codegen_output/swig/ta_EMA.swg" \
-    "../../ta_codegen_output/c/ta_MA.c" \
-    "../../ta_codegen_output/rust/ma.rs" \
-    "../../ta_codegen_output/java/Core_MA.java" \
-    "../../ta_codegen_output/dotnet/Core_MA.h" \
-    "../../ta_codegen_output/swig/ta_MA.swg" \
-    "../../ta_codegen_output/c/ta_WMA.c" \
-    "../../ta_codegen_output/rust/wma.rs" \
-    "../../ta_codegen_output/java/Core_WMA.java" \
-    "../../ta_codegen_output/dotnet/Core_WMA.h" \
-    "../../ta_codegen_output/swig/ta_WMA.swg"; do
-    if [ -s "$f" ]; then
-        pass "Generated file exists: $(basename "$f")"
-    else
-        fail "Missing or empty: $f"
-    fi
+# Auto-discover indicators from ta_func_defs/ directories
+for dir in ../../ta_func_defs/*/; do
+    name=$(basename "$dir")
+    # Skip if not a valid indicator (must have both .yaml and .c)
+    [ -f "$dir/${name}.yaml" ] && [ -f "$dir/${name}.c" ] || continue
+
+    UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+    for f in \
+        "../../ta_codegen_output/c/ta_${UPPER}.c" \
+        "../../ta_codegen_output/rust/${name}.rs" \
+        "../../ta_codegen_output/java/Core_${UPPER}.java" \
+        "../../ta_codegen_output/dotnet/Core_${UPPER}.h" \
+        "../../ta_codegen_output/swig/ta_${UPPER}.swg"; do
+        if [ -s "$f" ]; then
+            pass "Generated file exists: $(basename "$f")"
+        else
+            fail "Missing or empty: $f"
+        fi
+    done
 done
 
 echo ""
 echo "=== Checking generated C files contain all function variants ==="
+# Auto-discover and check C variants for all indicators
+for dir in ../../ta_func_defs/*/; do
+    name=$(basename "$dir")
+    [ -f "$dir/${name}.yaml" ] && [ -f "$dir/${name}.c" ] || continue
 
-# Check SMA variants
-for variant in "TA_SMA_Logic" "TA_INT_SMA" "TA_SMA_Lookback" "TA_SMA"; do
-    if grep -q "$variant" "../../ta_codegen_output/c/ta_SMA.c"; then
-        pass "ta_SMA.c contains $variant"
-    else
-        fail "ta_SMA.c missing $variant"
-    fi
-done
+    UPPER=$(echo "$name" | tr '[:lower:]' '[:upper:]')
+    c_file="../../ta_codegen_output/c/ta_${UPPER}.c"
+    [ -s "$c_file" ] || continue
 
-# Check EMA variants
-for variant in "TA_EMA_Logic" "TA_INT_EMA" "TA_EMA_Lookback" "TA_EMA"; do
-    if grep -q "$variant" "../../ta_codegen_output/c/ta_EMA.c"; then
-        pass "ta_EMA.c contains $variant"
-    else
-        fail "ta_EMA.c missing $variant"
-    fi
-done
-
-# Check WMA variants
-for variant in "TA_WMA_Logic" "TA_INT_WMA" "TA_WMA_Lookback" "TA_WMA"; do
-    if grep -q "$variant" "../../ta_codegen_output/c/ta_WMA.c"; then
-        pass "ta_WMA.c contains $variant"
-    else
-        fail "ta_WMA.c missing $variant"
-    fi
+    for variant in "TA_${UPPER}_Logic" "TA_INT_${UPPER}" "TA_${UPPER}_Lookback" "TA_${UPPER}"; do
+        if grep -q "$variant" "$c_file"; then
+            pass "ta_${UPPER}.c contains $variant"
+        else
+            fail "ta_${UPPER}.c missing $variant"
+        fi
+    done
 done
 
 echo ""

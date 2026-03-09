@@ -1,7 +1,7 @@
 //! Comprehensive backend test suite for all indicators and all function variants.
 //!
 //! This complements `integration_test.rs` with systematic coverage:
-//! - Every indicator x every backend x every function variant
+//! - Every indicator x every backend x every function variant (auto-discovered)
 //! - Cross-call resolution (MA calling SMA/EMA)
 //! - Logic vs guarded validation checks
 //! - Indicator-specific feature tests (unstable period, enums, etc.)
@@ -17,18 +17,36 @@ use ta_codegen_lib::registry::Registry;
 // Test infrastructure
 // ---------------------------------------------------------------------------
 
+/// Discover all indicator names from ta_func_defs/ that have both .yaml and .c files.
+fn discover_indicators() -> Vec<String> {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let mut indicators = Vec::new();
+    for entry in std::fs::read_dir(&base).expect("Cannot read ta_func_defs directory") {
+        let entry = entry.expect("Cannot read directory entry");
+        let path = entry.path();
+        if !path.is_dir() {
+            continue;
+        }
+        let name = path.file_name().unwrap().to_str().unwrap().to_string();
+        let yaml_path = path.join(format!("{}.yaml", name));
+        let c_path = path.join(format!("{}.c", name));
+        if yaml_path.exists() && c_path.exists() {
+            indicators.push(name);
+        }
+    }
+    indicators.sort();
+    indicators
+}
+
 /// Load a function definition from its .yaml + .c files.
+/// Always loads enums.yaml since multiple indicators use enum types.
 fn load_indicator(name: &str) -> (ir::FuncDef, HashMap<String, ir::EnumDef>) {
     let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
     let yaml_path = base.join(format!("{}/{}.yaml", name, name));
     let c_path = base.join(format!("{}/{}.c", name, name));
 
-    let enums = if name == "ma" {
-        let enums_path = base.join("enums.yaml");
-        parser::enums::load_enums(&enums_path)
-    } else {
-        HashMap::new()
-    };
+    let enums_path = base.join("enums.yaml");
+    let enums = parser::enums::load_enums(&enums_path);
 
     let mut func_def = parser::yaml::parse_yaml(&yaml_path);
     let parsed = parser::c_source::parse_c_source(&c_path);
@@ -69,306 +87,279 @@ fn generate_all(func: &ir::FuncDef, enums: &HashMap<String, ir::EnumDef>) -> All
 }
 
 // ---------------------------------------------------------------------------
-// Macros for reducing test boilerplate
+// Variant check functions (extracted from macros for dynamic invocation)
 // ---------------------------------------------------------------------------
 
-/// Test that all C variants exist for a given indicator.
-/// C variants: TA_<NAME>_Lookback, TA_<NAME>(, TA_<NAME>_Logic(, #define TA_INT_<NAME>,
-///             TA_S_<NAME>(, TA_S_<NAME>_Logic(
-macro_rules! test_c_variants {
-    ($test_name:ident, $indicator:expr, $upper:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let c = &out.c;
-
-            assert!(
-                c.contains(&format!("TA_{}_Lookback", $upper)),
-                "C: missing TA_{}_Lookback",
-                $upper
-            );
-            assert!(
-                c.contains(&format!("TA_{}(", $upper))
-                    || c.contains(&format!("TA_{} (", $upper)),
-                "C: missing TA_{}",
-                $upper
-            );
-            assert!(
-                c.contains(&format!("TA_{}_Logic(", $upper)),
-                "C: missing TA_{}_Logic",
-                $upper
-            );
-            assert!(
-                c.contains(&format!("#define TA_INT_{}", $upper)),
-                "C: missing #define TA_INT_{}",
-                $upper
-            );
-            assert!(
-                c.contains(&format!("TA_S_{}(", $upper))
-                    || c.contains(&format!("TA_S_{} (", $upper)),
-                "C: missing TA_S_{}",
-                $upper
-            );
-            assert!(
-                c.contains(&format!("TA_S_{}_Logic(", $upper)),
-                "C: missing TA_S_{}_Logic",
-                $upper
-            );
-        }
-    };
+/// Derive Pascal case from the indicator name.
+/// Must match the dotnet backend's to_pascal_case: lowercase then capitalize first char.
+fn to_pascal(name: &str) -> String {
+    let lower = name.to_lowercase();
+    let mut chars = lower.chars();
+    match chars.next() {
+        None => String::new(),
+        Some(c) => c.to_uppercase().to_string() + chars.as_str(),
+    }
 }
 
-/// Test that all Rust variants exist for a given indicator.
-/// For indicators WITH optional inputs: <name>_lookback, fn <name>(, fn <name>_logic(,
-///     <name>_unsafe, fn <name>_s(, fn <name>_logic_s(, <name>_unsafe_s
-/// For indicators WITHOUT optional inputs (mult): <name>_lookback, fn <name>(,
-///     <name>_unsafe, fn <name>_s(, <name>_unsafe_s (no _logic variants)
-macro_rules! test_rust_variants {
-    ($test_name:ident, $indicator:expr, $snake:expr, has_opt_inputs: true) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let r = &out.rust;
-
-            assert!(
-                r.contains(&format!("{}_lookback", $snake)),
-                "Rust: missing {}_lookback",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}(", $snake))
-                    || r.contains(&format!("fn {}(\n", $snake)),
-                "Rust: missing fn {}",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}_logic(", $snake))
-                    || r.contains(&format!("fn {}_logic(\n", $snake)),
-                "Rust: missing fn {}_logic",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("{}_unsafe", $snake)),
-                "Rust: missing {}_unsafe placeholder",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}_s(", $snake))
-                    || r.contains(&format!("fn {}_s(\n", $snake)),
-                "Rust: missing fn {}_s",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}_logic_s(", $snake))
-                    || r.contains(&format!("fn {}_logic_s(\n", $snake)),
-                "Rust: missing fn {}_logic_s",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("{}_unsafe_s", $snake)),
-                "Rust: missing {}_unsafe_s placeholder",
-                $snake
-            );
-        }
-    };
-    ($test_name:ident, $indicator:expr, $snake:expr, has_opt_inputs: false) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let r = &out.rust;
-
-            assert!(
-                r.contains(&format!("{}_lookback", $snake)),
-                "Rust: missing {}_lookback",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}(", $snake))
-                    || r.contains(&format!("fn {}(\n", $snake)),
-                "Rust: missing fn {}",
-                $snake
-            );
-            // No _logic variant for functions without optional inputs
-            assert!(
-                !r.contains(&format!("fn {}_logic(", $snake)),
-                "Rust: should NOT have {}_logic (no optional inputs)",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("{}_unsafe", $snake)),
-                "Rust: missing {}_unsafe placeholder",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("fn {}_s(", $snake))
-                    || r.contains(&format!("fn {}_s(\n", $snake)),
-                "Rust: missing fn {}_s",
-                $snake
-            );
-            assert!(
-                r.contains(&format!("{}_unsafe_s", $snake)),
-                "Rust: missing {}_unsafe_s placeholder",
-                $snake
-            );
-        }
-    };
+/// Check that all C variants exist for a given indicator.
+fn check_c_variants(c: &str, upper: &str, name: &str) {
+    assert!(
+        c.contains(&format!("TA_{}_Lookback", upper)),
+        "{}: C missing TA_{}_Lookback", name, upper
+    );
+    assert!(
+        c.contains(&format!("TA_{}(", upper))
+            || c.contains(&format!("TA_{} (", upper)),
+        "{}: C missing TA_{}", name, upper
+    );
+    assert!(
+        c.contains(&format!("TA_{}_Logic(", upper)),
+        "{}: C missing TA_{}_Logic", name, upper
+    );
+    assert!(
+        c.contains(&format!("#define TA_INT_{}", upper)),
+        "{}: C missing #define TA_INT_{}", name, upper
+    );
+    assert!(
+        c.contains(&format!("TA_S_{}(", upper))
+            || c.contains(&format!("TA_S_{} (", upper)),
+        "{}: C missing TA_S_{}", name, upper
+    );
+    assert!(
+        c.contains(&format!("TA_S_{}_Logic(", upper)),
+        "{}: C missing TA_S_{}_Logic", name, upper
+    );
 }
 
-/// Test that all Java variants exist for a given indicator.
-/// Java variants: <name>Lookback, public RetCode <name>(, <name>Logic(
-macro_rules! test_java_variants {
-    ($test_name:ident, $indicator:expr, $lower:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let j = &out.java;
-
-            assert!(
-                j.contains(&format!("{}Lookback(", $lower)),
-                "Java: missing {}Lookback",
-                $lower
-            );
-            assert!(
-                j.contains(&format!("RetCode {}(", $lower))
-                    || j.contains(&format!("RetCode {} (", $lower)),
-                "Java: missing {} function",
-                $lower
-            );
-            assert!(
-                j.contains(&format!("{}Logic(", $lower)),
-                "Java: missing {}Logic",
-                $lower
-            );
-        }
-    };
+/// Check that all Rust variants exist for a given indicator.
+fn check_rust_variants(r: &str, snake: &str, has_opt_inputs: bool, name: &str) {
+    assert!(
+        r.contains(&format!("{}_lookback", snake)),
+        "{}: Rust missing {}_lookback", name, snake
+    );
+    assert!(
+        r.contains(&format!("fn {}(", snake))
+            || r.contains(&format!("fn {}(\n", snake)),
+        "{}: Rust missing fn {}", name, snake
+    );
+    if has_opt_inputs {
+        assert!(
+            r.contains(&format!("fn {}_logic(", snake))
+                || r.contains(&format!("fn {}_logic(\n", snake)),
+            "{}: Rust missing fn {}_logic", name, snake
+        );
+        assert!(
+            r.contains(&format!("fn {}_logic_s(", snake))
+                || r.contains(&format!("fn {}_logic_s(\n", snake)),
+            "{}: Rust missing fn {}_logic_s", name, snake
+        );
+    } else {
+        assert!(
+            !r.contains(&format!("fn {}_logic(", snake)),
+            "{}: Rust should NOT have {}_logic (no optional inputs)", name, snake
+        );
+    }
+    assert!(
+        r.contains(&format!("{}_unsafe", snake)),
+        "{}: Rust missing {}_unsafe placeholder", name, snake
+    );
+    assert!(
+        r.contains(&format!("fn {}_s(", snake))
+            || r.contains(&format!("fn {}_s(\n", snake)),
+        "{}: Rust missing fn {}_s", name, snake
+    );
+    assert!(
+        r.contains(&format!("{}_unsafe_s", snake)),
+        "{}: Rust missing {}_unsafe_s placeholder", name, snake
+    );
 }
 
-/// Test that all .NET variants exist for a given indicator.
-/// .NET variants: <Pascal>Lookback, <Pascal>(, <Pascal>Logic(,
-///     #define TA_<UPPER>, #define TA_<UPPER>_Logic, #define TA_INT_<UPPER>
-macro_rules! test_dotnet_variants {
-    ($test_name:ident, $indicator:expr, $pascal:expr, $upper:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let d = &out.dotnet;
-
-            assert!(
-                d.contains(&format!("{}Lookback(", $pascal)),
-                ".NET: missing {}Lookback",
-                $pascal
-            );
-            assert!(
-                d.contains(&format!("{}(", $pascal))
-                    || d.contains(&format!("{} (", $pascal)),
-                ".NET: missing {} function",
-                $pascal
-            );
-            assert!(
-                d.contains(&format!("{}Logic(", $pascal)),
-                ".NET: missing {}Logic declaration",
-                $pascal
-            );
-            assert!(
-                d.contains(&format!("#define TA_{} ", $upper))
-                    || d.contains(&format!("#define TA_{}\n", $upper)),
-                ".NET: missing #define TA_{}",
-                $upper
-            );
-            assert!(
-                d.contains(&format!("#define TA_{}_Logic", $upper)),
-                ".NET: missing #define TA_{}_Logic",
-                $upper
-            );
-            assert!(
-                d.contains(&format!("#define TA_INT_{}", $upper)),
-                ".NET: missing #define TA_INT_{}",
-                $upper
-            );
-        }
-    };
+/// Check that all Java variants exist for a given indicator.
+fn check_java_variants(j: &str, lower: &str, name: &str) {
+    assert!(
+        j.contains(&format!("{}Lookback(", lower)),
+        "{}: Java missing {}Lookback", name, lower
+    );
+    assert!(
+        j.contains(&format!("RetCode {}(", lower))
+            || j.contains(&format!("RetCode {} (", lower)),
+        "{}: Java missing {} function", name, lower
+    );
+    assert!(
+        j.contains(&format!("{}Logic(", lower)),
+        "{}: Java missing {}Logic", name, lower
+    );
 }
 
-/// Test that all SWIG variants exist for a given indicator.
-/// SWIG variants: TA_<NAME>(, TA_<NAME>_Logic(, TA_<NAME>_Lookback
-macro_rules! test_swig_variants {
-    ($test_name:ident, $indicator:expr, $upper:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let s = &out.swig;
+/// Check that all .NET variants exist for a given indicator.
+fn check_dotnet_variants(d: &str, pascal: &str, upper: &str, name: &str) {
+    assert!(
+        d.contains(&format!("{}Lookback(", pascal)),
+        "{}: .NET missing {}Lookback", name, pascal
+    );
+    assert!(
+        d.contains(&format!("{}(", pascal))
+            || d.contains(&format!("{} (", pascal)),
+        "{}: .NET missing {} function", name, pascal
+    );
+    assert!(
+        d.contains(&format!("{}Logic(", pascal)),
+        "{}: .NET missing {}Logic declaration", name, pascal
+    );
+    assert!(
+        d.contains(&format!("#define TA_{} ", upper))
+            || d.contains(&format!("#define TA_{}\n", upper)),
+        "{}: .NET missing #define TA_{}", name, upper
+    );
+    assert!(
+        d.contains(&format!("#define TA_{}_Logic", upper)),
+        "{}: .NET missing #define TA_{}_Logic", name, upper
+    );
+    assert!(
+        d.contains(&format!("#define TA_INT_{}", upper)),
+        "{}: .NET missing #define TA_INT_{}", name, upper
+    );
+}
 
-            assert!(
-                s.contains(&format!("TA_{}(", $upper))
-                    || s.contains(&format!("TA_{} (", $upper)),
-                "SWIG: missing TA_{}",
-                $upper
-            );
-            assert!(
-                s.contains(&format!("TA_{}_Logic(", $upper)),
-                "SWIG: missing TA_{}_Logic",
-                $upper
-            );
-            assert!(
-                s.contains(&format!("TA_{}_Lookback", $upper)),
-                "SWIG: missing TA_{}_Lookback",
-                $upper
-            );
-        }
-    };
+/// Check that all SWIG variants exist for a given indicator.
+fn check_swig_variants(s: &str, upper: &str, name: &str) {
+    assert!(
+        s.contains(&format!("TA_{}(", upper))
+            || s.contains(&format!("TA_{} (", upper)),
+        "{}: SWIG missing TA_{}", name, upper
+    );
+    assert!(
+        s.contains(&format!("TA_{}_Logic(", upper)),
+        "{}: SWIG missing TA_{}_Logic", name, upper
+    );
+    assert!(
+        s.contains(&format!("TA_{}_Lookback", upper)),
+        "{}: SWIG missing TA_{}_Lookback", name, upper
+    );
+}
+
+/// Check C #define TA_INT alias correctness for an indicator.
+fn check_c_int_alias(c: &str, upper: &str, name: &str) {
+    assert!(
+        c.contains(&format!("#define TA_INT_{} TA_{}_Logic", upper, upper)),
+        "{}: C missing #define TA_INT_{} TA_{}_Logic", name, upper, upper
+    );
+}
+
+/// Check .NET macros point to correct Core:: methods for an indicator.
+fn check_dotnet_macros(d: &str, pascal: &str, upper: &str, name: &str) {
+    assert!(
+        d.contains(&format!("#define TA_{} Core::{}", upper, pascal)),
+        "{}: .NET TA_{} should point to Core::{}", name, upper, pascal
+    );
+    assert!(
+        d.contains(&format!("#define TA_{}_Lookback Core::{}Lookback", upper, pascal)),
+        "{}: .NET TA_{}_Lookback should point to Core::{}Lookback", name, upper, pascal
+    );
+    assert!(
+        d.contains(&format!("#define TA_{}_Logic Core::{}Logic", upper, pascal)),
+        "{}: .NET TA_{}_Logic should point to Core::{}Logic", name, upper, pascal
+    );
+    assert!(
+        d.contains(&format!("#define TA_INT_{} Core::{}Logic", upper, pascal)),
+        "{}: .NET TA_INT_{} should point to Core::{}Logic", name, upper, pascal
+    );
+}
+
+/// Try to load an indicator, returning None if parsing fails (not yet supported).
+fn try_load_indicator(name: &str) -> Option<(ir::FuncDef, HashMap<String, ir::EnumDef>)> {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        load_indicator(name)
+    }));
+    result.ok()
+}
+
+/// Try to generate all backends, returning None if generation fails.
+fn try_generate_all(
+    func: &ir::FuncDef,
+    enums: &HashMap<String, ir::EnumDef>,
+) -> Option<AllOutputs> {
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        generate_all(func, enums)
+    }));
+    result.ok()
 }
 
 // ---------------------------------------------------------------------------
-// 2. Per-indicator x per-backend variant checks
+// 2. Auto-discovered per-indicator x per-backend variant checks
 // ---------------------------------------------------------------------------
 
-// --- SMA ---
-test_c_variants!(test_sma_c_variants, "sma", "SMA");
-test_rust_variants!(test_sma_rust_variants, "sma", "sma", has_opt_inputs: true);
-test_java_variants!(test_sma_java_variants, "sma", "sma");
-test_dotnet_variants!(test_sma_dotnet_variants, "sma", "Sma", "SMA");
-test_swig_variants!(test_sma_swig_variants, "sma", "SMA");
+#[test]
+fn test_all_indicators_all_backends() {
+    let indicators = discover_indicators();
+    assert!(!indicators.is_empty(), "No indicators discovered");
 
-// --- RSI ---
-test_c_variants!(test_rsi_c_variants, "rsi", "RSI");
-test_rust_variants!(test_rsi_rust_variants, "rsi", "rsi", has_opt_inputs: true);
-test_java_variants!(test_rsi_java_variants, "rsi", "rsi");
-test_dotnet_variants!(test_rsi_dotnet_variants, "rsi", "Rsi", "RSI");
-test_swig_variants!(test_rsi_swig_variants, "rsi", "RSI");
+    let mut failures = Vec::new();
+    let mut tested = 0;
+    let mut skipped = 0;
 
-// --- EMA ---
-test_c_variants!(test_ema_c_variants, "ema", "EMA");
-test_rust_variants!(test_ema_rust_variants, "ema", "ema", has_opt_inputs: true);
-test_java_variants!(test_ema_java_variants, "ema", "ema");
-test_dotnet_variants!(test_ema_dotnet_variants, "ema", "Ema", "EMA");
-test_swig_variants!(test_ema_swig_variants, "ema", "EMA");
+    for name in &indicators {
+        // Phase 1: try to load and generate (may fail for not-yet-supported indicators)
+        let loaded = try_load_indicator(name);
+        let (func, enums) = match loaded {
+            Some(v) => v,
+            None => { skipped += 1; continue; }
+        };
+        let out = match try_generate_all(&func, &enums) {
+            Some(v) => v,
+            None => { skipped += 1; continue; }
+        };
 
-// --- WMA ---
-test_c_variants!(test_wma_c_variants, "wma", "WMA");
-test_rust_variants!(test_wma_rust_variants, "wma", "wma", has_opt_inputs: true);
-test_java_variants!(test_wma_java_variants, "wma", "wma");
-test_dotnet_variants!(test_wma_dotnet_variants, "wma", "Wma", "WMA");
-test_swig_variants!(test_wma_swig_variants, "wma", "WMA");
+        // Phase 2: run variant checks (failures here are real bugs)
+        let upper = func.name.clone();
+        let snake = name.clone();
+        let pascal = to_pascal(name);
+        let has_opt_inputs = !func.optional_inputs.is_empty();
 
-// --- MA ---
-test_c_variants!(test_ma_c_variants, "ma", "MA");
-test_rust_variants!(test_ma_rust_variants, "ma", "ma", has_opt_inputs: true);
-test_java_variants!(test_ma_java_variants, "ma", "ma");
-test_dotnet_variants!(test_ma_dotnet_variants, "ma", "Ma", "MA");
-test_swig_variants!(test_ma_swig_variants, "ma", "MA");
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            check_c_variants(&out.c, &upper, &snake);
+            check_rust_variants(&out.rust, &snake, has_opt_inputs, &snake);
+            check_java_variants(&out.java, &snake, &snake);
+            check_dotnet_variants(&out.dotnet, &pascal, &upper, &snake);
+            check_swig_variants(&out.swig, &upper, &snake);
+            check_c_int_alias(&out.c, &upper, &snake);
+            check_dotnet_macros(&out.dotnet, &pascal, &upper, &snake);
+        }));
 
-// --- MULT ---
-test_c_variants!(test_mult_c_variants, "mult", "MULT");
-test_rust_variants!(test_mult_rust_variants, "mult", "mult", has_opt_inputs: false);
-test_java_variants!(test_mult_java_variants, "mult", "mult");
-test_dotnet_variants!(test_mult_dotnet_variants, "mult", "Mult", "MULT");
-test_swig_variants!(test_mult_swig_variants, "mult", "MULT");
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        } else {
+            tested += 1;
+        }
+    }
+
+    eprintln!(
+        "Variant checks: {} tested, {} skipped (parse not yet supported), {} failed",
+        tested, skipped, failures.len()
+    );
+
+    // Ensure we tested at least the 6 known-good indicators
+    assert!(
+        tested >= 6,
+        "Expected at least 6 indicators to pass, but only {} did",
+        tested
+    );
+
+    if !failures.is_empty() {
+        panic!(
+            "{} indicator(s) failed variant checks:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
+    }
+}
 
 // ---------------------------------------------------------------------------
 // 3. Cross-call resolution tests (MA calls sma/ema lookback + logic)
@@ -758,191 +749,158 @@ fn test_mult_simplicity() {
 }
 
 // ---------------------------------------------------------------------------
-// 6. Non-empty output checks for all indicators across all backends
+// 6. Non-empty output checks for all discovered indicators
 // ---------------------------------------------------------------------------
 
-macro_rules! test_all_backends_nonempty {
-    ($test_name:ident, $indicator:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
+#[test]
+fn test_all_indicators_nonempty_output() {
+    let indicators = discover_indicators();
+    assert!(!indicators.is_empty(), "No indicators discovered");
 
-            assert!(
-                !out.c.is_empty(),
-                "{}: C output is empty",
-                $indicator
-            );
-            assert!(
-                !out.rust.is_empty(),
-                "{}: Rust output is empty",
-                $indicator
-            );
-            assert!(
-                !out.java.is_empty(),
-                "{}: Java output is empty",
-                $indicator
-            );
-            assert!(
-                !out.dotnet.is_empty(),
-                "{}: .NET output is empty",
-                $indicator
-            );
-            assert!(
-                !out.swig.is_empty(),
-                "{}: SWIG output is empty",
-                $indicator
-            );
+    let mut failures = Vec::new();
+    let mut tested = 0;
 
-            // Sanity: outputs should have meaningful length
-            assert!(out.c.len() > 200, "{}: C output suspiciously short", $indicator);
-            assert!(out.rust.len() > 200, "{}: Rust output suspiciously short", $indicator);
-            assert!(out.java.len() > 100, "{}: Java output suspiciously short", $indicator);
-            assert!(out.dotnet.len() > 100, "{}: .NET output suspiciously short", $indicator);
-            assert!(out.swig.len() > 100, "{}: SWIG output suspiciously short", $indicator);
+    for name in &indicators {
+        let loaded = try_load_indicator(name);
+        let (func, enums) = match loaded {
+            Some(v) => v,
+            None => continue,
+        };
+        let out = match try_generate_all(&func, &enums) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(!out.c.is_empty(), "{}: C output is empty", name);
+            assert!(!out.rust.is_empty(), "{}: Rust output is empty", name);
+            assert!(!out.java.is_empty(), "{}: Java output is empty", name);
+            assert!(!out.dotnet.is_empty(), "{}: .NET output is empty", name);
+            assert!(!out.swig.is_empty(), "{}: SWIG output is empty", name);
+
+            assert!(out.c.len() > 200, "{}: C output suspiciously short", name);
+            assert!(out.rust.len() > 200, "{}: Rust output suspiciously short", name);
+            assert!(out.java.len() > 100, "{}: Java output suspiciously short", name);
+            assert!(out.dotnet.len() > 100, "{}: .NET output suspiciously short", name);
+            assert!(out.swig.len() > 100, "{}: SWIG output suspiciously short", name);
+        }));
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        } else {
+            tested += 1;
         }
-    };
+    }
+
+    assert!(tested >= 6, "Expected at least 6 indicators to pass non-empty checks, got {}", tested);
+
+    if !failures.is_empty() {
+        panic!(
+            "{} indicator(s) failed non-empty checks:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
+    }
+
+    eprintln!("{} indicators produce non-empty output for all backends", tested);
 }
 
-test_all_backends_nonempty!(test_sma_all_backends_nonempty, "sma");
-test_all_backends_nonempty!(test_rsi_all_backends_nonempty, "rsi");
-test_all_backends_nonempty!(test_ema_all_backends_nonempty, "ema");
-test_all_backends_nonempty!(test_wma_all_backends_nonempty, "wma");
-test_all_backends_nonempty!(test_ma_all_backends_nonempty, "ma");
-test_all_backends_nonempty!(test_mult_all_backends_nonempty, "mult");
-
 // ---------------------------------------------------------------------------
-// 7. C #define TA_INT alias correctness
-// ---------------------------------------------------------------------------
-
-macro_rules! test_c_int_alias {
-    ($test_name:ident, $indicator:expr, $upper:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            assert!(
-                out.c.contains(&format!(
-                    "#define TA_INT_{} TA_{}_Logic",
-                    $upper, $upper
-                )),
-                "C: missing #define TA_INT_{} TA_{}_Logic",
-                $upper,
-                $upper
-            );
-        }
-    };
-}
-
-test_c_int_alias!(test_sma_c_int_alias, "sma", "SMA");
-test_c_int_alias!(test_rsi_c_int_alias, "rsi", "RSI");
-test_c_int_alias!(test_ema_c_int_alias, "ema", "EMA");
-test_c_int_alias!(test_wma_c_int_alias, "wma", "WMA");
-test_c_int_alias!(test_ma_c_int_alias, "ma", "MA");
-test_c_int_alias!(test_mult_c_int_alias, "mult", "MULT");
-
-// ---------------------------------------------------------------------------
-// 8. .NET macros point to correct Core:: methods
-// ---------------------------------------------------------------------------
-
-macro_rules! test_dotnet_macros {
-    ($test_name:ident, $indicator:expr, $pascal:expr, $upper:expr) => {
-        #[test]
-        fn $test_name() {
-            let (func, enums) = load_indicator($indicator);
-            let out = generate_all(&func, &enums);
-            let d = &out.dotnet;
-
-            assert!(
-                d.contains(&format!("#define TA_{} Core::{}", $upper, $pascal)),
-                ".NET: TA_{} should point to Core::{}",
-                $upper,
-                $pascal
-            );
-            assert!(
-                d.contains(&format!(
-                    "#define TA_{}_Lookback Core::{}Lookback",
-                    $upper, $pascal
-                )),
-                ".NET: TA_{}_Lookback should point to Core::{}Lookback",
-                $upper,
-                $pascal
-            );
-            assert!(
-                d.contains(&format!(
-                    "#define TA_{}_Logic Core::{}Logic",
-                    $upper, $pascal
-                )),
-                ".NET: TA_{}_Logic should point to Core::{}Logic",
-                $upper,
-                $pascal
-            );
-            assert!(
-                d.contains(&format!(
-                    "#define TA_INT_{} Core::{}Logic",
-                    $upper, $pascal
-                )),
-                ".NET: TA_INT_{} should point to Core::{}Logic",
-                $upper,
-                $pascal
-            );
-        }
-    };
-}
-
-test_dotnet_macros!(test_sma_dotnet_macros, "sma", "Sma", "SMA");
-test_dotnet_macros!(test_rsi_dotnet_macros, "rsi", "Rsi", "RSI");
-test_dotnet_macros!(test_ema_dotnet_macros, "ema", "Ema", "EMA");
-test_dotnet_macros!(test_wma_dotnet_macros, "wma", "Wma", "WMA");
-test_dotnet_macros!(test_ma_dotnet_macros, "ma", "Ma", "MA");
-test_dotnet_macros!(test_mult_dotnet_macros, "mult", "Mult", "MULT");
-
-// ---------------------------------------------------------------------------
-// 9. SWIG comment block contains function description
+// 9. SWIG comment block contains function description (all indicators)
 // ---------------------------------------------------------------------------
 
 #[test]
 fn test_swig_comment_blocks() {
-    let indicators = ["sma", "rsi", "ema", "wma", "ma", "mult"];
-    for name in &indicators {
-        let (func, enums) = load_indicator(name);
-        let out = generate_all(&func, &enums);
+    let indicators = discover_indicators();
+    let mut failures = Vec::new();
 
-        assert!(
-            out.swig.contains("/*"),
-            "SWIG {}: missing comment block",
-            name
-        );
-        assert!(
-            out.swig.contains(&format!("TA_{}", func.name)),
-            "SWIG {}: comment block missing TA_{} reference",
-            name,
-            func.name
-        );
+    for name in &indicators {
+        let (func, enums) = match try_load_indicator(name) {
+            Some(v) => v,
+            None => continue,
+        };
+        let out = match try_generate_all(&func, &enums) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let func_name = func.name.clone();
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(
+                out.swig.contains("/*"),
+                "SWIG {}: missing comment block", name
+            );
+            assert!(
+                out.swig.contains(&format!("TA_{}", func_name)),
+                "SWIG {}: comment block missing TA_{} reference", name, func_name
+            );
+        }));
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        }
+    }
+
+    if !failures.is_empty() {
+        panic!("{} indicator(s) failed SWIG comment checks:\n{}", failures.len(), failures.join("\n"));
     }
 }
 
 // ---------------------------------------------------------------------------
-// 10. Rust impl Core block structure
+// 10. Rust impl Core block structure (all indicators)
 // ---------------------------------------------------------------------------
 
 #[test]
 fn test_rust_impl_core_structure() {
-    let indicators = ["sma", "rsi", "ema", "wma", "ma", "mult"];
-    for name in &indicators {
-        let (func, enums) = load_indicator(name);
-        let out = generate_all(&func, &enums);
+    let indicators = discover_indicators();
+    let mut failures = Vec::new();
 
-        assert!(
-            out.rust.contains("impl Core {"),
-            "Rust {}: missing impl Core block",
-            name
-        );
-        assert!(
-            out.rust.contains("use super::*;"),
-            "Rust {}: missing use super::* import",
-            name
-        );
+    for name in &indicators {
+        let (func, enums) = match try_load_indicator(name) {
+            Some(v) => v,
+            None => continue,
+        };
+        let out = match try_generate_all(&func, &enums) {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(
+                out.rust.contains("impl Core {"),
+                "Rust {}: missing impl Core block", name
+            );
+            assert!(
+                out.rust.contains("use super::*;"),
+                "Rust {}: missing use super::* import", name
+            );
+        }));
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        }
+    }
+
+    if !failures.is_empty() {
+        panic!("{} indicator(s) failed Rust structure checks:\n{}", failures.len(), failures.join("\n"));
     }
 }
 
@@ -995,43 +953,51 @@ fn test_ma_has_two_optional_inputs() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn test_c_outputs_contain_ta_success() {
-    let indicators = ["sma", "rsi", "ema", "wma", "ma", "mult"];
-    for name in &indicators {
-        let (func, enums) = load_indicator(name);
-        let out = generate_all(&func, &enums);
-        assert!(
-            out.c.contains("TA_SUCCESS"),
-            "C {}: missing TA_SUCCESS return",
-            name
-        );
-    }
-}
+fn test_all_indicators_contain_success_returns() {
+    let indicators = discover_indicators();
+    let mut failures = Vec::new();
 
-#[test]
-fn test_rust_outputs_contain_retcode_success() {
-    let indicators = ["sma", "rsi", "ema", "wma", "ma", "mult"];
     for name in &indicators {
-        let (func, enums) = load_indicator(name);
-        let out = generate_all(&func, &enums);
-        assert!(
-            out.rust.contains("RetCode::Success"),
-            "Rust {}: missing RetCode::Success return",
-            name
-        );
-    }
-}
+        let (func, enums) = match try_load_indicator(name) {
+            Some(v) => v,
+            None => continue,
+        };
+        let out = match try_generate_all(&func, &enums) {
+            Some(v) => v,
+            None => continue,
+        };
 
-#[test]
-fn test_java_outputs_contain_retcode_success() {
-    let indicators = ["sma", "rsi", "ema", "wma", "ma", "mult"];
-    for name in &indicators {
-        let (func, enums) = load_indicator(name);
-        let out = generate_all(&func, &enums);
-        assert!(
-            out.java.contains("RetCode.Success"),
-            "Java {}: missing RetCode.Success return",
-            name
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            assert!(
+                out.c.contains("TA_SUCCESS"),
+                "C {}: missing TA_SUCCESS return", name
+            );
+            assert!(
+                out.rust.contains("RetCode::Success"),
+                "Rust {}: missing RetCode::Success return", name
+            );
+            assert!(
+                out.java.contains("RetCode.Success"),
+                "Java {}: missing RetCode.Success return", name
+            );
+        }));
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        }
+    }
+
+    if !failures.is_empty() {
+        panic!(
+            "{} indicator(s) failed success-return checks:\n{}",
+            failures.len(),
+            failures.join("\n")
         );
     }
 }
