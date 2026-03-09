@@ -306,35 +306,33 @@ fn extract_int_function(
     let direct_pattern = format!("TA_INT_{}", upper);
 
     // Find the C path of the TA_INT function signature.
-    // We need to find the `#else` path (after _MANAGED, _JAVA, _RUST sections).
+    // The structure has nested #if/#else blocks:
+    //   #if defined(_MANAGED) && defined(USE_SUBARRAY) && defined(USE_SINGLE_PRECISION_INPUT)
+    //     // No INT function
+    //   #else
+    //     #if defined(_MANAGED) && defined(USE_SUBARRAY)
+    //       managed subarray signature with TA_INT_<NAME>
+    //     #elif defined(_MANAGED)
+    //       managed signature with TA_INT_<NAME>
+    //     #elif defined(_JAVA)
+    //       java signature
+    //     #elif defined(_RUST)
+    //       rust signature
+    //     #else                    <-- this is the C path
+    //       TA_PREFIX(INT_<NAME>)  <-- we want THIS one
+    //     #endif
+    //   #endif
+    //
+    // Strategy: collect ALL lines that match the signature pattern,
+    // and take the LAST one (which will be the C #else path).
     let mut sig_line = None;
-    let mut in_else_block = false;
-    let mut ifdef_depth = 0i32;
 
     for i in (after_main_end + 1)..before_sec5 {
         let stripped = strip_generated_prefix(lines[i]);
         let trimmed = stripped.trim();
 
-        // Track #if / #endif nesting at the top level
-        if trimmed.starts_with("#if ") || trimmed.starts_with("#if(") {
-            ifdef_depth += 1;
-        }
-        if trimmed == "#endif" || trimmed.starts_with("#endif ") || trimmed.starts_with("#endif/") {
-            if ifdef_depth > 0 {
-                ifdef_depth -= 1;
-                if ifdef_depth == 0 {
-                    in_else_block = false;
-                }
-            }
-        }
-        if trimmed == "#else" && ifdef_depth == 1 {
-            in_else_block = true;
-            continue;
-        }
-
-        if in_else_block && (trimmed.contains(&prefix_pattern) || trimmed.contains(&direct_pattern)) {
-            sig_line = Some(i);
-            break;
+        if trimmed.contains(&prefix_pattern) || trimmed.contains(&direct_pattern) {
+            sig_line = Some(i); // Keep updating — last match wins (C path)
         }
     }
 
@@ -342,6 +340,11 @@ fn extract_int_function(
 
     // Collect the full signature (may span multiple lines until `)`).
     let combined = collect_until_paren_close(lines, sig_line, before_sec5);
+    // Replace TA_PREFIX(INT_<NAME>) with a placeholder to avoid confusing extract_parens
+    // (it would match the macro parens instead of the parameter list parens).
+    let combined = combined
+        .replace(&format!("TA_PREFIX(INT_{})", upper), &format!("TA_INT_{}", upper))
+        .replace(&format!("TA_PREFIX( INT_{} )", upper), &format!("TA_INT_{}", upper));
     let params_raw = extract_parens(&combined)?;
     let params = clean_params(&params_raw, upper);
 
