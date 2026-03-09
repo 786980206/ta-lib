@@ -32,7 +32,6 @@ fn main() {
             eprintln!("  generate         Generate code for all backends (default)");
             eprintln!("  generate-servers  Generate JSON-RPC server wrappers for each language");
             eprintln!("  build            Compile generated server source into executables");
-            eprintln!("  serve            Start JSON-RPC validation server on stdin/stdout");
             eprintln!();
             eprintln!("Options for 'generate' / 'generate-servers' / 'build':");
             eprintln!("  --func=NAME[,NAME,...]      Only generate specified functions (default: all)");
@@ -240,7 +239,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  SWIG/Python server -> {}", path.display());
             }
             "rust" => {
-                println!("  Rust server is built-in (ta_codegen serve) — skipping");
+                println!("  Rust server: skipping (no server target)");
             }
             _ => {
                 eprintln!("Unknown backend: {}", backend);
@@ -466,7 +465,7 @@ fn build_servers(backend_filter: Option<&str>) {
                 println!("  SWIG/Python server installed");
             }
             "rust" => {
-                println!("  Rust server: built-in (ta_codegen serve)");
+                println!("  Rust server: skipping (no server target)");
             }
             _ => {
                 eprintln!("  Unknown backend: {}", backend);

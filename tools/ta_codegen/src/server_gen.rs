@@ -106,6 +106,19 @@ pub fn generate_c_header_stub() -> String {
     s.push_str("#define ARRAY_MEMMOVEMIX(dst, dstIdx, src, srcIdx, count) \\\n");
     s.push_str("    do { for(int _i=0; _i<(count); _i++) (dst)[(dstIdx)+_i] = (double)(src)[(srcIdx)+_i]; } while(0)\n\n");
 
+    // Enum types used by generated functions (e.g., MA dispatch)
+    s.push_str("typedef int TA_MAType;\n");
+    s.push_str("#define TA_MAType_SMA   0\n");
+    s.push_str("#define TA_MAType_EMA   1\n");
+    s.push_str("#define TA_MAType_WMA   2\n");
+    s.push_str("#define TA_MAType_DEMA  3\n");
+    s.push_str("#define TA_MAType_TEMA  4\n");
+    s.push_str("#define TA_MAType_TRIMA 5\n");
+    s.push_str("#define TA_MAType_KAMA  6\n");
+    s.push_str("#define TA_MAType_MAMA  7\n");
+    s.push_str("#define TA_MAType_T3    8\n");
+    s.push_str("#define ENUM_CASE(type, c_val, pascal_val) (c_val)\n\n");
+
     s.push_str("#endif /* TA_FUNC_H */\n");
     s
 }
@@ -321,6 +334,37 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("                                       g_outBuf, outNBElement);\n");
         s.push_str("        snprintf(resp + pos, resp_size - pos, \"}\");\n");
 
+        s.push_str("    }\n");
+    }
+
+    // Lookback dispatch for each function
+    for func in funcs {
+        let method_name = format!("TA_{}_Lookback", func.name);
+
+        s.push_str(&format!(
+            "    else if ( methodLen == {} && strncmp(method, \"{}\", {}) == 0 ) {{\n",
+            method_name.len(),
+            method_name,
+            method_name.len()
+        ));
+
+        // Extract optional params
+        for opt in &func.optional_inputs {
+            s.push_str(&format!(
+                "        int {} = json_find_int(json, \"{}\");\n",
+                opt.name, opt.name
+            ));
+        }
+
+        // Call lookback function
+        s.push_str(&format!("        int lookback = TA_{}_Lookback(", func.name));
+        let opt_names: Vec<String> = func.optional_inputs.iter().map(|o| o.name.clone()).collect();
+        s.push_str(&opt_names.join(", "));
+        s.push_str(");\n");
+
+        // Build response
+        s.push_str("        snprintf(resp, resp_size,\n");
+        s.push_str("            \"{\\\"lookback\\\":%d}\", lookback);\n");
         s.push_str("    }\n");
     }
 
