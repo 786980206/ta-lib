@@ -389,7 +389,7 @@ fn test_sma_from_c_has_logic_function() {
     let parsed = parser::c_source::parse_c_source(&c_path);
 
     assert_eq!(parsed.functions.len(), 1, "Should have one function");
-    assert_eq!(parsed.functions[0].name, "sma_logic", "Function name should be sma_logic");
+    assert_eq!(parsed.functions[0].name, "sma", "Function name should be sma");
     assert!(!parsed.functions[0].body.is_empty(), "Function body should not be empty");
 }
 

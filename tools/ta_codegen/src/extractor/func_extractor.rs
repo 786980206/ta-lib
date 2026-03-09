@@ -207,7 +207,7 @@ fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
         let int_func = extract_int_function(lines, main_body_end, start_sec5, upper, lower);
         if let Some((int_params, int_body)) = int_func {
             // Use the TA_INT function's params (may have extra like optInK_1).
-            let mut result = format!("TA_RetCode {}_logic({})\n{{\n", lower, int_params);
+            let mut result = format!("TA_RetCode {}({})\n{{\n", lower, int_params);
             result.push_str(&int_body);
             result.push_str("}\n");
             return result;
@@ -216,7 +216,7 @@ fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
 
     // Inline logic: extract from main function body (after GENCODE SECTION 4).
     let body = extract_main_body(lines, main_body_start, main_body_end, upper, lower);
-    let mut result = format!("TA_RetCode {}_logic({})\n{{\n", lower, main_sig_params);
+    let mut result = format!("TA_RetCode {}({})\n{{\n", lower, main_sig_params);
     result.push_str(&body);
     result.push_str("}\n");
     result
@@ -547,9 +547,9 @@ fn expand_macros(line: &str, upper: &str, lower: &str) -> String {
     // INPUT_TYPE -> double
     s = s.replace("INPUT_TYPE", "double");
 
-    // TA_PREFIX(INT_<NAME>) -> <name>_logic
+    // TA_PREFIX(INT_<NAME>) -> <name>
     let prefix_int = format!("TA_PREFIX(INT_{})", upper);
-    s = s.replace(&prefix_int, &format!("{}_logic", lower));
+    s = s.replace(&prefix_int, lower);
 
     // Clean up PER_TO_K -> TA_PER_TO_K (keep the macro, it's used in prefix-free too)
     // Actually looking at ema.c target, it uses TA_PER_TO_K
@@ -650,36 +650,36 @@ fn expand_enum_value(line: &str) -> String {
 fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
     let mut s = line.to_string();
 
-    // FUNCTION_CALL(INT_<NAME>) -> <name>_logic
+    // FUNCTION_CALL(INT_<NAME>) -> <name>
     // This pattern handles any indicator name, not just the current one.
     let re_func_int = Regex::new(r"FUNCTION_CALL\(INT_(\w+)\)").unwrap();
     s = re_func_int
         .replace_all(&s, |caps: &regex::Captures| {
-            format!("{}_logic", caps[1].to_lowercase())
+            caps[1].to_lowercase()
         })
         .to_string();
 
-    // FUNCTION_CALL(<NAME>) -> <name>_logic
+    // FUNCTION_CALL(<NAME>) -> <name>
     let re_func = Regex::new(r"FUNCTION_CALL\((\w+)\)").unwrap();
     s = re_func
         .replace_all(&s, |caps: &regex::Captures| {
-            format!("{}_logic", caps[1].to_lowercase())
+            caps[1].to_lowercase()
         })
         .to_string();
 
-    // FUNCTION_CALL_DOUBLE(INT_<NAME>) -> <name>_logic
+    // FUNCTION_CALL_DOUBLE(INT_<NAME>) -> <name>
     let re_func_dbl = Regex::new(r"FUNCTION_CALL_DOUBLE\(INT_(\w+)\)").unwrap();
     s = re_func_dbl
         .replace_all(&s, |caps: &regex::Captures| {
-            format!("{}_logic", caps[1].to_lowercase())
+            caps[1].to_lowercase()
         })
         .to_string();
 
-    // FUNCTION_CALL_DOUBLE(<NAME>) -> <name>_logic
+    // FUNCTION_CALL_DOUBLE(<NAME>) -> <name>
     let re_func_dbl2 = Regex::new(r"FUNCTION_CALL_DOUBLE\((\w+)\)").unwrap();
     s = re_func_dbl2
         .replace_all(&s, |caps: &regex::Captures| {
-            format!("{}_logic", caps[1].to_lowercase())
+            caps[1].to_lowercase()
         })
         .to_string();
 
@@ -691,12 +691,12 @@ fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
         })
         .to_string();
 
-    // Direct references: TA_INT_<NAME>(...) -> <name>_logic(...)
+    // Direct references: TA_INT_<NAME>(...) -> <name>(...)
     // But be careful not to match TA_INT_<NAME> inside macro definitions.
     let re_ta_int = Regex::new(r"\bTA_INT_(\w+)\b").unwrap();
     s = re_ta_int
         .replace_all(&s, |caps: &regex::Captures| {
-            format!("{}_logic", caps[1].to_lowercase())
+            caps[1].to_lowercase()
         })
         .to_string();
 
@@ -792,7 +792,7 @@ mod tests {
 
         // Contains expected function names
         assert!(result.contains("sma_lookback("), "should contain sma_lookback(");
-        assert!(result.contains("sma_logic("), "should contain sma_logic(");
+        assert!(result.contains("sma("), "should contain sma(");
 
         // Does NOT contain original prefixed names
         assert!(!result.contains("TA_SMA_Lookback"), "should not contain TA_SMA_Lookback");
@@ -821,7 +821,7 @@ mod tests {
 
         // Contains expected function names
         assert!(result.contains("rsi_lookback("), "should contain rsi_lookback(");
-        assert!(result.contains("rsi_logic("), "should contain rsi_logic(");
+        assert!(result.contains("TA_RetCode rsi("), "should contain rsi(");
 
         // Contains expanded globals macros
         assert!(
@@ -855,7 +855,7 @@ mod tests {
 
         // Contains expected function names
         assert!(result.contains("mult_lookback("), "should contain mult_lookback(");
-        assert!(result.contains("mult_logic("), "should contain mult_logic(");
+        assert!(result.contains("mult("), "should contain mult(");
 
         // Does NOT contain TA_MULT (except in lookback/logic names)
         assert!(
@@ -875,7 +875,7 @@ mod tests {
 
         // Contains expected function names
         assert!(result.contains("ema_lookback("), "should contain ema_lookback(");
-        assert!(result.contains("ema_logic("), "should contain ema_logic(");
+        assert!(result.contains("TA_RetCode ema("), "should contain ema(");
 
         // EMA internally calls SMA via LOOKBACK_CALL and FUNCTION_CALL.
         // The TA_INT_EMA body calls LOOKBACK_CALL(EMA) -> ema_lookback.
@@ -884,9 +884,11 @@ mod tests {
             "should contain ema_lookback reference"
         );
 
-        // Does NOT contain TA_INT_SMA or TA_INT_EMA
+        // Does NOT contain TA_INT_SMA or TA_INT_EMA (these are generated by backends, not source defs)
         assert!(!result.contains("TA_INT_SMA"), "should not contain TA_INT_SMA");
         assert!(!result.contains("TA_INT_EMA"), "should not contain TA_INT_EMA");
+        // Does NOT contain _logic suffix (plain names now)
+        assert!(!result.contains("ema_logic"), "should not contain ema_logic");
 
         // Contains TA_SUCCESS
         assert!(result.contains("return TA_SUCCESS;"), "should contain return TA_SUCCESS");

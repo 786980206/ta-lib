@@ -1343,12 +1343,12 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool, registry
         // sma_lookback(args...) -> self.sma_lookback(args...)  (prefix-free names from C source)
         let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         format!("self.{}({})", fname, rendered_args.join(", "))
-    } else if fname.ends_with("_logic") {
-        // sma_logic(args...) -> self.sma_logic(args...) or self.sma_logic_s(args...) for single precision
+    } else if registry.contains(fname) {
+        // Bare indicator name cross-call: sma(args...) -> self.sma_logic(args...) or self.sma_logic_s(args...) for single precision
         let rust_name = if single_precision {
-            format!("{}_s", fname)
+            format!("{}_logic_s", fname)
         } else {
-            fname.to_string()
+            format!("{}_logic", fname)
         };
         let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))

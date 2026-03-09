@@ -3,7 +3,7 @@ int ema_lookback(int optInTimePeriod)
     return optInTimePeriod - 1 + TA_GetUnstablePeriod(EMA);
 }
 
-TA_RetCode ema_logic(int startIdx, int endIdx,
+TA_RetCode ema(int startIdx, int endIdx,
                       const double inReal[],
                       int optInTimePeriod,
                       int *outBegIdx, int *outNBElement,

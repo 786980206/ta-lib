@@ -52,11 +52,27 @@ impl Registry {
 
     /// Resolve a prefix-free function call to a language-specific name.
     ///
-    /// Given `sma_lookback` or `sma_logic`, parses out the indicator name
+    /// Given `sma_lookback` or bare `sma`, parses out the indicator name
     /// and function type, then maps to the target language's naming convention.
+    ///
+    /// Bare indicator names (e.g. `sma`) are cross-indicator logic calls
+    /// and resolve to the unguarded/internal variant in each language.
     ///
     /// Returns the original name unchanged if the indicator is not found.
     pub fn resolve_call(&self, func_name: &str, lang: Lang) -> String {
+        // First, check if this is a bare indicator name (no suffix)
+        if self.contains(func_name) {
+            return match lang {
+                Lang::Rust => func_name.to_string(),
+                Lang::C | Lang::Swig => format!("TA_INT_{}", func_name.to_uppercase()),
+                Lang::Java => format!("{}Logic", func_name),
+                Lang::DotNet => {
+                    let pascal = capitalize(func_name);
+                    format!("{}Logic", pascal)
+                }
+            };
+        }
+
         let (indicator, suffix) = match self.parse_func_name(func_name) {
             Some(parts) => parts,
             None => return func_name.to_string(),
@@ -93,16 +109,12 @@ impl Registry {
         None
     }
 
-    /// Convert to C naming: `sma_lookback` -> `TA_SMA_Lookback`, `sma_logic` -> `TA_INT_SMA`
+    /// Convert to C naming: `sma_lookback` -> `TA_SMA_Lookback`
     fn to_c_name(&self, indicator: &str, suffix: &str) -> String {
         let upper = indicator.to_uppercase();
-        if suffix == "logic" {
-            format!("TA_INT_{}", upper)
-        } else {
-            // Capitalize first letter of suffix
-            let cap_suffix = capitalize(suffix);
-            format!("TA_{}_{}", upper, cap_suffix)
-        }
+        // Capitalize first letter of suffix
+        let cap_suffix = capitalize(suffix);
+        format!("TA_{}_{}", upper, cap_suffix)
     }
 
     /// Convert snake_case to camelCase: `sma_lookback` -> `smaLookback`
@@ -152,25 +164,28 @@ mod tests {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
         let registry = Registry::from_dir(&base);
 
-        // C backend
+        // C backend: lookback suffixed calls
         assert_eq!(registry.resolve_call("sma_lookback", Lang::C), "TA_SMA_Lookback");
-        assert_eq!(registry.resolve_call("sma_logic", Lang::C), "TA_INT_SMA");
 
-        // Rust backend (stays as-is)
-        assert_eq!(registry.resolve_call("ema_logic", Lang::Rust), "ema_logic");
+        // C backend: bare indicator names resolve to TA_INT_<NAME>
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_INT_SMA");
+        assert_eq!(registry.resolve_call("ema", Lang::C), "TA_INT_EMA");
+
+        // Rust backend (bare names stay as-is)
+        assert_eq!(registry.resolve_call("ema", Lang::Rust), "ema");
         assert_eq!(registry.resolve_call("ema_lookback", Lang::Rust), "ema_lookback");
 
-        // Java backend (camelCase)
+        // Java backend (camelCase for lookback, Logic suffix for bare names)
         assert_eq!(registry.resolve_call("ema_lookback", Lang::Java), "emaLookback");
-        assert_eq!(registry.resolve_call("ema_logic", Lang::Java), "emaLogic");
+        assert_eq!(registry.resolve_call("ema", Lang::Java), "emaLogic");
 
-        // .NET backend (PascalCase)
+        // .NET backend (PascalCase for lookback, Logic suffix for bare names)
         assert_eq!(registry.resolve_call("sma_lookback", Lang::DotNet), "SmaLookback");
-        assert_eq!(registry.resolve_call("sma_logic", Lang::DotNet), "SmaLogic");
+        assert_eq!(registry.resolve_call("sma", Lang::DotNet), "SmaLogic");
 
         // SWIG mirrors C
         assert_eq!(registry.resolve_call("rsi_lookback", Lang::Swig), "TA_RSI_Lookback");
-        assert_eq!(registry.resolve_call("rsi_logic", Lang::Swig), "TA_INT_RSI");
+        assert_eq!(registry.resolve_call("rsi", Lang::Swig), "TA_INT_RSI");
     }
 
     #[test]
@@ -191,11 +206,13 @@ mod tests {
     }
 
     #[test]
-    fn test_registry_bare_name_returns_unchanged() {
+    fn test_registry_bare_name_resolves_to_internal() {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
         let registry = Registry::from_dir(&base);
-        // A bare indicator name with no suffix should pass through unchanged
-        assert_eq!(registry.resolve_call("sma", Lang::C), "sma");
+        // A bare indicator name resolves to the internal/unguarded variant
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_INT_SMA");
+        // For Rust, bare names stay as-is
+        assert_eq!(registry.resolve_call("sma", Lang::Rust), "sma");
     }
 
     #[test]

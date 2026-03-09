@@ -8,7 +8,7 @@ int rsi_lookback(int optInTimePeriod)
     return retValue;
 }
 
-TA_RetCode rsi_logic(int startIdx, int endIdx,
+TA_RetCode rsi(int startIdx, int endIdx,
                   const double inReal[],
                   int optInTimePeriod,
                   int *outBegIdx, int *outNBElement,

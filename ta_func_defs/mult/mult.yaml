@@ -2,6 +2,7 @@ name: MULT
 camel_case: Mult
 group: Math Operators
 hint: Vector Arithmetic Mult
+flags: []
 inputs:
   - name: inReal0
     type: real

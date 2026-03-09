@@ -332,11 +332,11 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
 
         // Look for implementation function:
         //   Old: TA_RetCode TA_XXX ( ... ) { body }
-        //   New: TA_RetCode xxx_logic ( ... ) { body }
+        //   New: TA_RetCode xxx ( ... ) { body }  (plain indicator name)
         if matches!(&tokens[i], Token::Ident(s) if s == "TA_RetCode") {
             if let Some(Token::Ident(name)) = tokens.get(i + 1) {
                 let is_old_func = name.starts_with("TA_");
-                let is_new_func = name.ends_with("_logic");
+                let is_new_func = !name.starts_with("TA_") && !name.ends_with("_lookback");
                 if is_old_func || is_new_func {
                     let func_name = name.clone();
                     let is_internal = func_name.starts_with("TA_INT_");
@@ -471,6 +471,7 @@ impl Parser {
                 Statement::Continue
             }
             Some(Token::Ident(ref s)) if Self::is_type_keyword(s) => self.parse_var_decl(),
+            Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
             _ => self.parse_assignment_or_expr_stmt(),
         }
@@ -484,6 +485,90 @@ impl Parser {
 
     fn is_type_keyword(s: &str) -> bool {
         matches!(s, "int" | "double" | "size_t" | "TA_RetCode")
+    }
+
+    /// Check if an identifier is a known macro that acts as a declaration or standalone statement.
+    fn is_macro_decl(s: &str) -> bool {
+        matches!(
+            s,
+            "ENUM_DECLARATION" | "ARRAY_REF" | "ARRAY_ALLOC" | "ARRAY_FREE"
+        )
+    }
+
+    /// Parse macro declarations/statements like:
+    ///   ENUM_DECLARATION(RetCode) retCode;  -> VarDecl { type: RetCodeType, name: retCode }
+    ///   ARRAY_REF(buf);                      -> VarDecl { type: Real, name: buf }
+    ///   ARRAY_ALLOC(buf, expr);              -> skip (no-op for code generation)
+    ///   ARRAY_FREE(buf);                     -> skip (no-op for code generation)
+    fn parse_macro_decl(&mut self) -> Statement {
+        let macro_name = match self.advance() {
+            Token::Ident(s) => s,
+            other => panic!("Expected macro name, got {:?}", other),
+        };
+        self.expect(&Token::LParen);
+
+        match macro_name.as_str() {
+            "ENUM_DECLARATION" => {
+                // ENUM_DECLARATION(RetCode) varName;
+                let type_name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected type name in ENUM_DECLARATION, got {:?}", other),
+                };
+                self.expect(&Token::RParen);
+                let var_name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!(
+                        "Expected variable name after ENUM_DECLARATION({}), got {:?}",
+                        type_name, other
+                    ),
+                };
+                self.consume_semicolon();
+                let var_type = if type_name == "RetCode" {
+                    VarType::RetCodeType
+                } else {
+                    VarType::Integer
+                };
+                Statement::VarDecl {
+                    var_type,
+                    name: var_name,
+                    init: None,
+                }
+            }
+            "ARRAY_REF" => {
+                // ARRAY_REF(buf);
+                let var_name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected variable name in ARRAY_REF, got {:?}", other),
+                };
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                Statement::VarDecl {
+                    var_type: VarType::Real,
+                    name: var_name,
+                    init: None,
+                }
+            }
+            "ARRAY_ALLOC" | "ARRAY_FREE" => {
+                // ARRAY_ALLOC(buf, expr); or ARRAY_FREE(buf);
+                // Skip all tokens until matching RParen
+                let mut depth = 1;
+                while depth > 0 {
+                    match self.advance() {
+                        Token::LParen => depth += 1,
+                        Token::RParen => depth -= 1,
+                        _ => {}
+                    }
+                }
+                self.consume_semicolon();
+                // Emit as a no-op function call
+                Statement::Assign {
+                    target: Expr::Var("_".to_string()),
+                    value: Expr::FuncCall(macro_name, vec![]),
+                    compound: false,
+                }
+            }
+            _ => panic!("Unhandled macro: {}", macro_name),
+        }
     }
 
     fn type_from_keyword(s: &str) -> VarType {
@@ -578,21 +663,51 @@ impl Parser {
         self.advance(); // consume "for"
         self.expect(&Token::LParen);
 
-        // Parse init statement (could be a var decl or assignment)
-        let init = self.parse_for_init();
+        // Parse init statement(s) — may have comma-separated assignments
+        // e.g. todayIdx=startIdx, outIdx=0
+        let mut init_stmts = vec![self.parse_for_init()];
+        while self.peek() == Some(&Token::Comma) {
+            self.advance(); // consume comma
+            init_stmts.push(self.parse_for_init());
+        }
         self.expect(&Token::Semicolon);
+
+        // Use compound init if multiple, or single if just one
+        let init = if init_stmts.len() == 1 {
+            init_stmts.remove(0)
+        } else {
+            Statement::Block { body: init_stmts }
+        };
 
         // Parse condition
         let condition = self.parse_expr();
         self.expect(&Token::Semicolon);
 
-        // Parse update
-        let update = self.parse_for_update();
+        // Parse update statement(s) — may have comma-separated updates
+        // e.g. outIdx++, todayIdx++
+        let mut update_stmts = vec![self.parse_for_update()];
+        while self.peek() == Some(&Token::Comma) {
+            self.advance(); // consume comma
+            update_stmts.push(self.parse_for_update());
+        }
         self.expect(&Token::RParen);
 
-        self.expect(&Token::LBrace);
-        let body = self.parse_statements();
-        self.expect(&Token::RBrace);
+        let update = if update_stmts.len() == 1 {
+            update_stmts.remove(0)
+        } else {
+            Statement::Block { body: update_stmts }
+        };
+
+        // Parse body — may or may not have braces
+        let body = if self.peek() == Some(&Token::LBrace) {
+            self.advance(); // consume {
+            let stmts = self.parse_statements();
+            self.expect(&Token::RBrace);
+            stmts
+        } else {
+            // Braceless for: single statement body
+            vec![self.parse_statement()]
+        };
 
         Statement::ForC {
             init: Box::new(init),
@@ -745,7 +860,32 @@ impl Parser {
                 Some(Token::Ident(ref s)) if s == "case" => {
                     self.advance();
                     let label = match self.advance() {
-                        Token::Ident(s) => s,
+                        Token::Ident(s) => {
+                            // Handle ENUM_CASE(Type, CName, PascalName) macro:
+                            // Produce label in "Type_Short" format, e.g. "MAType_SMA"
+                            // so lookup_variant can find it in the enum registry.
+                            if s == "ENUM_CASE" {
+                                self.expect(&Token::LParen);
+                                let enum_type = match self.advance() {
+                                    Token::Ident(n) => n,
+                                    other => panic!("Expected ENUM_CASE type name, got {:?}", other),
+                                };
+                                self.expect(&Token::Comma);
+                                let c_name = match self.advance() {
+                                    Token::Ident(n) => n,
+                                    other => panic!("Expected ENUM_CASE C name, got {:?}", other),
+                                };
+                                self.expect(&Token::Comma);
+                                let _pascal_name = self.advance(); // e.g. Sma
+                                self.expect(&Token::RParen);
+                                // Strip "TA_<Type>_" prefix from c_name to get short name
+                                let prefix = format!("TA_{}_", enum_type);
+                                let short = c_name.strip_prefix(&prefix).unwrap_or(&c_name);
+                                format!("{}_{}", enum_type, short)
+                            } else {
+                                s
+                            }
+                        }
                         Token::IntNumber(n) => format!("{}", n),
                         other => panic!("Expected case label, got {:?}", other),
                     };
@@ -1748,7 +1888,7 @@ int sma_lookback(int optInTimePeriod)
     return optInTimePeriod - 1;
 }
 
-TA_RetCode sma_logic(int startIdx, int endIdx,
+TA_RetCode sma(int startIdx, int endIdx,
                        const double inReal[],
                        int optInTimePeriod,
                        int *outBegIdx, int *outNBElement,
@@ -1766,7 +1906,7 @@ TA_RetCode sma_logic(int startIdx, int endIdx,
             "lookback body should be parsed from sma_lookback"
         );
         assert_eq!(parsed.functions.len(), 1);
-        assert_eq!(parsed.functions[0].name, "sma_logic");
+        assert_eq!(parsed.functions[0].name, "sma");
         assert!(!parsed.functions[0].is_internal);
     }
 
