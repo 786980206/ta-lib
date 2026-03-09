@@ -95,7 +95,7 @@ impl Registry {
     }
 
     /// Parse a prefix-free function name into (indicator, suffix).
-    /// e.g. "sma_lookback" -> ("sma", "lookback"), "ema_logic" -> ("ema", "logic")
+    /// e.g. "sma_lookback" -> ("sma", "lookback")
     fn parse_func_name(&self, func_name: &str) -> Option<(String, String)> {
         // Try matching known indicators by checking if func_name starts with
         // an indicator name followed by underscore

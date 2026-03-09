@@ -582,7 +582,7 @@ fn render_func_call(fname: &str, args: &[Expr], single_precision: bool, registry
         let resolved = registry.resolve_call(fname, Lang::C);
         let rendered: Vec<String> = args.iter().map(|a| render_expr(a, single_precision, registry)).collect();
         if resolved != fname {
-            // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, ema_logic -> TA_INT_EMA)
+            // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_INT_SMA)
             format!("{}({})", resolved, rendered.join(","))
         } else if fname.ends_with("_Lookback") {
             // Legacy: RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
@@ -727,8 +727,8 @@ mod tests {
         assert!(output.contains("TA_SMA_Lookback("), "sma_lookback should resolve to TA_SMA_Lookback");
         assert!(output.contains("TA_EMA_Lookback("), "ema_lookback should resolve to TA_EMA_Lookback");
 
-        // sma_logic and ema_logic should resolve to TA_INT_SMA and TA_INT_EMA
-        assert!(output.contains("TA_INT_SMA("), "sma_logic should resolve to TA_INT_SMA");
-        assert!(output.contains("TA_INT_EMA("), "ema_logic should resolve to TA_INT_EMA");
+        // bare sma and ema calls should resolve to TA_INT_SMA and TA_INT_EMA
+        assert!(output.contains("TA_INT_SMA("), "sma should resolve to TA_INT_SMA");
+        assert!(output.contains("TA_INT_EMA("), "ema should resolve to TA_INT_EMA");
     }
 }
