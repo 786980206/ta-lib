@@ -30,7 +30,7 @@ fn gen_comment_block(func: &FuncDef) -> String {
         .iter()
         .map(|i| match i.param_type {
             ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         })
         .collect();
     out.push_str(&format!(" * Input  = {}\n", input_types.join(", ")));
@@ -41,7 +41,7 @@ fn gen_comment_block(func: &FuncDef) -> String {
         .iter()
         .map(|o| match o.param_type {
             ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         })
         .collect();
     out.push_str(&format!(" * Output = {}\n", output_types.join(", ")));
@@ -96,7 +96,7 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
     for input in &func.inputs {
         let c_type = match input.param_type {
             ParamType::Real => "const double",
-            ParamType::Integer | ParamType::Enum(_) => "const int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "const int",
         };
         params.push(SwigParam {
             text: format!("{} *IN_ARRAY /* {} */", c_type, input.name),
@@ -108,7 +108,7 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
         let (c_type, marker) = match opt.param_type {
             ParamType::Real => ("double", "OPT_REAL"),
             ParamType::Integer => ("int", "OPT_INT"),
-            ParamType::Enum(_) => ("int", "OPT_INT"),
+            ParamType::Enum(_) | ParamType::Price(_) => ("int", "OPT_INT"),
         };
         let trailing = opt
             .range
@@ -131,7 +131,7 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
     for output in &func.outputs {
         let c_type = match output.param_type {
             ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         };
         let padded = format!("{:width$}*OUT_ARRAY /* {} */", c_type, output.name, width = 13);
         params.push(SwigParam {
@@ -177,7 +177,7 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
             let c_type = match opt {
                 Some(o) => match o.param_type {
                     ParamType::Real => "double",
-                    ParamType::Integer | ParamType::Enum(_) => "int",
+                    ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
                 },
                 None => "int",
             };
@@ -198,7 +198,7 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
             let params: Vec<String> = func.optional_inputs.iter().map(|opt| {
                 let c_type = match opt.param_type {
                     ParamType::Real => "double",
-                    ParamType::Integer | ParamType::Enum(_) => "int",
+                    ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
                 };
                 let range_comment = match opt.range {
                     Some((min, max)) => format!("  /* From {} to {} */", min, max),

@@ -47,6 +47,9 @@ pub enum ParamType {
     /// An enum parameter type, e.g. `Enum("MAType")`.
     /// The string is the enum name as defined in `enums.yaml`.
     Enum(String),
+    /// Price input: expands to multiple array parameters (e.g., high, low, close).
+    /// The vector contains component names like "open", "high", "low", "close", "volume".
+    Price(Vec<String>),
 }
 
 /// An enum type definition (loaded from `enums.yaml`).
@@ -94,6 +97,11 @@ pub enum Statement {
         compound: bool,
     },
     While {
+        condition: Expr,
+        body: Vec<Statement>,
+    },
+    /// do { body } while(condition);
+    DoWhile {
         condition: Expr,
         body: Vec<Statement>,
     },
@@ -155,6 +163,12 @@ pub enum Expr {
     FuncCall(String, Vec<Expr>),
     /// Pointer dereference: *outBegIdx
     PointerDeref(String),
+    /// Post-increment: var++ (evaluates to var, then increments)
+    PostIncrement(Box<Expr>),
+    /// Post-decrement: var-- (evaluates to var, then decrements)
+    PostDecrement(Box<Expr>),
+    /// Ternary: condition ? then_expr : else_expr
+    Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
 #[derive(Debug, Clone)]
@@ -171,5 +185,7 @@ pub enum BinOp {
     Eq,
     NotEq,
     And,
+    Shr,  // >> right shift
+    Shl,  // << left shift
     Or,
 }

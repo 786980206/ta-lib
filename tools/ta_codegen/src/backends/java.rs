@@ -27,6 +27,7 @@ fn gen_lookback(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Reg
                     ParamType::Real => "double",
                     ParamType::Integer => "int",
                     ParamType::Enum(ref name) => name.as_str(),
+                    ParamType::Price(_) => unreachable!("Price expanded during parsing"),
                 };
                 format!("{} {}", java_type, opt.name)
             })
@@ -72,12 +73,12 @@ fn gen_func(func: &FuncDef, single_precision: bool, logic: bool, enums: &HashMap
         let java_type = if single_precision {
             match &input.param_type {
                 ParamType::Real => "float",
-                ParamType::Integer | ParamType::Enum(_) => "int",
+                ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
             }
         } else {
             match &input.param_type {
                 ParamType::Real => "double",
-                ParamType::Integer | ParamType::Enum(_) => "int",
+                ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
             }
         };
         params.push(format!("{} {}[]", java_type, input.name));
@@ -88,6 +89,7 @@ fn gen_func(func: &FuncDef, single_precision: bool, logic: bool, enums: &HashMap
             ParamType::Real => "double",
             ParamType::Integer => "int",
             ParamType::Enum(ref name) => name.as_str(),
+            ParamType::Price(_) => unreachable!("Price expanded during parsing"),
         };
         params.push(format!("{} {}", java_type, opt.name));
     }
@@ -98,7 +100,7 @@ fn gen_func(func: &FuncDef, single_precision: bool, logic: bool, enums: &HashMap
     for output in &func.outputs {
         let java_type = match &output.param_type {
             ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         };
         params.push(format!("{} {}[]", java_type, output.name));
     }
@@ -208,7 +210,8 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                                 BinOp::Div => "/=",
                                 BinOp::Mod | BinOp::LessEq | BinOp::Less
                                 | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq
-                                | BinOp::NotEq | BinOp::And | BinOp::Or => "",
+                                | BinOp::NotEq | BinOp::And | BinOp::Or
+                                | BinOp::Shr | BinOp::Shl => "",
                             };
                             if !op_str.is_empty() {
                                 let target_str = render_assign_target(target, single_precision, registry);
@@ -239,6 +242,14 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                 out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+        Statement::DoWhile { condition, body } => {
+            let mut out = format!("{}do {{\n", pad);
+            for s in body {
+                out.push_str(&render_statement(s, indent + 3, single_precision, enums, registry));
+            }
+            out.push_str(&format!("{}}} while( {} );\n", pad, render_expr(condition, single_precision, registry)));
             out
         }
         Statement::If {
@@ -358,7 +369,9 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         }
         Expr::Literal(_) | Expr::IntLiteral(_) | Expr::BinOp(_, _, _)
         | Expr::Cast(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
-        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
+        | Expr::PointerDeref(_) | Expr::PostIncrement(_) | Expr::PostDecrement(_)
+        | Expr::Ternary(_, _, _)
+        => render_expr(expr, single_precision, registry),
     }
 }
 
@@ -412,6 +425,8 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
                 BinOp::NotEq => "!=",
                 BinOp::And => "&&",
                 BinOp::Or => "||",
+                BinOp::Shr => ">>",
+                BinOp::Shl => "<<",
             };
             format!(
                 "({}{}{})",
@@ -436,6 +451,16 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
         Expr::PointerDeref(name) => {
             // Java has no pointer dereference; output params are MInteger .value
             format!("{}.value", name)
+        }
+        Expr::PostIncrement(inner) => format!("{}++", render_expr(inner, single_precision, registry)),
+        Expr::PostDecrement(inner) => format!("{}--", render_expr(inner, single_precision, registry)),
+        Expr::Ternary(cond, then_expr, else_expr) => {
+            format!(
+                "({}) ? ({}) : ({})",
+                render_expr(cond, single_precision, registry),
+                render_expr(then_expr, single_precision, registry),
+                render_expr(else_expr, single_precision, registry)
+            )
         }
     }
 }

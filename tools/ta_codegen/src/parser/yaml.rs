@@ -43,6 +43,8 @@ struct YamlInput {
     name: String,
     #[serde(rename = "type")]
     param_type: String,
+    /// For price inputs: which OHLCV components are used.
+    price_components: Option<Vec<String>>,
 }
 
 #[derive(Deserialize)]
@@ -50,7 +52,7 @@ struct YamlOptParam {
     name: String,
     #[serde(rename = "type")]
     param_type: String,
-    range: Option<Vec<f64>>,
+    range: Option<Vec<serde_yaml::Value>>,
     default: Option<f64>,
     display_name: Option<String>,
     hint: Option<String>,
@@ -69,10 +71,31 @@ struct YamlOutput {
     flags: YamlFlags,
 }
 
-fn parse_param_type(s: &str) -> ParamType {
+/// Convert a YAML value to i32, resolving TA-Lib symbolic constants.
+fn yaml_val_to_i32(v: &serde_yaml::Value) -> i32 {
+    match v {
+        serde_yaml::Value::Number(n) => n.as_i64().unwrap_or(n.as_f64().unwrap_or(0.0) as i64) as i32,
+        serde_yaml::Value::String(s) => match s.as_str() {
+            "TA_INTEGER_MIN" => i32::MIN,
+            "TA_INTEGER_MAX" => i32::MAX,
+            "TA_REAL_MIN" => i32::MIN, // Clamped to i32 range for range fields
+            "TA_REAL_MAX" => i32::MAX,
+            "TA_INTEGER_DEFAULT" => 0,
+            other => panic!("Unknown range constant: {}", other),
+        },
+        other => panic!("Unexpected YAML range value: {:?}", other),
+    }
+}
+
+fn parse_param_type(s: &str, price_components: Option<Vec<String>>) -> ParamType {
     match s {
         "real" => ParamType::Real,
         "integer" => ParamType::Integer,
+        "price" => {
+            let components = price_components
+                .unwrap_or_else(|| vec!["open".into(), "high".into(), "low".into(), "close".into()]);
+            ParamType::Price(components)
+        }
         other if other.starts_with("enum:") => {
             ParamType::Enum(other["enum:".len()..].to_string())
         }
@@ -87,12 +110,31 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
     let yaml: YamlFunc = serde_yaml::from_str(&content)
         .unwrap_or_else(|e| panic!("Failed to parse {}: {}", path.display(), e));
 
-    let inputs = yaml
+    let inputs: Vec<Input> = yaml
         .inputs
         .into_iter()
-        .map(|p| Input {
-            name: p.name,
-            param_type: parse_param_type(&p.param_type),
+        .flat_map(|p| {
+            let pt = parse_param_type(&p.param_type, p.price_components);
+            match pt {
+                ParamType::Price(components) => {
+                    // Expand price input into individual Real inputs
+                    // e.g., inPriceHLC with [high, low, close] -> inHigh, inLow, inClose
+                    components
+                        .into_iter()
+                        .map(|c| {
+                            let capitalized = format!("{}{}", c[..1].to_uppercase(), &c[1..]);
+                            Input {
+                                name: format!("in{}", capitalized),
+                                param_type: ParamType::Real,
+                            }
+                        })
+                        .collect::<Vec<_>>()
+                }
+                other => vec![Input {
+                    name: p.name.clone(),
+                    param_type: other,
+                }],
+            }
         })
         .collect();
 
@@ -102,8 +144,8 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         .into_iter()
         .map(|p| OptInput {
             name: p.name,
-            param_type: parse_param_type(&p.param_type),
-            range: p.range.map(|r| (r[0] as i32, r[1] as i32)),
+            param_type: parse_param_type(&p.param_type, None),
+            range: p.range.map(|r| (yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))),
             default: p.default,
             display_name: p.display_name,
             hint: p.hint,
@@ -117,7 +159,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         .into_iter()
         .map(|p| Output {
             name: p.name,
-            param_type: parse_param_type(&p.param_type),
+            param_type: parse_param_type(&p.param_type, None),
             flags: p.flags.into_vec(),
         })
         .collect();

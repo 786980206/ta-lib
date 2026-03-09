@@ -636,26 +636,26 @@ fn test_ema_c_unstable_period() {
 }
 
 #[test]
-fn test_ema_c_per_to_k() {
+fn test_ema_c_smoothing_factor() {
     let (func, enums) = load_indicator("ema");
     let out = generate_all(&func, &enums);
 
-    // EMA uses PER_TO_K to compute the smoothing factor k
+    // EMA takes optInK_1 as the smoothing factor parameter
     assert!(
-        out.c.contains("2.0 / ((double)"),
-        "C EMA should contain PER_TO_K expansion (2.0 / ((double)...))"
+        out.c.contains("optInK_1"),
+        "C EMA should use optInK_1 smoothing factor parameter"
     );
 }
 
 #[test]
-fn test_ema_java_per_to_k() {
+fn test_ema_java_smoothing_factor() {
     let (func, enums) = load_indicator("ema");
     let out = generate_all(&func, &enums);
 
-    // Java EMA also uses PER_TO_K
+    // Java EMA also uses optInK_1
     assert!(
-        out.java.contains("2.0 / ((double)"),
-        "Java EMA should contain PER_TO_K expansion"
+        out.java.contains("optInK_1"),
+        "Java EMA should use optInK_1 smoothing factor parameter"
     );
 }
 

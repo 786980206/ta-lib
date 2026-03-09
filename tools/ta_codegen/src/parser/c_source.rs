@@ -51,9 +51,33 @@ enum Token {
     Colon,
     PlusPlus,
     MinusMinus,
+    Question,
+}
+
+/// Strip #define and #undef lines (including multi-line continuations with \)
+fn strip_local_macros(input: &str) -> String {
+    let mut result = Vec::new();
+    let mut in_macro = false;
+    for line in input.lines() {
+        let trimmed = line.trim();
+        if in_macro {
+            // Continue skipping until a line doesn't end with backslash
+            in_macro = trimmed.ends_with('\\');
+            continue;
+        }
+        if trimmed.starts_with("#define ") || trimmed.starts_with("#define\t")
+            || trimmed.starts_with("#undef ") || trimmed.starts_with("#undef\t")
+        {
+            in_macro = trimmed.ends_with('\\');
+            continue;
+        }
+        result.push(line);
+    }
+    result.join("\n")
 }
 
 fn tokenize(input: &str) -> Vec<Token> {
+    let input = strip_local_macros(input);
     let mut tokens = Vec::new();
     let chars: Vec<char> = input.chars().collect();
     let mut i = 0;
@@ -226,6 +250,9 @@ fn tokenize(input: &str) -> Vec<Token> {
             if i + 1 < chars.len() && chars[i + 1] == '=' {
                 tokens.push(Token::Op("<=".to_string()));
                 i += 2;
+            } else if i + 1 < chars.len() && chars[i + 1] == '<' {
+                tokens.push(Token::Op("<<".to_string()));
+                i += 2;
             } else {
                 tokens.push(Token::Op("<".to_string()));
                 i += 1;
@@ -235,6 +262,9 @@ fn tokenize(input: &str) -> Vec<Token> {
         if c == '>' {
             if i + 1 < chars.len() && chars[i + 1] == '=' {
                 tokens.push(Token::Op(">=".to_string()));
+                i += 2;
+            } else if i + 1 < chars.len() && chars[i + 1] == '>' {
+                tokens.push(Token::Op(">>".to_string()));
                 i += 2;
             } else {
                 tokens.push(Token::Op(">".to_string()));
@@ -291,6 +321,21 @@ fn tokenize(input: &str) -> Vec<Token> {
             }
             let s: String = chars[start..i].iter().collect();
             tokens.push(Token::Ident(s));
+            continue;
+        }
+
+        // Question mark (ternary operator)
+        if c == '?' {
+            tokens.push(Token::Question);
+            i += 1;
+            continue;
+        }
+
+        // Hash: skip any remaining preprocessor directives
+        if c == '#' {
+            while i < chars.len() && chars[i] != '\n' {
+                i += 1;
+            }
             continue;
         }
 
@@ -455,6 +500,7 @@ impl Parser {
 
     fn parse_statement(&mut self) -> Statement {
         match self.peek().cloned() {
+            Some(Token::Ident(ref s)) if s == "do" => self.parse_do_while(),
             Some(Token::Ident(ref s)) if s == "while" => self.parse_while(),
             Some(Token::Ident(ref s)) if s == "for" => self.parse_for(),
             Some(Token::Ident(ref s)) if s == "if" => self.parse_if(),
@@ -491,7 +537,22 @@ impl Parser {
     fn is_macro_decl(s: &str) -> bool {
         matches!(
             s,
-            "ENUM_DECLARATION" | "ARRAY_REF" | "ARRAY_ALLOC" | "ARRAY_FREE"
+            "ENUM_DECLARATION"
+                | "ARRAY_REF"
+                | "ARRAY_ALLOC"
+                | "ARRAY_FREE"
+                | "CONSTANT_DOUBLE"
+                | "CONSTANT_INTEGER"
+                | "CIRCBUF_PROLOG"
+                | "CIRCBUF_CONSTRUCT"
+                | "CIRCBUF_DESTROY"
+                | "CIRCBUF_NEXT"
+                | "CALCULATE_AD"
+                | "HILBERT_VARIABLES"
+                | "INIT_HILBERT_VARIABLES"
+                | "DO_HILBERT_ODD"
+                | "DO_HILBERT_EVEN"
+                | "DO_PRICE_WMA"
         )
     }
 
@@ -548,9 +609,9 @@ impl Parser {
                     init: None,
                 }
             }
-            "ARRAY_ALLOC" | "ARRAY_FREE" => {
-                // ARRAY_ALLOC(buf, expr); or ARRAY_FREE(buf);
-                // Skip all tokens until matching RParen
+            "ARRAY_ALLOC" | "ARRAY_FREE"
+            | "CIRCBUF_PROLOG" | "CIRCBUF_CONSTRUCT" | "CIRCBUF_DESTROY" | "CIRCBUF_NEXT" => {
+                // Skip all tokens until matching RParen, then semicolon
                 let mut depth = 1;
                 while depth > 0 {
                     match self.advance() {
@@ -560,11 +621,74 @@ impl Parser {
                     }
                 }
                 self.consume_semicolon();
-                // Emit as a no-op function call
                 Statement::Assign {
                     target: Expr::Var("_".to_string()),
                     value: Expr::FuncCall(macro_name, vec![]),
                     compound: false,
+                }
+            }
+            "CONSTANT_DOUBLE" => {
+                // CONSTANT_DOUBLE(name) = value;
+                let var_name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected variable name in CONSTANT_DOUBLE, got {:?}", other),
+                };
+                self.expect(&Token::RParen);
+                self.expect_op("=");
+                let init = self.parse_expr();
+                self.consume_semicolon();
+                Statement::VarDecl {
+                    var_type: VarType::Real,
+                    name: var_name,
+                    init: Some(init),
+                }
+            }
+            "CONSTANT_INTEGER" => {
+                // CONSTANT_INTEGER(name) = value;
+                let var_name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected variable name in CONSTANT_INTEGER, got {:?}", other),
+                };
+                self.expect(&Token::RParen);
+                self.expect_op("=");
+                let init = self.parse_expr();
+                self.consume_semicolon();
+                Statement::VarDecl {
+                    var_type: VarType::Integer,
+                    name: var_name,
+                    init: Some(init),
+                }
+            }
+            "CALCULATE_AD" | "INIT_HILBERT_VARIABLES"
+            | "DO_HILBERT_ODD" | "DO_HILBERT_EVEN" | "DO_PRICE_WMA" => {
+                // Function-like macro call as statement
+                let args = self.parse_call_args();
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                Statement::Assign {
+                    target: Expr::Var("_".to_string()),
+                    value: Expr::FuncCall(macro_name, args),
+                    compound: false,
+                }
+            }
+            "HILBERT_VARIABLES" => {
+                // HILBERT_VARIABLES(prefix); -> declares multiple variables
+                let prefix = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected identifier in HILBERT_VARIABLES, got {:?}", other),
+                };
+                self.expect(&Token::RParen);
+                self.consume_semicolon();
+                // Expand to variable declarations for the Hilbert Transform variables
+                Statement::Block {
+                    body: vec![
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd0", prefix), init: None },
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd1", prefix), init: None },
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd2", prefix), init: None },
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even0", prefix), init: None },
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even1", prefix), init: None },
+                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even2", prefix), init: None },
+                    ],
                 }
             }
             _ => panic!("Unhandled macro: {}", macro_name),
@@ -632,6 +756,41 @@ impl Parser {
         }
     }
 
+    /// Parse the right-hand side of an assignment, handling chained assignments.
+    /// Returns (preceding_assignments, final_value) where preceding_assignments
+    /// are the desugared inner assignments. Does NOT consume the trailing semicolon.
+    /// Example: for `b = c = 0.0`, returns ([c = 0.0, b = c], Var(c))
+    ///          for `expr`, returns ([], expr)
+    fn parse_chained_rhs(&mut self) -> (Vec<Statement>, Expr) {
+        // Look ahead: if next is Ident followed by Op("="), it's a chain.
+        if let Some(Token::Ident(_)) = self.peek() {
+            let save = self.pos;
+            let chain_name = if let Token::Ident(s) = &self.tokens[self.pos] {
+                s.clone()
+            } else {
+                unreachable!()
+            };
+            self.advance();
+            if matches!(self.peek(), Some(Token::Op(ref o)) if o == "=") {
+                self.advance(); // consume =
+                let chain_name = strip_ta_prefix(&chain_name);
+                // Recursively parse the rest of the chain
+                let (mut inner_stmts, inner_val) = self.parse_chained_rhs();
+                inner_stmts.push(Statement::Assign {
+                    target: Expr::Var(chain_name.clone()),
+                    value: inner_val,
+                    compound: false,
+                });
+                return (inner_stmts, Expr::Var(chain_name));
+            }
+            // Not a chain — backtrack
+            self.pos = save;
+        }
+        // Plain expression
+        let expr = self.parse_expr();
+        (vec![], expr)
+    }
+
     fn parse_pointer_deref_assign(&mut self) -> Statement {
         self.advance(); // consume *
         let name = match self.advance() {
@@ -639,13 +798,37 @@ impl Parser {
             other => panic!("Expected identifier after *, got {:?}", other),
         };
         self.expect_op("=");
-        let value = self.parse_expr();
+        // Check for chained assignment: *ptr = name2 = expr
+        let (chained_stmts, value) = self.parse_chained_rhs();
         self.consume_semicolon();
-        Statement::Assign {
+        let mut stmts = chained_stmts;
+        stmts.push(Statement::Assign {
             target: Expr::PointerDeref(name),
             value,
             compound: false,
+        });
+        if stmts.len() == 1 {
+            stmts.remove(0)
+        } else {
+            Statement::Block { body: stmts }
         }
+    }
+
+    fn parse_do_while(&mut self) -> Statement {
+        self.advance(); // consume "do"
+        self.expect(&Token::LBrace);
+        let body = self.parse_statements();
+        self.expect(&Token::RBrace);
+        // expect "while"
+        match self.advance() {
+            Token::Ident(s) if s == "while" => {}
+            other => panic!("Expected 'while' after do block, got {:?}", other),
+        }
+        self.expect(&Token::LParen);
+        let condition = self.parse_expr();
+        self.expect(&Token::RParen);
+        self.consume_semicolon();
+        Statement::DoWhile { condition, body }
     }
 
     fn parse_while(&mut self) -> Statement {
@@ -653,9 +836,16 @@ impl Parser {
         self.expect(&Token::LParen);
         let condition = self.parse_expr();
         self.expect(&Token::RParen);
-        self.expect(&Token::LBrace);
-        let body = self.parse_statements();
-        self.expect(&Token::RBrace);
+        let body = if self.peek() == Some(&Token::LBrace) {
+            self.advance(); // consume {
+            let body = self.parse_statements();
+            self.expect(&Token::RBrace);
+            body
+        } else {
+            // Braceless while: single statement
+            let stmt = self.parse_statement();
+            vec![stmt]
+        };
         Statement::While { condition, body }
     }
 
@@ -684,19 +874,23 @@ impl Parser {
         self.expect(&Token::Semicolon);
 
         // Parse update statement(s) — may have comma-separated updates
-        // e.g. outIdx++, todayIdx++
-        let mut update_stmts = vec![self.parse_for_update()];
-        while self.peek() == Some(&Token::Comma) {
-            self.advance(); // consume comma
-            update_stmts.push(self.parse_for_update());
-        }
-        self.expect(&Token::RParen);
-
-        let update = if update_stmts.len() == 1 {
-            update_stmts.remove(0)
+        // or may be empty (e.g., for(;;))
+        let update = if self.peek() == Some(&Token::RParen) {
+            // Empty update
+            Statement::Block { body: vec![] }
         } else {
-            Statement::Block { body: update_stmts }
+            let mut update_stmts = vec![self.parse_for_update()];
+            while self.peek() == Some(&Token::Comma) {
+                self.advance(); // consume comma
+                update_stmts.push(self.parse_for_update());
+            }
+            if update_stmts.len() == 1 {
+                update_stmts.remove(0)
+            } else {
+                Statement::Block { body: update_stmts }
+            }
         };
+        self.expect(&Token::RParen);
 
         // Parse body — may or may not have braces
         let body = if self.peek() == Some(&Token::LBrace) {
@@ -733,6 +927,40 @@ impl Parser {
     }
 
     fn parse_for_update(&mut self) -> Statement {
+        // Handle pre-increment: ++i
+        if self.peek() == Some(&Token::PlusPlus) {
+            self.advance();
+            let name = match self.advance() {
+                Token::Ident(s) => s,
+                other => panic!("Expected identifier after ++ in for update, got {:?}", other),
+            };
+            return Statement::Assign {
+                target: Expr::Var(name.clone()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var(name)),
+                    BinOp::Add,
+                    Box::new(Expr::IntLiteral(1)),
+                ),
+                compound: true,
+            };
+        }
+        // Handle pre-decrement: --i
+        if self.peek() == Some(&Token::MinusMinus) {
+            self.advance();
+            let name = match self.advance() {
+                Token::Ident(s) => s,
+                other => panic!("Expected identifier after -- in for update, got {:?}", other),
+            };
+            return Statement::Assign {
+                target: Expr::Var(name.clone()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var(name)),
+                    BinOp::Sub,
+                    Box::new(Expr::IntLiteral(1)),
+                ),
+                compound: true,
+            };
+        }
         // Usually i++ or i-- or i += 1
         let name = match self.advance() {
             Token::Ident(s) => s,
@@ -979,11 +1207,39 @@ impl Parser {
         self.parse_expr()
     }
 
+    /// Check if an identifier looks like an ALL_CAPS macro name.
+    fn is_all_caps_macro(name: &str) -> bool {
+        name.len() > 1
+            && name.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
+            && name.chars().next().map_or(false, |c| c.is_ascii_uppercase())
+    }
+
     fn parse_assignment_or_expr_stmt(&mut self) -> Statement {
         let name = match self.advance() {
             Token::Ident(s) => s,
             other => panic!("Expected identifier, got {:?}", other),
         };
+
+        // Handle ALL_CAPS macro calls as standalone statements
+        // e.g., TRUE_RANGE(a,b,c,d); UNUSED_VARIABLE(x); SAR_ROUNDING(v);
+        if Self::is_all_caps_macro(&name) && self.peek() == Some(&Token::LParen)
+            && !Self::is_type_keyword(&name) // not a type keyword
+        {
+            let save_pos = self.pos;
+            self.advance(); // consume (
+            let args = self.parse_call_args();
+            self.expect(&Token::RParen);
+            if matches!(self.peek(), Some(&Token::Semicolon) | None) || self.pos >= self.tokens.len() {
+                self.consume_semicolon();
+                return Statement::Assign {
+                    target: Expr::Var("_".to_string()),
+                    value: Expr::FuncCall(name, args),
+                    compound: false,
+                };
+            }
+            // Not a standalone call — might be CONSTANT_DOUBLE(x) = expr or similar
+            self.pos = save_pos;
+        }
 
         // Post-increment: i++;
         if self.peek() == Some(&Token::PlusPlus) {
@@ -1080,12 +1336,17 @@ impl Parser {
         match self.peek().cloned() {
             Some(Token::Op(ref op)) if op == "=" => {
                 self.advance();
-                let value = self.parse_expr();
+                let (mut chain_stmts, value) = self.parse_chained_rhs();
                 self.consume_semicolon();
-                Statement::Assign {
+                chain_stmts.push(Statement::Assign {
                     target: Expr::Var(name),
                     value,
                     compound: false,
+                });
+                if chain_stmts.len() == 1 {
+                    chain_stmts.remove(0)
+                } else {
+                    Statement::Block { body: chain_stmts }
                 }
             }
             Some(Token::Op(ref op))
@@ -1094,12 +1355,18 @@ impl Parser {
                 let op_str = op.clone();
                 self.advance();
                 let bin_op = compound_op(&op_str);
-                let rhs = self.parse_expr();
+                // Handle embedded assignment: SumY += tempValue1 = inReal[i]
+                let (mut chain_stmts, rhs) = self.parse_chained_rhs();
                 self.consume_semicolon();
-                Statement::Assign {
+                chain_stmts.push(Statement::Assign {
                     target: Expr::Var(name.clone()),
                     value: Expr::BinOp(Box::new(Expr::Var(name)), bin_op, Box::new(rhs)),
                     compound: true,
+                });
+                if chain_stmts.len() == 1 {
+                    chain_stmts.remove(0)
+                } else {
+                    Statement::Block { body: chain_stmts }
                 }
             }
             other => panic!(
@@ -1139,7 +1406,16 @@ impl Parser {
     // --- Expression parsing (precedence climbing) ---
 
     fn parse_expr(&mut self) -> Expr {
-        self.parse_logical_or()
+        let expr = self.parse_logical_or();
+        // Ternary: expr ? then_expr : else_expr
+        if self.peek() == Some(&Token::Question) {
+            self.advance();
+            let then_expr = self.parse_expr();
+            self.expect(&Token::Colon);
+            let else_expr = self.parse_expr();
+            return Expr::Ternary(Box::new(expr), Box::new(then_expr), Box::new(else_expr));
+        }
+        expr
     }
 
     fn parse_logical_or(&mut self) -> Expr {
@@ -1169,7 +1445,7 @@ impl Parser {
     }
 
     fn parse_comparison(&mut self) -> Expr {
-        let mut left = self.parse_additive();
+        let mut left = self.parse_shift();
         while let Some(Token::Op(ref op)) = self.peek() {
             let bin_op = match op.as_str() {
                 "<=" => BinOp::LessEq,
@@ -1178,6 +1454,21 @@ impl Parser {
                 ">" => BinOp::Greater,
                 "==" => BinOp::Eq,
                 "!=" => BinOp::NotEq,
+                _ => break,
+            };
+            self.advance();
+            let right = self.parse_shift();
+            left = Expr::BinOp(Box::new(left), bin_op, Box::new(right));
+        }
+        left
+    }
+
+    fn parse_shift(&mut self) -> Expr {
+        let mut left = self.parse_additive();
+        while let Some(Token::Op(ref op)) = self.peek() {
+            let bin_op = match op.as_str() {
+                ">>" => BinOp::Shr,
+                "<<" => BinOp::Shl,
                 _ => break,
             };
             self.advance();
@@ -1233,7 +1524,44 @@ impl Parser {
             let operand = self.parse_unary();
             return Expr::Not(Box::new(operand));
         }
-        // Unary minus
+        // Unary dereference: *var
+        if self.peek() == Some(&Token::Star) {
+            self.advance();
+            if let Some(Token::Ident(ref name)) = self.peek() {
+                let name = name.clone();
+                self.advance();
+                return Expr::PointerDeref(name);
+            }
+            // Dereference of a parenthesized expr — fall through to parse_primary
+            let operand = self.parse_primary();
+            if let Expr::Var(name) = operand {
+                return Expr::PointerDeref(name);
+            }
+            panic!("Cannot dereference non-identifier expression");
+        }
+        // Pre-increment: ++expr
+        if self.peek() == Some(&Token::PlusPlus) {
+            self.advance();
+            let operand = self.parse_unary();
+            // Pre-increment evaluates to the incremented value
+            // For simplicity, treat as (expr + 1) — backends handle appropriately
+            return Expr::BinOp(
+                Box::new(operand),
+                BinOp::Add,
+                Box::new(Expr::IntLiteral(1)),
+            );
+        }
+        // Pre-decrement: --expr
+        if self.peek() == Some(&Token::MinusMinus) {
+            self.advance();
+            let operand = self.parse_unary();
+            return Expr::BinOp(
+                Box::new(operand),
+                BinOp::Sub,
+                Box::new(Expr::IntLiteral(1)),
+            );
+        }
+        // Unary minus or unary plus
         if let Some(Token::Op(ref op)) = self.peek() {
             if op == "-" {
                 self.advance();
@@ -1243,6 +1571,11 @@ impl Parser {
                     BinOp::Sub,
                     Box::new(operand),
                 );
+            }
+            if op == "+" {
+                self.advance();
+                // Unary plus is a no-op
+                return self.parse_unary();
             }
         }
         self.parse_primary()
@@ -1287,7 +1620,26 @@ impl Parser {
                             self.advance(); // consume [
                             let index = self.parse_expr();
                             self.expect(&Token::RBracket);
-                            return Expr::ArrayAccess(name, Box::new(index));
+                            let arr_expr = Expr::ArrayAccess(name, Box::new(index));
+                            // Check for postfix ++/-- on array access
+                            if self.peek() == Some(&Token::PlusPlus) {
+                                self.advance();
+                                return Expr::PostIncrement(Box::new(arr_expr));
+                            }
+                            if self.peek() == Some(&Token::MinusMinus) {
+                                self.advance();
+                                return Expr::PostDecrement(Box::new(arr_expr));
+                            }
+                            return arr_expr;
+                        }
+                        // Postfix ++/-- on plain identifier
+                        if self.peek() == Some(&Token::PlusPlus) {
+                            self.advance();
+                            return Expr::PostIncrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
+                        }
+                        if self.peek() == Some(&Token::MinusMinus) {
+                            self.advance();
+                            return Expr::PostDecrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
                         }
                         // Plain identifier — strip TA_ from enum-like values
                         Expr::Var(strip_ta_prefix(&name))

@@ -55,7 +55,7 @@ fn opt_input_type(pt: &ParamType) -> &'static str {
     match pt {
         ParamType::Real => "double",
         ParamType::Integer => "int",
-        ParamType::Enum(_) => "int",
+        ParamType::Enum(_) | ParamType::Price(_) => "int",
     }
 }
 
@@ -64,12 +64,12 @@ fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
     if single_precision {
         match pt {
             ParamType::Real => "float",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         }
     } else {
         match pt {
             ParamType::Real => "double",
-            ParamType::Integer | ParamType::Enum(_) => "int",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         }
     }
 }
@@ -78,7 +78,7 @@ fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
 fn output_type(pt: &ParamType) -> &'static str {
     match pt {
         ParamType::Real => "double",
-        ParamType::Integer | ParamType::Enum(_) => "int",
+        ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
     }
 }
 

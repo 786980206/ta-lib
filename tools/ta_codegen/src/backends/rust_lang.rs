@@ -127,7 +127,7 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>, r
         for opt in &func.optional_inputs {
             let rust_type = match opt.param_type {
                 ParamType::Real => "f64",
-                ParamType::Integer | ParamType::Enum(_) => "i32",
+                ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
             };
             params.push(format!("mut {}: {}", opt.name, rust_type));
         }
@@ -284,7 +284,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool, _registr
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!("        mut {}: {},\n", opt.name, rust_type));
     }
@@ -293,7 +293,7 @@ fn gen_public_func(func: &FuncDef, snake: &str, single_precision: bool, _registr
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -354,7 +354,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums:
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
     }
@@ -363,7 +363,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, single_precision: bool, enums:
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -540,7 +540,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
     }
@@ -549,7 +549,7 @@ fn gen_func(func: &FuncDef, snake: &str, single_precision: bool, enums: &HashMap
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!(
             "        {}: &mut [{}],\n",
@@ -662,7 +662,7 @@ fn gen_unsafe_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!("    //     {}: {},\n", opt.name, rust_type));
     }
@@ -671,7 +671,7 @@ fn gen_unsafe_func(func: &FuncDef, snake: &str, single_precision: bool) -> Strin
     for output in &func.outputs {
         let rust_type = match output.param_type {
             ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) => "i32",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
         out.push_str(&format!(
             "    //     {}: *mut {},\n",
@@ -748,7 +748,8 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
                     }
                 }
             }
-            Statement::While { body: while_body, .. } => {
+            Statement::While { body: while_body, .. }
+            | Statement::DoWhile { body: while_body, .. } => {
                 count += count_assignments_inner(name, while_body, true);
             }
             Statement::For { body: for_body, .. } | Statement::ForC { body: for_body, .. } => {
@@ -802,7 +803,7 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
             Statement::For { .. } | Statement::ForC { .. } | Statement::Block { .. }
             | Statement::VarDecl { .. } | Statement::Assign { .. } | Statement::If { .. }
             | Statement::Return { .. } | Statement::Break | Statement::Continue
-            | Statement::Switch { .. } => {}
+            | Statement::Switch { .. } | Statement::DoWhile { .. } => {}
         }
     }
     vars
@@ -915,7 +916,8 @@ fn render_statement(
                                 BinOp::Div => "/=",
                                 BinOp::Mod | BinOp::LessEq | BinOp::Less
                                 | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq
-                                | BinOp::NotEq | BinOp::And | BinOp::Or => "",
+                                | BinOp::NotEq | BinOp::And | BinOp::Or
+                                | BinOp::Shr | BinOp::Shl => "",
                             };
                             if !op_str.is_empty() {
                                 let target_str =
@@ -992,6 +994,18 @@ fn render_statement(
             for s in while_body {
                 out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
             }
+            out.push_str(&format!("{}}}\n", pad));
+            out
+        }
+        Statement::DoWhile {
+            condition,
+            body: while_body,
+        } => {
+            let mut out = format!("{}loop {{\n", pad);
+            for s in while_body {
+                out.push_str(&render_statement(s, indent + 4, single_precision, for_loop_vars, var_inits, output_names, enums, registry));
+            }
+            out.push_str(&format!("{}    if !({}) {{ break; }}\n", pad, render_expr(condition, single_precision, registry)));
             out.push_str(&format!("{}}}\n", pad));
             out
         }
@@ -1087,7 +1101,13 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
         }
         Expr::Not(inner) => expr_has_uncast_array_access(inner),
         Expr::FuncCall(_, args) => args.iter().any(|a| expr_has_uncast_array_access(a)),
-        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_) | Expr::PointerDeref(_) => false,
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_) | Expr::PointerDeref(_)
+        | Expr::PostIncrement(_) | Expr::PostDecrement(_) => false,
+        Expr::Ternary(cond, then_expr, else_expr) => {
+            expr_has_uncast_array_access(cond)
+                || expr_has_uncast_array_access(then_expr)
+                || expr_has_uncast_array_access(else_expr)
+        }
     }
 }
 
@@ -1102,7 +1122,9 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         }
         Expr::Literal(_) | Expr::IntLiteral(_) | Expr::BinOp(_, _, _)
         | Expr::Cast(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
-        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
+        | Expr::PointerDeref(_) | Expr::PostIncrement(_) | Expr::PostDecrement(_)
+        | Expr::Ternary(_, _, _)
+        => render_expr(expr, single_precision, registry),
     }
 }
 
@@ -1115,6 +1137,7 @@ fn op_precedence(op: &BinOp) -> u8 {
         BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 4,
         BinOp::Add | BinOp::Sub => 5,
         BinOp::Mul | BinOp::Div | BinOp::Mod => 6,
+        BinOp::Shr | BinOp::Shl => 5, // same as additive in Rust
     }
 }
 
@@ -1142,7 +1165,9 @@ fn render_binop_operand(
         }
         Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_)
         | Expr::ArrayAccess(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
-        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
+        | Expr::PointerDeref(_) | Expr::PostIncrement(_) | Expr::PostDecrement(_)
+        | Expr::Ternary(_, _, _)
+        => render_expr(expr, single_precision, registry),
     }
 }
 
@@ -1197,6 +1222,8 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
                 BinOp::NotEq => " != ",
                 BinOp::And => " && ",
                 BinOp::Or => " || ",
+                BinOp::Shr => " >> ",
+                BinOp::Shl => " << ",
             };
             // Wrap Cast subexpressions in parens for correct Rust `as` precedence
             let left_str = render_binop_operand(left, op, true, single_precision, registry);
@@ -1221,6 +1248,23 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
             format!("!({})", render_expr(inner, single_precision, registry))
         }
         Expr::PointerDeref(name) => format!("(*{})", name),
+        Expr::PostIncrement(inner) => {
+            // Rust doesn't have postfix ++ — render as a block expression
+            let rendered = render_expr(inner, single_precision, registry);
+            format!("{{ let _v = {}; {} += 1; _v }}", rendered, rendered)
+        }
+        Expr::PostDecrement(inner) => {
+            let rendered = render_expr(inner, single_precision, registry);
+            format!("{{ let _v = {}; {} -= 1; _v }}", rendered, rendered)
+        }
+        Expr::Ternary(cond, then_expr, else_expr) => {
+            format!(
+                "if {} {{ {} }} else {{ {} }}",
+                render_expr(cond, single_precision, registry),
+                render_expr(then_expr, single_precision, registry),
+                render_expr(else_expr, single_precision, registry)
+            )
+        }
     }
 }
 

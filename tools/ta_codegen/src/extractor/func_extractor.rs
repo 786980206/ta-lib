@@ -80,6 +80,9 @@ fn extract_lookback(lines: &[&str], upper: &str, lower: &str) -> String {
         body_lines.push(line.to_string());
     }
 
+    // Resolve preprocessor conditionals for C double-precision target
+    body_lines = strip_preprocessor_conditionals(&body_lines);
+
     // Trim leading/trailing blank lines from body
     while body_lines.first().map_or(false, |l| l.trim().is_empty()) {
         body_lines.remove(0);
@@ -364,20 +367,12 @@ fn extract_int_function(
     let mut body_lines: Vec<String> = Vec::new();
     for i in (body_open + 1)..body_close {
         let line = lines[i];
-        // Skip #if defined guards and their content for _MANAGED/_JAVA/_RUST
         let stripped = strip_generated_prefix(line);
-        let trimmed = stripped.trim();
-
-        // Skip #if defined( USE_SINGLE_PRECISION_INPUT ) blocks
-        if trimmed.contains("USE_SINGLE_PRECISION_INPUT") {
-            continue;
-        }
-
         body_lines.push(stripped);
     }
 
-    // Filter out USE_SINGLE_PRECISION_INPUT blocks
-    body_lines = filter_single_precision_blocks(&body_lines);
+    // Resolve all preprocessor conditionals for C double-precision target
+    body_lines = strip_preprocessor_conditionals(&body_lines);
 
     // Apply macro expansions
     let body_lines: Vec<String> = body_lines
@@ -406,50 +401,133 @@ fn extract_int_function(
     Some((params, body))
 }
 
-/// Filter out `#if defined( USE_SINGLE_PRECISION_INPUT )` blocks, keeping `#else` content.
-fn filter_single_precision_blocks(lines: &[String]) -> Vec<String> {
+/// Strip all `#if`/`#else`/`#endif` preprocessor blocks, resolving for C double-precision target.
+/// Symbols _JAVA, _MANAGED, USE_SUBARRAY, USE_SINGLE_PRECISION_INPUT are all undefined for C.
+/// `#define` and `#undef` lines are preserved (they're local macros the backends handle).
+fn strip_preprocessor_conditionals(lines: &[String]) -> Vec<String> {
     let mut result = Vec::new();
-    let mut skip_depth = 0i32;
-    let mut in_single_prec = false;
+    // Stack tracks: (keeping_content, depth)
+    // keeping_content = true means we're in a branch whose code should be emitted
+    let mut stack: Vec<bool> = Vec::new(); // true = keeping, false = skipping
 
-    let mut skip_endif = false;
     for line in lines {
         let trimmed = line.trim();
-        if trimmed.contains("#if") && trimmed.contains("USE_SINGLE_PRECISION_INPUT") {
-            in_single_prec = true;
-            skip_depth = 1;
+
+        let is_if = trimmed.starts_with("#if ") || trimmed.starts_with("#if\t");
+        let is_ifdef = trimmed.starts_with("#ifdef ");
+        let is_ifndef = trimmed.starts_with("#ifndef ");
+        let is_else = trimmed == "#else";
+        let is_endif = trimmed == "#endif"
+            || trimmed.starts_with("#endif ")
+            || trimmed.starts_with("#endif/")
+            || trimmed.starts_with("#endif\t");
+
+        if is_if || is_ifdef || is_ifndef {
+            let condition_true = eval_condition_for_c(trimmed);
+            stack.push(condition_true);
             continue;
         }
-        if in_single_prec {
-            if trimmed.starts_with("#if") {
-                skip_depth += 1;
-            }
-            if trimmed == "#else" && skip_depth == 1 {
-                // Switch to keeping content, but skip the matching #endif
-                in_single_prec = false;
-                skip_endif = true;
-                continue;
-            }
-            let is_endif = trimmed == "#endif" || trimmed.starts_with("#endif ") || trimmed.starts_with("#endif/");
-            if is_endif {
-                skip_depth -= 1;
-                if skip_depth == 0 {
-                    in_single_prec = false;
-                    continue;
-                }
+
+        if is_else {
+            if let Some(top) = stack.last_mut() {
+                *top = !*top; // flip: if we were keeping, now skip; vice versa
             }
             continue;
         }
-        if skip_endif {
-            let is_endif = trimmed == "#endif" || trimmed.starts_with("#endif ") || trimmed.starts_with("#endif/");
-            if is_endif {
-                skip_endif = false;
-                continue;
-            }
+
+        if is_endif {
+            stack.pop();
+            continue;
         }
-        result.push(line.clone());
+
+        // Emit line only if all enclosing conditions are true (or no conditions)
+        if stack.iter().all(|&keeping| keeping) {
+            result.push(line.clone());
+        }
     }
     result
+}
+
+/// Evaluate a `#if` condition for C double-precision target.
+/// All of _JAVA, _MANAGED, USE_SUBARRAY, USE_SINGLE_PRECISION_INPUT, _RUST are undefined.
+fn eval_condition_for_c(directive: &str) -> bool {
+    let trimmed = directive.trim();
+
+    // #ifndef X → true if X is undefined (it is for our target symbols)
+    if trimmed.starts_with("#ifndef ") {
+        return true;
+    }
+    // #ifdef X → false for our target symbols
+    if trimmed.starts_with("#ifdef ") {
+        return false;
+    }
+
+    // #if ... — extract the condition after "#if "
+    let cond = if trimmed.starts_with("#if ") {
+        &trimmed[4..]
+    } else {
+        return true; // unknown directive, keep content
+    };
+
+    // Check for positive defined() terms — if any target symbol is positively tested, condition is false
+    let positive_defines = ["_JAVA", "_MANAGED", "USE_SUBARRAY", "USE_SINGLE_PRECISION_INPUT", "_RUST"];
+    let negative_defines = ["_JAVA", "_MANAGED", "USE_SUBARRAY", "USE_SINGLE_PRECISION_INPUT", "_RUST"];
+
+    // Simple heuristic: if the condition has `defined(X)` (without `!`) for any target symbol → false
+    // If the condition has `!defined(X)` for target symbols → true
+    // For compound conditions with &&: all terms must be true
+    // For compound conditions with ||: any term must be true
+
+    // Check if it's purely negated conditions (all !defined)
+    let has_positive = positive_defines.iter().any(|sym| {
+        // Match `defined(SYM)` or `defined( SYM )` NOT preceded by `!`
+        let patterns = [
+            format!("defined({})", sym),
+            format!("defined( {} )", sym),
+            format!("defined({})", sym),
+        ];
+        for pat in &patterns {
+            if let Some(pos) = cond.find(pat.as_str()) {
+                // Check if preceded by `!`
+                let before = &cond[..pos];
+                let before_trimmed = before.trim_end();
+                if !before_trimmed.ends_with('!') {
+                    return true; // positive defined() → this symbol being tested as present
+                }
+            }
+        }
+        false
+    });
+
+    let has_negative = negative_defines.iter().any(|sym| {
+        let patterns = [
+            format!("!defined({})", sym),
+            format!("!defined( {} )", sym),
+            format!("! defined({})", sym),
+            format!("! defined( {} )", sym),
+        ];
+        patterns.iter().any(|pat| cond.contains(pat.as_str()))
+    });
+
+    if has_positive && !has_negative {
+        // Pure positive: `defined(USE_SINGLE_PRECISION_INPUT)` → false
+        false
+    } else if has_negative && !has_positive {
+        // Pure negative: `!defined(_JAVA)` → true
+        true
+    } else if has_positive && has_negative {
+        // Mixed: e.g. `defined(USE_SINGLE_PRECISION_INPUT) || !defined(_JAVA)`
+        // For &&: positive term is false → whole thing false
+        // For ||: negative term is true → whole thing true
+        if cond.contains("||") {
+            true // any !defined term makes it true
+        } else {
+            false // && with a positive term makes it false
+        }
+    } else {
+        // No recognized symbols — keep content as safe default
+        true
+    }
 }
 
 /// Extract the main function body (for inline logic, not delegating).
@@ -488,6 +566,9 @@ fn extract_main_body(
         }
         body_lines.push(line.to_string());
     }
+
+    // Resolve preprocessor conditionals for C double-precision target
+    body_lines = strip_preprocessor_conditionals(&body_lines);
 
     // Trim leading/trailing blank lines
     while body_lines.first().map_or(false, |l| l.trim().is_empty()) {
