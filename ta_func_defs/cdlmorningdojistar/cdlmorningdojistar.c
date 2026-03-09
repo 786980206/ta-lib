@@ -1,0 +1,105 @@
+int cdlmorningdojistar_lookback(double        optInPenetration)
+{
+    UNUSED_VARIABLE(optInPenetration);
+    return max( max( TA_CANDLEAVGPERIOD(BodyDoji), TA_CANDLEAVGPERIOD(BodyLong) ),
+    TA_CANDLEAVGPERIOD(BodyShort)
+    ) + 2;
+}
+
+TA_RetCode cdlmorningdojistar(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], double optInPenetration, int *outBegIdx, int *outNBElement, int outInteger[])
+{
+    double BodyDojiPeriodTotal, BodyLongPeriodTotal, BodyShortPeriodTotal;
+    int i, outIdx, BodyDojiTrailingIdx, BodyLongTrailingIdx, BodyShortTrailingIdx, lookbackTotal;
+
+
+    /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
+
+    lookbackTotal = cdlmorningdojistar_lookback(optInPenetration);
+
+    /* Move up the start index if there is not
+    * enough initial data.
+    */
+    if( startIdx < lookbackTotal )
+    startIdx = lookbackTotal;
+
+    /* Make sure there is still something to evaluate. */
+    if( startIdx > endIdx )
+    {
+    *outBegIdx = 0;
+    *outNBElement = 0;
+    return TA_SUCCESS;
+    }
+
+    /* Do the calculation using tight loops. */
+    /* Add-up the initial period, except for the last value. */
+    BodyLongPeriodTotal = 0;
+    BodyDojiPeriodTotal = 0;
+    BodyShortPeriodTotal = 0;
+    BodyLongTrailingIdx = startIdx -2 - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyDojiTrailingIdx = startIdx -1 - TA_CANDLEAVGPERIOD(BodyDoji);
+    BodyShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyShort);
+
+    i = BodyLongTrailingIdx;
+    while( i < startIdx-2 ) {
+    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    i++;
+    }
+    i = BodyDojiTrailingIdx;
+    while( i < startIdx-1 ) {
+    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i );
+    i++;
+    }
+    i = BodyShortTrailingIdx;
+    while( i < startIdx ) {
+    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i );
+    i++;
+    }
+    i = startIdx;
+
+    /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - first candle: long black real body
+    * - second candle: doji gapping down
+    * - third candle: white real body that moves well within the first candle's real body
+    * The meaning of "doji" and "long" is specified with TA_SetCandleSettings
+    * The meaning of "moves well within" is specified with optInPenetration and "moves" should mean the real body should
+    * not be short ("short" is specified with TA_SetCandleSettings) - Greg Morris wants it to be long, someone else want
+    * it to be relatively long
+    * outInteger is positive (1 to 100): morning doji star is always bullish;
+    * the user should consider that a morning star is significant when it appears in a downtrend,
+    * while this function does not consider the trend
+    */
+    outIdx = 0;
+    do
+    {
+    if( TA_REALBODY(i-2) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-2 ) &&         // 1st: long
+    TA_CANDLECOLOR(i-2) == -1 &&                                                            //           black
+    TA_REALBODY(i-1) <= TA_CANDLEAVERAGE( BodyDoji, BodyDojiPeriodTotal, i-1 ) &&        // 2nd: doji
+    TA_REALBODYGAPDOWN(i-1,i-2) &&                                                          //           gapping down
+    TA_REALBODY(i) > TA_CANDLEAVERAGE( BodyShort, BodyShortPeriodTotal, i ) &&           // 3rd: longer than short
+    TA_CANDLECOLOR(i) == 1 &&                                                               //          white real body
+    inClose[i] > inClose[i-2] + TA_REALBODY(i-2) * optInPenetration                         //               closing well within 1st rb
+    )
+    outInteger[outIdx++] = 100;
+    else
+    outInteger[outIdx++] = 0;
+    /* add the current range and subtract the first range: this is done after the pattern recognition
+    * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+    */
+    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-2 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
+    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i-1 ) - TA_CANDLERANGE( BodyDoji, BodyDojiTrailingIdx );
+    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i ) - TA_CANDLERANGE( BodyShort, BodyShortTrailingIdx );
+    i++;
+    BodyLongTrailingIdx++;
+    BodyDojiTrailingIdx++;
+    BodyShortTrailingIdx++;
+    } while( i <= endIdx );
+
+    /* All done. Indicate the output limits and return. */
+    *outNBElement = outIdx;
+    *outBegIdx    = startIdx;
+
+    return TA_SUCCESS;
+}

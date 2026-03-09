@@ -1,0 +1,97 @@
+int cdlgapsidesidewhite_lookback(void)
+{
+    return max( TA_CANDLEAVGPERIOD(Near), TA_CANDLEAVGPERIOD(Equal) ) + 2;
+}
+
+TA_RetCode cdlgapsidesidewhite(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
+{
+    double NearPeriodTotal, EqualPeriodTotal;
+    int i, outIdx, NearTrailingIdx, EqualTrailingIdx, lookbackTotal;
+
+
+    /* Identify the minimum number of price bar needed
+    * to calculate at least one output.
+    */
+
+    lookbackTotal = cdlgapsidesidewhite_lookback();
+
+    /* Move up the start index if there is not
+    * enough initial data.
+    */
+    if( startIdx < lookbackTotal )
+    startIdx = lookbackTotal;
+
+    /* Make sure there is still something to evaluate. */
+    if( startIdx > endIdx )
+    {
+    *outBegIdx = 0;
+    *outNBElement = 0;
+    return TA_SUCCESS;
+    }
+
+    /* Do the calculation using tight loops. */
+    /* Add-up the initial period, except for the last value. */
+    NearPeriodTotal = 0;
+    EqualPeriodTotal = 0;
+    NearTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Near);
+    EqualTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Equal);
+
+    i = NearTrailingIdx;
+    while( i < startIdx ) {
+    NearPeriodTotal += TA_CANDLERANGE( Near, i-1 );
+    i++;
+    }
+    i = EqualTrailingIdx;
+    while( i < startIdx ) {
+    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 );
+    i++;
+    }
+    i = startIdx;
+
+    /* Proceed with the calculation for the requested range.
+    * Must have:
+    * - upside or downside gap (between the bodies)
+    * - first candle after the window: white candlestick
+    * - second candle after the window: white candlestick with similar size (near the same) and about the same
+    *   open (equal) of the previous candle
+    * - the second candle does not close the window
+    * The meaning of "near" and "equal" is specified with TA_SetCandleSettings
+    * outInteger is positive (1 to 100) or negative (-1 to -100): the user should consider that upside
+    * or downside gap side-by-side white lines is significant when it appears in a trend, while this function
+    * does not consider the trend
+    */
+    outIdx = 0;
+    do
+    {
+    if(
+    ( // upside or downside gap between the 1st candle and both the next 2 candles
+    ( TA_REALBODYGAPUP(i-1,i-2) && TA_REALBODYGAPUP(i,i-2) )
+    ||
+    ( TA_REALBODYGAPDOWN(i-1,i-2) && TA_REALBODYGAPDOWN(i,i-2) )
+    ) &&
+    TA_CANDLECOLOR(i-1) == 1 &&                                                                 // 2nd: white
+    TA_CANDLECOLOR(i) == 1 &&                                                                   // 3rd: white
+    TA_REALBODY(i) >= TA_REALBODY(i-1) - TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 ) &&   // same size 2 and 3
+    TA_REALBODY(i) <= TA_REALBODY(i-1) + TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 ) &&
+    inOpen[i] >= inOpen[i-1] - TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 ) &&           // same open 2 and 3
+    inOpen[i] <= inOpen[i-1] + TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 )
+    )
+    outInteger[outIdx++] = ( TA_REALBODYGAPUP(i-1,i-2) ? 100 : -100 );
+    else
+    outInteger[outIdx++] = 0;
+    /* add the current range and subtract the first range: this is done after the pattern recognition
+    * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
+    */
+    NearPeriodTotal += TA_CANDLERANGE( Near, i-1 ) - TA_CANDLERANGE( Near, NearTrailingIdx-1 );
+    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 ) - TA_CANDLERANGE( Equal, EqualTrailingIdx-1 );
+    i++;
+    NearTrailingIdx++;
+    EqualTrailingIdx++;
+    } while( i <= endIdx );
+
+    /* All done. Indicate the output limits and return. */
+    *outNBElement = outIdx;
+    *outBegIdx    = startIdx;
+
+    return TA_SUCCESS;
+}
