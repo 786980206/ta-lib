@@ -1,3 +1,4 @@
+pub mod func_extractor;
 pub mod table_parser;
 
 /// A fully resolved TA function definition extracted from the C abstract tables.
