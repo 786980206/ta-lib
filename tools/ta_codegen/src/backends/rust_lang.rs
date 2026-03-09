@@ -798,9 +798,11 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
                     vars.push(iter_var);
                 }
             }
-            // Statement::For/ForC is already a for loop from the parser, not a while-to-for candidate
-            Statement::For { .. } | Statement::ForC { .. } | Statement::Block { .. } => {}
-            _ => {}
+            // These statement types don't contain for-loop patterns at the top level
+            Statement::For { .. } | Statement::ForC { .. } | Statement::Block { .. }
+            | Statement::VarDecl { .. } | Statement::Assign { .. } | Statement::If { .. }
+            | Statement::Return { .. } | Statement::Break | Statement::Continue
+            | Statement::Switch { .. } => {}
         }
     }
     vars
@@ -911,7 +913,9 @@ fn render_statement(
                                 BinOp::Sub => "-=",
                                 BinOp::Mul => "*=",
                                 BinOp::Div => "/=",
-                                _ => "",
+                                BinOp::Mod | BinOp::LessEq | BinOp::Less
+                                | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq
+                                | BinOp::NotEq | BinOp::And | BinOp::Or => "",
                             };
                             if !op_str.is_empty() {
                                 let target_str =
@@ -1083,7 +1087,7 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
         }
         Expr::Not(inner) => expr_has_uncast_array_access(inner),
         Expr::FuncCall(_, args) => args.iter().any(|a| expr_has_uncast_array_access(a)),
-        _ => false,
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_) | Expr::PointerDeref(_) => false,
     }
 }
 
@@ -1096,7 +1100,9 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         Expr::ArrayAccess(name, idx) => {
             format!("{}[{}]", name, render_expr(idx, single_precision, registry))
         }
-        _ => render_expr(expr, single_precision, registry),
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::BinOp(_, _, _)
+        | Expr::Cast(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
+        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
     }
 }
 
@@ -1134,7 +1140,9 @@ fn render_binop_operand(
                 render_expr(expr, single_precision, registry)
             }
         }
-        _ => render_expr(expr, single_precision, registry),
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_)
+        | Expr::ArrayAccess(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
+        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
     }
 }
 

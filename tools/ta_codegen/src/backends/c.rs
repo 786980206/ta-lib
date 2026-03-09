@@ -273,7 +273,9 @@ fn render_statement(stmt: &Statement, indent: usize, single_precision: bool, enu
                                 BinOp::Sub => "-=",
                                 BinOp::Mul => "*=",
                                 BinOp::Div => "/=",
-                                _ => "",
+                                BinOp::Mod | BinOp::LessEq | BinOp::Less
+                                | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq
+                                | BinOp::NotEq | BinOp::And | BinOp::Or => "",
                             };
                             if !op_str.is_empty() {
                                 let target_str = render_assign_target(target, single_precision, registry);
@@ -433,7 +435,9 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         Expr::ArrayAccess(name, idx) => {
             format!("{}[{}] ", name, render_expr(idx, single_precision, registry))
         }
-        _ => render_expr(expr, single_precision, registry),
+        Expr::Literal(_) | Expr::IntLiteral(_) | Expr::BinOp(_, _, _)
+        | Expr::Cast(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
+        | Expr::PointerDeref(_) => render_expr(expr, single_precision, registry),
     }
 }
 
