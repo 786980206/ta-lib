@@ -293,19 +293,32 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
-        // Numbers
-        if c.is_ascii_digit() {
+        // Numbers (including leading-dot floats like .0)
+        if c.is_ascii_digit() || (c == '.' && i + 1 < chars.len() && chars[i + 1].is_ascii_digit()) {
             let start = i;
+            let mut is_float = c == '.';
+            if c == '.' {
+                // Leading-dot float: .0, .5, etc.
+                i += 1;
+            }
             while i < chars.len() && chars[i].is_ascii_digit() {
                 i += 1;
             }
-            if i < chars.len() && chars[i] == '.' {
+            if !is_float && i < chars.len() && chars[i] == '.' {
+                is_float = true;
                 i += 1;
                 while i < chars.len() && chars[i].is_ascii_digit() {
                     i += 1;
                 }
+            }
+            if is_float {
+                // Skip trailing 'f' suffix (e.g., 0.0f)
+                if i < chars.len() && chars[i] == 'f' {
+                    i += 1;
+                }
                 let s: String = chars[start..i].iter().collect();
-                tokens.push(Token::Number(s.parse().unwrap()));
+                let cleaned = s.trim_end_matches('f');
+                tokens.push(Token::Number(cleaned.parse().unwrap()));
             } else {
                 let s: String = chars[start..i].iter().collect();
                 tokens.push(Token::IntNumber(s.parse().unwrap()));
@@ -544,10 +557,11 @@ impl Parser {
                 | "CONSTANT_DOUBLE"
                 | "CONSTANT_INTEGER"
                 | "CIRCBUF_PROLOG"
+                | "CIRCBUF_PROLOG_CLASS"
                 | "CIRCBUF_CONSTRUCT"
+                | "CIRCBUF_INIT_CLASS"
                 | "CIRCBUF_DESTROY"
                 | "CIRCBUF_NEXT"
-                | "CALCULATE_AD"
                 | "HILBERT_VARIABLES"
                 | "INIT_HILBERT_VARIABLES"
                 | "DO_HILBERT_ODD"
@@ -610,7 +624,9 @@ impl Parser {
                 }
             }
             "ARRAY_ALLOC" | "ARRAY_FREE"
-            | "CIRCBUF_PROLOG" | "CIRCBUF_CONSTRUCT" | "CIRCBUF_DESTROY" | "CIRCBUF_NEXT" => {
+            | "CIRCBUF_PROLOG" | "CIRCBUF_PROLOG_CLASS"
+            | "CIRCBUF_CONSTRUCT" | "CIRCBUF_INIT_CLASS"
+            | "CIRCBUF_DESTROY" | "CIRCBUF_NEXT" => {
                 // Skip all tokens until matching RParen, then semicolon
                 let mut depth = 1;
                 while depth > 0 {
@@ -659,7 +675,7 @@ impl Parser {
                     init: Some(init),
                 }
             }
-            "CALCULATE_AD" | "INIT_HILBERT_VARIABLES"
+            "INIT_HILBERT_VARIABLES"
             | "DO_HILBERT_ODD" | "DO_HILBERT_EVEN" | "DO_PRICE_WMA" => {
                 // Function-like macro call as statement
                 let args = self.parse_call_args();
@@ -1220,6 +1236,16 @@ impl Parser {
             other => panic!("Expected identifier, got {:?}", other),
         };
 
+        // Handle ALL_CAPS macro as standalone statement without args: CALCULATE_AD;
+        if Self::is_all_caps_macro(&name) && self.peek() == Some(&Token::Semicolon) {
+            self.consume_semicolon();
+            return Statement::Assign {
+                target: Expr::Var("_".to_string()),
+                value: Expr::FuncCall(name, vec![]),
+                compound: false,
+            };
+        }
+
         // Handle ALL_CAPS macro calls as standalone statements
         // e.g., TRUE_RANGE(a,b,c,d); UNUSED_VARIABLE(x); SAR_ROUNDING(v);
         if Self::is_all_caps_macro(&name) && self.peek() == Some(&Token::LParen)
@@ -1289,6 +1315,44 @@ impl Parser {
                     compound: false,
                 };
             }
+
+            // CIRCBUF_REF(arr[idx])field = expr; or compound assign
+            if name == "CIRCBUF_REF" {
+                if let Some(Token::Ident(field)) = self.peek().cloned() {
+                    self.advance(); // consume field name
+                    // Build synthetic array name: arr_field
+                    let target = if let Some(Expr::ArrayAccess(arr_name, idx)) = args.into_iter().next() {
+                        Expr::ArrayAccess(format!("{}_{}", arr_name, field), idx)
+                    } else {
+                        Expr::Var(format!("circbuf_{}", field))
+                    };
+                    // Parse = or compound assignment
+                    match self.peek().cloned() {
+                        Some(Token::Op(ref op)) if op == "=" => {
+                            self.advance();
+                            let value = self.parse_expr();
+                            self.consume_semicolon();
+                            return Statement::Assign { target, value, compound: false };
+                        }
+                        Some(Token::Op(ref op))
+                            if op == "+=" || op == "-=" || op == "*=" || op == "/=" =>
+                        {
+                            let op_str = op.clone();
+                            self.advance();
+                            let bin_op = compound_op(&op_str);
+                            let rhs = self.parse_expr();
+                            self.consume_semicolon();
+                            return Statement::Assign {
+                                target: target.clone(),
+                                value: Expr::BinOp(Box::new(target), bin_op, Box::new(rhs)),
+                                compound: true,
+                            };
+                        }
+                        _ => {} // fall through
+                    }
+                }
+            }
+
             // Not a standalone call — backtrack
             self.pos = save_pos;
         }
@@ -1612,6 +1676,23 @@ impl Parser {
                             self.advance(); // consume (
                             let args = self.parse_call_args();
                             self.expect(&Token::RParen);
+
+                            // CIRCBUF_REF(arr[idx])field -> ArrayAccess("arr_field", idx)
+                            if name == "CIRCBUF_REF" {
+                                if let Some(Token::Ident(field)) = self.peek().cloned() {
+                                    self.advance();
+                                    // Extract array name and index from the first arg
+                                    if let Some(Expr::ArrayAccess(arr_name, idx)) = args.into_iter().next() {
+                                        return Expr::ArrayAccess(
+                                            format!("{}_{}", arr_name, field),
+                                            idx,
+                                        );
+                                    }
+                                }
+                                // Fallback: treat as opaque function call
+                                return Expr::FuncCall("CIRCBUF_REF".to_string(), vec![]);
+                            }
+
                             let func_name = transform_func_name(&name);
                             return Expr::FuncCall(func_name, args);
                         }
