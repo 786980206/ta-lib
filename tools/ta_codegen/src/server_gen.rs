@@ -4,8 +4,35 @@
 //! the generated TA function implementations, and writes JSON responses to stdout.
 //! All servers speak the same protocol as the existing Rust server in server.rs.
 
-use crate::ir::{FuncDef, ParamType};
+use crate::ir::{FuncDef, Input, ParamType};
 use std::path::Path;
+
+/// Expand a list of inputs into individual array parameter names.
+///
+/// - `ParamType::Real` → keeps the input's own name (e.g. `"inReal"`)
+/// - `ParamType::Price(components)` → one name per component, capitalised:
+///   `["high", "low", "close"]` → `["inHigh", "inLow", "inClose"]`
+/// - All other types (Integer, Enum) are skipped.
+fn expand_input_names(inputs: &[Input]) -> Vec<String> {
+    let mut names = Vec::new();
+    for inp in inputs {
+        match &inp.param_type {
+            ParamType::Real => names.push(inp.name.clone()),
+            ParamType::Price(components) => {
+                for comp in components {
+                    let name = format!(
+                        "in{}{}",
+                        comp[..1].to_uppercase(),
+                        &comp[1..]
+                    );
+                    names.push(name);
+                }
+            }
+            _ => {} // Integer / Enum inputs are not array parameters
+        }
+    }
+    names
+}
 
 /// Map function name to its unstable period ID (integer value).
 /// Returns None for functions without unstable period.
@@ -297,10 +324,17 @@ static int json_write_double_array(char *buf, int buf_size,
 fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
-    // Static buffers for input arrays
+    // Static buffers for input arrays — up to 5 for full OHLCV (open, high, low, close, volume)
+    // plus one extra for functions like BETA that take two real arrays.
     s.push_str("static double g_inBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf1[MAX_ARRAY_SIZE];\n");
-    s.push_str("static double g_outBuf[MAX_ARRAY_SIZE];\n\n");
+    s.push_str("static double g_inBuf2[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_inBuf3[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_inBuf4[MAX_ARRAY_SIZE];\n");
+    // Output buffers — up to 3 for MACD/BBANDS (macd, signal, hist) or STOCH (slowK, slowD)
+    s.push_str("static double g_outBuf0[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_outBuf1[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_outBuf2[MAX_ARRAY_SIZE];\n\n");
 
     s.push_str("static void handle_request(const char *json, char *resp, int resp_size) {\n");
 
@@ -331,13 +365,9 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        int startIdx = json_find_int(json, \"startIdx\");\n");
         s.push_str("        int endIdx = json_find_int(json, \"endIdx\");\n");
 
-        // Extract input arrays
-        let input_names: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Extract input arrays — Real inputs use their own name; Price inputs expand to
+        // individual component arrays (e.g. "inHigh", "inLow", "inClose").
+        let input_names = expand_input_names(&func.inputs);
 
         for (j, name) in input_names.iter().enumerate() {
             let buf = format!("g_inBuf{j}");
@@ -387,15 +417,31 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("            {},\n", opt.name));
         }
 
-        // Output params
-        s.push_str("            &outBegIdx, &outNBElement, g_outBuf);\n");
+        // Output scalar params + output array params (one per output)
+        let outputs = &func.outputs;
+        s.push_str("            &outBegIdx, &outNBElement");
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", g_outBuf{k}"));
+        }
+        s.push_str(");\n");
 
-        // Build response
+        // Build response — first output uses "outReal", subsequent use output name from IR
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
-        s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d,\\\"outReal\\\":\",\n");
+        s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d\",\n");
         s.push_str("            (int)rc, outBegIdx, outNBElement);\n");
-        s.push_str("        pos += json_write_double_array(resp + pos, resp_size - pos,\n");
-        s.push_str("                                       g_outBuf, outNBElement);\n");
+        for (k, out) in outputs.iter().enumerate() {
+            let key = if k == 0 {
+                "outReal".to_string()
+            } else {
+                out.name.clone()
+            };
+            s.push_str(&format!(
+                "        pos += snprintf(resp + pos, resp_size - pos, \",\\\"{key}\\\":\");\n"
+            ));
+            s.push_str(&format!(
+                "        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf{k}, outNBElement);\n"
+            ));
+        }
         s.push_str("        snprintf(resp + pos, resp_size - pos, \"}\");\n");
 
         s.push_str("    }\n");
@@ -576,15 +622,11 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         s.push_str("            int startIdx = jsonInt(json, \"startIdx\");\n");
         s.push_str("            int endIdx = jsonInt(json, \"endIdx\");\n");
 
-        // Inputs
-        let real_inputs: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Inputs — Real inputs use their own name; Price inputs expand to individual
+        // component arrays (e.g. "inHigh", "inLow", "inClose").
+        let input_names = expand_input_names(&func.inputs);
 
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!(
                 "            double[] {name} = jsonDoubleArray(json, \"{name}\");\n"
             ));
@@ -612,27 +654,63 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Outputs
-        s.push_str("            double[] outReal = new double[endIdx - startIdx + 1];\n");
+        // Outputs — one array per output
+        let outputs = &func.outputs;
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 {
+                "outReal".to_string()
+            } else {
+                out.name.clone()
+            };
+            s.push_str(&format!(
+                "            double[] {arr_name} = new double[endIdx - startIdx + 1];\n"
+            ));
+        }
         s.push_str("            MInteger outBegIdx = new MInteger();\n");
         s.push_str("            MInteger outNBElement = new MInteger();\n");
 
         // Call
         s.push_str(&format!("            RetCode rc = core.{func_lower}(\n"));
         s.push_str("                startIdx, endIdx,\n");
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!("                {name},\n"));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("                {},\n", opt.name));
         }
-        s.push_str("                outBegIdx, outNBElement, outReal);\n");
+        s.push_str("                outBegIdx, outNBElement");
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 {
+                "outReal".to_string()
+            } else {
+                out.name.clone()
+            };
+            s.push_str(&format!(", {arr_name}"));
+        }
+        s.push_str(");\n");
 
         // Response
-        s.push_str("            return \"{\\\"retCode\\\":\" + rc.toInt() +\n");
-        s.push_str("                \",\\\"outBegIdx\\\":\" + outBegIdx.value +\n");
-        s.push_str("                \",\\\"outNBElement\\\":\" + outNBElement.value +\n");
-        s.push_str("                \",\\\"outReal\\\":\" + doubleArrayToJson(outReal, outNBElement.value) + \"}\";\n");
+        s.push_str("            StringBuilder sb = new StringBuilder();\n");
+        s.push_str("            sb.append(\"{\\\"retCode\\\":\").append(rc.toInt());\n");
+        s.push_str(
+            "            sb.append(\",\\\"outBegIdx\\\":\").append(outBegIdx.value);\n",
+        );
+        s.push_str(
+            "            sb.append(\",\\\"outNBElement\\\":\").append(outNBElement.value);\n",
+        );
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 {
+                "outReal".to_string()
+            } else {
+                out.name.clone()
+            };
+            let key = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            s.push_str(&format!(
+                "            sb.append(\",\\\"{key}\\\":\").append(doubleArrayToJson({arr_name}, outNBElement.value));\n"
+            ));
+        }
+        s.push_str("            sb.append(\"}\");\n");
+        s.push_str("            return sb.toString();\n");
 
         s.push_str("        }\n");
     }
@@ -683,12 +761,8 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     for func in funcs {
         let func_upper = &func.name;
 
-        let real_inputs: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Expand Price inputs into individual component arrays.
+        let input_names = expand_input_names(&func.inputs);
 
         s.push_str(&format!(
             "    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_{func_upper}\")]\n"
@@ -696,7 +770,7 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
         s.push_str(&format!("    static extern int TA_{func_upper}(\n"));
         s.push_str("        int startIdx, int endIdx,\n");
 
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!("        double[] {name},\n"));
         }
 
@@ -709,8 +783,12 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("        {cs_type} {},\n", opt.name));
         }
 
-        s.push_str("        out int outBegIdx, out int outNBElement,\n");
-        s.push_str("        double[] outReal);\n\n");
+        s.push_str("        out int outBegIdx, out int outNBElement");
+        for (k, out) in func.outputs.iter().enumerate() {
+            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            s.push_str(&format!(",\n        double[] {arr_name}"));
+        }
+        s.push_str(");\n\n");
     }
 
     // Dispatch method
@@ -728,19 +806,16 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
         let method_name = format!("TA_{}", func.name);
         let cond = if i == 0 { "if" } else { "else if" };
 
-        let real_inputs: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Expand Price inputs into individual component arrays.
+        let input_names = expand_input_names(&func.inputs);
 
         s.push_str(&format!(
             "            {cond} (method == \"{method_name}\") {{\n"
         ));
 
-        // Extract input arrays
-        for name in &real_inputs {
+        // Extract input arrays — Real inputs use their own name; Price inputs expand
+        // to individual component arrays (e.g. "inHigh", "inLow", "inClose").
+        for name in &input_names {
             s.push_str(&format!(
                 "                double[] {name} = GetDoubleArray(p, \"{name}\");\n"
             ));
@@ -772,22 +847,45 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Call and return
-        s.push_str("                double[] outReal = new double[n];\n");
+        // Allocate output arrays — one per output
+        let outputs = &func.outputs;
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            s.push_str(&format!(
+                "                double[] {arr_name} = new double[n];\n"
+            ));
+        }
+
+        // Call
         s.push_str(&format!(
             "                int rc = TA_{}(startIdx, endIdx, ",
             func.name
         ));
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!("{name}, "));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("{}, ", opt.name));
         }
-        s.push_str("out int outBegIdx, out int outNBElement, outReal);\n");
-        s.push_str(
-            "                return FormatResponse(rc, outBegIdx, outNBElement, outReal);\n",
-        );
+        s.push_str("out int outBegIdx, out int outNBElement");
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            s.push_str(&format!(", {arr_name}"));
+        }
+        s.push_str(");\n");
+
+        // Build response
+        s.push_str("                var sb = new System.Text.StringBuilder();\n");
+        s.push_str("                sb.Append($\"{{\\\"retCode\\\":{rc},\\\"outBegIdx\\\":{outBegIdx},\\\"outNBElement\\\":{outNBElement}\");\n");
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            let key = if k == 0 { "outReal".to_string() } else { out.name.clone() };
+            s.push_str(&format!(
+                "                sb.Append($\",\\\"{key}\\\":\"); sb.Append(FormatArray({arr_name}, outNBElement));\n"
+            ));
+        }
+        s.push_str("                sb.Append(\"}\");\n");
+        s.push_str("                return sb.ToString();\n");
         s.push_str("            }\n");
     }
 
@@ -808,13 +906,12 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("        return result;\n");
     s.push_str("    }\n\n");
 
-    // Helper: format JSON response
-    s.push_str("    static string FormatResponse(int rc, int outBegIdx, int outNBElement, double[] outReal) {\n");
-    s.push_str("        var parts = new string[outNBElement];\n");
-    s.push_str("        for (int i = 0; i < outNBElement; i++)\n");
-    s.push_str("            parts[i] = outReal[i].ToString(\"G15\");\n");
-    s.push_str("        string arr = \"[\" + string.Join(\",\", parts) + \"]\";\n");
-    s.push_str("        return $\"{{\\\"retCode\\\":{rc},\\\"outBegIdx\\\":{outBegIdx},\\\"outNBElement\\\":{outNBElement},\\\"outReal\\\":{arr}}}\";\n");
+    // Helper: format a double array as a JSON array string
+    s.push_str("    static string FormatArray(double[] arr, int count) {\n");
+    s.push_str("        var parts = new string[count];\n");
+    s.push_str("        for (int i = 0; i < count; i++)\n");
+    s.push_str("            parts[i] = arr[i].ToString(\"G15\");\n");
+    s.push_str("        return \"[\" + string.Join(\",\", parts) + \"]\";\n");
     s.push_str("    }\n\n");
 
     // Main
@@ -853,15 +950,11 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     s.push_str("extern void TA_SetUnstablePeriod(int id, int period);\n");
     // Forward-declare all TA functions so the wrapper can call them
     for func in funcs {
-        let real_inputs: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Expand Price inputs into individual component arrays for the C signature.
+        let input_names = expand_input_names(&func.inputs);
 
         s.push_str(&format!("extern TA_RetCode TA_{}(int, int", func.name));
-        for _ in &real_inputs {
+        for _ in &input_names {
             s.push_str(", const double*");
         }
         for opt in &func.optional_inputs {
@@ -1074,6 +1167,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 
 /// Generate a Python JSON-RPC server script that uses the SWIG-generated
 /// `ta_lib` module to call TA functions.
+#[allow(clippy::too_many_lines)]
 pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -1114,15 +1208,11 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         s.push_str("    start_idx = params.get('startIdx', 0)\n");
         s.push_str("    end_idx = params.get('endIdx', 0)\n");
 
-        // Input arrays
-        let real_inputs: Vec<&str> = func
-            .inputs
-            .iter()
-            .filter(|inp| inp.param_type == ParamType::Real)
-            .map(|inp| inp.name.as_str())
-            .collect();
+        // Input arrays — Real inputs use their own name; Price inputs expand to individual
+        // component arrays (e.g. "inHigh", "inLow", "inClose").
+        let input_names = expand_input_names(&func.inputs);
 
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!(
                 "    {name} = [float(x) for x in params.get('{name}', [])]\n"
             ));
@@ -1153,28 +1243,59 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Call via SWIG module — returns (outBegIdx, outReal) on success
+        // Call via SWIG module.
+        // SWIG returns a tuple: (None, outBegIdx, outArray0, outArray1, ...)
+        // result[0] is None (retCode mapped away), [1] is outBegIdx, [2..] are output arrays.
+        let outputs = &func.outputs;
         s.push_str("    try:\n");
         s.push_str(&format!("        result = ta_lib.TA_{func_upper}(\n"));
         s.push_str("            start_idx, end_idx,\n");
-        for name in &real_inputs {
+        for name in &input_names {
             s.push_str(&format!("            {name},\n"));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("            {},\n", opt.name));
         }
         s.push_str("        )\n");
-
-        // SWIG returns [None, outBegIdx, outReal_list] on TA_SUCCESS
-        // result[0] is None (retCode mapped away), [1] is outBegIdx, [2] is outReal
         s.push_str("        out_beg = result[1]\n");
-        s.push_str("        out_real = list(result[2])\n");
-        s.push_str("        return {\n");
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 {
+                "out_real".to_string()
+            } else {
+                format!("out_{}", out.name.to_lowercase())
+            };
+            s.push_str(&format!(
+                "        {arr_name} = list(result[{}])\n",
+                k + 2
+            ));
+        }
+        s.push_str("        resp = {\n");
         s.push_str("            'retCode': 0,\n");
         s.push_str("            'outBegIdx': out_beg,\n");
-        s.push_str("            'outNBElement': len(out_real),\n");
-        s.push_str("            'outReal': out_real,\n");
+        // outNBElement comes from first output's length
+        let first_arr = if outputs.is_empty() {
+            "[]".to_string()
+        } else {
+            "out_real".to_string()
+        };
+        s.push_str(&format!(
+            "            'outNBElement': len({first_arr}),\n"
+        ));
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = if k == 0 {
+                "out_real".to_string()
+            } else {
+                format!("out_{}", out.name.to_lowercase())
+            };
+            let key = if k == 0 {
+                "outReal".to_string()
+            } else {
+                out.name.clone()
+            };
+            s.push_str(&format!("            '{key}': {arr_name},\n"));
+        }
         s.push_str("        }\n");
+        s.push_str("        return resp\n");
         s.push_str("    except RuntimeError as e:\n");
         s.push_str("        return {'error': str(e)}\n\n");
     }
