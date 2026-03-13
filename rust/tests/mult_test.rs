@@ -35,17 +35,17 @@ fn test_mult_double_precision() {
 #[test]
 fn test_mult_single_precision() {
     let core = Core::new();
-    // Test data: f32 inputs, f64 outputs
+    // Test data: f32 inputs, f32 outputs (generic API infers T from slice types)
     let in_real0: [f32; 5] = [1.5, 2.5, 3.5, 4.5, 5.5];
     let in_real1: [f32; 5] = [2.0, 2.0, 2.0, 2.0, 2.0];
-    let mut out_real = [0.0f64; 5];
+    let mut out_real = [0.0f32; 5];
     let mut out_beg_idx = 0usize;
     let mut out_nb_element = 0usize;
 
     // Expected results: [3.0, 5.0, 7.0, 9.0, 11.0]
-    let expected = [3.0, 5.0, 7.0, 9.0, 11.0];
+    let expected: [f32; 5] = [3.0, 5.0, 7.0, 9.0, 11.0];
 
-    let result = core.mult_s(
+    let result = core.mult(
         0,                   // startIdx
         4,                   // endIdx
         &in_real0,           // inReal0

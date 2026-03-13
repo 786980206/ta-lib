@@ -35,14 +35,14 @@ fn test_sma_basic() {
 #[test]
 fn test_sma_single_precision() {
     let core = Core::new();
-    // Test data: 5 values as f32
+    // Test data: 5 values as f32, output also f32 (generic API infers T from slice types)
     let input: [f32; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
-    let mut out_real = [0.0f64; 5];
+    let mut out_real = [0.0f32; 5];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
     // SMA with period 3
-    let result = core.sma_s(
+    let result = core.sma(
         0, // startIdx
         4, // endIdx (last index)
         &input,
@@ -56,9 +56,9 @@ fn test_sma_single_precision() {
     assert_eq!(out_beg_idx, 2);
     assert_eq!(out_nb_element, 3);
 
-    assert!((out_real[0] - 2.0).abs() < 1e-10);
-    assert!((out_real[1] - 3.0).abs() < 1e-10);
-    assert!((out_real[2] - 4.0).abs() < 1e-10);
+    assert!((out_real[0] - 2.0f32).abs() < 1e-6);
+    assert!((out_real[1] - 3.0f32).abs() < 1e-6);
+    assert!((out_real[2] - 4.0f32).abs() < 1e-6);
 }
 
 #[test]
@@ -173,15 +173,15 @@ fn test_sma_error_conditions() {
 }
 
 #[test]
-fn test_sma_s_error_conditions() {
+fn test_sma_f32_error_conditions() {
     let core = Core::new();
     let input: [f32; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
-    let mut out_real = [0.0f64; 5];
+    let mut out_real = [0.0f32; 5];
     let mut out_beg_idx: usize = 0;
     let mut out_nb_element: usize = 0;
 
     // Period below minimum — should return BadParam
-    let result = core.sma_s(
+    let result = core.sma(
         0,
         4,
         &input,
@@ -194,8 +194,8 @@ fn test_sma_s_error_conditions() {
 
     // i32::MIN should use default period (30)
     let large_input = [1.0f32; 50];
-    let mut large_out = [0.0f64; 50];
-    let result = core.sma_s(
+    let mut large_out = [0.0f32; 50];
+    let result = core.sma(
         0,
         49,
         &large_input,

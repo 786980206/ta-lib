@@ -185,7 +185,7 @@ fn test_rsi_single_precision() {
     let input_f32: Vec<f32> = input_f64.iter().map(|&v| v as f32).collect();
 
     let mut out_f64 = vec![0.0_f64; input_f64.len()];
-    let mut out_f32 = vec![0.0_f64; input_f32.len()];
+    let mut out_f32 = vec![0.0_f32; input_f32.len()];
     let mut beg_f64: usize = 0;
     let mut beg_f32: usize = 0;
     let mut nb_f64: usize = 0;
@@ -201,7 +201,7 @@ fn test_rsi_single_precision() {
         &mut out_f64,
     );
 
-    let result_f32 = core.rsi_s(
+    let result_f32 = core.rsi(
         0,
         input_f32.len() - 1,
         &input_f32,
@@ -220,7 +220,7 @@ fn test_rsi_single_precision() {
     let epsilon = 1e-4;
     for i in 0..nb_f64 {
         assert!(
-            (out_f64[i] - out_f32[i]).abs() < epsilon,
+            (out_f64[i] - out_f32[i] as f64).abs() < epsilon,
             "Single/double precision mismatch at index {}: f64={}, f32={}",
             i,
             out_f64[i],
