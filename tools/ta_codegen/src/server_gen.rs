@@ -303,6 +303,10 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     }
     s.push('\n');
 
+    s.push_str("/* Internal helper forward declarations */\n");
+    s.push_str("extern void stddev_using_precalc_ma(const double inReal[], const double inMovAvg[], int inMovAvgBegIdx, int inMovAvgNbElement, int timePeriod, double output[]);\n");
+    s.push('\n');
+
     s.push_str("#endif /* TA_FUNC_H */\n");
     s
 }

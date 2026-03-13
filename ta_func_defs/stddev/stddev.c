@@ -50,3 +50,50 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
 
     return TA_SUCCESS;
 }
+
+void stddev_using_precalc_ma( const double inReal[],
+                               const double inMovAvg[],
+                               int inMovAvgBegIdx,
+                               int inMovAvgNbElement,
+                               int timePeriod,
+                               double output[] )
+{
+    double tempReal, periodTotal2, meanValue2;
+    int outIdx;
+
+    /* Start/end index for sumation. */
+    int startSum, endSum;
+
+    startSum = 1+inMovAvgBegIdx-timePeriod;
+    endSum = inMovAvgBegIdx;
+
+    periodTotal2 = 0;
+
+    for( outIdx = startSum; outIdx < endSum; outIdx++)
+    {
+        tempReal = inReal[outIdx];
+        tempReal *= tempReal;
+        periodTotal2 += tempReal;
+    }
+
+    for( outIdx=0; outIdx < inMovAvgNbElement; outIdx++, startSum++, endSum++ )
+    {
+        tempReal = inReal[endSum];
+        tempReal *= tempReal;
+        periodTotal2 += tempReal;
+        meanValue2 = periodTotal2/timePeriod;
+
+        tempReal = inReal[startSum];
+        tempReal *= tempReal;
+        periodTotal2 -= tempReal;
+
+        tempReal = inMovAvg[outIdx];
+        tempReal *= tempReal;
+        meanValue2 -= tempReal;
+
+        if( !((meanValue2) < (0.00000001)) )
+            output[outIdx] = sqrt(meanValue2);
+        else
+            output[outIdx] = (double)0.0;
+    }
+}
