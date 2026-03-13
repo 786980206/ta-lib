@@ -87,6 +87,7 @@ int doExtensiveProfiling;
 /* CSV list of function names to test (NULL = test all) */
 static const char *functionFilter = NULL;
 static int doCodegenTest = 0;
+static int codegenOnly = 0;
 static const char *codegenLanguageFilter = NULL;
 
 /**** Local declarations.              ****/
@@ -142,6 +143,15 @@ int main( int argc, char **argv )
             doCodegenTest = 1;
             codegenLanguageFilter = argv[i] + 10;
          }
+         else if( strcmp(argv[i], "--codegen-only") == 0 )
+         {
+            doCodegenTest = 1;
+            codegenOnly = 1;
+         }
+         else if( strncmp(argv[i], "--language=", 11) == 0 )
+         {
+            codegenLanguageFilter = argv[i] + 11;
+         }
          else
          {
             printUsage();
@@ -172,9 +182,12 @@ int main( int argc, char **argv )
    /* Perform all regresstions tests (except when ta_regtest is executed for profiling only). */
    if( !doExtensiveProfiling )
    {
-      retValue = test_with_simulator();
-      if( retValue != TA_TEST_PASS )
-         return retValue;
+      if( !codegenOnly )
+      {
+         retValue = test_with_simulator();
+         if( retValue != TA_TEST_PASS )
+            return retValue;
+      }
 
       if( doCodegenTest )
       {
@@ -379,6 +392,16 @@ static void printUsage(void)
       printf( "       After normal tests, verify ta_codegen output against C reference.\n" );
       printf( "       Languages: rust, c, java, dotnet, swig (default: all)\n" );
       printf( "       Example: --codegen=rust,java\n" );
+      printf( "\n" );
+      printf( "    --codegen-only\n" );
+      printf( "       Run ONLY codegen verification; skip the normal C test suite.\n" );
+      printf( "       Combine with --language and --function to narrow the run.\n" );
+      printf( "       Example: --codegen-only --language=rust --function=SMA\n" );
+      printf( "\n" );
+      printf( "    --language=LANG[,LANG,...]\n" );
+      printf( "       Filter which language servers to test with --codegen / --codegen-only.\n" );
+      printf( "       Valid values: rust, c, java, dotnet, swig (default: all)\n" );
+      printf( "       Example: --language=c,rust\n" );
       printf( "\n" );
       printf( "       Requires language server binaries in the bin directory.\n" );
       printf( "       Build with: ta_codegen build\n" );
