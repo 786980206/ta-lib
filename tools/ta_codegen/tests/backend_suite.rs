@@ -1693,3 +1693,23 @@ fn parse_helper_file_reads_from_disk() {
     assert!(helpers.iter().any(|h| h.name == "ta_candleaverage" && h.params.len() == 8));
 }
 
+#[test]
+fn helper_registry_loads_from_disk() {
+    use ta_codegen_lib::helper_registry::HelperRegistry;
+
+    let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    let registry = HelperRegistry::from_dir(&base);
+
+    // Should find all helpers from candlestick.c, range.c, rounding.c
+    assert!(registry.get("ta_realbody").is_some());
+    assert!(registry.get("ta_candlerange").is_some());
+    assert!(registry.get("ta_true_range").is_some());
+    assert!(registry.get("ta_round_pos").is_some());
+    assert!(registry.get("ta_sar_rounding").is_some());
+    assert!(registry.get("ta_candleaverage").is_some());
+
+    // Should NOT contain indicator functions
+    assert!(registry.get("sma").is_none());
+    assert!(registry.get("ema").is_none());
+}
+

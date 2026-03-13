@@ -16,6 +16,7 @@
 
 pub mod backends;
 pub mod extractor;
+pub mod helper_registry;
 pub mod ir;
 pub mod parser;
 pub mod registry;
