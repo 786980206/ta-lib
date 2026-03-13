@@ -1093,7 +1093,9 @@ static void printRustFfiSingleWrapper(FILE *out, const TA_FuncInfo *funcInfo)
         switch (inputParamInfo->type)
         {
         case TA_Input_Real:
-            fprintf(out, "    let input_%s = std::slice::from_raw_parts(%s, len);\n",
+            fprintf(out, "    let input_%s_f32 = std::slice::from_raw_parts(%s, len);\n",
+                    inputParamInfo->paramName, inputParamInfo->paramName);
+            fprintf(out, "    let input_%s: Vec<f64> = input_%s_f32.iter().map(|&x| f64::from(x)).collect();\n",
                     inputParamInfo->paramName, inputParamInfo->paramName);
             break;
         case TA_Input_Integer:
@@ -1115,8 +1117,8 @@ static void printRustFfiSingleWrapper(FILE *out, const TA_FuncInfo *funcInfo)
     fprintf(out, "    let mut beg: usize = 0;\n");
     fprintf(out, "    let mut nb: usize = 0;\n");
 
-    /* Call the Rust Core method (single-precision variant) */
-    fprintf(out, "    let rc = core.%s_s(startIdx as usize, endIdx as usize, ", snakeName);
+    /* Call the Rust Core method (generic, with f64 inputs from widening) */
+    fprintf(out, "    let rc = core.%s(startIdx as usize, endIdx as usize, ", snakeName);
 
     /* Input args */
     for (i = 0; i < funcInfo->nbInput; i++)
@@ -1125,6 +1127,8 @@ static void printRustFfiSingleWrapper(FILE *out, const TA_FuncInfo *funcInfo)
         switch (inputParamInfo->type)
         {
         case TA_Input_Real:
+            fprintf(out, "&input_%s, ", inputParamInfo->paramName);
+            break;
         case TA_Input_Integer:
             fprintf(out, "input_%s, ", inputParamInfo->paramName);
             break;
