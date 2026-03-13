@@ -1636,3 +1636,60 @@ fn helper_def_stores_params_and_body() {
     assert_eq!(helper.params[0].name, "close");
 }
 
+#[test]
+fn parse_helper_file_extracts_functions() {
+    use ta_codegen_lib::parser::c_source::parse_helper_file_str;
+
+    let source = r#"
+double ta_realbody(double close, double open) {
+    return fabs(close - open);
+}
+
+int ta_candlecolor(double close, double open) {
+    return (close >= open) ? 1 : -1;
+}
+"#;
+
+    let helpers = parse_helper_file_str(source);
+    assert_eq!(helpers.len(), 2);
+    assert_eq!(helpers[0].name, "ta_realbody");
+    assert_eq!(helpers[0].params.len(), 2);
+    assert_eq!(helpers[0].params[0].name, "close");
+    assert_eq!(helpers[1].name, "ta_candlecolor");
+    assert_eq!(helpers[1].params.len(), 2);
+}
+
+#[test]
+fn parse_helper_with_switch() {
+    use ta_codegen_lib::parser::c_source::parse_helper_file_str;
+    use ta_codegen_lib::ir::Statement;
+
+    let source = r#"
+double ta_candlerange(int rangeType, double open, double high, double low, double close) {
+    switch (rangeType) {
+        case 0: return fabs(close - open);
+        case 1: return high - low;
+        case 2: return high - low - fabs(close - open);
+        default: return 0.0;
+    }
+}
+"#;
+
+    let helpers = parse_helper_file_str(source);
+    assert_eq!(helpers.len(), 1);
+    assert_eq!(helpers[0].name, "ta_candlerange");
+    assert_eq!(helpers[0].params.len(), 5);
+    assert!(matches!(helpers[0].body[0], Statement::Switch { .. }));
+}
+
+#[test]
+fn parse_helper_file_reads_from_disk() {
+    use ta_codegen_lib::parser::c_source::parse_helper_file;
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../../ta_func_defs/helpers/candlestick.c");
+    let helpers = parse_helper_file(&path);
+    assert_eq!(helpers.len(), 11);
+    assert!(helpers.iter().any(|h| h.name == "ta_realbody" && h.params.len() == 2));
+    assert!(helpers.iter().any(|h| h.name == "ta_candleaverage" && h.params.len() == 8));
+}
+

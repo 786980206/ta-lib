@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use crate::ir::{BinOp, Expr, Statement, VarType};
+use crate::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
 
 // --- Public API ---
 
@@ -28,6 +28,20 @@ pub fn parse_c_source(path: &Path) -> ParsedCSource {
 pub fn parse_c_source_str(source: &str) -> ParsedCSource {
     let tokens = tokenize(source);
     extract_functions(&tokens)
+}
+
+/// Parse a helper C file containing standalone utility functions.
+/// Returns a `Vec<HelperDef>` — one entry per function found in the file.
+pub fn parse_helper_file(path: &Path) -> Vec<HelperDef> {
+    let input = std::fs::read_to_string(path)
+        .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e));
+    parse_helper_file_str(&input)
+}
+
+/// Parse helper functions from a string of C source code.
+pub fn parse_helper_file_str(source: &str) -> Vec<HelperDef> {
+    let tokens = tokenize(source);
+    extract_helper_functions(&tokens)
 }
 
 // --- Tokenizer ---
@@ -439,6 +453,92 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
         lookback_body,
         functions,
     }
+}
+
+/// Scan tokens for standalone helper function definitions (not indicator functions).
+/// Each helper has the form: `return_type name(params...) { body }`
+fn extract_helper_functions(tokens: &[Token]) -> Vec<HelperDef> {
+    let mut helpers = Vec::new();
+    let mut i = 0;
+
+    while i < tokens.len() {
+        // Look for a return type keyword: `double` or `int`
+        let return_type = match &tokens[i] {
+            Token::Ident(s) if s == "double" => VarType::Real,
+            Token::Ident(s) if s == "int" => VarType::Integer,
+            _ => {
+                i += 1;
+                continue;
+            }
+        };
+
+        // Next token must be the function name (an identifier)
+        let Some(Token::Ident(name)) = tokens.get(i + 1) else {
+            i += 1;
+            continue;
+        };
+        let name = name.clone();
+
+        // Next must be `(`
+        if tokens.get(i + 2) != Some(&Token::LParen) {
+            i += 1;
+            continue;
+        }
+
+        // Parse parameter list between `(` and `)`
+        let mut pi = i + 3; // skip return_type, name, LParen
+        let mut params = Vec::new();
+        while pi < tokens.len() && tokens[pi] != Token::RParen {
+            // Skip commas
+            if tokens[pi] == Token::Comma {
+                pi += 1;
+                continue;
+            }
+            // Expect: type_keyword param_name
+            let param_type = match &tokens[pi] {
+                Token::Ident(s) if s == "double" => VarType::Real,
+                Token::Ident(s) if s == "int" => VarType::Integer,
+                _ => break,
+            };
+            pi += 1;
+            let param_name = match &tokens[pi] {
+                Token::Ident(s) => s.clone(),
+                _ => break,
+            };
+            pi += 1;
+            params.push(HelperParam {
+                name: param_name,
+                var_type: param_type,
+            });
+        }
+        if pi >= tokens.len() || tokens[pi] != Token::RParen {
+            i += 1;
+            continue;
+        }
+        pi += 1; // skip RParen
+
+        // Next must be `{` (function body)
+        if tokens.get(pi) != Some(&Token::LBrace) {
+            i += 1;
+            continue;
+        }
+
+        if let Some(brace_end) = find_matching_brace(tokens, pi) {
+            let body_tokens = &tokens[pi + 1..brace_end];
+            let body = parse_body(body_tokens);
+            helpers.push(HelperDef {
+                name,
+                return_type,
+                params,
+                body,
+            });
+            i = brace_end + 1;
+        } else {
+            i += 1;
+        }
+    }
+
+    helpers
 }
 
 /// Find the next `{` token starting from position `start`.
