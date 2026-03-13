@@ -585,15 +585,57 @@ add_custom_command(TARGET ta_codegen_bin POST_BUILD
         "${CMAKE_CURRENT_SOURCE_DIR}/bin/ta_codegen"
 )
 
+# Generate per-function source files for all backends
+add_custom_target(ta_codegen_generate
+    COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
+            cargo run --release -- generate
+    DEPENDS ta_codegen_bin
+    COMMENT "Generating per-function source files for all backends"
+)
+
 # Generate and build multi-language JSON-RPC servers
+# Depends on ta_codegen_generate because servers #include per-function source files
 add_custom_target(ta_codegen_servers
     COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
             cargo run --release -- generate-servers
     COMMAND ${CMAKE_COMMAND} -E chdir ${TA_CODEGEN_DIR}
             cargo run --release -- build
-    DEPENDS ta_codegen_bin
+    DEPENDS ta_codegen_generate
     COMMENT "Generating and building codegen language servers"
 )
+
+# --- Convenience test targets ---
+# make test           - C reference tests only
+# make regtest        - Full pipeline: servers + C tests + codegen verification
+# make regtest-only   - Servers + codegen verification (skip C tests)
+#
+# Pass extra args: cmake --build . --target regtest -- REGTEST_ARGS="--function=SMA"
+
+if(BUILD_DEV_TOOLS)
+	# C reference tests only
+	add_custom_target(test
+		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
+			./ta_regtest
+		DEPENDS ensure_ta_regtest_in_bin
+		COMMENT "Running C reference regression tests"
+	)
+
+	# Full pipeline: generate servers + build + C tests + codegen verification
+	add_custom_target(regtest
+		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
+			./ta_regtest --codegen
+		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
+		COMMENT "Running full cross-language regression tests"
+	)
+
+	# Codegen-only: skip C reference tests
+	add_custom_target(regtest-only
+		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
+			./ta_regtest --codegen-only
+		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
+		COMMENT "Running codegen-only regression tests (skip C reference)"
+	)
+endif()
 
 #############
 # Packaging #
