@@ -44,9 +44,10 @@ use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-// allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[allow(unused_mut)]
+#[allow(unused_assignments)]
 impl Core {
     /// Lookback period for [`Core::wma`].
     ///
@@ -72,59 +73,25 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    ///
-    /// # Returns
-    ///
-    /// [`RetCode::Success`] on success, or an error code on failure.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ta_lib::ta_func::{Core, RetCode};
-    ///
-    ///
-    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
-    /// let mut out = [0.0_f64; 5];
-    /// let mut out_beg_idx: usize = 0;
-    /// let mut out_nb_element: usize = 0;
-    ///
-    /// let core = Core::new();
-    /// let result = core.wma(
-    ///  0,
-    ///  4,
-    ///  &close_prices,
-    ///  3,
-    ///  &mut out_beg_idx,
-    ///  &mut out_nb_element,
-    ///  &mut out,
-    /// );
-    ///
-    /// assert_eq!(result, RetCode::Success);
-    /// assert_eq!(out_beg_idx, 2);
-    /// assert_eq!(out_nb_element, 3);
-    /// assert!((out[0] - 2.0).abs() < 1e-10);
-    /// assert!((out[1] - 3.0).abs() < 1e-10);
-    /// assert!((out[2] - 4.0).abs() < 1e-10);
-    /// ```
-    pub fn wma(
+    pub fn wma<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_wma(
+        return self.wma_unguarded(
             startIdx,
             endIdx,
             inReal,
@@ -134,29 +101,18 @@ impl Core {
             outReal,
         );
     }
-    fn int_wma(
+    pub fn wma_unguarded<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let divider: i32;
-        let mut periodSum: f64;
-        let mut periodSub: f64;
-        let mut tempReal: f64;
-        let mut trailingValue: f64;
-        let mut inIdx: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
-        let mut i: i32;
-        periodSum = 0.0;
-        periodSub = 0.0;
-        lookbackTotal = (optInTimePeriod - 1) as usize;
+        let lookbackTotal: i32;
+        lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -166,39 +122,32 @@ impl Core {
             return RetCode::Success;
         }
         if optInTimePeriod == 1 {
-            (*outNBElement) = nbElement;
             (*outBegIdx) = startIdx;
-            {
-            let _n = (nbElement) as usize;
-            let _di = (0) as usize;
-            let _si = (startIdx) as usize;
-            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
-        };
+            (*outNBElement) = endIdx - startIdx + 1;
+            self.array_memmove(outReal, 0, inReal, startIdx, ((*outNBElement)) as i32);
             return RetCode::Success;
         }
-        divider = optInTimePeriod * (optInTimePeriod + 1) / 2;
+        divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
         outIdx = 0;
         trailingIdx = startIdx - lookbackTotal;
+        periodSub = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+        periodSum = periodSub;
         inIdx = trailingIdx;
         i = 1;
         while inIdx < startIdx {
-            tempReal = (inReal[inIdx]) as f64;
+            tempReal = inReal[{ let _v = inIdx; inIdx += 1; _v }];
             periodSub += tempReal;
-            periodSum += tempReal * ((i) as f64);
+            periodSum += tempReal * i;
             i += 1;
-            inIdx += 1;
         }
-        trailingValue = 0.0;
+        trailingValue = T::ta_from_f64(0.0);
         while inIdx <= endIdx {
-            tempReal = (inReal[inIdx]) as f64;
-            inIdx += 1;
+            tempReal = inReal[{ let _v = inIdx; inIdx += 1; _v }];
             periodSub += tempReal;
             periodSub -= trailingValue;
-            periodSum += tempReal * ((optInTimePeriod) as f64);
-            trailingValue = (inReal[trailingIdx]) as f64;
-            trailingIdx += 1;
-            outReal[outIdx] = periodSum / ((divider) as f64);
-            outIdx += 1;
+            periodSum += tempReal * optInTimePeriod;
+            trailingValue = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = periodSum / divider;
             periodSum -= periodSub;
         }
         (*outNBElement) = outIdx;
@@ -206,26 +155,25 @@ impl Core {
         return RetCode::Success;
         return RetCode::Success;
     }
-    /// Single-precision variant of [`Core::wma`].
-    pub fn wma_s(
+    pub unsafe fn wma_unchecked<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_wma_s(
+        return self.wma_unguarded_unchecked(
             startIdx,
             endIdx,
             inReal,
@@ -235,29 +183,18 @@ impl Core {
             outReal,
         );
     }
-    fn int_wma_s(
+    pub unsafe fn wma_unguarded_unchecked<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let divider: i32;
-        let mut periodSum: f64;
-        let mut periodSub: f64;
-        let mut tempReal: f64;
-        let mut trailingValue: f64;
-        let mut inIdx: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
-        let mut i: i32;
-        periodSum = 0.0;
-        periodSub = 0.0;
-        lookbackTotal = (optInTimePeriod - 1) as usize;
+        let lookbackTotal: i32;
+        lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -267,41 +204,32 @@ impl Core {
             return RetCode::Success;
         }
         if optInTimePeriod == 1 {
-            (*outNBElement) = nbElement;
             (*outBegIdx) = startIdx;
-            {
-            let _n = (nbElement) as usize;
-            let _di = (0) as usize;
-            let _si = (startIdx) as usize;
-            for _k in 0.._n {
-                outReal[_di + _k] = inReal[_si + _k] as f64;
-            }
-        };
+            (*outNBElement) = endIdx - startIdx + 1;
+            self.array_memmove(outReal, 0, inReal, startIdx, ((*outNBElement)) as i32);
             return RetCode::Success;
         }
-        divider = optInTimePeriod * (optInTimePeriod + 1) / 2;
+        divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
         outIdx = 0;
         trailingIdx = startIdx - lookbackTotal;
+        periodSub = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+        periodSum = periodSub;
         inIdx = trailingIdx;
         i = 1;
         while inIdx < startIdx {
-            tempReal = (inReal[inIdx]) as f64;
+            tempReal = *inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v });
             periodSub += tempReal;
-            periodSum += tempReal * ((i) as f64);
+            periodSum += tempReal * i;
             i += 1;
-            inIdx += 1;
         }
-        trailingValue = 0.0;
+        trailingValue = T::ta_from_f64(0.0);
         while inIdx <= endIdx {
-            tempReal = (inReal[inIdx]) as f64;
-            inIdx += 1;
+            tempReal = *inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v });
             periodSub += tempReal;
             periodSub -= trailingValue;
-            periodSum += tempReal * ((optInTimePeriod) as f64);
-            trailingValue = (inReal[trailingIdx]) as f64;
-            trailingIdx += 1;
-            outReal[outIdx] = periodSum / ((divider) as f64);
-            outIdx += 1;
+            periodSum += tempReal * optInTimePeriod;
+            trailingValue = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = periodSum / divider;
             periodSum -= periodSub;
         }
         (*outNBElement) = outIdx;

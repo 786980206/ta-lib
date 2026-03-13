@@ -44,9 +44,10 @@ use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-// allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[allow(unused_mut)]
+#[allow(unused_assignments)]
 impl Core {
     /// Lookback period for [`Core::ema`].
     ///
@@ -72,59 +73,25 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    ///
-    /// # Returns
-    ///
-    /// [`RetCode::Success`] on success, or an error code on failure.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ta_lib::ta_func::{Core, RetCode};
-    ///
-    ///
-    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
-    /// let mut out = [0.0_f64; 5];
-    /// let mut out_beg_idx: usize = 0;
-    /// let mut out_nb_element: usize = 0;
-    ///
-    /// let core = Core::new();
-    /// let result = core.ema(
-    ///  0,
-    ///  4,
-    ///  &close_prices,
-    ///  3,
-    ///  &mut out_beg_idx,
-    ///  &mut out_nb_element,
-    ///  &mut out,
-    /// );
-    ///
-    /// assert_eq!(result, RetCode::Success);
-    /// assert_eq!(out_beg_idx, 2);
-    /// assert_eq!(out_nb_element, 3);
-    /// assert!((out[0] - 2.0).abs() < 1e-10);
-    /// assert!((out[1] - 3.0).abs() < 1e-10);
-    /// assert!((out[2] - 4.0).abs() < 1e-10);
-    /// ```
-    pub fn ema(
+    pub fn ema<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_ema(
+        return self.ema_unguarded(
             startIdx,
             endIdx,
             inReal,
@@ -134,24 +101,17 @@ impl Core {
             outReal,
         );
     }
-    fn int_ema(
+    pub fn ema_unguarded<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: f64;
-        let mut prevMA: f64;
-        let i: i32;
-        let mut today: usize;
-        let mut outIdx: usize;
-        let lookbackTotal: usize;
-        let optInK_1: f64;
-        lookbackTotal = (self.ema_lookback(optInTimePeriod)) as usize;
+        lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -160,60 +120,51 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        optInK_1 = 2.0_f64 / ((optInTimePeriod) as f64 + 1.0_f64);
         (*outBegIdx) = startIdx;
         if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
             i = optInTimePeriod;
-            tempReal = 0.0;
-            // for( i = optInTimePeriod; i > 0; i -= 1 )
-            i = optInTimePeriod;
-            while i > 0 {
-                tempReal += (inReal[today]) as f64;
-                today = today + 1;
-                i -= 1;
+            tempReal = T::ta_from_f64(0.0);
+            while { let _v = i; i -= 1; _v } > 0 {
+                tempReal += inReal[{ let _v = today; today += 1; _v }];
             }
-            prevMA = tempReal / ((optInTimePeriod) as f64);
+            prevMA = tempReal / optInTimePeriod;
         } else {
-            prevMA = (inReal[0]) as f64;
+            prevMA = inReal[0];
             today = 1;
         }
         while today <= startIdx {
-            prevMA = (((inReal[today]) as f64) - prevMA) * optInK_1 + prevMA;
-            today = today + 1;
+            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * optInK_1 + prevMA;
         }
         outReal[0] = prevMA;
         outIdx = 1;
         while today <= endIdx {
-            prevMA = (((inReal[today]) as f64) - prevMA) * optInK_1 + prevMA;
-            today = today + 1;
-            outReal[outIdx] = prevMA;
-            outIdx = outIdx + 1;
+            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * optInK_1 + prevMA;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
         return RetCode::Success;
     }
-    /// Single-precision variant of [`Core::ema`].
-    pub fn ema_s(
+    pub unsafe fn ema_unchecked<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_ema_s(
+        return self.ema_unguarded_unchecked(
             startIdx,
             endIdx,
             inReal,
@@ -223,24 +174,17 @@ impl Core {
             outReal,
         );
     }
-    fn int_ema_s(
+    pub unsafe fn ema_unguarded_unchecked<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: f64;
-        let mut prevMA: f64;
-        let i: i32;
-        let mut today: usize;
-        let mut outIdx: usize;
-        let lookbackTotal: usize;
-        let optInK_1: f64;
-        lookbackTotal = (self.ema_lookback(optInTimePeriod)) as usize;
+        lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -249,35 +193,27 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        optInK_1 = 2.0_f64 / ((optInTimePeriod) as f64 + 1.0_f64);
         (*outBegIdx) = startIdx;
         if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
             i = optInTimePeriod;
-            tempReal = 0.0;
-            // for( i = optInTimePeriod; i > 0; i -= 1 )
-            i = optInTimePeriod;
-            while i > 0 {
-                tempReal += (inReal[today]) as f64;
-                today = today + 1;
-                i -= 1;
+            tempReal = T::ta_from_f64(0.0);
+            while { let _v = i; i -= 1; _v } > 0 {
+                tempReal += *inReal.get_unchecked({ let _v = today; today += 1; _v });
             }
-            prevMA = tempReal / ((optInTimePeriod) as f64);
+            prevMA = tempReal / optInTimePeriod;
         } else {
-            prevMA = (inReal[0]) as f64;
+            prevMA = *inReal.get_unchecked(0);
             today = 1;
         }
         while today <= startIdx {
-            prevMA = (((inReal[today]) as f64) - prevMA) * optInK_1 + prevMA;
-            today = today + 1;
+            prevMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevMA) * optInK_1 + prevMA;
         }
-        outReal[0] = prevMA;
+        *outReal.get_unchecked_mut(0) = prevMA;
         outIdx = 1;
         while today <= endIdx {
-            prevMA = (((inReal[today]) as f64) - prevMA) * optInK_1 + prevMA;
-            today = today + 1;
-            outReal[outIdx] = prevMA;
-            outIdx = outIdx + 1;
+            prevMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevMA) * optInK_1 + prevMA;
+            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

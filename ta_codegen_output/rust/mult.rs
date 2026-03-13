@@ -44,9 +44,10 @@ use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-// allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[allow(unused_mut)]
+#[allow(unused_assignments)]
 impl Core {
     /// Lookback period for [`Core::mult`].
     ///
@@ -66,54 +67,44 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    ///
-    /// # Returns
-    ///
-    /// [`RetCode::Success`] on success, or an error code on failure.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ta_lib::ta_func::{Core, RetCode};
-    ///
-    /// let input = [1.0_f64; 50];
-    /// let input = [1.0_f64; 50];
-    /// let mut out = [0.0_f64; 50];
-    /// let mut out_beg_idx: usize = 0;
-    /// let mut out_nb_element: usize = 0;
-    ///
-    /// let core = Core::new();
-    /// let result = core.mult(
-    ///  0,
-    ///  49,
-    ///  &input,
-    ///  &input,
-    ///  &mut out_beg_idx,
-    ///  &mut out_nb_element,
-    ///  &mut out,
-    /// );
-    ///
-    /// assert_eq!(result, RetCode::Success);
-    /// ```
-    pub fn mult(
+    pub fn mult<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal0: &[f64],
-        inReal1: &[f64],
+        inReal0: &[T],
+        inReal1: &[T],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
+    ) -> RetCode {
+        if endIdx < startIdx {
+            return RetCode::OutOfRangeStartIndex;
+        }
+        return self.mult_unguarded(
+            startIdx,
+            endIdx,
+            inReal0,
+            inReal1,
+            outBegIdx,
+            outNBElement,
+            outReal,
+        );
+    }
+    pub fn mult_unguarded<T: TaFloat>(
+        &self,
+        mut startIdx: usize,
+        endIdx: usize,
+        inReal0: &[T],
+        inReal1: &[T],
+        outBegIdx: &mut usize,
+        outNBElement: &mut usize,
+        outReal: &mut [T],
     ) -> RetCode {
         let mut outIdx: usize;
-        let mut i: usize;
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
-        }
         outIdx = 0;
         i = (startIdx) as usize;
         while i <= ((endIdx) as usize) {
-            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
+            outReal[outIdx] = T::ta_from_f64((inReal0[i] * inReal1[i]).ta_to_f64());
             outIdx += 1;
             i += 1;
         }
@@ -122,26 +113,44 @@ impl Core {
         return RetCode::Success;
         return RetCode::Success;
     }
-    /// Single-precision variant of [`Core::mult`].
-    pub fn mult_s(
+    pub unsafe fn mult_unchecked<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal0: &[f32],
-        inReal1: &[f32],
+        inReal0: &[T],
+        inReal1: &[T],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
+    ) -> RetCode {
+        if endIdx < startIdx {
+            return RetCode::OutOfRangeStartIndex;
+        }
+        return self.mult_unguarded_unchecked(
+            startIdx,
+            endIdx,
+            inReal0,
+            inReal1,
+            outBegIdx,
+            outNBElement,
+            outReal,
+        );
+    }
+    pub unsafe fn mult_unguarded_unchecked<T: TaFloat>(
+        &self,
+        mut startIdx: usize,
+        endIdx: usize,
+        inReal0: &[T],
+        inReal1: &[T],
+        outBegIdx: &mut usize,
+        outNBElement: &mut usize,
+        outReal: &mut [T],
     ) -> RetCode {
         let mut outIdx: usize;
-        let mut i: usize;
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
-        }
         outIdx = 0;
         i = (startIdx) as usize;
         while i <= ((endIdx) as usize) {
-            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
+            *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64((*inReal0.get_unchecked(i) * *inReal1.get_unchecked(i)).ta_to_f64());
             outIdx += 1;
             i += 1;
         }

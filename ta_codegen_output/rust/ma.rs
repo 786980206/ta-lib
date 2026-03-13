@@ -44,9 +44,10 @@ use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-// allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[allow(unused_mut)]
+#[allow(unused_assignments)]
 impl Core {
     /// Lookback period for [`Core::ma`].
     ///
@@ -70,6 +71,27 @@ impl Core {
             1 => {
                 retValue = self.ema_lookback(optInTimePeriod);
             }
+            2 => {
+                retValue = self.wma_lookback(optInTimePeriod);
+            }
+            3 => {
+                retValue = self.dema_lookback(optInTimePeriod);
+            }
+            4 => {
+                retValue = self.tema_lookback(optInTimePeriod);
+            }
+            5 => {
+                retValue = self.trima_lookback(optInTimePeriod);
+            }
+            6 => {
+                retValue = self.kama_lookback(optInTimePeriod);
+            }
+            7 => {
+                retValue = self.mama_lookback(0.5, 0.05);
+            }
+            8 => {
+                retValue = self.t3_lookback(optInTimePeriod, 0.7);
+            }
             _ => {
                 retValue = 0;
             }
@@ -87,60 +109,26 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    ///
-    /// # Returns
-    ///
-    /// [`RetCode::Success`] on success, or an error code on failure.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ta_lib::ta_func::{Core, RetCode};
-    ///
-    ///
-    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
-    /// let mut out = [0.0_f64; 5];
-    /// let mut out_beg_idx: usize = 0;
-    /// let mut out_nb_element: usize = 0;
-    ///
-    /// let core = Core::new();
-    /// let result = core.ma(
-    ///  0,
-    ///  4,
-    ///  &close_prices,
-    ///  2,
-    ///  &mut out_beg_idx,
-    ///  &mut out_nb_element,
-    ///  &mut out,
-    /// );
-    ///
-    /// assert_eq!(result, RetCode::Success);
-    /// assert_eq!(out_beg_idx, 2);
-    /// assert_eq!(out_nb_element, 3);
-    /// assert!((out[0] - 2.0).abs() < 1e-10);
-    /// assert!((out[1] - 3.0).abs() < 1e-10);
-    /// assert!((out[2] - 4.0).abs() < 1e-10);
-    /// ```
-    pub fn ma(
+    pub fn ma<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_ma(
+        return self.ma_unguarded(
             startIdx,
             endIdx,
             inReal,
@@ -151,40 +139,68 @@ impl Core {
             outReal,
         );
     }
-    fn int_ma(
+    pub fn ma_unguarded<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
-        optInTimePeriod: i32,
-        optInMAType: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
+        mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let nbElement: usize;
-        let mut outIdx: usize;
-        let mut todayIdx: usize;
+        let dummyBuffer: T;
         let mut retCode: RetCode;
+        let nbElement: i32;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
+            // for( todayIdx = startIdx;
+outIdx = 0; outIdx < nbElement; outIdx += 1;
+todayIdx += 1 )
             todayIdx = startIdx;
-            outIdx = 0;
+outIdx = 0;
             while outIdx < nbElement {
-                outReal[outIdx] = (inReal[todayIdx]) as f64;
-                outIdx = outIdx + 1;
-                todayIdx = todayIdx + 1;
+                outReal[outIdx] = inReal[todayIdx];
+                outIdx += 1;
+todayIdx += 1;
             }
             (*outBegIdx) = startIdx;
             return RetCode::Success;
         }
         match optInMAType {
             0 => {
-                retCode = self.sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             1 => {
-                retCode = self.ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            2 => {
+                retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            3 => {
+                retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            4 => {
+                retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            5 => {
+                retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            6 => {
+                retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            7 => {
+                self.array_alloc();
+                if !(dummyBuffer) {
+                    return ALLOC_ERR;
+                }
+                retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
+                self.array_free();
+            }
+            8 => {
+                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {
                 retCode = RetCode::BadParam;
@@ -193,27 +209,26 @@ impl Core {
         return retCode;
         return RetCode::Success;
     }
-    /// Single-precision variant of [`Core::ma`].
-    pub fn ma_s(
+    pub unsafe fn ma_unchecked<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_ma_s(
+        return self.ma_unguarded_unchecked(
             startIdx,
             endIdx,
             inReal,
@@ -224,40 +239,68 @@ impl Core {
             outReal,
         );
     }
-    fn int_ma_s(
+    pub unsafe fn ma_unguarded_unchecked<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
-        optInTimePeriod: i32,
-        optInMAType: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
+        mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let nbElement: usize;
-        let mut outIdx: usize;
-        let mut todayIdx: usize;
+        let dummyBuffer: T;
         let mut retCode: RetCode;
+        let nbElement: i32;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
+            // for( todayIdx = startIdx;
+outIdx = 0; outIdx < nbElement; outIdx += 1;
+todayIdx += 1 )
             todayIdx = startIdx;
-            outIdx = 0;
+outIdx = 0;
             while outIdx < nbElement {
-                outReal[outIdx] = (inReal[todayIdx]) as f64;
-                outIdx = outIdx + 1;
-                todayIdx = todayIdx + 1;
+                *outReal.get_unchecked_mut(outIdx) = *inReal.get_unchecked(todayIdx);
+                outIdx += 1;
+todayIdx += 1;
             }
             (*outBegIdx) = startIdx;
             return RetCode::Success;
         }
         match optInMAType {
             0 => {
-                retCode = self.sma_s(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             1 => {
-                retCode = self.ema_s(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            2 => {
+                retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            3 => {
+                retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            4 => {
+                retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            5 => {
+                retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            6 => {
+                retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            7 => {
+                self.array_alloc();
+                if !(dummyBuffer) {
+                    return ALLOC_ERR;
+                }
+                retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
+                self.array_free();
+            }
+            8 => {
+                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {
                 retCode = RetCode::BadParam;

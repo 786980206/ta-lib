@@ -1,0 +1,5702 @@
+/* Auto-generated JSON-RPC server for ta_codegen C output.
+ * Reads JSON-RPC requests from stdin, writes responses to stdout.
+ * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O2
+ */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h>
+
+#include "ta_ACCBANDS.c"
+#include "ta_ACOS.c"
+#include "ta_AD.c"
+#include "ta_ADD.c"
+#include "ta_ADOSC.c"
+#include "ta_ADX.c"
+#include "ta_ADXR.c"
+#include "ta_APO.c"
+#include "ta_AROON.c"
+#include "ta_AROONOSC.c"
+#include "ta_ASIN.c"
+#include "ta_ATAN.c"
+#include "ta_ATR.c"
+#include "ta_AVGDEV.c"
+#include "ta_AVGPRICE.c"
+#include "ta_BBANDS.c"
+#include "ta_BETA.c"
+#include "ta_BOP.c"
+#include "ta_CCI.c"
+#include "ta_CDL2CROWS.c"
+#include "ta_CDL3BLACKCROWS.c"
+#include "ta_CDL3INSIDE.c"
+#include "ta_CDL3LINESTRIKE.c"
+#include "ta_CDL3OUTSIDE.c"
+#include "ta_CDL3STARSINSOUTH.c"
+#include "ta_CDL3WHITESOLDIERS.c"
+#include "ta_CDLABANDONEDBABY.c"
+#include "ta_CDLADVANCEBLOCK.c"
+#include "ta_CDLBELTHOLD.c"
+#include "ta_CDLBREAKAWAY.c"
+#include "ta_CDLCLOSINGMARUBOZU.c"
+#include "ta_CDLCONCEALBABYSWALL.c"
+#include "ta_CDLCOUNTERATTACK.c"
+#include "ta_CDLDARKCLOUDCOVER.c"
+#include "ta_CDLDOJI.c"
+#include "ta_CDLDOJISTAR.c"
+#include "ta_CDLDRAGONFLYDOJI.c"
+#include "ta_CDLENGULFING.c"
+#include "ta_CDLEVENINGDOJISTAR.c"
+#include "ta_CDLEVENINGSTAR.c"
+#include "ta_CDLGAPSIDESIDEWHITE.c"
+#include "ta_CDLGRAVESTONEDOJI.c"
+#include "ta_CDLHAMMER.c"
+#include "ta_CDLHANGINGMAN.c"
+#include "ta_CDLHARAMI.c"
+#include "ta_CDLHARAMICROSS.c"
+#include "ta_CDLHIGHWAVE.c"
+#include "ta_CDLHIKKAKE.c"
+#include "ta_CDLHIKKAKEMOD.c"
+#include "ta_CDLHOMINGPIGEON.c"
+#include "ta_CDLIDENTICAL3CROWS.c"
+#include "ta_CDLINNECK.c"
+#include "ta_CDLINVERTEDHAMMER.c"
+#include "ta_CDLKICKING.c"
+#include "ta_CDLKICKINGBYLENGTH.c"
+#include "ta_CDLLADDERBOTTOM.c"
+#include "ta_CDLLONGLEGGEDDOJI.c"
+#include "ta_CDLLONGLINE.c"
+#include "ta_CDLMARUBOZU.c"
+#include "ta_CDLMATCHINGLOW.c"
+#include "ta_CDLMATHOLD.c"
+#include "ta_CDLMORNINGDOJISTAR.c"
+#include "ta_CDLMORNINGSTAR.c"
+#include "ta_CDLONNECK.c"
+#include "ta_CDLPIERCING.c"
+#include "ta_CDLRICKSHAWMAN.c"
+#include "ta_CDLRISEFALL3METHODS.c"
+#include "ta_CDLSEPARATINGLINES.c"
+#include "ta_CDLSHOOTINGSTAR.c"
+#include "ta_CDLSHORTLINE.c"
+#include "ta_CDLSPINNINGTOP.c"
+#include "ta_CDLSTALLEDPATTERN.c"
+#include "ta_CDLSTICKSANDWICH.c"
+#include "ta_CDLTAKURI.c"
+#include "ta_CDLTASUKIGAP.c"
+#include "ta_CDLTHRUSTING.c"
+#include "ta_CDLTRISTAR.c"
+#include "ta_CDLUNIQUE3RIVER.c"
+#include "ta_CDLUPSIDEGAP2CROWS.c"
+#include "ta_CDLXSIDEGAP3METHODS.c"
+#include "ta_CEIL.c"
+#include "ta_CMO.c"
+#include "ta_CORREL.c"
+#include "ta_COS.c"
+#include "ta_COSH.c"
+#include "ta_DEMA.c"
+#include "ta_DIV.c"
+#include "ta_DX.c"
+#include "ta_EMA.c"
+#include "ta_EXP.c"
+#include "ta_FLOOR.c"
+#include "ta_HT_DCPERIOD.c"
+#include "ta_HT_DCPHASE.c"
+#include "ta_HT_PHASOR.c"
+#include "ta_HT_SINE.c"
+#include "ta_HT_TRENDLINE.c"
+#include "ta_HT_TRENDMODE.c"
+#include "ta_IMI.c"
+#include "ta_KAMA.c"
+#include "ta_LINEARREG.c"
+#include "ta_LINEARREG_ANGLE.c"
+#include "ta_LINEARREG_INTERCEPT.c"
+#include "ta_LINEARREG_SLOPE.c"
+#include "ta_LN.c"
+#include "ta_LOG10.c"
+#include "ta_MACD.c"
+#include "ta_MACDEXT.c"
+#include "ta_MACDFIX.c"
+#include "ta_MAMA.c"
+#include "ta_MAVP.c"
+#include "ta_MAX.c"
+#include "ta_MAXINDEX.c"
+#include "ta_MEDPRICE.c"
+#include "ta_MFI.c"
+#include "ta_MIDPOINT.c"
+#include "ta_MIDPRICE.c"
+#include "ta_MIN.c"
+#include "ta_MININDEX.c"
+#include "ta_MINMAX.c"
+#include "ta_MINMAXINDEX.c"
+#include "ta_MINUS_DI.c"
+#include "ta_MINUS_DM.c"
+#include "ta_MOM.c"
+#include "ta_MULT.c"
+#include "ta_NATR.c"
+#include "ta_NVI.c"
+#include "ta_OBV.c"
+#include "ta_PLUS_DI.c"
+#include "ta_PLUS_DM.c"
+#include "ta_PPO.c"
+#include "ta_PVI.c"
+#include "ta_ROC.c"
+#include "ta_ROCP.c"
+#include "ta_ROCR.c"
+#include "ta_ROCR100.c"
+#include "ta_RSI.c"
+#include "ta_SAR.c"
+#include "ta_SAREXT.c"
+#include "ta_SIN.c"
+#include "ta_SINH.c"
+#include "ta_SMA.c"
+#include "ta_SQRT.c"
+#include "ta_STDDEV.c"
+#include "ta_STOCH.c"
+#include "ta_STOCHF.c"
+#include "ta_STOCHRSI.c"
+#include "ta_SUB.c"
+#include "ta_SUM.c"
+#include "ta_T3.c"
+#include "ta_TAN.c"
+#include "ta_TANH.c"
+#include "ta_TEMA.c"
+#include "ta_TRANGE.c"
+#include "ta_TRIMA.c"
+#include "ta_TRIX.c"
+#include "ta_TSF.c"
+#include "ta_TYPPRICE.c"
+#include "ta_ULTOSC.c"
+#include "ta_VAR.c"
+#include "ta_WCLPRICE.c"
+#include "ta_WILLR.c"
+#include "ta_WMA.c"
+#include "ta_MA.c"
+
+/* ---- Minimal JSON helpers ---- */
+
+#define MAX_ARRAY_SIZE 65536
+
+static int json_find_int(const char *json, const char *field) {
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return 0;
+    p += strlen(pattern);
+    while( *p == ' ' ) p++;
+    return atoi(p);
+}
+
+static double json_find_double(const char *json, const char *field) {
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return 0.0;
+    p += strlen(pattern);
+    while( *p == ' ' ) p++;
+    return strtod(p, NULL);
+}
+
+static int json_find_double_array(const char *json, const char *field,
+                                   double *out, int max_count) {
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return 0;
+    p += strlen(pattern);
+    while( *p == ' ' ) p++;
+    if( *p != '[' ) return 0;
+    p++;
+    int count = 0;
+    while( *p && *p != ']' && count < max_count ) {
+        while( *p == ' ' || *p == ',' ) p++;
+        if( *p == ']' ) break;
+        out[count] = strtod(p, (char **)&p);
+        count++;
+    }
+    return count;
+}
+
+static const char *json_find_string(const char *json, const char *field,
+                                     int *len) {
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":\"", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return NULL;
+    p += strlen(pattern);
+    const char *start = p;
+    while( *p && *p != '"' ) p++;
+    *len = (int)(p - start);
+    return start;
+}
+
+static int json_write_double_array(char *buf, int buf_size,
+                                    const double *data, int count) {
+    int pos = 0;
+    buf[pos++] = '[';
+    for( int i = 0; i < count; i++ ) {
+        if( i > 0 ) pos += snprintf(buf + pos, buf_size - pos, ",");
+        pos += snprintf(buf + pos, buf_size - pos, "%.15g", data[i]);
+    }
+    buf[pos++] = ']';
+    buf[pos] = '\0';
+    return pos;
+}
+
+static int json_write_int_array(char *buf, int buf_size,
+                                 const int *data, int count) {
+    int pos = 0;
+    buf[pos++] = '[';
+    for( int i = 0; i < count; i++ ) {
+        if( i > 0 ) pos += snprintf(buf + pos, buf_size - pos, ",");
+        pos += snprintf(buf + pos, buf_size - pos, "%d", data[i]);
+    }
+    buf[pos++] = ']';
+    buf[pos] = '\0';
+    return pos;
+}
+
+static long get_nanotime(void) {
+    struct timespec ts;
+    if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 ) {
+        return (long)ts.tv_sec * 1000000000LL + (long)ts.tv_nsec;
+    }
+    return 0;
+}
+
+static double g_inBuf0[MAX_ARRAY_SIZE];
+static double g_inBuf1[MAX_ARRAY_SIZE];
+static double g_inBuf2[MAX_ARRAY_SIZE];
+static double g_inBuf3[MAX_ARRAY_SIZE];
+static double g_inBuf4[MAX_ARRAY_SIZE];
+static double g_outBuf0[MAX_ARRAY_SIZE];
+static double g_outBuf1[MAX_ARRAY_SIZE];
+static double g_outBuf2[MAX_ARRAY_SIZE];
+static int g_outIntBuf0[MAX_ARRAY_SIZE];
+static int g_outIntBuf1[MAX_ARRAY_SIZE];
+
+static void handle_request(const char *json, char *resp, int resp_size) {
+    int methodLen = 0;
+    const char *method = json_find_string(json, "method", &methodLen);
+    if( !method ) {
+        snprintf(resp, resp_size, "{\"error\":\"Missing method field\"}");
+        return;
+    }
+
+    if ( methodLen == 11 && strncmp(method, "TA_ACCBANDS", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ACCBANDS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal2\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf2, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ACOS", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ACOS(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 5 && strncmp(method, "TA_AD", 5) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_AD(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_ADD", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ADD(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_ADOSC", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ADOSC(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInFastPeriod,
+            optInSlowPeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_ADX", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(0, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ADX(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ADXR", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(1, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ADXR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_APO", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_APO(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInFastPeriod,
+            optInSlowPeriod,
+            optInMAType,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_AROON", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_AROON(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_AROONOSC", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_AROONOSC(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ASIN", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ASIN(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ATAN", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ATAN(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_ATR", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(2, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ATR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_AVGDEV", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_AVGDEV(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_AVGPRICE", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_AVGPRICE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_BBANDS", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDevUp = json_find_double(json, "optInNbDevUp");
+        double optInNbDevDn = json_find_double(json, "optInNbDevDn");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_BBANDS(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInNbDevUp,
+            optInNbDevDn,
+            optInMAType,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal2\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf2, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_BETA", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_BETA(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_BOP", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_BOP(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_CCI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CCI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDL2CROWS", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL2CROWS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDL3BLACKCROWS", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3BLACKCROWS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_CDL3INSIDE", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3INSIDE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDL3LINESTRIKE", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3LINESTRIKE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDL3OUTSIDE", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3OUTSIDE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDL3STARSINSOUTH", 19) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3STARSINSOUTH(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDL3WHITESOLDIERS", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDL3WHITESOLDIERS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDLABANDONEDBABY", 19) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLABANDONEDBABY(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CDLADVANCEBLOCK", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLADVANCEBLOCK(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLBELTHOLD", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLBELTHOLD(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CDLBREAKAWAY", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLBREAKAWAY(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLCLOSINGMARUBOZU", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLCLOSINGMARUBOZU(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLCONCEALBABYSWALL", 22) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLCONCEALBABYSWALL(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDLCOUNTERATTACK", 19) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLCOUNTERATTACK(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDLDARKCLOUDCOVER", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLDARKCLOUDCOVER(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_CDLDOJI", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLDOJI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLDOJISTAR", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLDOJISTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDLDRAGONFLYDOJI", 19) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLDRAGONFLYDOJI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CDLENGULFING", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLENGULFING(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLEVENINGDOJISTAR", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLEVENINGDOJISTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLEVENINGSTAR", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLEVENINGSTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLGAPSIDESIDEWHITE", 22) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLGAPSIDESIDEWHITE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDLGRAVESTONEDOJI", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLGRAVESTONEDOJI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDLHAMMER", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHAMMER(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_CDLHANGINGMAN", 16) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHANGINGMAN(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDLHARAMI", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHARAMI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLHARAMICROSS", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHARAMICROSS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLHIGHWAVE", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHIGHWAVE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_CDLHIKKAKE", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHIKKAKE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_CDLHIKKAKEMOD", 16) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHIKKAKEMOD(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CDLHOMINGPIGEON", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLHOMINGPIGEON(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLIDENTICAL3CROWS", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLIDENTICAL3CROWS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDLINNECK", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLINNECK(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDLINVERTEDHAMMER", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLINVERTEDHAMMER(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_CDLKICKING", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLKICKING(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLKICKINGBYLENGTH", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLKICKINGBYLENGTH(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CDLLADDERBOTTOM", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLLADDERBOTTOM(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDLLONGLEGGEDDOJI", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLLONGLEGGEDDOJI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLLONGLINE", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLLONGLINE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLMARUBOZU", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLMARUBOZU(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLMATCHINGLOW", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLMATCHINGLOW(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_CDLMATHOLD", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLMATHOLD(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLMORNINGDOJISTAR", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLMORNINGDOJISTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLMORNINGSTAR", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLMORNINGSTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInPenetration,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDLONNECK", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLONNECK(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_CDLPIERCING", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLPIERCING(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLRICKSHAWMAN", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLRICKSHAWMAN(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLRISEFALL3METHODS", 22) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLRISEFALL3METHODS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLSEPARATINGLINES", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSEPARATINGLINES(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CDLSHOOTINGSTAR", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSHOOTINGSTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CDLSHORTLINE", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSHORTLINE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_CDLSPINNINGTOP", 17) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSPINNINGTOP(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_CDLSTALLEDPATTERN", 20) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSTALLEDPATTERN(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDLSTICKSANDWICH", 19) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLSTICKSANDWICH(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_CDLTAKURI", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLTAKURI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CDLTASUKIGAP", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLTASUKIGAP(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CDLTHRUSTING", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLTHRUSTING(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_CDLTRISTAR", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLTRISTAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CDLUNIQUE3RIVER", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLUNIQUE3RIVER(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLUPSIDEGAP2CROWS", 21) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLUPSIDEGAP2CROWS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLXSIDEGAP3METHODS", 22) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CDLXSIDEGAP3METHODS(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_CEIL", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CEIL(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_CMO", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(3, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CMO(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_CORREL", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_CORREL(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_COS", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_COS(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_COSH", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_COSH(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_DEMA", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_DEMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_DIV", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_DIV(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 5 && strncmp(method, "TA_DX", 5) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(4, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_DX(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_EMA", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(5, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_EMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_EXP", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_EXP(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_FLOOR", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_FLOOR(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_HT_DCPERIOD", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(6, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_DCPERIOD(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "TA_HT_DCPHASE", 13) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(7, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_DCPHASE(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_HT_PHASOR", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(8, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_PHASOR(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_HT_SINE", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(9, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_SINE(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_HT_TRENDLINE", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(10, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_TRENDLINE(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_HT_TRENDMODE", 15) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        TA_SetUnstablePeriod(11, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_HT_TRENDMODE(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_IMI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inClose", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(12, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_IMI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_KAMA", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(13, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_KAMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 12 && strncmp(method, "TA_LINEARREG", 12) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LINEARREG(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_LINEARREG_ANGLE", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LINEARREG_ANGLE(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_LINEARREG_INTERCEPT", 22) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LINEARREG_INTERCEPT(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_LINEARREG_SLOPE", 18) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LINEARREG_SLOPE(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 5 && strncmp(method, "TA_LN", 5) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LN(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_LOG10", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_LOG10(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 5 && strncmp(method, "TA_MA", 5) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInMAType,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_MACD", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MACD(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInFastPeriod,
+            optInSlowPeriod,
+            optInSignalPeriod,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal2\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf2, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_MACDEXT", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInFastMAType = json_find_int(json, "optInFastMAType");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInSlowMAType = json_find_int(json, "optInSlowMAType");
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int optInSignalMAType = json_find_int(json, "optInSignalMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MACDEXT(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInFastPeriod,
+            optInFastMAType,
+            optInSlowPeriod,
+            optInSlowMAType,
+            optInSignalPeriod,
+            optInSignalMAType,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal2\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf2, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_MACDFIX", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MACDFIX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInSignalPeriod,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal2\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf2, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_MAMA", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        double optInFastLimit = json_find_double(json, "optInFastLimit");
+        double optInSlowLimit = json_find_double(json, "optInSlowLimit");
+        TA_SetUnstablePeriod(14, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MAMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInFastLimit,
+            optInSlowLimit,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_MAVP", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inPeriods", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInMinPeriod = json_find_int(json, "optInMinPeriod");
+        int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MAVP(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInMinPeriod,
+            optInMaxPeriod,
+            optInMAType,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_MAX", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MAX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MAXINDEX", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MAXINDEX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MEDPRICE", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MEDPRICE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_MFI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        (void)n3;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(15, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MFI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            g_inBuf3,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MIDPOINT", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MIDPOINT(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MIDPRICE", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MIDPRICE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_MIN", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MIN(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MININDEX", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MININDEX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outIntBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_MINMAX", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MINMAX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_MINMAXINDEX", 14) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MINMAXINDEX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outIntBuf0, g_outIntBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outInteger1\":");
+        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MINUS_DI", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(16, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MINUS_DI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_MINUS_DM", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(17, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MINUS_DM(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_MOM", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MOM(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_MULT", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_MULT(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_NATR", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(18, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_NATR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_NVI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_NVI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_OBV", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_OBV(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_PLUS_DI", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(19, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_PLUS_DI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_PLUS_DM", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(20, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_PLUS_DM(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_PPO", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_PPO(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInFastPeriod,
+            optInSlowPeriod,
+            optInMAType,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_PVI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_PVI(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_ROC", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ROC(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ROCP", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ROCP(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_ROCR", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ROCR(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 10 && strncmp(method, "TA_ROCR100", 10) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ROCR100(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_RSI", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        TA_SetUnstablePeriod(21, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_RSI(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_SAR", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        double optInAcceleration = json_find_double(json, "optInAcceleration");
+        double optInMaximum = json_find_double(json, "optInMaximum");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInAcceleration,
+            optInMaximum,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_SAREXT", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        double optInStartValue = json_find_double(json, "optInStartValue");
+        double optInOffsetOnReverse = json_find_double(json, "optInOffsetOnReverse");
+        double optInAccelerationInitLong = json_find_double(json, "optInAccelerationInitLong");
+        double optInAccelerationLong = json_find_double(json, "optInAccelerationLong");
+        double optInAccelerationMaxLong = json_find_double(json, "optInAccelerationMaxLong");
+        double optInAccelerationInitShort = json_find_double(json, "optInAccelerationInitShort");
+        double optInAccelerationShort = json_find_double(json, "optInAccelerationShort");
+        double optInAccelerationMaxShort = json_find_double(json, "optInAccelerationMaxShort");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SAREXT(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            optInStartValue,
+            optInOffsetOnReverse,
+            optInAccelerationInitLong,
+            optInAccelerationLong,
+            optInAccelerationMaxLong,
+            optInAccelerationInitShort,
+            optInAccelerationShort,
+            optInAccelerationMaxShort,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_SIN", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SIN(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_SINH", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SINH(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_SMA", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_SQRT", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SQRT(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_STDDEV", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDev = json_find_double(json, "optInNbDev");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_STDDEV(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInNbDev,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_STOCH", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInSlowK_Period = json_find_int(json, "optInSlowK_Period");
+        int optInSlowK_MAType = json_find_int(json, "optInSlowK_MAType");
+        int optInSlowD_Period = json_find_int(json, "optInSlowD_Period");
+        int optInSlowD_MAType = json_find_int(json, "optInSlowD_MAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_STOCH(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInFastK_Period,
+            optInSlowK_Period,
+            optInSlowK_MAType,
+            optInSlowD_Period,
+            optInSlowD_MAType,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_STOCHF", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInFastD_Period = json_find_int(json, "optInFastD_Period");
+        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_STOCHF(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInFastK_Period,
+            optInFastD_Period,
+            optInFastD_MAType,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_STOCHRSI", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInFastD_Period = json_find_int(json, "optInFastD_Period");
+        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        TA_SetUnstablePeriod(22, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_STOCHRSI(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInFastK_Period,
+            optInFastD_Period,
+            optInFastD_MAType,
+            &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal1\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf1, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_SUB", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SUB(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_SUM", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_SUM(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 5 && strncmp(method, "TA_T3", 5) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInVFactor = json_find_double(json, "optInVFactor");
+        TA_SetUnstablePeriod(23, json_find_int(json, "unstablePeriod"));
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_T3(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInVFactor,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_TAN", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TAN(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_TANH", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TANH(
+            startIdx, endIdx,
+            g_inBuf0,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_TEMA", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TEMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_TRANGE", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TRANGE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_TRIMA", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TRIMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 7 && strncmp(method, "TA_TRIX", 7) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TRIX(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_TSF", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TSF(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_TYPPRICE", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_TYPPRICE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 9 && strncmp(method, "TA_ULTOSC", 9) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod1 = json_find_int(json, "optInTimePeriod1");
+        int optInTimePeriod2 = json_find_int(json, "optInTimePeriod2");
+        int optInTimePeriod3 = json_find_int(json, "optInTimePeriod3");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_ULTOSC(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod1,
+            optInTimePeriod2,
+            optInTimePeriod3,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_VAR", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDev = json_find_double(json, "optInNbDev");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_VAR(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            optInNbDev,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 11 && strncmp(method, "TA_WCLPRICE", 11) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_WCLPRICE(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 8 && strncmp(method, "TA_WILLR", 8) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        (void)n1;
+        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        (void)n2;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_WILLR(
+            startIdx, endIdx,
+            g_inBuf0,
+            g_inBuf1,
+            g_inBuf2,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 6 && strncmp(method, "TA_WMA", 6) == 0 ) {
+        int startIdx = json_find_int(json, "startIdx");
+        int endIdx = json_find_int(json, "endIdx");
+        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        (void)n0;
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int outBegIdx = 0, outNBElement = 0;
+        long start_ns = get_nanotime();
+        TA_RetCode rc = TA_WMA(
+            startIdx, endIdx,
+            g_inBuf0,
+            optInTimePeriod,
+            &outBegIdx, &outNBElement, g_outBuf0);
+        long end_ns = get_nanotime();
+        long elapsed_ns = end_ns - start_ns;
+        int pos = snprintf(resp, resp_size,
+            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
+            (int)rc, outBegIdx, outNBElement, elapsed_ns);
+        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
+        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
+        snprintf(resp + pos, resp_size - pos, "}");
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_ACCBANDS_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ACCBANDS_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ACOS_Lookback", 16) == 0 ) {
+        int lookback = TA_ACOS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_AD_Lookback", 14) == 0 ) {
+        int lookback = TA_AD_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_ADD_Lookback", 15) == 0 ) {
+        int lookback = TA_ADD_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_ADOSC_Lookback", 17) == 0 ) {
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int lookback = TA_ADOSC_Lookback(optInFastPeriod, optInSlowPeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_ADX_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ADX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ADXR_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ADXR_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_APO_Lookback", 15) == 0 ) {
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int lookback = TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_AROON_Lookback", 17) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_AROON_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_AROONOSC_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_AROONOSC_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ASIN_Lookback", 16) == 0 ) {
+        int lookback = TA_ASIN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ATAN_Lookback", 16) == 0 ) {
+        int lookback = TA_ATAN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_ATR_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ATR_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_AVGDEV_Lookback", 18) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_AVGDEV_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_AVGPRICE_Lookback", 20) == 0 ) {
+        int lookback = TA_AVGPRICE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_BBANDS_Lookback", 18) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDevUp = json_find_double(json, "optInNbDevUp");
+        double optInNbDevDn = json_find_double(json, "optInNbDevDn");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_BETA_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_BETA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_BOP_Lookback", 15) == 0 ) {
+        int lookback = TA_BOP_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CCI_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_CCI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDL2CROWS_Lookback", 21) == 0 ) {
+        int lookback = TA_CDL2CROWS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDL3BLACKCROWS_Lookback", 26) == 0 ) {
+        int lookback = TA_CDL3BLACKCROWS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDL3INSIDE_Lookback", 22) == 0 ) {
+        int lookback = TA_CDL3INSIDE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDL3LINESTRIKE_Lookback", 26) == 0 ) {
+        int lookback = TA_CDL3LINESTRIKE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDL3OUTSIDE_Lookback", 23) == 0 ) {
+        int lookback = TA_CDL3OUTSIDE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 28 && strncmp(method, "TA_CDL3STARSINSOUTH_Lookback", 28) == 0 ) {
+        int lookback = TA_CDL3STARSINSOUTH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDL3WHITESOLDIERS_Lookback", 29) == 0 ) {
+        int lookback = TA_CDL3WHITESOLDIERS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 28 && strncmp(method, "TA_CDLABANDONEDBABY_Lookback", 28) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLABANDONEDBABY_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_CDLADVANCEBLOCK_Lookback", 27) == 0 ) {
+        int lookback = TA_CDLADVANCEBLOCK_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLBELTHOLD_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLBELTHOLD_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_CDLBREAKAWAY_Lookback", 24) == 0 ) {
+        int lookback = TA_CDLBREAKAWAY_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLCLOSINGMARUBOZU_Lookback", 30) == 0 ) {
+        int lookback = TA_CDLCLOSINGMARUBOZU_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 31 && strncmp(method, "TA_CDLCONCEALBABYSWALL_Lookback", 31) == 0 ) {
+        int lookback = TA_CDLCONCEALBABYSWALL_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 28 && strncmp(method, "TA_CDLCOUNTERATTACK_Lookback", 28) == 0 ) {
+        int lookback = TA_CDLCOUNTERATTACK_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDLDARKCLOUDCOVER_Lookback", 29) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLDARKCLOUDCOVER_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_CDLDOJI_Lookback", 19) == 0 ) {
+        int lookback = TA_CDLDOJI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLDOJISTAR_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLDOJISTAR_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 28 && strncmp(method, "TA_CDLDRAGONFLYDOJI_Lookback", 28) == 0 ) {
+        int lookback = TA_CDLDRAGONFLYDOJI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_CDLENGULFING_Lookback", 24) == 0 ) {
+        int lookback = TA_CDLENGULFING_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLEVENINGDOJISTAR_Lookback", 30) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLEVENINGDOJISTAR_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLEVENINGSTAR_Lookback", 26) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLEVENINGSTAR_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 31 && strncmp(method, "TA_CDLGAPSIDESIDEWHITE_Lookback", 31) == 0 ) {
+        int lookback = TA_CDLGAPSIDESIDEWHITE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDLGRAVESTONEDOJI_Lookback", 29) == 0 ) {
+        int lookback = TA_CDLGRAVESTONEDOJI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLHAMMER_Lookback", 21) == 0 ) {
+        int lookback = TA_CDLHAMMER_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 25 && strncmp(method, "TA_CDLHANGINGMAN_Lookback", 25) == 0 ) {
+        int lookback = TA_CDLHANGINGMAN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLHARAMI_Lookback", 21) == 0 ) {
+        int lookback = TA_CDLHARAMI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLHARAMICROSS_Lookback", 26) == 0 ) {
+        int lookback = TA_CDLHARAMICROSS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLHIGHWAVE_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLHIGHWAVE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLHIKKAKE_Lookback", 22) == 0 ) {
+        int lookback = TA_CDLHIKKAKE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 25 && strncmp(method, "TA_CDLHIKKAKEMOD_Lookback", 25) == 0 ) {
+        int lookback = TA_CDLHIKKAKEMOD_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_CDLHOMINGPIGEON_Lookback", 27) == 0 ) {
+        int lookback = TA_CDLHOMINGPIGEON_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLIDENTICAL3CROWS_Lookback", 30) == 0 ) {
+        int lookback = TA_CDLIDENTICAL3CROWS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLINNECK_Lookback", 21) == 0 ) {
+        int lookback = TA_CDLINNECK_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDLINVERTEDHAMMER_Lookback", 29) == 0 ) {
+        int lookback = TA_CDLINVERTEDHAMMER_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLKICKING_Lookback", 22) == 0 ) {
+        int lookback = TA_CDLKICKING_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLKICKINGBYLENGTH_Lookback", 30) == 0 ) {
+        int lookback = TA_CDLKICKINGBYLENGTH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_CDLLADDERBOTTOM_Lookback", 27) == 0 ) {
+        int lookback = TA_CDLLADDERBOTTOM_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDLLONGLEGGEDDOJI_Lookback", 29) == 0 ) {
+        int lookback = TA_CDLLONGLEGGEDDOJI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLLONGLINE_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLLONGLINE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLMARUBOZU_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLMARUBOZU_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLMATCHINGLOW_Lookback", 26) == 0 ) {
+        int lookback = TA_CDLMATCHINGLOW_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLMATHOLD_Lookback", 22) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLMATHOLD_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLMORNINGDOJISTAR_Lookback", 30) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLMORNINGDOJISTAR_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLMORNINGSTAR_Lookback", 26) == 0 ) {
+        double optInPenetration = json_find_double(json, "optInPenetration");
+        int lookback = TA_CDLMORNINGSTAR_Lookback(optInPenetration);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLONNECK_Lookback", 21) == 0 ) {
+        int lookback = TA_CDLONNECK_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_CDLPIERCING_Lookback", 23) == 0 ) {
+        int lookback = TA_CDLPIERCING_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLRICKSHAWMAN_Lookback", 26) == 0 ) {
+        int lookback = TA_CDLRICKSHAWMAN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 31 && strncmp(method, "TA_CDLRISEFALL3METHODS_Lookback", 31) == 0 ) {
+        int lookback = TA_CDLRISEFALL3METHODS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLSEPARATINGLINES_Lookback", 30) == 0 ) {
+        int lookback = TA_CDLSEPARATINGLINES_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_CDLSHOOTINGSTAR_Lookback", 27) == 0 ) {
+        int lookback = TA_CDLSHOOTINGSTAR_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_CDLSHORTLINE_Lookback", 24) == 0 ) {
+        int lookback = TA_CDLSHORTLINE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 26 && strncmp(method, "TA_CDLSPINNINGTOP_Lookback", 26) == 0 ) {
+        int lookback = TA_CDLSPINNINGTOP_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 29 && strncmp(method, "TA_CDLSTALLEDPATTERN_Lookback", 29) == 0 ) {
+        int lookback = TA_CDLSTALLEDPATTERN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 28 && strncmp(method, "TA_CDLSTICKSANDWICH_Lookback", 28) == 0 ) {
+        int lookback = TA_CDLSTICKSANDWICH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_CDLTAKURI_Lookback", 21) == 0 ) {
+        int lookback = TA_CDLTAKURI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_CDLTASUKIGAP_Lookback", 24) == 0 ) {
+        int lookback = TA_CDLTASUKIGAP_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_CDLTHRUSTING_Lookback", 24) == 0 ) {
+        int lookback = TA_CDLTHRUSTING_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_CDLTRISTAR_Lookback", 22) == 0 ) {
+        int lookback = TA_CDLTRISTAR_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_CDLUNIQUE3RIVER_Lookback", 27) == 0 ) {
+        int lookback = TA_CDLUNIQUE3RIVER_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 30 && strncmp(method, "TA_CDLUPSIDEGAP2CROWS_Lookback", 30) == 0 ) {
+        int lookback = TA_CDLUPSIDEGAP2CROWS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 31 && strncmp(method, "TA_CDLXSIDEGAP3METHODS_Lookback", 31) == 0 ) {
+        int lookback = TA_CDLXSIDEGAP3METHODS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_CEIL_Lookback", 16) == 0 ) {
+        int lookback = TA_CEIL_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_CMO_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_CMO_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_CORREL_Lookback", 18) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_CORREL_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_COS_Lookback", 15) == 0 ) {
+        int lookback = TA_COS_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_COSH_Lookback", 16) == 0 ) {
+        int lookback = TA_COSH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_DEMA_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_DEMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_DIV_Lookback", 15) == 0 ) {
+        int lookback = TA_DIV_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_DX_Lookback", 14) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_DX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_EMA_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_EMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_EXP_Lookback", 15) == 0 ) {
+        int lookback = TA_EXP_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_FLOOR_Lookback", 17) == 0 ) {
+        int lookback = TA_FLOOR_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_HT_DCPERIOD_Lookback", 23) == 0 ) {
+        int lookback = TA_HT_DCPERIOD_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 22 && strncmp(method, "TA_HT_DCPHASE_Lookback", 22) == 0 ) {
+        int lookback = TA_HT_DCPHASE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_HT_PHASOR_Lookback", 21) == 0 ) {
+        int lookback = TA_HT_PHASOR_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_HT_SINE_Lookback", 19) == 0 ) {
+        int lookback = TA_HT_SINE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_HT_TRENDLINE_Lookback", 24) == 0 ) {
+        int lookback = TA_HT_TRENDLINE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_HT_TRENDMODE_Lookback", 24) == 0 ) {
+        int lookback = TA_HT_TRENDMODE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_IMI_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_IMI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_KAMA_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_KAMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 21 && strncmp(method, "TA_LINEARREG_Lookback", 21) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_LINEARREG_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_LINEARREG_ANGLE_Lookback", 27) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_LINEARREG_ANGLE_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 31 && strncmp(method, "TA_LINEARREG_INTERCEPT_Lookback", 31) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_LINEARREG_INTERCEPT_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_LINEARREG_SLOPE_Lookback", 27) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_LINEARREG_SLOPE_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_LN_Lookback", 14) == 0 ) {
+        int lookback = TA_LN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_LOG10_Lookback", 17) == 0 ) {
+        int lookback = TA_LOG10_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_MA_Lookback", 14) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int lookback = TA_MA_Lookback(optInTimePeriod, optInMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_MACD_Lookback", 16) == 0 ) {
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int lookback = TA_MACD_Lookback(optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_MACDEXT_Lookback", 19) == 0 ) {
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInFastMAType = json_find_int(json, "optInFastMAType");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInSlowMAType = json_find_int(json, "optInSlowMAType");
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int optInSignalMAType = json_find_int(json, "optInSignalMAType");
+        int lookback = TA_MACDEXT_Lookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_MACDFIX_Lookback", 19) == 0 ) {
+        int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
+        int lookback = TA_MACDFIX_Lookback(optInSignalPeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_MAMA_Lookback", 16) == 0 ) {
+        double optInFastLimit = json_find_double(json, "optInFastLimit");
+        double optInSlowLimit = json_find_double(json, "optInSlowLimit");
+        int lookback = TA_MAMA_Lookback(optInFastLimit, optInSlowLimit);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_MAVP_Lookback", 16) == 0 ) {
+        int optInMinPeriod = json_find_int(json, "optInMinPeriod");
+        int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int lookback = TA_MAVP_Lookback(optInMinPeriod, optInMaxPeriod, optInMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_MAX_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MAX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MAXINDEX_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MAXINDEX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MEDPRICE_Lookback", 20) == 0 ) {
+        int lookback = TA_MEDPRICE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_MFI_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MFI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MIDPOINT_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MIDPOINT_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MIDPRICE_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MIDPRICE_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_MIN_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MIN_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MININDEX_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MININDEX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_MINMAX_Lookback", 18) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MINMAX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 23 && strncmp(method, "TA_MINMAXINDEX_Lookback", 23) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MINMAXINDEX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MINUS_DI_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MINUS_DI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_MINUS_DM_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MINUS_DM_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_MOM_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_MOM_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_MULT_Lookback", 16) == 0 ) {
+        int lookback = TA_MULT_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_NATR_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_NATR_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_NVI_Lookback", 15) == 0 ) {
+        int lookback = TA_NVI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_OBV_Lookback", 15) == 0 ) {
+        int lookback = TA_OBV_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_PLUS_DI_Lookback", 19) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_PLUS_DI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_PLUS_DM_Lookback", 19) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_PLUS_DM_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_PPO_Lookback", 15) == 0 ) {
+        int optInFastPeriod = json_find_int(json, "optInFastPeriod");
+        int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
+        int optInMAType = json_find_int(json, "optInMAType");
+        int lookback = TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_PVI_Lookback", 15) == 0 ) {
+        int lookback = TA_PVI_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_ROC_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ROC_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ROCP_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ROCP_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_ROCR_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ROCR_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 19 && strncmp(method, "TA_ROCR100_Lookback", 19) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_ROCR100_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_RSI_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_RSI_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_SAR_Lookback", 15) == 0 ) {
+        double optInAcceleration = json_find_double(json, "optInAcceleration");
+        double optInMaximum = json_find_double(json, "optInMaximum");
+        int lookback = TA_SAR_Lookback(optInAcceleration, optInMaximum);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_SAREXT_Lookback", 18) == 0 ) {
+        double optInStartValue = json_find_double(json, "optInStartValue");
+        double optInOffsetOnReverse = json_find_double(json, "optInOffsetOnReverse");
+        double optInAccelerationInitLong = json_find_double(json, "optInAccelerationInitLong");
+        double optInAccelerationLong = json_find_double(json, "optInAccelerationLong");
+        double optInAccelerationMaxLong = json_find_double(json, "optInAccelerationMaxLong");
+        double optInAccelerationInitShort = json_find_double(json, "optInAccelerationInitShort");
+        double optInAccelerationShort = json_find_double(json, "optInAccelerationShort");
+        double optInAccelerationMaxShort = json_find_double(json, "optInAccelerationMaxShort");
+        int lookback = TA_SAREXT_Lookback(optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_SIN_Lookback", 15) == 0 ) {
+        int lookback = TA_SIN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_SINH_Lookback", 16) == 0 ) {
+        int lookback = TA_SINH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_SMA_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_SMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_SQRT_Lookback", 16) == 0 ) {
+        int lookback = TA_SQRT_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_STDDEV_Lookback", 18) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDev = json_find_double(json, "optInNbDev");
+        int lookback = TA_STDDEV_Lookback(optInTimePeriod, optInNbDev);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_STOCH_Lookback", 17) == 0 ) {
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInSlowK_Period = json_find_int(json, "optInSlowK_Period");
+        int optInSlowK_MAType = json_find_int(json, "optInSlowK_MAType");
+        int optInSlowD_Period = json_find_int(json, "optInSlowD_Period");
+        int optInSlowD_MAType = json_find_int(json, "optInSlowD_MAType");
+        int lookback = TA_STOCH_Lookback(optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_STOCHF_Lookback", 18) == 0 ) {
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInFastD_Period = json_find_int(json, "optInFastD_Period");
+        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        int lookback = TA_STOCHF_Lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_STOCHRSI_Lookback", 20) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int optInFastK_Period = json_find_int(json, "optInFastK_Period");
+        int optInFastD_Period = json_find_int(json, "optInFastD_Period");
+        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        int lookback = TA_STOCHRSI_Lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_SUB_Lookback", 15) == 0 ) {
+        int lookback = TA_SUB_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_SUM_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_SUM_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_T3_Lookback", 14) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInVFactor = json_find_double(json, "optInVFactor");
+        int lookback = TA_T3_Lookback(optInTimePeriod, optInVFactor);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_TAN_Lookback", 15) == 0 ) {
+        int lookback = TA_TAN_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_TANH_Lookback", 16) == 0 ) {
+        int lookback = TA_TANH_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_TEMA_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_TEMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_TRANGE_Lookback", 18) == 0 ) {
+        int lookback = TA_TRANGE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_TRIMA_Lookback", 17) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_TRIMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 16 && strncmp(method, "TA_TRIX_Lookback", 16) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_TRIX_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_TSF_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_TSF_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_TYPPRICE_Lookback", 20) == 0 ) {
+        int lookback = TA_TYPPRICE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 18 && strncmp(method, "TA_ULTOSC_Lookback", 18) == 0 ) {
+        int optInTimePeriod1 = json_find_int(json, "optInTimePeriod1");
+        int optInTimePeriod2 = json_find_int(json, "optInTimePeriod2");
+        int optInTimePeriod3 = json_find_int(json, "optInTimePeriod3");
+        int lookback = TA_ULTOSC_Lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_VAR_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        double optInNbDev = json_find_double(json, "optInNbDev");
+        int lookback = TA_VAR_Lookback(optInTimePeriod, optInNbDev);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 20 && strncmp(method, "TA_WCLPRICE_Lookback", 20) == 0 ) {
+        int lookback = TA_WCLPRICE_Lookback();
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 17 && strncmp(method, "TA_WILLR_Lookback", 17) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_WILLR_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 15 && strncmp(method, "TA_WMA_Lookback", 15) == 0 ) {
+        int optInTimePeriod = json_find_int(json, "optInTimePeriod");
+        int lookback = TA_WMA_Lookback(optInTimePeriod);
+        snprintf(resp, resp_size,
+            "{\"lookback\":%d}", lookback);
+    }
+    else if ( methodLen == 14 && strncmp(method, "list_functions", 14) == 0 ) {
+        int pos = snprintf(resp, resp_size, "{\"functions\":[");
+        pos += snprintf(resp + pos, resp_size - pos, "\"TA_ACCBANDS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ACOS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_AD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ADD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ADOSC\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ADX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ADXR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_APO\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_AROON\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_AROONOSC\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ASIN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ATAN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ATR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_AVGDEV\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_AVGPRICE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_BBANDS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_BETA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_BOP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CCI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL2CROWS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3BLACKCROWS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3INSIDE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3LINESTRIKE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3OUTSIDE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3STARSINSOUTH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDL3WHITESOLDIERS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLABANDONEDBABY\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLADVANCEBLOCK\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLBELTHOLD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLBREAKAWAY\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLCLOSINGMARUBOZU\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLCONCEALBABYSWALL\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLCOUNTERATTACK\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLDARKCLOUDCOVER\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLDOJI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLDOJISTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLDRAGONFLYDOJI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLENGULFING\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLEVENINGDOJISTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLEVENINGSTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLGAPSIDESIDEWHITE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLGRAVESTONEDOJI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHAMMER\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHANGINGMAN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHARAMI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHARAMICROSS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHIGHWAVE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHIKKAKE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHIKKAKEMOD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLHOMINGPIGEON\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLIDENTICAL3CROWS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLINNECK\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLINVERTEDHAMMER\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLKICKING\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLKICKINGBYLENGTH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLLADDERBOTTOM\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLLONGLEGGEDDOJI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLLONGLINE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLMARUBOZU\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLMATCHINGLOW\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLMATHOLD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLMORNINGDOJISTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLMORNINGSTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLONNECK\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLPIERCING\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLRICKSHAWMAN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLRISEFALL3METHODS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSEPARATINGLINES\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSHOOTINGSTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSHORTLINE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSPINNINGTOP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSTALLEDPATTERN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLSTICKSANDWICH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLTAKURI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLTASUKIGAP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLTHRUSTING\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLTRISTAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLUNIQUE3RIVER\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLUPSIDEGAP2CROWS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CDLXSIDEGAP3METHODS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CEIL\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CMO\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_CORREL\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_COS\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_COSH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_DEMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_DIV\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_DX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_EMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_EXP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_FLOOR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_DCPERIOD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_DCPHASE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_PHASOR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_SINE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_TRENDLINE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_HT_TRENDMODE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_IMI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_KAMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LINEARREG\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LINEARREG_ANGLE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LINEARREG_INTERCEPT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LINEARREG_SLOPE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_LOG10\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MACD\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MACDEXT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MACDFIX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MAMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MAVP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MAX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MAXINDEX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MEDPRICE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MFI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MIDPOINT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MIDPRICE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MIN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MININDEX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MINMAX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MINMAXINDEX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MINUS_DI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MINUS_DM\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MOM\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MULT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_NATR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_NVI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_OBV\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PLUS_DI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PLUS_DM\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PPO\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PVI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROC\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROCP\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROCR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROCR100\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_RSI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SAREXT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SIN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SINH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SQRT\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_STDDEV\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_STOCH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_STOCHF\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_STOCHRSI\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SUB\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_SUM\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_T3\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TAN\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TANH\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TEMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TRANGE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TRIMA\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TRIX\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TSF\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_TYPPRICE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ULTOSC\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_VAR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_WCLPRICE\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_WILLR\"");
+        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_WMA\"");
+        snprintf(resp + pos, resp_size - pos, "]}");
+    }
+    else if ( methodLen == 19 && strncmp(method, "set_unstable_period", 19) == 0 ) {
+        int id = json_find_int(json, "id");
+        int period = json_find_int(json, "period");
+        TA_SetUnstablePeriod(id, period);
+        snprintf(resp, resp_size, "{\"status\":\"ok\"}");
+    }
+    else {
+        snprintf(resp, resp_size,
+            "{\"error\":\"Unknown method: %.*s\"}", methodLen, method);
+    }
+}
+
+int main(void) {
+    char line[262144];
+    char response[262144];
+    while( fgets(line, sizeof(line), stdin) ) {
+        handle_request(line, response, sizeof(response));
+        printf("%s\n", response);
+        fflush(stdout);
+    }
+    return 0;
+}

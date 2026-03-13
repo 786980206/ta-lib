@@ -44,9 +44,10 @@ use super::*;
 
 // Allow non-snake-case names to maintain TA-Lib API compatibility
 #[allow(non_snake_case)]
-// allow unused variables and dead code due to gen code weirdness
 #[allow(unused_variables)]
 #[allow(dead_code)]
+#[allow(unused_mut)]
+#[allow(unused_assignments)]
 impl Core {
     /// Lookback period for [`Core::sma`].
     ///
@@ -72,59 +73,25 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    ///
-    /// # Returns
-    ///
-    /// [`RetCode::Success`] on success, or an error code on failure.
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ta_lib::ta_func::{Core, RetCode};
-    ///
-    ///
-    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];
-    /// let mut out = [0.0_f64; 5];
-    /// let mut out_beg_idx: usize = 0;
-    /// let mut out_nb_element: usize = 0;
-    ///
-    /// let core = Core::new();
-    /// let result = core.sma(
-    ///  0,
-    ///  4,
-    ///  &close_prices,
-    ///  3,
-    ///  &mut out_beg_idx,
-    ///  &mut out_nb_element,
-    ///  &mut out,
-    /// );
-    ///
-    /// assert_eq!(result, RetCode::Success);
-    /// assert_eq!(out_beg_idx, 2);
-    /// assert_eq!(out_nb_element, 3);
-    /// assert!((out[0] - 2.0).abs() < 1e-10);
-    /// assert!((out[1] - 3.0).abs() < 1e-10);
-    /// assert!((out[2] - 4.0).abs() < 1e-10);
-    /// ```
-    pub fn sma(
+    pub fn sma<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_sma(
+        return self.sma_unguarded(
             startIdx,
             endIdx,
             inReal,
@@ -134,18 +101,22 @@ impl Core {
             outReal,
         );
     }
-    fn int_sma(
+    pub fn sma_unguarded<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f64],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: f64;
-        let mut tempReal: f64;
+        let mut periodTotal: T;
+        let mut tempReal: T;
+        let mut i: usize;
+        let mut outIdx: usize;
+        let mut trailingIdx: usize;
+        let lookbackTotal: usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -155,50 +126,49 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal = 0.0;
+        periodTotal = T::ta_from_f64(0.0);
         trailingIdx = startIdx - lookbackTotal;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += (inReal[i]) as f64;
-                i += 1;
+                periodTotal += T::ta_from_f64((inReal[i]).ta_to_f64());
+                i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += (inReal[i]) as f64;
-            i += 1;
+            periodTotal += T::ta_from_f64((inReal[i]).ta_to_f64());
+            i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= (inReal[trailingIdx]) as f64;
-            trailingIdx += 1;
-            outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
-            outIdx += 1;
+            periodTotal -= T::ta_from_f64((inReal[trailingIdx]).ta_to_f64());
+            trailingIdx = trailingIdx + 1;
+            outReal[outIdx] = tempReal / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
         return RetCode::Success;
     }
-    /// Single-precision variant of [`Core::sma`].
-    pub fn sma_s(
+    pub unsafe fn sma_unchecked<T: TaFloat>(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
+        inReal: &[T],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
         if endIdx < startIdx {
-            return RetCode::OutOfRangeEndIndex;
+            return RetCode::OutOfRangeStartIndex;
         }
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.int_sma_s(
+        return self.sma_unguarded_unchecked(
             startIdx,
             endIdx,
             inReal,
@@ -208,18 +178,22 @@ impl Core {
             outReal,
         );
     }
-    fn int_sma_s(
+    pub unsafe fn sma_unguarded_unchecked<T: TaFloat>(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[f32],
-        optInTimePeriod: i32,
+        inReal: &[T],
+        mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [f64],
+        outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: f64;
-        let mut tempReal: f64;
+        let mut periodTotal: T;
+        let mut tempReal: T;
+        let mut i: usize;
+        let mut outIdx: usize;
+        let mut trailingIdx: usize;
+        let lookbackTotal: usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -229,24 +203,24 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal = 0.0;
+        periodTotal = T::ta_from_f64(0.0);
         trailingIdx = startIdx - lookbackTotal;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += (inReal[i]) as f64;
-                i += 1;
+                periodTotal += T::ta_from_f64((*inReal.get_unchecked(i)).ta_to_f64());
+                i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += (inReal[i]) as f64;
-            i += 1;
+            periodTotal += T::ta_from_f64((*inReal.get_unchecked(i)).ta_to_f64());
+            i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= (inReal[trailingIdx]) as f64;
-            trailingIdx += 1;
-            outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
-            outIdx += 1;
+            periodTotal -= T::ta_from_f64((*inReal.get_unchecked(trailingIdx)).ta_to_f64());
+            trailingIdx = trailingIdx + 1;
+            *outReal.get_unchecked_mut(outIdx) = tempReal / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
