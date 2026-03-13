@@ -1434,6 +1434,17 @@ fn swig_names_match_c_exports() {
     }
 }
 
+// ---------------------------------------------------------------------------
+// 15. HT_TRENDMODE: verify Hilbert transform macros parse and generate
+// ---------------------------------------------------------------------------
+
+#[test]
+fn ht_trendmode_parses_and_generates() {
+    let (func, enums) = load_indicator("ht_trendmode");
+    let _outputs = generate_all(&func, &enums);
+    // If we get here without panic, parsing and generation succeeded
+}
+
 #[test]
 fn rust_forc_multi_init_falls_through_to_while() {
     use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
