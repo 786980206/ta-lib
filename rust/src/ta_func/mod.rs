@@ -121,6 +121,9 @@ pub enum FuncUnstId {
     FuncUnstAll,
 }
 
+mod float;
+pub use float::TaFloat;
+
 /// Core struct providing access to all TA-Lib technical analysis functions.
 ///
 /// Create an instance with [`Core::new()`] and call functions as methods.
