@@ -47,34 +47,91 @@ The C backend at `c.rs:457-489` calls `render_statement(init, 0, ...)` which, fo
 - Modify: `tools/ta_codegen/src/backends/c.rs:457-489`
 - Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
 
-- [ ] **Step 1: Write failing test for ForC Block init rendering**
+- [ ] **Step 1: Write failing test using synthetic IR (not file-based)**
+
+Because indicators with multi-init ForC loops (like accbands) can't parse until macros are replaced (Chunk 3), use a synthetic IR to test the rendering fix:
 
 Add to `tools/ta_codegen/tests/backend_suite.rs`:
 
 ```rust
 #[test]
 fn c_for_loop_multi_init_comma_separated() {
-    // Find an indicator that uses multi-init for loops (e.g., stoch, accbands)
-    // Parse it, generate C output, verify the for() uses commas not semicolons
-    let (func, enums) = load_indicator("stoch");
+    use ta_codegen_lib::ir::*;
+    use std::collections::HashMap;
+
+    // Build synthetic ForC: for(j=0, i=start; i<=end; i++, j++)
+    let init = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::Lit(0.0),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::Var("startIdx".into()),
+                compound: false,
+            },
+        ],
+    });
+    let condition = Expr::BinOp(
+        Box::new(Expr::Var("i".into())),
+        BinOp::LessEq,
+        Box::new(Expr::Var("endIdx".into())),
+    );
+    let update = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("i".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Lit(1.0)),
+                ),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("j".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Lit(1.0)),
+                ),
+                compound: false,
+            },
+        ],
+    });
+    let stmt = Statement::ForC {
+        init,
+        condition,
+        update,
+        body: vec![],
+    };
+
+    let enums = HashMap::new();
     let registry = make_registry();
-    let c_output = backends::c::generate(&func, &enums, &registry);
-    // Multi-init for loops should have comma-separated init/update
-    // Should NOT contain patterns like "for( j = 0;\ni = " (semicolon in init)
+    let rendered = backends::c::render_statement(&stmt, 0, false, &enums, &registry);
+
+    // Should produce: for( j = 0, i = startIdx; ... ; i += 1, j += 1 )
+    // NOT: for( j = 0;\ni = startIdx; ... )
     assert!(
-        !c_output.contains("for( ") || !c_output.lines().any(|line| {
-            line.trim().starts_with("for(") && line.matches(';').count() > 2
-        }),
-        "C ForC init should be comma-separated, not semicolon-separated"
+        !rendered.contains(";\n"),
+        "ForC init/update should use commas, not semicolons: {rendered}"
+    );
+    assert!(
+        rendered.contains(", "),
+        "ForC init/update should be comma-separated: {rendered}"
     );
 }
 ```
+
+Note: You may need to make `render_statement` pub in `c.rs` for direct testing, or test through the full `generate()` path with a minimal FuncDef.
 
 - [ ] **Step 2: Run test to verify it fails**
 
 Run: `cd tools/ta_codegen && cargo test c_for_loop_multi_init_comma_separated -- --nocapture`
 
-Expected: May pass or fail depending on whether stoch has multi-init loops. If it passes (stoch doesn't hit the bug), try a different indicator. The key is finding an indicator with `for(j=0, i=start; ...)` syntax.
+Expected: FAIL — the current ForC rendering produces semicolons in Block init/update.
 
 - [ ] **Step 3: Implement the fix — add `render_forc_part` helper**
 
@@ -154,27 +211,21 @@ Same bug as Task 1 but in the Java backend at `java.rs:385-417`.
 - Modify: `tools/ta_codegen/src/backends/java.rs:385-417`
 - Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
 
-- [ ] **Step 1: Write failing test**
+- [ ] **Step 1: Write failing test using synthetic IR (same pattern as Task 1)**
+
+Use the same synthetic `ForC` with a `Block` init/update, but render through the Java backend:
 
 ```rust
 #[test]
 fn java_for_loop_multi_init_comma_separated() {
-    let (func, enums) = load_indicator("stoch");
-    let registry = make_registry();
-    let java_output = backends::java::generate(&func, &enums, &registry);
-    // Verify no multi-semicolon for() headers
-    for line in java_output.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with("for(") || trimmed.starts_with("for (") {
-            let header_end = trimmed.find('{').unwrap_or(trimmed.len());
-            let header = &trimmed[..header_end];
-            // A valid for() header has exactly 2 semicolons (init; cond; update)
-            assert!(
-                header.matches(';').count() <= 2,
-                "Java ForC has too many semicolons: {header}"
-            );
-        }
-    }
+    // Same synthetic ForC as c_for_loop_multi_init_comma_separated
+    // but rendered through Java backend
+    // ... (construct same IR) ...
+    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry);
+    assert!(
+        !rendered.contains(";\n"),
+        "Java ForC init/update should use commas, not semicolons: {rendered}"
+    );
 }
 ```
 
@@ -207,21 +258,28 @@ The Rust backend at `rust_lang.rs:770-829` lowers all ForC to `init; while cond 
 - Modify: `tools/ta_codegen/src/backends/rust_lang.rs:770-829`
 - Test: `tools/ta_codegen/tests/backend_suite.rs` (new test)
 
-- [ ] **Step 1: Write test for idiomatic Rust range iteration**
+- [ ] **Step 1: Write test using synthetic ForC IR**
+
+Build a synthetic `ForC` with `for(i=start; i<=end; i++)` and verify Rust emits `for i in start..=end`:
 
 ```rust
 #[test]
 fn rust_forc_emits_range_iteration_when_possible() {
-    // Parse an indicator with a simple for(i=start; i<=end; i++) pattern
-    let (func, enums) = load_indicator("sma");
-    let registry = make_registry();
-    let rust_output = backends::rust_lang::generate(&func, &enums, &registry);
-    // Should contain `for ... in ...` range patterns, not `while ... <=`
-    // Count occurrences of each pattern
-    let while_le_count = rust_output.matches("while ").count();
-    let for_range_count = rust_output.matches("..=").count();
-    // If there are <= loops, at least some should be range-based
-    println!("while count: {while_le_count}, range count: {for_range_count}");
+    // Build synthetic ForC: for(i=startIdx; i<=endIdx; i++)
+    // ... (construct IR with single-counter <= pattern) ...
+    let rendered = backends::rust_lang::render_statement(
+        &stmt, 0, &ctx, &for_loop_vars, &var_inits,
+        &output_names, &opt_real_params, &enums, &registry,
+    );
+    // Should emit range iteration
+    assert!(
+        rendered.contains("..="),
+        "Simple ForC should emit range iteration: {rendered}"
+    );
+    assert!(
+        !rendered.contains("while "),
+        "Simple ForC should not fall through to while: {rendered}"
+    );
 }
 ```
 
@@ -297,7 +355,8 @@ fn swig_names_match_c_exports() {
     let indicators = discover_indicators();
     let registry = make_registry();
     for name in &indicators {
-        if let Ok((func, enums)) = std::panic::catch_unwind(|| load_indicator(name)) {
+        let name_owned = name.clone();
+        if let Ok((func, enums)) = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| load_indicator(&name_owned))) {
             let c_out = backends::c::generate(&func, &enums, &registry);
             let swig_out = backends::swig::generate(&func, &enums, &registry);
             let upper = name.to_uppercase();
