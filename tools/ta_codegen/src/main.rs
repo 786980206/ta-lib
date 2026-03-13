@@ -205,7 +205,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 std::fs::create_dir_all(&dir).unwrap();
 
                 // Write ta_func.h stub for standalone compilation
-                let stub = server_gen::generate_c_header_stub();
+                let stub = server_gen::generate_c_header_stub(&funcs);
                 let stub_path = dir.join("ta_func.h");
                 std::fs::write(&stub_path, &stub).unwrap();
                 println!("  C header stub -> {}", stub_path.display());

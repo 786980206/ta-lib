@@ -4,7 +4,7 @@
 //! the generated TA function implementations, and writes JSON responses to stdout.
 //! All servers speak the same protocol as the existing Rust server in server.rs.
 
-use crate::ir::{FuncDef, Input, Output, ParamType};
+use crate::ir::{FuncDef, Input, OptInput, Output, ParamType};
 use std::path::Path;
 
 /// Generate the JSON response key for an output at position `idx` among all outputs.
@@ -136,6 +136,66 @@ pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDe
     result
 }
 
+/// Build the C parameter string for a lookback function.
+///
+/// Lookback functions only take optional inputs (those affect the lookback period).
+/// Returns an empty string if the function has no optional inputs.
+fn build_lookback_param_str(func: &FuncDef) -> String {
+    if func.optional_inputs.is_empty() {
+        return "void".to_string();
+    }
+    func.optional_inputs
+        .iter()
+        .map(opt_input_to_c_param)
+        .collect::<Vec<_>>()
+        .join(", ")
+}
+
+/// Build the C parameter string for the full indicator function (and _Logic variant).
+///
+/// Order: startIdx, endIdx, inputs, optional inputs, outBegIdx, outNBElement, outputs.
+fn build_full_param_str(func: &FuncDef) -> String {
+    let mut params: Vec<String> = vec!["int startIdx".to_string(), "int endIdx".to_string()];
+
+    for input in &func.inputs {
+        match &input.param_type {
+            ParamType::Real => params.push(format!("const double {}[]", input.name)),
+            ParamType::Price(components) => {
+                for comp in components {
+                    let name = format!("in{}{}", &comp[..1].to_uppercase(), &comp[1..]);
+                    params.push(format!("const double {name}[]"));
+                }
+            }
+            ParamType::Integer => params.push(format!("const int {}[]", input.name)),
+            ParamType::Enum(_) => params.push(format!("int {}", input.name)),
+        }
+    }
+
+    for opt in &func.optional_inputs {
+        params.push(opt_input_to_c_param(opt));
+    }
+
+    params.push("int *outBegIdx".to_string());
+    params.push("int *outNBElement".to_string());
+
+    for out in &func.outputs {
+        match out.param_type {
+            ParamType::Integer => params.push(format!("int {}[]", out.name)),
+            _ => params.push(format!("double {}[]", out.name)),
+        }
+    }
+
+    params.join(", ")
+}
+
+/// Map an optional input to its C parameter declaration.
+fn opt_input_to_c_param(opt: &OptInput) -> String {
+    match &opt.param_type {
+        ParamType::Real => format!("double {}", opt.name),
+        _ => format!("int {}", opt.name),
+    }
+}
+
 /// Generate a standalone C JSON-RPC server source file.
 ///
 /// The generated file #includes the generated ta_*.c files and provides
@@ -144,7 +204,7 @@ pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDe
 ///
 /// This file provides just the type definitions that the generated ta_*.c files
 /// expect, without pulling in the full TA-Lib headers.
-pub fn generate_c_header_stub() -> String {
+pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
     s.push_str("/* Auto-generated ta_func.h stub for standalone server compilation. */\n");
     s.push_str("#ifndef TA_FUNC_H\n");
@@ -223,6 +283,25 @@ pub fn generate_c_header_stub() -> String {
     s.push_str("#define TA_MAType_MAMA  7\n");
     s.push_str("#define TA_MAType_T3    8\n");
     s.push_str("#define ENUM_CASE(type, c_val, pascal_val) (c_val)\n\n");
+
+    // Forward declarations for all indicators — prevents "implicit declaration" errors
+    // in the unity build when an early-alphabet function (e.g. ACCBANDS) calls a
+    // late-alphabet internal helper (e.g. TA_INT_SMA).
+    s.push_str("/* Forward declarations for all indicators */\n");
+    for func in funcs {
+        let upper = func.name.to_uppercase();
+        let lookback_params = build_lookback_param_str(func);
+        let full_params = build_full_param_str(func);
+        s.push_str(&format!("extern int TA_{upper}_Lookback({lookback_params});\n"));
+        s.push_str(&format!(
+            "extern TA_RetCode TA_{upper}({full_params});\n"
+        ));
+        s.push_str(&format!(
+            "extern TA_RetCode TA_{upper}_Logic({full_params});\n"
+        ));
+        s.push_str(&format!("#define TA_INT_{upper} TA_{upper}_Logic\n"));
+    }
+    s.push('\n');
 
     s.push_str("#endif /* TA_FUNC_H */\n");
     s
