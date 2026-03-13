@@ -1210,3 +1210,72 @@ fn c_for_loop_multi_init_comma_separated() {
         "ForC init/update should be comma-separated: {rendered}"
     );
 }
+
+#[test]
+fn java_for_loop_multi_init_comma_separated() {
+    use ta_codegen_lib::ir::*;
+
+    // Build synthetic ForC: for(j=0, i=startIdx; i<=endIdx; i=i+1, j=j+1)
+    let init = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::Literal(0.0),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::Var("startIdx".into()),
+                compound: false,
+            },
+        ],
+    });
+    let condition = Expr::BinOp(
+        Box::new(Expr::Var("i".into())),
+        BinOp::LessEq,
+        Box::new(Expr::Var("endIdx".into())),
+    );
+    let update = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("i".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Literal(1.0)),
+                ),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("j".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Literal(1.0)),
+                ),
+                compound: false,
+            },
+        ],
+    });
+    let stmt = Statement::ForC {
+        init,
+        condition,
+        update,
+        body: vec![],
+    };
+
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry);
+
+    // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
+    // NOT: for( j = 0;\ni = startIdx; ... )
+    assert!(
+        !rendered.contains(";\n"),
+        "Java ForC init/update should use commas, not semicolons: {rendered}"
+    );
+    assert!(
+        rendered.contains(", "),
+        "Java ForC init/update should be comma-separated: {rendered}"
+    );
+}
