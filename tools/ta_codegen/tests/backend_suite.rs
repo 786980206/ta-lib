@@ -1347,6 +1347,93 @@ fn rust_forc_emits_range_iteration_when_possible() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// 14. SWIG naming alignment with C exports
+// ---------------------------------------------------------------------------
+
+/// Verify that every function name declared by the SWIG backend is also
+/// exported by the C backend.  Specifically:
+/// - `TA_{NAME}(` in SWIG → `TA_{NAME}(` in C
+/// - `TA_{NAME}_Logic(` in SWIG → `TA_{NAME}_Logic(` in C
+/// - `TA_{NAME}_Logic(` in SWIG → `#define TA_INT_{NAME}` in C (alias)
+#[test]
+fn swig_names_match_c_exports() {
+    let indicators = discover_indicators();
+    let registry = make_registry();
+    let mut failures = Vec::new();
+
+    for name in &indicators {
+        let loaded = try_load_indicator(name);
+        let (func, enums) = match loaded {
+            Some(v) => v,
+            None => continue,
+        };
+
+        let upper = func.name.clone();
+
+        let c_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            backends::c::generate(&func, &enums, &registry)
+        }));
+        let swig_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            backends::swig::generate(&func, &enums, &registry)
+        }));
+
+        let (c_out, swig_out) = match (c_out_result, swig_out_result) {
+            (Ok(c), Ok(s)) => (c, s),
+            _ => continue,
+        };
+
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            // SWIG declares TA_{NAME} — C must export it
+            if swig_out.contains(&format!("TA_{}(", upper)) {
+                assert!(
+                    c_out.contains(&format!("TA_{}(", upper))
+                        || c_out.contains(&format!("TA_{} (", upper)),
+                    "{}: SWIG declares TA_{} but C doesn't export it",
+                    name,
+                    upper
+                );
+            }
+
+            // SWIG declares TA_{NAME}_Logic — C must export it and alias it via TA_INT_{NAME}
+            if swig_out.contains(&format!("TA_{}_Logic(", upper)) {
+                assert!(
+                    c_out.contains(&format!("TA_{}_Logic(", upper)),
+                    "{}: SWIG declares TA_{}_Logic but C doesn't export it",
+                    name,
+                    upper
+                );
+                assert!(
+                    c_out.contains(&format!("#define TA_INT_{}", upper)),
+                    "{}: SWIG declares TA_{}_Logic but C is missing #define TA_INT_{}",
+                    name,
+                    upper,
+                    upper
+                );
+            }
+        }));
+
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                format!("Unknown panic for indicator {}", name)
+            };
+            failures.push(msg);
+        }
+    }
+
+    if !failures.is_empty() {
+        panic!(
+            "{} indicator(s) failed SWIG/C naming alignment:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
+    }
+}
+
 #[test]
 fn rust_forc_multi_init_falls_through_to_while() {
     use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
