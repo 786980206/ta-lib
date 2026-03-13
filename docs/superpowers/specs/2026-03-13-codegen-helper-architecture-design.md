@@ -24,12 +24,15 @@ Helper functions live in `ta_func_defs/helpers/`, grouped by domain:
 ```
 ta_func_defs/helpers/
   candlestick.c      — 11 candle helpers
-  range.c             — TRUE_RANGE, HighLowRange
+  range.c             — TRUE_RANGE
   rounding.c          — round_pos, SAR_ROUNDING
-  ultosc_helpers.c    — CALC_TERMS, PRIME_TOTALS
 ```
 
-**`CALCULATE_AD` is NOT a helper function.** It's a statement block that mutates 5 local variables (`high`, `low`, `tmp`, `close`, `ad`) and increments a counter (`today++`). It cannot be represented as a pure function. The replacement script should **inline-expand** `CALCULATE_AD` directly at its 2 call sites in `adosc.c`, replacing the macro with the equivalent C statements. No helper file needed.
+**Statement-block macros that are NOT helper functions** — these mutate multiple local variables and cannot be represented as pure functions. The replacement script should **inline-expand** them directly at their call sites:
+
+- **`CALCULATE_AD`**: mutates 5 locals (`high`, `low`, `tmp`, `close`, `ad`) + increments `today`. Inline-expand at its 3 call sites in `adosc.c`.
+- **`CALC_TERMS(day)`**: mutates 6 locals (`tempLT`, `tempHT`, `tempCY`, `trueLow`, `closeMinusTrueLow`, `trueRange`). Inline-expand at its 6 call sites in `ultosc.c`.
+- **`PRIME_TOTALS(a, b, period)`**: loops internally using `CALC_TERMS`, accumulates into output params. Inline-expand at its 4 call sites in `ultosc.c`.
 
 No YAML files for helpers. The parser extracts function signatures and bodies directly from the C source.
 
@@ -83,11 +86,13 @@ double ta_candlerange(int rangeType, double open, double high, double low, doubl
     }
 }
 
-double ta_candleaverage(int rangeType, int avgPeriod, double sum,
+double ta_candleaverage(int rangeType, int avgPeriod, double factor, double sum,
                         double open, double high, double low, double close) {
-    return (avgPeriod != 0)
+    double avg = (avgPeriod != 0)
         ? sum / avgPeriod
         : ta_candlerange(rangeType, open, high, low, close);
+    double divisor = (rangeType == 2) ? 2.0 : 1.0; /* Shadows / 2 */
+    return factor * avg / divisor;
 }
 ```
 
@@ -147,7 +152,7 @@ A Python script (extending `scripts/replace_macros.py` or a new script) rewrites
 |--------|-------|
 | `TA_CANDLERANGE(Set, i)` | `ta_candlerange(Set_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])` |
 | `TA_CANDLEAVGPERIOD(Set)` | `Set_avgPeriod` |
-| `TA_CANDLEAVERAGE(Set, sum, i)` | `ta_candleaverage(Set_rangeType, Set_avgPeriod, sum, inOpen[i], inHigh[i], inLow[i], inClose[i])` |
+| `TA_CANDLEAVERAGE(Set, sum, i)` | `ta_candleaverage(Set_rangeType, Set_avgPeriod, Set_factor, sum, inOpen[i], inHigh[i], inLow[i], inClose[i])` |
 
 Where `Set` is a candle setting name like `BodyLong`, `BodyShort`, `ShadowLong`, etc. The variables `Set_rangeType` and `Set_avgPeriod` are unpacked from candle settings at function entry (see section 4).
 
@@ -157,8 +162,8 @@ Where `Set` is a candle setting name like `BodyLong`, `BodyShort`, `ShadowLong`,
 |--------|-------|
 | `TRUE_RANGE(th, tl, yc, out)` | `out = ta_true_range(th, tl, yc)` |
 | `round_pos(x)` | `ta_round_pos(x)` |
-| `CALC_TERMS(day)` | `ta_calc_terms(day)` |
-| `PRIME_TOTALS(a, b, period)` | `ta_prime_totals(a, b, period)` |
+| `CALC_TERMS(day)` | (inline-expand at call sites — see section 1) |
+| `PRIME_TOTALS(a, b, period)` | (inline-expand at call sites — see section 1) |
 | `CALCULATE_AD` | (inline-expand at call sites — see section 1) |
 | `SAR_ROUNDING(x)` | `ta_sar_rounding(x)` |
 
@@ -254,7 +259,7 @@ Each backend renders the inlined IR in its own idiom. The inlining happens at th
 
 ### Per-indicator unpacking
 
-For candlestick indicators, the codegen detects which candle settings the indicator uses (from its helper calls) and emits unpacking lines at the top of the function body.
+For candlestick indicators, the codegen detects which candle settings the indicator uses (from its helper calls) and emits unpacking lines at the top of the function body. Each candle setting has three properties: `rangeType`, `avgPeriod`, and `factor`.
 
 **Lookback functions:** Lookback functions also reference candle avg periods (`TA_CANDLEAVGPERIOD(BodyLong)` → `Set_avgPeriod`). These need candle settings too:
 - **C:** Lookback functions access `TA_Globals->` directly (unchanged)
