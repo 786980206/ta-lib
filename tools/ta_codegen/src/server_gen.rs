@@ -4,8 +4,41 @@
 //! the generated TA function implementations, and writes JSON responses to stdout.
 //! All servers speak the same protocol as the existing Rust server in server.rs.
 
-use crate::ir::{FuncDef, Input, ParamType};
+use crate::ir::{FuncDef, Input, Output, ParamType};
 use std::path::Path;
+
+/// Generate the JSON response key for an output at position `idx` among all outputs.
+///
+/// Naming convention (matches ta_regtest expectations):
+/// - Real outputs: index 0 → `"outReal"`, index 1 → `"outReal1"`, index 2 → `"outReal2"`
+/// - Integer outputs: index 0 → `"outInteger"`, index 1 → `"outInteger1"`
+///
+/// Counters are per-type: two real outputs and one integer output yield
+/// `"outReal"`, `"outReal1"`, `"outInteger"` (not `"outInteger2"`).
+fn output_json_key(outputs: &[Output], idx: usize) -> String {
+    let out = &outputs[idx];
+    // Count how many outputs of the same type appear before this one.
+    let type_rank = outputs[..idx]
+        .iter()
+        .filter(|o| o.param_type == out.param_type)
+        .count();
+    match out.param_type {
+        ParamType::Integer => {
+            if type_rank == 0 {
+                "outInteger".to_string()
+            } else {
+                format!("outInteger{type_rank}")
+            }
+        }
+        _ => {
+            if type_rank == 0 {
+                "outReal".to_string()
+            } else {
+                format!("outReal{type_rank}")
+            }
+        }
+    }
+}
 
 /// Expand a list of inputs into individual array parameter names.
 ///
@@ -316,6 +349,19 @@ static int json_write_double_array(char *buf, int buf_size,
     return pos;
 }
 
+static int json_write_int_array(char *buf, int buf_size,
+                                 const int *data, int count) {
+    int pos = 0;
+    buf[pos++] = '[';
+    for( int i = 0; i < count; i++ ) {
+        if( i > 0 ) pos += snprintf(buf + pos, buf_size - pos, ",");
+        pos += snprintf(buf + pos, buf_size - pos, "%d", data[i]);
+    }
+    buf[pos++] = ']';
+    buf[pos] = '\0';
+    return pos;
+}
+
 "#
     .to_string()
 }
@@ -331,10 +377,13 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str("static double g_inBuf2[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf3[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf4[MAX_ARRAY_SIZE];\n");
-    // Output buffers — up to 3 for MACD/BBANDS (macd, signal, hist) or STOCH (slowK, slowD)
+    // Real output buffers — up to 3 for MACD/BBANDS (macd, signal, hist) or STOCH (slowK, slowD)
     s.push_str("static double g_outBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_outBuf1[MAX_ARRAY_SIZE];\n");
-    s.push_str("static double g_outBuf2[MAX_ARRAY_SIZE];\n\n");
+    s.push_str("static double g_outBuf2[MAX_ARRAY_SIZE];\n");
+    // Integer output buffers — for CDL* patterns (1 output) and MINMAXINDEX (2 outputs)
+    s.push_str("static int g_outIntBuf0[MAX_ARRAY_SIZE];\n");
+    s.push_str("static int g_outIntBuf1[MAX_ARRAY_SIZE];\n\n");
 
     s.push_str("static void handle_request(const char *json, char *resp, int resp_size) {\n");
 
@@ -417,30 +466,49 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("            {},\n", opt.name));
         }
 
-        // Output scalar params + output array params (one per output)
+        // Output scalar params + output array params (one per output).
+        // Real outputs → g_outBuf{real_idx}, integer outputs → g_outIntBuf{int_idx}.
         let outputs = &func.outputs;
         s.push_str("            &outBegIdx, &outNBElement");
-        for k in 0..outputs.len() {
-            s.push_str(&format!(", g_outBuf{k}"));
+        {
+            let mut real_idx = 0usize;
+            let mut int_idx = 0usize;
+            for out in outputs {
+                if out.param_type == ParamType::Integer {
+                    s.push_str(&format!(", g_outIntBuf{int_idx}"));
+                    int_idx += 1;
+                } else {
+                    s.push_str(&format!(", g_outBuf{real_idx}"));
+                    real_idx += 1;
+                }
+            }
         }
         s.push_str(");\n");
 
-        // Build response — first output uses "outReal", subsequent use output name from IR
+        // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
         s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d\",\n");
         s.push_str("            (int)rc, outBegIdx, outNBElement);\n");
-        for (k, out) in outputs.iter().enumerate() {
-            let key = if k == 0 {
-                "outReal".to_string()
-            } else {
-                out.name.clone()
-            };
-            s.push_str(&format!(
-                "        pos += snprintf(resp + pos, resp_size - pos, \",\\\"{key}\\\":\");\n"
-            ));
-            s.push_str(&format!(
-                "        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf{k}, outNBElement);\n"
-            ));
+        {
+            let mut real_idx = 0usize;
+            let mut int_idx = 0usize;
+            for (k, out) in outputs.iter().enumerate() {
+                let key = output_json_key(outputs, k);
+                s.push_str(&format!(
+                    "        pos += snprintf(resp + pos, resp_size - pos, \",\\\"{key}\\\":\");\n"
+                ));
+                if out.param_type == ParamType::Integer {
+                    s.push_str(&format!(
+                        "        pos += json_write_int_array(resp + pos, resp_size - pos, g_outIntBuf{int_idx}, outNBElement);\n"
+                    ));
+                    int_idx += 1;
+                } else {
+                    s.push_str(&format!(
+                        "        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf{real_idx}, outNBElement);\n"
+                    ));
+                    real_idx += 1;
+                }
+            }
         }
         s.push_str("        snprintf(resp + pos, resp_size - pos, \"}\");\n");
 
@@ -608,6 +676,16 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("        return sb.toString();\n");
     s.push_str("    }\n\n");
 
+    s.push_str("    static String intArrayToJson(int[] arr, int count) {\n");
+    s.push_str("        StringBuilder sb = new StringBuilder(\"[\");\n");
+    s.push_str("        for (int i = 0; i < count; i++) {\n");
+    s.push_str("            if (i > 0) sb.append(',');\n");
+    s.push_str("            sb.append(arr[i]);\n");
+    s.push_str("        }\n");
+    s.push_str("        sb.append(']');\n");
+    s.push_str("        return sb.toString();\n");
+    s.push_str("    }\n\n");
+
     // Dispatch method
     s.push_str("    static String handleRequest(String json) {\n");
 
@@ -654,17 +732,19 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Outputs — one array per output
+        // Outputs — one array per output, typed correctly (double[] or int[])
         let outputs = &func.outputs;
         for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 {
-                "outReal".to_string()
+            let arr_name = format!("outArr{k}");
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "            int[] {arr_name} = new int[endIdx - startIdx + 1];\n"
+                ));
             } else {
-                out.name.clone()
-            };
-            s.push_str(&format!(
-                "            double[] {arr_name} = new double[endIdx - startIdx + 1];\n"
-            ));
+                s.push_str(&format!(
+                    "            double[] {arr_name} = new double[endIdx - startIdx + 1];\n"
+                ));
+            }
         }
         s.push_str("            MInteger outBegIdx = new MInteger();\n");
         s.push_str("            MInteger outNBElement = new MInteger();\n");
@@ -679,17 +759,12 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("                {},\n", opt.name));
         }
         s.push_str("                outBegIdx, outNBElement");
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 {
-                "outReal".to_string()
-            } else {
-                out.name.clone()
-            };
-            s.push_str(&format!(", {arr_name}"));
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
 
-        // Response
+        // Response — use correct key names and serialisers per output type
         s.push_str("            StringBuilder sb = new StringBuilder();\n");
         s.push_str("            sb.append(\"{\\\"retCode\\\":\").append(rc.toInt());\n");
         s.push_str(
@@ -699,15 +774,17 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             "            sb.append(\",\\\"outNBElement\\\":\").append(outNBElement.value);\n",
         );
         for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 {
-                "outReal".to_string()
+            let arr_name = format!("outArr{k}");
+            let key = output_json_key(outputs, k);
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "            sb.append(\",\\\"{key}\\\":\").append(intArrayToJson({arr_name}, outNBElement.value));\n"
+                ));
             } else {
-                out.name.clone()
-            };
-            let key = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            s.push_str(&format!(
-                "            sb.append(\",\\\"{key}\\\":\").append(doubleArrayToJson({arr_name}, outNBElement.value));\n"
-            ));
+                s.push_str(&format!(
+                    "            sb.append(\",\\\"{key}\\\":\").append(doubleArrayToJson({arr_name}, outNBElement.value));\n"
+                ));
+            }
         }
         s.push_str("            sb.append(\"}\");\n");
         s.push_str("            return sb.toString();\n");
@@ -785,8 +862,9 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 
         s.push_str("        out int outBegIdx, out int outNBElement");
         for (k, out) in func.outputs.iter().enumerate() {
-            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            s.push_str(&format!(",\n        double[] {arr_name}"));
+            let arr_name = format!("outArr{k}");
+            let cs_arr_type = if out.param_type == ParamType::Integer { "int[]" } else { "double[]" };
+            s.push_str(&format!(",\n        {cs_arr_type} {arr_name}"));
         }
         s.push_str(");\n\n");
     }
@@ -847,13 +925,19 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Allocate output arrays — one per output
+        // Allocate output arrays — typed correctly (double[] or int[]) per output
         let outputs = &func.outputs;
         for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            s.push_str(&format!(
-                "                double[] {arr_name} = new double[n];\n"
-            ));
+            let arr_name = format!("outArr{k}");
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "                int[] {arr_name} = new int[n];\n"
+                ));
+            } else {
+                s.push_str(&format!(
+                    "                double[] {arr_name} = new double[n];\n"
+                ));
+            }
         }
 
         // Call
@@ -868,21 +952,26 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("{}, ", opt.name));
         }
         s.push_str("out int outBegIdx, out int outNBElement");
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            s.push_str(&format!(", {arr_name}"));
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
 
-        // Build response
+        // Build response — correct key names and serialisers per output type
         s.push_str("                var sb = new System.Text.StringBuilder();\n");
         s.push_str("                sb.Append($\"{{\\\"retCode\\\":{rc},\\\"outBegIdx\\\":{outBegIdx},\\\"outNBElement\\\":{outNBElement}\");\n");
         for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            let key = if k == 0 { "outReal".to_string() } else { out.name.clone() };
-            s.push_str(&format!(
-                "                sb.Append($\",\\\"{key}\\\":\"); sb.Append(FormatArray({arr_name}, outNBElement));\n"
-            ));
+            let arr_name = format!("outArr{k}");
+            let key = output_json_key(outputs, k);
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "                sb.Append($\",\\\"{key}\\\":\"); sb.Append(FormatIntArray({arr_name}, outNBElement));\n"
+                ));
+            } else {
+                s.push_str(&format!(
+                    "                sb.Append($\",\\\"{key}\\\":\"); sb.Append(FormatArray({arr_name}, outNBElement));\n"
+                ));
+            }
         }
         s.push_str("                sb.Append(\"}\");\n");
         s.push_str("                return sb.ToString();\n");
@@ -911,6 +1000,14 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("        var parts = new string[count];\n");
     s.push_str("        for (int i = 0; i < count; i++)\n");
     s.push_str("            parts[i] = arr[i].ToString(\"G15\");\n");
+    s.push_str("        return \"[\" + string.Join(\",\", parts) + \"]\";\n");
+    s.push_str("    }\n\n");
+
+    // Helper: format an int array as a JSON array string
+    s.push_str("    static string FormatIntArray(int[] arr, int count) {\n");
+    s.push_str("        var parts = new string[count];\n");
+    s.push_str("        for (int i = 0; i < count; i++)\n");
+    s.push_str("            parts[i] = arr[i].ToString();\n");
     s.push_str("        return \"[\" + string.Join(\",\", parts) + \"]\";\n");
     s.push_str("    }\n\n");
 
@@ -964,7 +1061,15 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
                 s.push_str(", int");
             }
         }
-        s.push_str(", int*, int*, double*);\n");
+        s.push_str(", int*, int*");
+        for out in &func.outputs {
+            if out.param_type == ParamType::Integer {
+                s.push_str(", int*");
+            } else {
+                s.push_str(", double*");
+            }
+        }
+        s.push_str(");\n");
 
         // Lookback
         s.push_str(&format!("extern int TA_{}_Lookback(", func.name));
@@ -1258,12 +1363,8 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         }
         s.push_str("        )\n");
         s.push_str("        out_beg = result[1]\n");
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 {
-                "out_real".to_string()
-            } else {
-                format!("out_{}", out.name.to_lowercase())
-            };
+        for (k, _out) in outputs.iter().enumerate() {
+            let arr_name = format!("out_arr{k}");
             s.push_str(&format!(
                 "        {arr_name} = list(result[{}])\n",
                 k + 2
@@ -1276,22 +1377,14 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         let first_arr = if outputs.is_empty() {
             "[]".to_string()
         } else {
-            "out_real".to_string()
+            "out_arr0".to_string()
         };
         s.push_str(&format!(
             "            'outNBElement': len({first_arr}),\n"
         ));
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = if k == 0 {
-                "out_real".to_string()
-            } else {
-                format!("out_{}", out.name.to_lowercase())
-            };
-            let key = if k == 0 {
-                "outReal".to_string()
-            } else {
-                out.name.clone()
-            };
+        for (k, _out) in outputs.iter().enumerate() {
+            let arr_name = format!("out_arr{k}");
+            let key = output_json_key(outputs, k);
             s.push_str(&format!("            '{key}': {arr_name},\n"));
         }
         s.push_str("        }\n");
