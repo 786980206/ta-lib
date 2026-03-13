@@ -239,7 +239,8 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     s.push_str("#include <stdio.h>\n");
     s.push_str("#include <stdlib.h>\n");
     s.push_str("#include <string.h>\n");
-    s.push_str("#include <math.h>\n\n");
+    s.push_str("#include <math.h>\n");
+    s.push_str("#include <time.h>\n\n");
 
     // Include generated function implementations.
     // Order matters: functions that are called by others must come first.
@@ -362,6 +363,14 @@ static int json_write_int_array(char *buf, int buf_size,
     return pos;
 }
 
+static long get_nanotime(void) {
+    struct timespec ts;
+    if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 ) {
+        return (long)ts.tv_sec * 1000000000LL + (long)ts.tv_nsec;
+    }
+    return 0;
+}
+
 "#
     .to_string()
 }
@@ -452,6 +461,9 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         // Declare output variables
         s.push_str("        int outBegIdx = 0, outNBElement = 0;\n");
 
+        // Timing capture
+        s.push_str("        long start_ns = get_nanotime();\n");
+
         // Call the function
         s.push_str(&format!("        TA_RetCode rc = TA_{}(\n", func.name));
         s.push_str("            startIdx, endIdx,\n");
@@ -485,10 +497,14 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         }
         s.push_str(");\n");
 
+        // Calculate elapsed time
+        s.push_str("        long end_ns = get_nanotime();\n");
+        s.push_str("        long elapsed_ns = end_ns - start_ns;\n");
+
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
-        s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d\",\n");
-        s.push_str("            (int)rc, outBegIdx, outNBElement);\n");
+        s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d,\\\"timing_ns\\\":%ld\",\n");
+        s.push_str("            (int)rc, outBegIdx, outNBElement, elapsed_ns);\n");
         {
             let mut real_idx = 0usize;
             let mut int_idx = 0usize;
@@ -559,6 +575,27 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("            \"{\\\"lookback\\\":%d}\", lookback);\n");
         s.push_str("    }\n");
     }
+
+    // list_functions method — returns {"functions":["TA_SMA","TA_RSI",...]}
+    s.push_str("    else if ( methodLen == 14 && strncmp(method, \"list_functions\", 14) == 0 ) {\n");
+    s.push_str("        int pos = snprintf(resp, resp_size, \"{\\\"functions\\\":[\");\n");
+    for (i, func) in funcs.iter().enumerate() {
+        let comma = if i > 0 { "," } else { "" };
+        s.push_str(&format!(
+            "        pos += snprintf(resp + pos, resp_size - pos, \"{}\\\"TA_{}\\\"\");\n",
+            comma, func.name
+        ));
+    }
+    s.push_str("        snprintf(resp + pos, resp_size - pos, \"]}\");\n");
+    s.push_str("    }\n");
+
+    // set_unstable_period method — {"method":"set_unstable_period","params":{"id":21,"period":10}}
+    s.push_str("    else if ( methodLen == 19 && strncmp(method, \"set_unstable_period\", 19) == 0 ) {\n");
+    s.push_str("        int id = json_find_int(json, \"id\");\n");
+    s.push_str("        int period = json_find_int(json, \"period\");\n");
+    s.push_str("        TA_SetUnstablePeriod(id, period);\n");
+    s.push_str("        snprintf(resp, resp_size, \"{\\\"status\\\":\\\"ok\\\"}\");\n");
+    s.push_str("    }\n");
 
     // Unknown method
     s.push_str("    else {\n");
@@ -749,6 +786,9 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         s.push_str("            MInteger outBegIdx = new MInteger();\n");
         s.push_str("            MInteger outNBElement = new MInteger();\n");
 
+        // Timing capture
+        s.push_str("            long startNs = System.nanoTime();\n");
+
         // Call
         s.push_str(&format!("            RetCode rc = core.{func_lower}(\n"));
         s.push_str("                startIdx, endIdx,\n");
@@ -763,6 +803,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
+
+        // Timing capture
+        s.push_str("            long endNs = System.nanoTime();\n");
+        s.push_str("            long elapsedNs = endNs - startNs;\n");
 
         // Response — use correct key names and serialisers per output type
         s.push_str("            StringBuilder sb = new StringBuilder();\n");
@@ -786,13 +830,40 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
                 ));
             }
         }
+        s.push_str("            sb.append(\",\\\"timing_ns\\\":\").append(elapsedNs);\n");
         s.push_str("            sb.append(\"}\");\n");
         s.push_str("            return sb.toString();\n");
 
         s.push_str("        }\n");
     }
 
-    s.push_str("        return \"{\\\"error\\\":\\\"Unknown method\\\"}\";\n");
+    // list_functions method — returns {"functions":["TA_SMA","TA_RSI",...]}
+    s.push_str("        else if (json.contains(\"\\\"list_functions\\\"\")) {\n");
+    s.push_str("            StringBuilder sb = new StringBuilder(\"{\\\"functions\\\":[\");\n");
+    for (i, func) in funcs.iter().enumerate() {
+        if i > 0 {
+            s.push_str("            sb.append(\",\");\n");
+        }
+        s.push_str(&format!("            sb.append(\"\\\"TA_{}\\\"\");\n", func.name));
+    }
+    s.push_str("            sb.append(\"]}\");\n");
+    s.push_str("            return sb.toString();\n");
+    s.push_str("        }\n");
+
+    // set_unstable_period method — {"method":"set_unstable_period","params":{"id":21,"period":10}}
+    s.push_str("        else if (json.contains(\"\\\"set_unstable_period\\\"\")) {\n");
+    s.push_str("            int id = jsonInt(json, \"id\");\n");
+    s.push_str("            int period = jsonInt(json, \"period\");\n");
+    s.push_str("            if (id >= 0 && id < core.unstablePeriod.length) {\n");
+    s.push_str("                core.unstablePeriod[id] = period;\n");
+    s.push_str("                return \"{\\\"status\\\":\\\"ok\\\"}\"; \n");
+    s.push_str("            }\n");
+    s.push_str("            return \"{\\\"error\\\":\\\"Invalid id\\\"}\"; \n");
+    s.push_str("        }\n");
+
+    s.push_str("        else {\n");
+    s.push_str("            return \"{\\\"error\\\":\\\"Unknown method\\\"}\";\n");
+    s.push_str("        }\n");
     s.push_str("    }\n\n");
 
     // Main method
@@ -826,7 +897,8 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("using System;\n");
     s.push_str("using System.IO;\n");
     s.push_str("using System.Text.Json;\n");
-    s.push_str("using System.Runtime.InteropServices;\n\n");
+    s.push_str("using System.Runtime.InteropServices;\n");
+    s.push_str("using System.Diagnostics;\n\n");
 
     s.push_str("public class TaCodegenServe {\n\n");
 
@@ -940,6 +1012,9 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             }
         }
 
+        // Time the function call
+        s.push_str("                var timer = Stopwatch.StartNew();\n");
+
         // Call
         s.push_str(&format!(
             "                int rc = TA_{}(startIdx, endIdx, ",
@@ -956,6 +1031,8 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
+        s.push_str("                timer.Stop();\n");
+        s.push_str("                long elapsedNs = timer.ElapsedTicks * 1000000000 / Stopwatch.Frequency;\n");
 
         // Build response — correct key names and serialisers per output type
         s.push_str("                var sb = new System.Text.StringBuilder();\n");
@@ -973,10 +1050,35 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
                 ));
             }
         }
+        s.push_str("                sb.Append($\",\\\"timing_ns\\\":{elapsedNs}\");\n");
         s.push_str("                sb.Append(\"}\");\n");
         s.push_str("                return sb.ToString();\n");
         s.push_str("            }\n");
     }
+
+    // list_functions method — returns {"functions":["TA_SMA","TA_RSI",...]}
+    s.push_str("            else if (method == \"list_functions\") {\n");
+    s.push_str("                var sb = new System.Text.StringBuilder(\"{\\\"functions\\\":[\");\n");
+    for (i, func) in funcs.iter().enumerate() {
+        if i > 0 {
+            s.push_str("                sb.Append(\",\");\n");
+        }
+        s.push_str(&format!(
+            "                sb.Append(\"\\\"TA_{}\\\"\");\n",
+            func.name
+        ));
+    }
+    s.push_str("                sb.Append(\"]}\");\n");
+    s.push_str("                return sb.ToString();\n");
+    s.push_str("            }\n");
+
+    // set_unstable_period method — {"method":"set_unstable_period","params":{"id":21,"period":10}}
+    s.push_str("            else if (method == \"set_unstable_period\") {\n");
+    s.push_str("                int id = p.GetProperty(\"id\").GetInt32();\n");
+    s.push_str("                int period = p.GetProperty(\"period\").GetInt32();\n");
+    s.push_str("                TA_SetUnstablePeriod(id, period);\n");
+    s.push_str("                return \"{\\\"status\\\":\\\"ok\\\"}\";\n");
+    s.push_str("            }\n");
 
     s.push_str("            else {\n");
     s.push_str("                return $\"{{\\\"error\\\":\\\"Unknown method: {method}\\\"}}\";\n");
@@ -1282,7 +1384,8 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
     s.push_str("\"\"\"\n");
     s.push_str("import sys\n");
     s.push_str("import os\n");
-    s.push_str("import json\n\n");
+    s.push_str("import json\n");
+    s.push_str("import time\n\n");
 
     // Add script directory to Python path so ta_lib module is found
     s.push_str("# Add script directory to path for SWIG module import\n");
@@ -1302,6 +1405,10 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         s.push_str(&format!("        return handle_{func_lower}(params)\n"));
     }
 
+    s.push_str("    if method == 'list_functions':\n");
+    s.push_str("        return handle_list_functions()\n");
+    s.push_str("    if method == 'set_unstable_period':\n");
+    s.push_str("        return handle_set_unstable_period(params)\n");
     s.push_str("    return {'error': f'Unknown method: {method}'}\n\n");
 
     // Per-function handlers
@@ -1348,11 +1455,12 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             ));
         }
 
-        // Call via SWIG module.
+        // Call via SWIG module with timing.
         // SWIG returns a tuple: (None, outBegIdx, outArray0, outArray1, ...)
         // result[0] is None (retCode mapped away), [1] is outBegIdx, [2..] are output arrays.
         let outputs = &func.outputs;
         s.push_str("    try:\n");
+        s.push_str("        start_ns = time.perf_counter_ns()\n");
         s.push_str(&format!("        result = ta_lib.TA_{func_upper}(\n"));
         s.push_str("            start_idx, end_idx,\n");
         for name in &input_names {
@@ -1362,6 +1470,8 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("            {},\n", opt.name));
         }
         s.push_str("        )\n");
+        s.push_str("        end_ns = time.perf_counter_ns()\n");
+        s.push_str("        elapsed_ns = end_ns - start_ns\n");
         s.push_str("        out_beg = result[1]\n");
         for (k, _out) in outputs.iter().enumerate() {
             let arr_name = format!("out_arr{k}");
@@ -1387,11 +1497,28 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
             let key = output_json_key(outputs, k);
             s.push_str(&format!("            '{key}': {arr_name},\n"));
         }
+        s.push_str("            'timing_ns': elapsed_ns,\n");
         s.push_str("        }\n");
         s.push_str("        return resp\n");
         s.push_str("    except RuntimeError as e:\n");
         s.push_str("        return {'error': str(e)}\n\n");
     }
+
+    // list_functions dispatch
+    s.push_str("def handle_list_functions():\n");
+    s.push_str("    functions = [\n");
+    for func in funcs {
+        s.push_str(&format!("        'TA_{}',\n", func.name));
+    }
+    s.push_str("    ]\n");
+    s.push_str("    return {'functions': functions}\n\n");
+
+    // set_unstable_period dispatch — {"method":"set_unstable_period","params":{"id":21,"period":10}}
+    s.push_str("def handle_set_unstable_period(params):\n");
+    s.push_str("    id = params.get('id', 0)\n");
+    s.push_str("    period = params.get('period', 0)\n");
+    s.push_str("    ta_lib.TA_SetUnstablePeriod(id, period)\n");
+    s.push_str("    return {'status': 'ok'}\n\n");
 
     // Main loop
     s.push_str("if __name__ == '__main__':\n");
