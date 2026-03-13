@@ -16,14 +16,14 @@ int macdext_lookback(int           optInFastPeriod,                             
 
 TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFastPeriod, TA_MAType optInFastMAType, int optInSlowPeriod, TA_MAType optInSlowMAType, int optInSignalPeriod, TA_MAType optInSignalMAType, int *outBegIdx, int *outNBElement, double outMACD[], double outMACDSignal[], double outMACDHist[])
 {
-    ARRAY_REF( slowMABuffer );
-    ARRAY_REF( fastMABuffer );
-    ENUM_DECLARATION(RetCode) retCode;
+    double *slowMABuffer;
+    double *fastMABuffer;
+    TA_RetCode retCode;
     int tempInteger;
-    VALUE_HANDLE_INT(outBegIdx1);
-    VALUE_HANDLE_INT(outNbElement1);
-    VALUE_HANDLE_INT(outBegIdx2);
-    VALUE_HANDLE_INT(outNbElement2);
+    int outBegIdx1;
+    int outNbElement1;
+    int outBegIdx2;
+    int outNbElement2;
     int lookbackTotal, lookbackSignal, lookbackLargest;
     int i;
     ENUM_DECLARATION(MAType) tempMAType;
@@ -71,7 +71,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
 
     /* Allocate intermediate buffer for fast/slow MA. */
     tempInteger = (endIdx-startIdx)+1+lookbackSignal;
-    ARRAY_ALLOC( fastMABuffer, tempInteger );
+    double *fastMABuffer = malloc((tempInteger) * sizeof(double));
     if( !fastMABuffer )
     {
     *outBegIdx = 0;
@@ -79,12 +79,12 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     return TA_ALLOC_ERR;
     }
 
-    ARRAY_ALLOC( slowMABuffer, tempInteger );
+    double *slowMABuffer = malloc((tempInteger) * sizeof(double));
     if( !slowMABuffer )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastMABuffer );
+    free(fastMABuffer);
     return TA_ALLOC_ERR;
     }
 
@@ -98,60 +98,60 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     tempInteger = startIdx-lookbackSignal;
     retCode = ma( tempInteger, endIdx,
     inReal, optInSlowPeriod, optInSlowMAType,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1, &outNbElement1,
     slowMABuffer );
 
     if( retCode != TA_SUCCESS )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastMABuffer );
-    ARRAY_FREE( slowMABuffer );
+    free(fastMABuffer);
+    free(slowMABuffer);
     return retCode;
     }
 
     /* Calculate the fast MA. */
     retCode = ma( tempInteger, endIdx,
     inReal, optInFastPeriod, optInFastMAType,
-    VALUE_HANDLE_OUT(outBegIdx2), VALUE_HANDLE_OUT(outNbElement2),
+    &outBegIdx2, &outNbElement2,
     fastMABuffer );
 
     if( retCode != TA_SUCCESS )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastMABuffer );
-    ARRAY_FREE( slowMABuffer );
+    free(fastMABuffer);
+    free(slowMABuffer);
     return retCode;
     }
 
     /* Parano tests. Will be removed eventually. */
-    if( (VALUE_HANDLE_GET(outBegIdx1) != tempInteger) ||
-    (VALUE_HANDLE_GET(outBegIdx2) != tempInteger) ||
-    (VALUE_HANDLE_GET(outNbElement1) != VALUE_HANDLE_GET(outNbElement2)) ||
-    (VALUE_HANDLE_GET(outNbElement1) != (endIdx-startIdx)+1+lookbackSignal) )
+    if( (outBegIdx1 != tempInteger) ||
+    (outBegIdx2 != tempInteger) ||
+    (outNbElement1 != outNbElement2) ||
+    (outNbElement1 != (endIdx-startIdx)+1+lookbackSignal) )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastMABuffer );
-    ARRAY_FREE( slowMABuffer );
+    free(fastMABuffer);
+    free(slowMABuffer);
     return TA_INTERNAL_ERROR(119);
     }
 
     /* Calculate (fast MA) - (slow MA). */
-    for( i=0; i < VALUE_HANDLE_GET(outNbElement1); i++ )
+    for( i=0; i < outNbElement1; i++ )
     fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
 
     /* Copy the result into the output for the caller. */
     TA_ARRAY_COPY( outMACD, 0, fastMABuffer, lookbackSignal, (endIdx-startIdx)+1 );
 
     /* Calculate the signal/trigger line. */
-    retCode = ma( 0, VALUE_HANDLE_GET(outNbElement1)-1,
+    retCode = ma( 0, outNbElement1-1,
     fastMABuffer, optInSignalPeriod, optInSignalMAType,
-    VALUE_HANDLE_OUT(outBegIdx2), VALUE_HANDLE_OUT(outNbElement2), outMACDSignal );
+    &outBegIdx2, &outNbElement2, outMACDSignal );
 
-    ARRAY_FREE( fastMABuffer );
-    ARRAY_FREE( slowMABuffer );
+    free(fastMABuffer);
+    free(slowMABuffer);
 
     if( retCode != TA_SUCCESS )
     {
@@ -161,12 +161,12 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     }
 
     /* Calculate the histogram. */
-    for( i=0; i < VALUE_HANDLE_GET(outNbElement2); i++ )
+    for( i=0; i < outNbElement2; i++ )
     outMACDHist[i] = outMACD[i]-outMACDSignal[i];
 
     /* All done! Indicate the output limits and return success. */
     *outBegIdx     = startIdx;
-    *outNBElement  = VALUE_HANDLE_GET(outNbElement2);
+    *outNBElement  = outNbElement2;
 
     return TA_SUCCESS;
 }

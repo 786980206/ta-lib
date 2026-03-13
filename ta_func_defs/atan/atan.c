@@ -13,7 +13,7 @@ TA_RetCode atan(int startIdx, int endIdx, const double inReal[], int *outBegIdx,
     /* Default return values */
     for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
     {
-    outReal[outIdx] = std_atan(inReal[i]);
+    outReal[outIdx] = atan(inReal[i]);
     }
 
     *outNBElement = outIdx;

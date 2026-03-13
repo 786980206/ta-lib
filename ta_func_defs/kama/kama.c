@@ -1,12 +1,12 @@
 int kama_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod + TA_GetUnstablePeriod(KAMA);
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);
 }
 
 TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    CONSTANT_DOUBLE(constMax) = 2.0/(30.0+1.0);
-    CONSTANT_DOUBLE(constDiff) = 2.0/(2.0+1.0) - constMax;
+    const double constMax = 2.0/(30.0+1.0);
+    const double constDiff = 2.0/(2.0+1.0) - constMax;
 
     double tempReal, tempReal2;
     double sumROC1, periodROC, prevKAMA;
@@ -23,7 +23,7 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(KAMA);
+    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_KAMA);
 
     /* Move up the start index if there is not
     * enough initial data.
@@ -50,7 +50,7 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     {
     tempReal  = inReal[today++];
     tempReal -= inReal[today];
-    sumROC1  += std_fabs(tempReal);
+    sumROC1  += fabs(tempReal);
     }
 
     /* At this point sumROC1 represent the
@@ -73,10 +73,10 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1))
+    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)))
     tempReal = 1.0;
     else
-    tempReal = std_fabs(periodROC/sumROC1);
+    tempReal = fabs(periodROC/sumROC1);
 
     /* Calculate the smoothing constant */
     tempReal  = (tempReal*constDiff)+constMax;
@@ -104,8 +104,8 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     *  - Remove trailing ROC1
     *  - Add new ROC1
     */
-    sumROC1 -= std_fabs(trailingValue-tempReal2);
-    sumROC1 += std_fabs(tempReal-inReal[today-1]);
+    sumROC1 -= fabs(trailingValue-tempReal2);
+    sumROC1 += fabs(tempReal-inReal[today-1]);
 
     /* Save the trailing value. Do this because inReal
     * and outReal can be pointers to the same buffer.
@@ -113,10 +113,10 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1) )
+    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)) )
     tempReal = 1.0;
     else
-    tempReal = std_fabs(periodROC/sumROC1);
+    tempReal = fabs(periodROC/sumROC1);
 
     /* Calculate the smoothing constant */
     tempReal  = (tempReal*constDiff)+constMax;
@@ -144,8 +144,8 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     *  - Remove trailing ROC1
     *  - Add new ROC1
     */
-    sumROC1 -= std_fabs(trailingValue-tempReal2);
-    sumROC1 += std_fabs(tempReal-inReal[today-1]);
+    sumROC1 -= fabs(trailingValue-tempReal2);
+    sumROC1 += fabs(tempReal-inReal[today-1]);
 
     /* Save the trailing value. Do this because inReal
     * and outReal can be pointers to the same buffer.
@@ -153,10 +153,10 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1) )
+    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)) )
     tempReal = 1.0;
     else
-    tempReal = std_fabs(periodROC / sumROC1);
+    tempReal = fabs(periodROC / sumROC1);
 
     /* Calculate the smoothing constant */
     tempReal  = (tempReal*constDiff)+constMax;

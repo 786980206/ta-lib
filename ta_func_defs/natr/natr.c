@@ -7,19 +7,19 @@ int natr_lookback(int           optInTimePeriod)
     * (optInTimePeriod-1) is for the simple
     * moving average.
     */
-    return optInTimePeriod + TA_GetUnstablePeriod(NATR);
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_NATR);
 }
 
 TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int outIdx, today, lookbackTotal;
     int nbATR;
-    VALUE_HANDLE_INT(outBegIdx1);
-    VALUE_HANDLE_INT(outNbElement1);
+    int outBegIdx1;
+    int outNbElement1;
 
     double prevATR, tempValue;
-    ARRAY_REF( tempBuffer );
+    double *tempBuffer;
     ARRAY_LOCAL(prevATRTemp,1);
 
 
@@ -78,12 +78,12 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     /* Do TRANGE in the intermediate buffer. */
     retCode = trange( (startIdx-lookbackTotal+1), endIdx,
     inHigh, inLow, inClose,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1, &outNbElement1,
     tempBuffer );
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
 
@@ -93,12 +93,12 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     retCode = sma( optInTimePeriod-1,
     optInTimePeriod-1,
     tempBuffer, optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1, &outNbElement1,
     prevATRTemp );
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
     prevATR = prevATRTemp[0];
@@ -110,7 +110,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     *  3) Divide by 'period'.
     */
     today = optInTimePeriod;
-    outIdx = TA_GetUnstablePeriod(NATR);
+    outIdx = TA_GetUnstablePeriod(TA_FUNC_UNST_NATR);
     /* Skip the unstable period. */
     while( outIdx != 0 )
     {
@@ -125,7 +125,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     */
     outIdx = 1;
     tempValue = inClose[today];
-    if( !TA_IS_ZERO(tempValue) )
+    if( !((-0.00000001 < (tempValue)) && ((tempValue) < 0.00000001)) )
     outReal[0] = (prevATR/tempValue)*100.0;
     else
     outReal[0] = 0.0;
@@ -139,7 +139,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     prevATR += tempBuffer[today++];
     prevATR /= optInTimePeriod;
     tempValue = inClose[today];
-    if( !TA_IS_ZERO(tempValue) )
+    if( !((-0.00000001 < (tempValue)) && ((tempValue) < 0.00000001)) )
     outReal[outIdx] = (prevATR/tempValue)*100.0;
     else
     outReal[0] = 0.0;
@@ -149,7 +149,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     *outBegIdx    = startIdx;
     *outNBElement = outIdx;
 
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
 
     return retCode;
 }

@@ -1,6 +1,6 @@
 int cdleveningdojistar_lookback(double        optInPenetration)
 {
-    UNUSED_VARIABLE(optInPenetration);
+    (void)optInPenetration;
     
     return max( max( TA_CANDLEAVGPERIOD(BodyDoji), TA_CANDLEAVGPERIOD(BodyLong) ),
     TA_CANDLEAVGPERIOD(BodyShort)

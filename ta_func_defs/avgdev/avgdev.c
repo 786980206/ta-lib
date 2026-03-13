@@ -38,7 +38,7 @@ TA_RetCode avgdev(int startIdx, int endIdx, const double inReal[], int optInTime
 
     todayDev = 0.0;
     for (i = 0; i < optInTimePeriod; i++) {
-    todayDev += std_fabs(inReal[today-i] - todaySum/optInTimePeriod);
+    todayDev += fabs(inReal[today-i] - todaySum/optInTimePeriod);
     }
     outReal[outIdx] = todayDev/optInTimePeriod;
 

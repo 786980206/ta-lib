@@ -12,21 +12,21 @@ int tema_lookback(int           optInTimePeriod)
 
 TA_RetCode tema(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ARRAY_REF(firstEMA);
-    ARRAY_REF(secondEMA);
+    double *firstEMA;
+    double *secondEMA;
     double k;
 
-    VALUE_HANDLE_INT(firstEMABegIdx);
-    VALUE_HANDLE_INT(firstEMANbElement);
-    VALUE_HANDLE_INT(secondEMABegIdx);
-    VALUE_HANDLE_INT(secondEMANbElement);
-    VALUE_HANDLE_INT(thirdEMABegIdx);
-    VALUE_HANDLE_INT(thirdEMANbElement);
+    int firstEMABegIdx;
+    int firstEMANbElement;
+    int secondEMABegIdx;
+    int secondEMANbElement;
+    int thirdEMABegIdx;
+    int thirdEMANbElement;
 
     int tempInt, outIdx, lookbackTotal, lookbackEMA;
     int firstEMAIdx, secondEMAIdx;
 
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
 
 
 
@@ -71,85 +71,85 @@ TA_RetCode tema(int startIdx, int endIdx, const double inReal[], int optInTimePe
 
     /* Allocate a temporary buffer for the firstEMA. */
     tempInt = lookbackTotal+(endIdx-startIdx)+1;
-    ARRAY_ALLOC(firstEMA,tempInt);
+    double *firstEMA = malloc((tempInt) * sizeof(double));
     if( !firstEMA )
     return TA_ALLOC_ERR;
 
     /* Calculate the first EMA */
-    k = TA_PER_TO_K(optInTimePeriod);
+    k = (2.0 / ((double)(optInTimePeriod) + 1.0));
     retCode = ema( startIdx-(lookbackEMA*2), endIdx, inReal,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(firstEMABegIdx), VALUE_HANDLE_OUT(firstEMANbElement),
+    &firstEMABegIdx, &firstEMANbElement,
     firstEMA );
 
     /* Verify for failure or if not enough data after
     * calculating the first EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(firstEMANbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (firstEMANbElement == 0) )
     {
-    ARRAY_FREE( firstEMA );
+    free(firstEMA);
     return retCode;
     }
 
     /* Allocate a temporary buffer for storing the EMA2 */
-    ARRAY_ALLOC(secondEMA,VALUE_HANDLE_GET(firstEMANbElement));
+    ARRAY_ALLOC(secondEMA,firstEMANbElement);
     if( !secondEMA )
     {
-    ARRAY_FREE( firstEMA );
+    free(firstEMA);
     return TA_ALLOC_ERR;
     }
 
-    retCode = ema( 0, VALUE_HANDLE_GET(firstEMANbElement)-1, firstEMA,
+    retCode = ema( 0, firstEMANbElement-1, firstEMA,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(secondEMABegIdx), VALUE_HANDLE_OUT(secondEMANbElement),
+    &secondEMABegIdx, &secondEMANbElement,
     secondEMA );
 
     /* Return empty output on failure or if not enough data after
     * calculating the second EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(secondEMANbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (secondEMANbElement == 0) )
     {
-    ARRAY_FREE( firstEMA );
-    ARRAY_FREE( secondEMA );
+    free(firstEMA);
+    free(secondEMA);
     return retCode;
     }
 
     /* Calculate the EMA3 into the caller provided output. */
-    retCode = ema( 0, VALUE_HANDLE_GET(secondEMANbElement)-1, secondEMA,
+    retCode = ema( 0, secondEMANbElement-1, secondEMA,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(thirdEMABegIdx), VALUE_HANDLE_OUT(thirdEMANbElement),
+    &thirdEMABegIdx, &thirdEMANbElement,
     outReal );
 
     /* Return empty output on failure or if not enough data after
     * calculating the third EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(thirdEMANbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (thirdEMANbElement == 0) )
     {
-    ARRAY_FREE( firstEMA );
-    ARRAY_FREE( secondEMA );
+    free(firstEMA);
+    free(secondEMA);
     return retCode;
     }
 
     /* Indicate where the output starts relative to
     * the caller input.
     */
-    firstEMAIdx  = VALUE_HANDLE_GET(thirdEMABegIdx) + VALUE_HANDLE_GET(secondEMABegIdx);
-    secondEMAIdx = VALUE_HANDLE_GET(thirdEMABegIdx);
-    *outBegIdx = firstEMAIdx + VALUE_HANDLE_GET(firstEMABegIdx);
+    firstEMAIdx  = thirdEMABegIdx + secondEMABegIdx;
+    secondEMAIdx = thirdEMABegIdx;
+    *outBegIdx = firstEMAIdx + firstEMABegIdx;
 
     /* Do the TEMA:
     *  Iterate through the EMA3 (output buffer) and adjust
     *  the value by using the EMA2 and EMA1.
     */
     outIdx = 0;
-    while( outIdx < VALUE_HANDLE_GET(thirdEMANbElement) )
+    while( outIdx < thirdEMANbElement )
     {
     outReal[outIdx] += (3.0*firstEMA[firstEMAIdx++]) - (3.0*secondEMA[secondEMAIdx++]);
     outIdx++;
     }
 
-    ARRAY_FREE( firstEMA );
-    ARRAY_FREE( secondEMA );
+    free(firstEMA);
+    free(secondEMA);
 
     /* Indicates to the caller the number of output
     * successfully calculated.

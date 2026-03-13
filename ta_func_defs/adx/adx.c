@@ -1,6 +1,6 @@
 int adx_lookback(int           optInTimePeriod)
 {
-    return (2 * optInTimePeriod) + TA_GetUnstablePeriod(ADX) - 1;
+    return (2 * optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
 }
 
 TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
@@ -15,10 +15,10 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
 
     #define TRUE_RANGE(TH,TL,YC,OUT) {\
     OUT = TH-TL; \
-    tempReal2 = std_fabs(TH-YC); \
+    tempReal2 = fabs(TH-YC); \
     if( tempReal2 > OUT ) \
     OUT = tempReal2; \
-    tempReal2 = std_fabs(TL-YC); \
+    tempReal2 = fabs(TL-YC); \
     if( tempReal2 > OUT ) \
     OUT = tempReal2; \
     }
@@ -142,7 +142,7 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     #undef  round_pos
     #define round_pos(x) (x)
 
-    lookbackTotal = (2*optInTimePeriod) + TA_GetUnstablePeriod(ADX) - 1;
+    lookbackTotal = (2*optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
 
     /* Adjust startIdx to account for the lookback period. */
     if( startIdx < lookbackTotal )
@@ -235,14 +235,14 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevClose = inClose[today];
 
     /* Calculate the DX. The value is rounded (see Wilder book). */
-    if( !TA_IS_ZERO(prevTR) )
+    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
     minusDI = round_pos(100.0*(prevMinusDM/prevTR));
     plusDI  = round_pos(100.0*(prevPlusDM/prevTR));
     /* This loop is just to accumulate the initial DX */
     tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
-    sumDX  += round_pos( 100.0 * (std_fabs(minusDI-plusDI)/tempReal) );
+    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    sumDX  += round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
     }
     }
 
@@ -250,7 +250,7 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevADX = round_pos( sumDX / optInTimePeriod );
 
     /* Skip the unstable period */
-    i = TA_GetUnstablePeriod(ADX);
+    i = TA_GetUnstablePeriod(TA_FUNC_UNST_ADX);
     while( i-- > 0 )
     {
     /* Calculate the prevMinusDM and prevPlusDM */
@@ -282,15 +282,15 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
-    if( !TA_IS_ZERO(prevTR) )
+    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
     minusDI  = round_pos(100.0*(prevMinusDM/prevTR));
     plusDI   = round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
+    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     {
-    tempReal = round_pos(100.0*(std_fabs(minusDI-plusDI)/tempReal));
+    tempReal = round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */
     prevADX = round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
     }
@@ -333,15 +333,15 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
-    if( !TA_IS_ZERO(prevTR) )
+    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
     minusDI  = round_pos(100.0*(prevMinusDM/prevTR));
     plusDI   = round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
-    if( !TA_IS_ZERO(tempReal) )
+    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     {
-    tempReal = round_pos(100.0*(std_fabs(minusDI-plusDI)/tempReal));
+    tempReal = round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */
     prevADX = round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
     }

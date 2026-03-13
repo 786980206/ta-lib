@@ -1179,6 +1179,7 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
         | Expr::IntLiteral(_)
         | Expr::Var(_)
         | Expr::PointerDeref(_)
+        | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_) => false,
         Expr::BinOp(left, _, right) => {
@@ -1220,6 +1221,7 @@ fn render_assign_target(
         | Expr::Not(_)
         | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_)
+        | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry),
@@ -1263,6 +1265,7 @@ fn render_binop_operand(
         | Expr::Not(_)
         | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_)
+        | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry),
@@ -1390,6 +1393,10 @@ fn render_expr(
             format!("!({})", render_expr(inner, ctx, opt_real_params, registry))
         }
         Expr::PointerDeref(name) => format!("(*{name})"),
+        Expr::AddressOf(inner) => {
+            // address-of not idiomatic in Rust; render inner expression directly
+            render_expr(inner, ctx, opt_real_params, registry)
+        }
         Expr::PostIncrement(inner) => {
             let rendered = render_expr(inner, ctx, opt_real_params, registry);
             format!("{{ let _v = {rendered}; {rendered} += 1; _v }}")

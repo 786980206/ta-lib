@@ -50,8 +50,8 @@ TA_RetCode correl(int startIdx, int endIdx, const double inReal0[], const double
     trailingX = inReal0[trailingIdx];
     trailingY = inReal1[trailingIdx++];
     tempReal = (sumX2-((sumX*sumX)/optInTimePeriod)) * (sumY2-((sumY*sumY)/optInTimePeriod));
-    if( !TA_IS_ZERO_OR_NEG(tempReal) )
-    outReal[0] = (sumXY-((sumX*sumY)/optInTimePeriod)) / std_sqrt(tempReal);
+    if( !((tempReal) < 0.00000001) )
+    outReal[0] = (sumXY-((sumX*sumY)/optInTimePeriod)) / sqrt(tempReal);
     else
     outReal[0] = 0.0;
 
@@ -84,8 +84,8 @@ TA_RetCode correl(int startIdx, int endIdx, const double inReal0[], const double
     trailingX = inReal0[trailingIdx];
     trailingY = inReal1[trailingIdx++];
     tempReal = (sumX2-((sumX*sumX)/optInTimePeriod)) * (sumY2-((sumY*sumY)/optInTimePeriod));
-    if( !TA_IS_ZERO_OR_NEG(tempReal) )
-    outReal[outIdx++] = (sumXY-((sumX*sumY)/optInTimePeriod)) / std_sqrt(tempReal);
+    if( !((tempReal) < 0.00000001) )
+    outReal[outIdx++] = (sumXY-((sumX*sumY)/optInTimePeriod)) / sqrt(tempReal);
     else
     outReal[outIdx++] = 0.0;
     }

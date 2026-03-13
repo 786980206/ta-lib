@@ -20,9 +20,9 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     int i,j,today,outIdx;
     int trailingIdx1, trailingIdx2, trailingIdx3;
 
-    ARRAY_INT_LOCAL(usedFlag,3);
-    ARRAY_INT_LOCAL(periods,3);
-    ARRAY_INT_LOCAL(sortedPeriods,3);
+    int usedFlag[3];
+    int periods[3];
+    int sortedPeriods[3];
 
 
     *outBegIdx = 0;
@@ -71,10 +71,10 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     trueLow = min( tempLT, tempCY );            \
     closeMinusTrueLow = inClose[day] - trueLow; \
     trueRange = tempHT - tempLT;                \
-    tempDouble = std_fabs( tempCY - tempHT );       \
+    tempDouble = fabs( tempCY - tempHT );       \
     if( tempDouble > trueRange )                 \
     trueRange = tempDouble;                  \
-    tempDouble = std_fabs( tempCY - tempLT  );      \
+    tempDouble = fabs( tempCY - tempLT  );      \
     if( tempDouble > trueRange )                 \
     trueRange = tempDouble;                  \
     }
@@ -117,9 +117,9 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     /* Calculate the oscillator value for today */
     output = 0.0;
 
-    if( !TA_IS_ZERO(b1Total) ) output += 4.0*(a1Total/b1Total);
-    if( !TA_IS_ZERO(b2Total) ) output += 2.0*(a2Total/b2Total);
-    if( !TA_IS_ZERO(b3Total) ) output += a3Total/b3Total;
+    if( !((-0.00000001 < (b1Total)) && ((b1Total) < 0.00000001)) ) output += 4.0*(a1Total/b1Total);
+    if( !((-0.00000001 < (b2Total)) && ((b2Total) < 0.00000001)) ) output += 2.0*(a2Total/b2Total);
+    if( !((-0.00000001 < (b3Total)) && ((b3Total) < 0.00000001)) ) output += a3Total/b3Total;
 
     /* Remove the trailing terms to prepare for next day */
     CALC_TERMS(trailingIdx1);

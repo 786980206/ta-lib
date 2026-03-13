@@ -8,9 +8,9 @@ int adxr_lookback(int           optInTimePeriod)
 
 TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ARRAY_REF( adx );
+    double *adx;
     int adxrLookback, i, j, outIdx, nbElement;
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
 
 
 
@@ -46,7 +46,7 @@ TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double in
     return TA_SUCCESS;
     }
 
-    ARRAY_ALLOC( adx, endIdx-startIdx+optInTimePeriod );
+    double *adx = malloc((endIdx-startIdx+optInTimePeriod) * sizeof(double));
     if( !adx )
     return TA_ALLOC_ERR;
 
@@ -56,7 +56,7 @@ TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double in
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE( adx );
+    free(adx);
     return retCode;
     }
 
@@ -67,7 +67,7 @@ TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double in
     while( --nbElement != 0 )
     outReal[outIdx++] = round_pos( (adx[i++]+adx[j++])/2.0 );
 
-    ARRAY_FREE( adx );
+    free(adx);
 
     *outBegIdx    = startIdx;
     *outNBElement = outIdx;

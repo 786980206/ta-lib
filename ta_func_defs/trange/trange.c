@@ -49,11 +49,11 @@ TA_RetCode trange(int startIdx, int endIdx, const double inHigh[], const double 
     tempCY = inClose[today-1];
     greatest = tempHT - tempLT; /* val1 */
 
-    val2 = std_fabs( tempCY - tempHT );
+    val2 = fabs( tempCY - tempHT );
     if( val2 > greatest )
     greatest = val2;
 
-    val3 = std_fabs( tempCY - tempLT  );
+    val3 = fabs( tempCY - tempLT  );
     if( val3 > greatest )
     greatest = val3;
 

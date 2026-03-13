@@ -39,6 +39,7 @@ enum Token {
     IntNumber(i64),
     Op(String),
     Star,
+    Ampersand,
     LBrace,
     RBrace,
     LBracket,
@@ -290,6 +291,11 @@ fn tokenize(input: &str) -> Vec<Token> {
             i += 2;
             continue;
         }
+        if c == '&' {
+            tokens.push(Token::Ampersand);
+            i += 1;
+            continue;
+        }
         if c == '|' && i + 1 < chars.len() && chars[i + 1] == '|' {
             tokens.push(Token::Op("||".to_string()));
             i += 2;
@@ -534,6 +540,11 @@ impl Parser {
                 Statement::Continue
             }
             Some(Token::Ident(ref s)) if Self::is_type_keyword(s) => self.parse_var_decl(),
+            // `const double name = val;` or `const int name = val;`
+            Some(Token::Ident(ref s)) if s == "const" => {
+                self.advance(); // consume `const`
+                self.parse_var_decl()
+            }
             Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
             _ => self.parse_assignment_or_expr_stmt(),
@@ -759,6 +770,11 @@ impl Parser {
             _ => panic!("Expected type keyword"),
         };
 
+        // Consume optional pointer declarator: `double *buf` or `int *ptr`
+        if self.peek() == Some(&Token::Star) {
+            self.advance();
+        }
+
         let first = self.parse_single_var_decl(var_type.clone());
 
         // Check for multi-variable declarations: int x, y, z;
@@ -782,6 +798,20 @@ impl Parser {
             Token::Ident(s) => s,
             other => panic!("Expected identifier in var decl, got {other:?}"),
         };
+
+        // Consume optional array size: `double buf[SIZE]` — discard size expression
+        if self.peek() == Some(&Token::LBracket) {
+            self.advance(); // consume [
+            // Skip tokens until matching ]
+            let mut depth = 1;
+            while depth > 0 {
+                match self.advance() {
+                    Token::LBracket => depth += 1,
+                    Token::RBracket => depth -= 1,
+                    _ => {}
+                }
+            }
+        }
 
         // Check for init
         if let Some(Token::Op(ref op)) = self.peek() {
@@ -1623,6 +1653,12 @@ impl Parser {
             self.advance();
             let operand = self.parse_unary();
             return Expr::Not(Box::new(operand));
+        }
+        // Address-of: &var or &var[idx]
+        if self.peek() == Some(&Token::Ampersand) {
+            self.advance();
+            let operand = self.parse_primary();
+            return Expr::AddressOf(Box::new(operand));
         }
         // Unary dereference: *var
         if self.peek() == Some(&Token::Star) {

@@ -515,6 +515,7 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         | Expr::Not(_)
         | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_)
+        | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, single_precision, registry),
@@ -604,6 +605,10 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
         Expr::PointerDeref(name) => {
             // Java has no pointer dereference; output params are MInteger .value
             format!("{name}.value")
+        }
+        Expr::AddressOf(inner) => {
+            // Java has no address-of; render the inner expression directly
+            render_expr(inner, single_precision, registry)
         }
         Expr::PostIncrement(inner) => {
             format!("{}++", render_expr(inner, single_precision, registry))

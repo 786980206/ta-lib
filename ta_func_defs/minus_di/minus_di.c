@@ -1,7 +1,7 @@
 int minus_di_lookback(int           optInTimePeriod)
 {
     if( optInTimePeriod > 1 )
-    return optInTimePeriod + TA_GetUnstablePeriod(MINUS_DI);
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DI);
     else
     return 1;
 }
@@ -17,10 +17,10 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
 
     #define TRUE_RANGE(TH,TL,YC,OUT) {\
     OUT = TH-TL; \
-    tempReal2 = std_fabs(TH-YC); \
+    tempReal2 = fabs(TH-YC); \
     if( tempReal2 > OUT ) \
     OUT = tempReal2; \
-    tempReal2 = std_fabs(TL-YC); \
+    tempReal2 = fabs(TL-YC); \
     if( tempReal2 > OUT ) \
     OUT = tempReal2; \
     }
@@ -124,7 +124,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     #define round_pos(x) (x)
 
     if( optInTimePeriod > 1 )
-    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(MINUS_DI);
+    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DI);
     else
     lookbackTotal = 1;
 
@@ -172,7 +172,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     {
     /* Case 2 and 4: +DM=0,-DM=diffM */
     TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
-    if( TA_IS_ZERO(tempReal) )
+    if( ((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     outReal[outIdx++] = (double)0.0;
     else
     outReal[outIdx++] = diffM/tempReal;
@@ -222,7 +222,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Skip the unstable period. Note that this loop must be executed
     * at least ONCE to calculate the first DI.
     */
-    i = TA_GetUnstablePeriod(MINUS_DI) + 1;
+    i = TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DI) + 1;
     while( i-- != 0 )
     {
     /* Calculate the prevMinusDM */
@@ -254,7 +254,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Now start to write the output in
     * the caller provided outReal.
     */
-    if( !TA_IS_ZERO(prevTR) )
+    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     outReal[0] = round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[0] = 0.0;
@@ -287,7 +287,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     prevClose = inClose[today];
 
     /* Calculate the DI. The value is rounded (see Wilder book). */
-    if( !TA_IS_ZERO(prevTR) )
+    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     outReal[outIdx++] = round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[outIdx++] = 0.0;

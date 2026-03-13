@@ -10,13 +10,13 @@ int stochrsi_lookback(int           optInTimePeriod,                            
 
 TA_RetCode stochrsi(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int optInFastK_Period, int optInFastD_Period, TA_MAType optInFastD_MAType, int *outBegIdx, int *outNBElement, double outFastK[], double outFastD[])
 {
-    ARRAY_REF(tempRSIBuffer);
+    double *tempRSIBuffer;
 
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int lookbackTotal, lookbackSTOCHF, tempArraySize;
-    VALUE_HANDLE_INT(outBegIdx1);
-    VALUE_HANDLE_INT(outBegIdx2);
-    VALUE_HANDLE_INT(outNbElement1);
+    int outBegIdx1;
+    int outBegIdx2;
+    int outNbElement1;
 
 
 
@@ -67,19 +67,19 @@ TA_RetCode stochrsi(int startIdx, int endIdx, const double inReal[], int optInTi
 
     tempArraySize = (endIdx - startIdx) + 1 + lookbackSTOCHF;
 
-    ARRAY_ALLOC( tempRSIBuffer, tempArraySize );
+    double *tempRSIBuffer = malloc((tempArraySize) * sizeof(double));
 
     retCode = rsi(startIdx-lookbackSTOCHF,
     endIdx,
     inReal,
     optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdx1),
-    VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1,
+    &outNbElement1,
     tempRSIBuffer);
 
-    if( retCode != TA_SUCCESS || VALUE_HANDLE_GET(outNbElement1) == 0 )
+    if( retCode != TA_SUCCESS || outNbElement1 == 0 )
     {
-    ARRAY_FREE( tempRSIBuffer );
+    free(tempRSIBuffer);
     *outBegIdx = 0;
     *outNBElement = 0;
     return retCode;
@@ -93,12 +93,12 @@ TA_RetCode stochrsi(int startIdx, int endIdx, const double inReal[], int optInTi
     optInFastK_Period,
     optInFastD_Period,
     optInFastD_MAType,
-    VALUE_HANDLE_OUT(outBegIdx2),
+    &outBegIdx2,
     outNBElement,
     outFastK,
     outFastD);
 
-    ARRAY_FREE( tempRSIBuffer );
+    free(tempRSIBuffer);
 
     if( retCode != TA_SUCCESS || ((int)*outNBElement) == 0 )
     {

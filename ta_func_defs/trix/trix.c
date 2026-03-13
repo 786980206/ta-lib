@@ -9,12 +9,12 @@ int trix_lookback(int           optInTimePeriod)
 TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
     double k;
-    ARRAY_REF(tempBuffer);
-    VALUE_HANDLE_INT(nbElement);
-    VALUE_HANDLE_INT(begIdx);
+    double *tempBuffer;
+    int nbElement;
+    int begIdx;
     int totalLookback;
     int emaLookback, rocLookback;
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int nbElementToOutput;
 
 
@@ -42,7 +42,7 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     /* Allocate a temporary buffer for performing
     * the calculation.
     */
-    ARRAY_ALLOC(tempBuffer, nbElementToOutput );
+    double *tempBuffer = malloc((nbElementToOutput) * sizeof(double));
 
     if( !tempBuffer )
     {
@@ -52,20 +52,20 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     /* Calculate the first EMA */
-    k = TA_PER_TO_K(optInTimePeriod);
+    k = (2.0 / ((double)(optInTimePeriod) + 1.0));
     retCode = ema( (startIdx-totalLookback), endIdx, inReal,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(begIdx), VALUE_HANDLE_OUT(nbElement),
+    &begIdx, &nbElement,
     tempBuffer );
 
     /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(nbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (nbElement == 0) )
     {
     *outNBElement = 0;
     *outBegIdx = 0;
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
 
@@ -75,17 +75,17 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     nbElementToOutput -= emaLookback;
     retCode = ema( 0, nbElementToOutput, tempBuffer,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(begIdx), VALUE_HANDLE_OUT(nbElement),
+    &begIdx, &nbElement,
     tempBuffer );
 
     /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(nbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (nbElement == 0) )
     {
     *outNBElement = 0;
     *outBegIdx = 0;
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
 
@@ -93,17 +93,17 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     nbElementToOutput -= emaLookback;
     retCode = ema( 0, nbElementToOutput, tempBuffer,
     optInTimePeriod, k,
-    VALUE_HANDLE_OUT(begIdx), VALUE_HANDLE_OUT(nbElement),
+    &begIdx, &nbElement,
     tempBuffer );
 
     /* Verify for failure or if not enough data after
     * calculating the EMA.
     */
-    if( (retCode != TA_SUCCESS ) || (VALUE_HANDLE_GET(nbElement) == 0) )
+    if( (retCode != TA_SUCCESS ) || (nbElement == 0) )
     {
     *outNBElement = 0;
     *outBegIdx = 0;
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
 
@@ -111,10 +111,10 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     nbElementToOutput -= emaLookback;
     retCode = roc( 0, nbElementToOutput,
     tempBuffer,
-    1,  VALUE_HANDLE_OUT(begIdx), outNBElement,
+    1,  &begIdx, outNBElement,
     outReal );
 
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     /* Verify for failure or if not enough data after
     * calculating the rate-of-change.
     */

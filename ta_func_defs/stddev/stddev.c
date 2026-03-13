@@ -7,7 +7,7 @@ int stddev_lookback(int           optInTimePeriod,                              
 TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, double optInNbDev, int *outBegIdx, int *outNBElement, double outReal[])
 {
     int i;
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     double tempReal;
 
 
@@ -30,8 +30,8 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
     for( i=0; i < (int)*outNBElement; i++ )
     {
     tempReal = outReal[i];
-    if( !TA_IS_ZERO_OR_NEG(tempReal) )
-    outReal[i] = std_sqrt(tempReal) * optInNbDev;
+    if( !((tempReal) < 0.00000001) )
+    outReal[i] = sqrt(tempReal) * optInNbDev;
     else
     outReal[i] = (double)0.0;
     }
@@ -41,8 +41,8 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
     for( i=0; i < (int)*outNBElement; i++ )
     {
     tempReal = outReal[i];
-    if( !TA_IS_ZERO_OR_NEG(tempReal) )
-    outReal[i] = std_sqrt(tempReal);
+    if( !((tempReal) < 0.00000001) )
+    outReal[i] = sqrt(tempReal);
     else
     outReal[i] = (double)0.0;
     }

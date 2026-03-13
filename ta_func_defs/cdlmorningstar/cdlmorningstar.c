@@ -1,6 +1,6 @@
 int cdlmorningstar_lookback(double        optInPenetration)
 {
-    UNUSED_VARIABLE(optInPenetration);
+    (void)optInPenetration;
     return max( TA_CANDLEAVGPERIOD(BodyShort), TA_CANDLEAVGPERIOD(BodyLong) ) + 2;
 }
 

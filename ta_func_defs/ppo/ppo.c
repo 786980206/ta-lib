@@ -6,13 +6,13 @@ int ppo_lookback(int           optInFastPeriod,                                 
 
 TA_RetCode ppo(int startIdx, int endIdx, const double inReal[], int optInFastPeriod, int optInSlowPeriod, TA_MAType optInMAType, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ARRAY_REF(tempBuffer);
-    ENUM_DECLARATION(RetCode) retCode;
+    double *tempBuffer;
+    TA_RetCode retCode;
 
 
 
     /* Allocate an intermediate buffer. */
-    ARRAY_ALLOC( tempBuffer, endIdx-startIdx+1 );
+    double *tempBuffer = malloc((endIdx-startIdx+1) * sizeof(double));
     if( !tempBuffer )
     return TA_ALLOC_ERR;
 
@@ -26,7 +26,7 @@ TA_RetCode ppo(int startIdx, int endIdx, const double inReal[], int optInFastPer
     tempBuffer,
     1 /* Do percentage processing. */ );
 
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
 
     return retCode;
 }

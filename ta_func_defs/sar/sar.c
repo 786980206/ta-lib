@@ -1,7 +1,7 @@
 int sar_lookback(double        optInAcceleration,                                            double        optInMaximum)
 {
-    UNUSED_VARIABLE(optInAcceleration);
-    UNUSED_VARIABLE(optInMaximum);
+    (void)optInAcceleration;
+    (void)optInMaximum;
     
     /* SAR always sacrify one price bar to establish the
     * initial extreme price.
@@ -11,12 +11,12 @@ int sar_lookback(double        optInAcceleration,                               
 
 TA_RetCode sar(int startIdx, int endIdx, const double inHigh[], const double inLow[], double optInAcceleration, double optInMaximum, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
 
     int isLong; /* > 0 indicates long. == 0 indicates short */
     int todayIdx, outIdx;
 
-    VALUE_HANDLE_INT(tempInt);
+    int tempInt;
 
     double newHigh, newLow, prevHigh, prevLow;
     double af, ep, sar;
@@ -94,7 +94,7 @@ TA_RetCode sar(int startIdx, int endIdx, const double inHigh[], const double inL
     *  of the parameter is not significant).
     */
     retCode = minus_dm( startIdx, startIdx, inHigh, inLow, 1,
-    VALUE_HANDLE_OUT(tempInt), VALUE_HANDLE_OUT(tempInt),
+    &tempInt, &tempInt,
     ep_temp );
     if( ep_temp[0] > 0 )
     isLong = 0;

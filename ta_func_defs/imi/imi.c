@@ -1,6 +1,6 @@
 int imi_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod + TA_GetUnstablePeriod(IMI) - 1;
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_IMI) - 1;
 }
 
 TA_RetCode imi(int startIdx, int endIdx, const double inOpen[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])

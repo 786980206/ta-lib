@@ -4,8 +4,8 @@ int mama_lookback(double        optInFastLimit,                                 
     * the lookback, but are still requested for
     * consistency with all other Lookback functions.
     */
-    UNUSED_VARIABLE(optInFastLimit);
-    UNUSED_VARIABLE(optInSlowLimit);
+    (void)optInFastLimit;
+    (void)optInSlowLimit;
     
     /* Lookback is a fix amount + the unstable period.
     *
@@ -24,7 +24,7 @@ int mama_lookback(double        optInFastLimit,                                 
     *         32 Total
     */
     
-    return 32 + TA_GetUnstablePeriod(MAMA);
+    return 32 + TA_GetUnstablePeriod(TA_FUNC_UNST_MAMA);
 }
 
 TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFastLimit, double optInSlowLimit, int *outBegIdx, int *outNBElement, double outMAMA[], double outFAMA[])
@@ -41,8 +41,8 @@ TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFas
     double smoothedValue;
 
     /* Variables used for the Hilbert Transormation */
-    CONSTANT_DOUBLE(a) = 0.0962;
-    CONSTANT_DOUBLE(b) = 0.5769;
+    const double a = 0.0962;
+    const double b = 0.5769;
     double hilbertTempReal;
     int hilbertIdx;
 
@@ -63,12 +63,12 @@ TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFas
 
 
     /* Constant */
-    rad2Deg = 180.0 / (4.0 * std_atan(1));
+    rad2Deg = 180.0 / (4.0 * atan(1));
 
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = 32 + TA_GetUnstablePeriod(MAMA);
+    lookbackTotal = 32 + TA_GetUnstablePeriod(TA_FUNC_UNST_MAMA);
 
     /* Move up the start index if there is not
     * enough initial data.
@@ -192,7 +192,7 @@ TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFas
 
     /* Put Alpha in tempReal2 */
     if( I1ForEvenPrev3 != 0.0 )
-    tempReal2 = (std_atan(Q1/I1ForEvenPrev3)*rad2Deg);
+    tempReal2 = (atan(Q1/I1ForEvenPrev3)*rad2Deg);
     else
     tempReal2 = 0.0;
     }
@@ -218,7 +218,7 @@ TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFas
 
     /* Put Alpha in tempReal2 */
     if( I1ForOddPrev3 != 0.0 )
-    tempReal2 = (std_atan(Q1/I1ForOddPrev3)*rad2Deg);
+    tempReal2 = (atan(Q1/I1ForOddPrev3)*rad2Deg);
     else
     tempReal2 = 0.0;
     }
@@ -258,7 +258,7 @@ TA_RetCode mama(int startIdx, int endIdx, const double inReal[], double optInFas
     prevI2 = I2;
     tempReal = period;
     if( (Im != 0.0) && (Re != 0.0) )
-    period = 360.0 / (std_atan(Im/Re)*rad2Deg);
+    period = 360.0 / (atan(Im/Re)*rad2Deg);
     tempReal2 = 1.5*tempReal;
     if( period > tempReal2)
     period = tempReal2;

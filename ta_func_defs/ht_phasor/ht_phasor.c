@@ -1,7 +1,7 @@
 int ht_phasor_lookback(void)
 {
     /* See mama_lookback for an explanation of these */
-    return 32 + TA_GetUnstablePeriod(HT_PHASOR);
+    return 32 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_PHASOR);
 }
 
 TA_RetCode ht_phasor(int startIdx, int endIdx, const double inReal[], int *outBegIdx, int *outNBElement, double outInPhase[], double outQuadrature[])
@@ -18,8 +18,8 @@ TA_RetCode ht_phasor(int startIdx, int endIdx, const double inReal[], int *outBe
     double smoothedValue;
 
     /* Variables used for the Hilbert Transormation */
-    CONSTANT_DOUBLE(a) = 0.0962;
-    CONSTANT_DOUBLE(b) = 0.5769;
+    const double a = 0.0962;
+    const double b = 0.5769;
     double hilbertTempReal;
     int hilbertIdx;
 
@@ -40,12 +40,12 @@ TA_RetCode ht_phasor(int startIdx, int endIdx, const double inReal[], int *outBe
 
 
     /* Constant */
-    rad2Deg = 180.0 / (4.0 * std_atan(1));
+    rad2Deg = 180.0 / (4.0 * atan(1));
 
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = 32 + TA_GetUnstablePeriod(HT_PHASOR);
+    lookbackTotal = 32 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_PHASOR);
 
     /* Move up the start index if there is not
     * enough initial data.
@@ -203,7 +203,7 @@ TA_RetCode ht_phasor(int startIdx, int endIdx, const double inReal[], int *outBe
     prevI2 = I2;
     tempReal = period;
     if( (Im != 0.0) && (Re != 0.0) )
-    period = 360.0 / (std_atan(Im/Re)*rad2Deg);
+    period = 360.0 / (atan(Im/Re)*rad2Deg);
     tempReal2 = 1.5*tempReal;
     if( period > tempReal2)
     period = tempReal2;

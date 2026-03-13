@@ -12,7 +12,7 @@ TA_RetCode cos(int startIdx, int endIdx, const double inReal[], int *outBegIdx, 
 
     for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
     {
-    outReal[outIdx] = std_cos(inReal[i]);
+    outReal[outIdx] = cos(inReal[i]);
     }
 
     *outNBElement = outIdx;

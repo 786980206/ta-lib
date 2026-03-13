@@ -163,6 +163,8 @@ pub enum Expr {
     FuncCall(String, Vec<Expr>),
     /// Pointer dereference: *outBegIdx
     PointerDeref(String),
+    /// Address-of: &var or &var[idx]
+    AddressOf(Box<Expr>),
     /// Post-increment: var++ (evaluates to var, then increments)
     PostIncrement(Box<Expr>),
     /// Post-decrement: var-- (evaluates to var, then decrements)

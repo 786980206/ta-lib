@@ -6,8 +6,8 @@ int apo_lookback(int           optInFastPeriod,                                 
 
 TA_RetCode apo(int startIdx, int endIdx, const double inReal[], int optInFastPeriod, int optInSlowPeriod, TA_MAType optInMAType, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ARRAY_REF(tempBuffer);
-    ENUM_DECLARATION(RetCode) retCode;
+    double *tempBuffer;
+    TA_RetCode retCode;
 
 
 
@@ -27,7 +27,7 @@ TA_RetCode apo(int startIdx, int endIdx, const double inReal[], int optInFastPer
     tempBuffer,
     0 /* No percentage. */ );
 
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
 
     return retCode;
 }

@@ -65,7 +65,7 @@ TA_RetCode cdltasukigap(int startIdx, int endIdx, const double inOpen[], const d
     inClose[i] < inOpen[i-1] &&                                 //      and closes under the white rb
     inClose[i] > max(inClose[i-2], inOpen[i-2]) &&              //      inside the gap
     // size of 2 rb near the same
-    std_fabs(TA_REALBODY(i-1) - TA_REALBODY(i)) < TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 )
+    fabs(TA_REALBODY(i-1) - TA_REALBODY(i)) < TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 )
     ) ||
     (
     TA_REALBODYGAPDOWN(i-1,i-2) &&                              // downside gap
@@ -75,7 +75,7 @@ TA_RetCode cdltasukigap(int startIdx, int endIdx, const double inOpen[], const d
     inClose[i] > inOpen[i-1] &&                                 //      and closes above the black rb
     inClose[i] < min(inClose[i-2], inOpen[i-2]) &&              //      inside the gap
     // size of 2 rb near the same
-    std_fabs(TA_REALBODY(i-1) - TA_REALBODY(i)) < TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 )
+    fabs(TA_REALBODY(i-1) - TA_REALBODY(i)) < TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 )
     )
     )
     outInteger[outIdx++] = TA_CANDLECOLOR(i-1) * 100;

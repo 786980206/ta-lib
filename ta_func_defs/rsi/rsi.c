@@ -4,7 +4,7 @@ int rsi_lookback(int           optInTimePeriod)
     
     
     
-    retValue = optInTimePeriod + TA_GetUnstablePeriod(RSI);
+    retValue = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_RSI);
     if( TA_GetCompatibility() == TA_COMPATIBILITY_METASTOCK )
     {
     retValue = retValue - 1;
@@ -49,7 +49,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     *outNBElement = 0;
 
     /* Adjust startIdx to account for the lookback period. */
-    lookbackTotal = CAST_TO_INDEX(rsi_lookback( optInTimePeriod ));
+    lookbackTotal = (int)(rsi_lookback( optInTimePeriod ));
 
     if( startIdx < lookbackTotal )
     {
@@ -71,9 +71,9 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     if( optInTimePeriod == 1 )
     {
     *outBegIdx = startIdx;
-    i = CAST_TO_I32((endIdx-startIdx)+1);
+    i = (int)((endIdx-startIdx)+1);
     *outNBElement = (size_t)i;
-    TA_ARRAY_COPY( outReal, 0, inReal, startIdx, i );
+    memcpy(&outReal[0], &inReal[startIdx], (i) * sizeof(double));
     return TA_SUCCESS;
     }
 
@@ -83,7 +83,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     today = startIdx-lookbackTotal;
     prevValue = (double)(inReal[today]);
 
-    unstablePeriod = TA_GetUnstablePeriod(RSI);
+    unstablePeriod = TA_GetUnstablePeriod(TA_FUNC_UNST_RSI);
 
     /* If there is no unstable period,
     * calculate the 'additional' initial
@@ -130,7 +130,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
 
     /* Write the output. */
     tempValue1 = tempValue2+tempValue1;
-    if( !TA_IS_ZERO(tempValue1) )
+    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
     {
     outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
     }
@@ -194,7 +194,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     if( today > startIdx )
     {
     tempValue1 = prevGain+prevLoss;
-    if( !TA_IS_ZERO(tempValue1) )
+    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
     {
     outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
     }
@@ -255,7 +255,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     prevLoss /= (double)optInTimePeriod;
     prevGain /= (double)optInTimePeriod;
     tempValue1 = prevGain+prevLoss;
-    if( !TA_IS_ZERO(tempValue1) )
+    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
     {
     outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
     }

@@ -8,7 +8,7 @@ int ht_dcphase_lookback(void)
     * 31 is for being compatible with Tradestation.
     * See mama_lookback for an explanation of the "32".
     */
-    return 63 + TA_GetUnstablePeriod(HT_DCPHASE);
+    return 63 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_DCPHASE);
 }
 
 TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outBegIdx, int *outNBElement, double outReal[])
@@ -25,8 +25,8 @@ TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outB
     double smoothedValue;
 
     /* Variables used for the Hilbert Transormation */
-    CONSTANT_DOUBLE(a) = 0.0962;
-    CONSTANT_DOUBLE(b) = 0.5769;
+    const double a = 0.0962;
+    const double b = 0.5769;
     double hilbertTempReal;
     int hilbertIdx;
 
@@ -48,8 +48,8 @@ TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outB
     * smooth price. In the case of this algorithm,
     * we will never need more than 50 values.
     */
-    #define SMOOTH_PRICE_SIZE 50
-    CIRCBUF_PROLOG(smoothPrice,double,SMOOTH_PRICE_SIZE);
+    const int SMOOTH_PRICE_SIZE = 50;
+    double smoothPrice[SMOOTH_PRICE_SIZE]; int smoothPrice_Idx = 0;
     int idx;
 
     /* Variable used to calculate the dominant cycle phase */
@@ -58,17 +58,17 @@ TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outB
 
 
 
-    CIRCBUF_INIT_LOCAL_ONLY(smoothPrice,double);
+    /* circular buffer already declared */
 
     /* Constant */
-    tempReal = std_atan(1);
+    tempReal = atan(1);
     rad2Deg = 45.0/tempReal;
     constDeg2RadBy360 = tempReal*8.0;
 
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = 63 + TA_GetUnstablePeriod(HT_DCPHASE);
+    lookbackTotal = 63 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_DCPHASE);
 
     /* Move up the start index if there is not
     * enough initial data.
@@ -225,7 +225,7 @@ TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outB
     prevI2 = I2;
     tempReal = period;
     if( (Im != 0.0) && (Re != 0.0) )
-    period = 360.0 / (std_atan(Im/Re)*rad2Deg);
+    period = 360.0 / (atan(Im/Re)*rad2Deg);
     tempReal2 = 1.5*tempReal;
     if( period > tempReal2)
     period = tempReal2;
@@ -254,17 +254,17 @@ TA_RetCode ht_dcphase(int startIdx, int endIdx, const double inReal[], int *outB
     {
     tempReal  = ((double)i*constDeg2RadBy360)/(double)DCPeriodInt;
     tempReal2 = smoothPrice[idx];
-    realPart += std_sin(tempReal)*tempReal2;
-    imagPart += std_cos(tempReal)*tempReal2;
+    realPart += sin(tempReal)*tempReal2;
+    imagPart += cos(tempReal)*tempReal2;
     if( idx == 0 )
     idx = SMOOTH_PRICE_SIZE-1;
     else
     idx--;
     }
 
-    tempReal = std_fabs(imagPart);
+    tempReal = fabs(imagPart);
     if( tempReal > 0.0 )
-    DCPhase = std_atan(realPart/imagPart)*rad2Deg;
+    DCPhase = atan(realPart/imagPart)*rad2Deg;
     else if( tempReal <= 0.01 )
     {
     if( realPart < 0.0 )

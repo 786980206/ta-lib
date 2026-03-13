@@ -601,6 +601,7 @@ fn render_assign_target(expr: &Expr, single_precision: bool, registry: &Registry
         | Expr::Not(_)
         | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_)
+        | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, single_precision, registry),
@@ -691,6 +692,9 @@ fn render_expr(expr: &Expr, single_precision: bool, registry: &Registry) -> Stri
         }
         Expr::FuncCall(name, args) => render_func_call(name, args, single_precision, registry),
         Expr::PointerDeref(name) => format!("*{name}"),
+        Expr::AddressOf(inner) => {
+            format!("&{}", render_expr(inner, single_precision, registry))
+        }
         Expr::PostIncrement(inner) => {
             format!("{}++", render_expr(inner, single_precision, registry))
         }

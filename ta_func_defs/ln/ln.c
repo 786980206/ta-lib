@@ -12,7 +12,7 @@ TA_RetCode ln(int startIdx, int endIdx, const double inReal[], int *outBegIdx, i
 
     for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
     {
-    outReal[outIdx] = std_log(inReal[i]);
+    outReal[outIdx] = log(inReal[i]);
     }
 
     *outNBElement = outIdx;

@@ -27,15 +27,15 @@ int macd_lookback(int           optInFastPeriod,                                
 
 TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPeriod, int optInSlowPeriod, int optInSignalPeriod_2, int *outBegIdx, int *outNBElement, double outMACD[], double outMACDSignal[], double outMACDHist[])
 {
-    ARRAY_REF(slowEMABuffer);
-    ARRAY_REF(fastEMABuffer);
+    double *slowEMABuffer;
+    double *fastEMABuffer;
     double k1, k2;
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int tempInteger;
-    VALUE_HANDLE_INT(outBegIdx1);
-    VALUE_HANDLE_INT(outNbElement1);
-    VALUE_HANDLE_INT(outBegIdx2);
-    VALUE_HANDLE_INT(outNbElement2);
+    int outBegIdx1;
+    int outNbElement1;
+    int outBegIdx2;
+    int outNbElement2;
     int lookbackTotal, lookbackSignal;
     int i;
 
@@ -77,7 +77,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
 
     /* Catch special case for fix 26/12 MACD. */
     if( optInSlowPeriod != 0 )
-    k1 = TA_PER_TO_K(optInSlowPeriod);
+    k1 = (2.0 / ((double)(optInSlowPeriod) + 1.0));
     else
     {
     optInSlowPeriod = 26;
@@ -85,7 +85,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     }
 
     if( optInFastPeriod != 0 )
-    k2 = TA_PER_TO_K(optInFastPeriod);
+    k2 = (2.0 / ((double)(optInFastPeriod) + 1.0));
     else
     {
     optInFastPeriod = 12;
@@ -113,7 +113,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
 
     /* Allocate intermediate buffer for fast/slow EMA. */
     tempInteger = (endIdx-startIdx)+1+lookbackSignal;
-    ARRAY_ALLOC( fastEMABuffer, tempInteger );
+    double *fastEMABuffer = malloc((tempInteger) * sizeof(double));
     if( !fastEMABuffer )
     {
     *outBegIdx = 0;
@@ -121,12 +121,12 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     return TA_ALLOC_ERR;
     }
 
-    ARRAY_ALLOC( slowEMABuffer, tempInteger );
+    double *slowEMABuffer = malloc((tempInteger) * sizeof(double));
     if( !slowEMABuffer )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastEMABuffer );
+    free(fastEMABuffer);
     return TA_ALLOC_ERR;
     }
 
@@ -140,46 +140,46 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     tempInteger = startIdx-lookbackSignal;
     retCode = ema( tempInteger, endIdx,
     inReal, optInSlowPeriod, k1,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1), slowEMABuffer );
+    &outBegIdx1, &outNbElement1, slowEMABuffer );
 
     if( retCode != TA_SUCCESS )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastEMABuffer );
-    ARRAY_FREE( slowEMABuffer );
+    free(fastEMABuffer);
+    free(slowEMABuffer);
     return retCode;
     }
 
     /* Calculate the fast EMA. */
     retCode = ema( tempInteger, endIdx,
     inReal, optInFastPeriod, k2,
-    VALUE_HANDLE_OUT(outBegIdx2), VALUE_HANDLE_OUT(outNbElement2), fastEMABuffer );
+    &outBegIdx2, &outNbElement2, fastEMABuffer );
 
     if( retCode != TA_SUCCESS )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastEMABuffer );
-    ARRAY_FREE( slowEMABuffer );
+    free(fastEMABuffer);
+    free(slowEMABuffer);
     return retCode;
     }
 
     /* Parano tests. Will be removed eventually. */
-    if( (VALUE_HANDLE_GET(outBegIdx1) != tempInteger) ||
-    (VALUE_HANDLE_GET(outBegIdx2) != tempInteger) ||
-    (VALUE_HANDLE_GET(outNbElement1) != VALUE_HANDLE_GET(outNbElement2)) ||
-    (VALUE_HANDLE_GET(outNbElement1) != (endIdx-startIdx)+1+lookbackSignal) )
+    if( (outBegIdx1 != tempInteger) ||
+    (outBegIdx2 != tempInteger) ||
+    (outNbElement1 != outNbElement2) ||
+    (outNbElement1 != (endIdx-startIdx)+1+lookbackSignal) )
     {
     *outBegIdx = 0;
     *outNBElement = 0;
-    ARRAY_FREE( fastEMABuffer );
-    ARRAY_FREE( slowEMABuffer );
+    free(fastEMABuffer);
+    free(slowEMABuffer);
     return TA_INTERNAL_ERROR(119);
     }
 
     /* Calculate (fast EMA) - (slow EMA). */
-    for( i=0; i < VALUE_HANDLE_GET(outNbElement1); i++ )
+    for( i=0; i < outNbElement1; i++ )
     fastEMABuffer[i] = fastEMABuffer[i] - slowEMABuffer[i];
 
 
@@ -187,13 +187,13 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     TA_ARRAY_COPY( outMACD, 0, fastEMABuffer, lookbackSignal, (endIdx-startIdx)+1 );
 
     /* Calculate the signal/trigger line. */
-    retCode = ema( 0, VALUE_HANDLE_GET(outNbElement1)-1,
-    fastEMABuffer, optInSignalPeriod_2, TA_PER_TO_K(optInSignalPeriod_2),
-    VALUE_HANDLE_OUT(outBegIdx2), VALUE_HANDLE_OUT(outNbElement2), outMACDSignal );
+    retCode = ema( 0, outNbElement1-1,
+    fastEMABuffer, optInSignalPeriod_2, (2.0 / ((double)(optInSignalPeriod_2) + 1.0)),
+    &outBegIdx2, &outNbElement2, outMACDSignal );
 
 
-    ARRAY_FREE( fastEMABuffer );
-    ARRAY_FREE( slowEMABuffer );
+    free(fastEMABuffer);
+    free(slowEMABuffer);
 
     if( retCode != TA_SUCCESS )
     {
@@ -203,13 +203,13 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     }
 
     /* Calculate the histogram. */
-    for( i=0; i < VALUE_HANDLE_GET(outNbElement2); i++ )
+    for( i=0; i < outNbElement2; i++ )
     outMACDHist[i] = outMACD[i]-outMACDSignal[i];
 
 
     /* All done! Indicate the output limits and return success. */
     *outBegIdx     = startIdx;
-    *outNBElement  = VALUE_HANDLE_GET(outNbElement2);
+    *outNBElement  = outNbElement2;
 
     return TA_SUCCESS;
 }

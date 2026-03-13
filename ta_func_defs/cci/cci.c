@@ -11,7 +11,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     /* This ptr will points on a circular buffer of
     * at least "optInTimePeriod" element.
     */
-    CIRCBUF_PROLOG(circBuffer,double,30);
+    double circBuffer[30]; int circBuffer_Idx = 0;
 
 
 
@@ -76,7 +76,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     */
     tempReal2 = 0;
     for( j=0; j < optInTimePeriod; j++ )
-    tempReal2 += std_fabs(circBuffer[j]-theAverage);
+    tempReal2 += fabs(circBuffer[j]-theAverage);
 
     /* And finally, the CCI... */
     tempReal = lastValue-theAverage;
@@ -99,7 +99,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     *outBegIdx    = startIdx;
 
     /* Free the circular buffer if it was dynamically allocated. */
-    CIRCBUF_DESTROY(circBuffer);
+    /* circular buffer cleanup (stack-allocated, no-op) */
 
     return TA_SUCCESS;
 }

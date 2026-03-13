@@ -6,11 +6,11 @@ int mavp_lookback(int           optInMinPeriod,                                 
 TA_RetCode mavp(int startIdx, int endIdx, const double inReal[], const double inPeriods[], int optInMinPeriod, int optInMaxPeriod, TA_MAType optInMAType, int *outBegIdx, int *outNBElement, double outReal[])
 {
     int i, j, lookbackTotal, outputSize, tempInt, curPeriod;
-    ARRAY_INT_REF(localPeriodArray);
-    ARRAY_REF(localOutputArray);
-    VALUE_HANDLE_INT(localBegIdx);
-    VALUE_HANDLE_INT(localNbElement);
-    ENUM_DECLARATION(RetCode) retCode;
+    int *localPeriodArray;
+    double *localOutputArray;
+    int localBegIdx;
+    int localNbElement;
+    TA_RetCode retCode;
 
 
 
@@ -48,8 +48,8 @@ TA_RetCode mavp(int startIdx, int endIdx, const double inReal[], const double in
     outputSize = endIdx - tempInt + 1;
 
     /* Allocate intermediate local buffer. */
-    ARRAY_ALLOC(localOutputArray,outputSize);
-    ARRAY_INT_ALLOC(localPeriodArray,outputSize);
+    double *localOutputArray = malloc((outputSize) * sizeof(double));
+    int *localPeriodArray = malloc((outputSize) * sizeof(int));
 
     /* Copy caller array of period into local buffer.
     * At the same time, truncate to min/max.
@@ -85,12 +85,12 @@ TA_RetCode mavp(int startIdx, int endIdx, const double inReal[], const double in
     /* Calculation of the MA required. */
     retCode = ma( startIdx, endIdx, inReal,
     curPeriod, optInMAType,
-    VALUE_HANDLE_OUT(localBegIdx),VALUE_HANDLE_OUT(localNbElement),localOutputArray );
+    &localBegIdx,&localNbElement,localOutputArray );
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE(localOutputArray);
-    ARRAY_INT_FREE(localPeriodArray);
+    free(localOutputArray);
+    free(localPeriodArray);
     *outBegIdx = 0;
     *outNBElement = 0;
     return retCode;
@@ -108,8 +108,8 @@ TA_RetCode mavp(int startIdx, int endIdx, const double inReal[], const double in
     }
     }
 
-    ARRAY_FREE(localOutputArray);
-    ARRAY_INT_FREE(localPeriodArray);
+    free(localOutputArray);
+    free(localPeriodArray);
 
     /* Done. Inform the caller of the success. */
     *outBegIdx = startIdx;

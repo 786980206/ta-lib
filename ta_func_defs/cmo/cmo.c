@@ -4,7 +4,7 @@ int cmo_lookback(int           optInTimePeriod)
     
     
     
-    retValue = optInTimePeriod + TA_GetUnstablePeriod(CMO);
+    retValue = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_CMO);
     if( TA_GetCompatibility() == TA_COMPATIBILITY_METASTOCK )
     retValue--;
     
@@ -57,7 +57,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     *outBegIdx = startIdx;
     i = (endIdx-startIdx)+1;
     *outNBElement = i;
-    TA_ARRAY_COPY( outReal, 0, inReal, startIdx, i );
+    memcpy(&outReal[0], &inReal[startIdx], (i) * sizeof(double));
     return TA_SUCCESS;
     }
 
@@ -67,7 +67,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     today = startIdx-lookbackTotal;
     prevValue = inReal[today];
 
-    unstablePeriod = TA_GetUnstablePeriod(CMO);
+    unstablePeriod = TA_GetUnstablePeriod(TA_FUNC_UNST_CMO);
 
     /* If there is no unstable period,
     * calculate the 'additional' initial
@@ -112,7 +112,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     tempValue4 = tempValue1+tempValue2;
 
     /* Write the output. */
-    if( !TA_IS_ZERO(tempValue4) )
+    if( !((-0.00000001 < (tempValue4)) && ((tempValue4) < 0.00000001)) )
     outReal[outIdx++] = 100*(tempValue3/tempValue4);
     else
     outReal[outIdx++] = 0.0;
@@ -169,7 +169,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     if( today > startIdx )
     {
     tempValue1 = prevGain+prevLoss;
-    if( !TA_IS_ZERO(tempValue1) )
+    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
     outReal[outIdx++] = 100.0*((prevGain-prevLoss)/tempValue1);
     else
     outReal[outIdx++] = 0.0;
@@ -218,7 +218,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     prevLoss /= optInTimePeriod;
     prevGain /= optInTimePeriod;
     tempValue1 = prevGain+prevLoss;
-    if( !TA_IS_ZERO(tempValue1) )
+    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
     outReal[outIdx++] = 100.0*((prevGain-prevLoss)/tempValue1);
     else
     outReal[outIdx++] = 0.0;

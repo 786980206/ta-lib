@@ -5,11 +5,11 @@ int accbands_lookback(int           optInTimePeriod)
 
 TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outRealUpperBand[], double outRealMiddleBand[], double outRealLowerBand[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
-    ARRAY_REF( tempBuffer1 );
-    ARRAY_REF( tempBuffer2 );
-    VALUE_HANDLE_INT(outBegIdxDummy);
-    VALUE_HANDLE_INT(outNbElementDummy);
+    TA_RetCode retCode;
+    double *tempBuffer1;
+    double *tempBuffer2;
+    int outBegIdxDummy;
+    int outNbElementDummy;
     int i, j, outputSize, bufferSize, lookbackTotal;
     double tempReal;
 
@@ -38,7 +38,7 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     */
     outputSize = endIdx-startIdx+1;
     bufferSize = outputSize+lookbackTotal;
-    ARRAY_ALLOC(tempBuffer1, bufferSize );
+    double *tempBuffer1 = malloc((bufferSize) * sizeof(double));
     if( !tempBuffer1 )
     {
     *outBegIdx = 0;
@@ -46,10 +46,10 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     return TA_ALLOC_ERR;
     }
 
-    ARRAY_ALLOC(tempBuffer2, bufferSize );
+    double *tempBuffer2 = malloc((bufferSize) * sizeof(double));
     if( !tempBuffer2 )
     {
-    ARRAY_FREE(tempBuffer1);
+    free(tempBuffer1);
     *outBegIdx = 0;
     *outNBElement = 0;
     return TA_ALLOC_ERR;
@@ -62,7 +62,7 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     for(j=0, i=startIdx-lookbackTotal; i<=endIdx; i++, j++)
     {
     tempReal = inHigh[i]+inLow[i];
-    if( !TA_IS_ZERO(tempReal) )
+    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     {
     tempReal = 4*(inHigh[i]-inLow[i])/tempReal;
     tempBuffer1[j] = inHigh[i]*(1+tempReal);
@@ -78,12 +78,12 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Calculate the middle band, which is a moving average of the close. */
     retCode = sma( startIdx, endIdx, inClose,
     optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdxDummy), VALUE_HANDLE_OUT(outNbElementDummy), outRealMiddleBand );
+    &outBegIdxDummy, &outNbElementDummy, outRealMiddleBand );
 
-    if( (retCode != TA_SUCCESS ) || ((int)VALUE_HANDLE_GET(outNbElementDummy) != outputSize) )
+    if( (retCode != TA_SUCCESS ) || ((int)outNbElementDummy != outputSize) )
     {
-    ARRAY_FREE( tempBuffer1 );
-    ARRAY_FREE( tempBuffer2 );
+    free(tempBuffer1);
+    free(tempBuffer2);
     *outBegIdx = 0;
     *outNBElement = 0;
     return retCode;
@@ -92,13 +92,13 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Now let's take the SMA for the upper band. */
     retCode = sma( 0, bufferSize-1, tempBuffer1,
     optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdxDummy), VALUE_HANDLE_OUT(outNbElementDummy),
+    &outBegIdxDummy, &outNbElementDummy,
     outRealUpperBand );
 
-    if( (retCode != TA_SUCCESS ) || ((int)VALUE_HANDLE_GET(outNbElementDummy) != outputSize) )
+    if( (retCode != TA_SUCCESS ) || ((int)outNbElementDummy != outputSize) )
     {
-    ARRAY_FREE( tempBuffer1 );
-    ARRAY_FREE( tempBuffer2 );
+    free(tempBuffer1);
+    free(tempBuffer2);
     *outBegIdx = 0;
     *outNBElement = 0;
     return retCode;
@@ -107,13 +107,13 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Now let's take the SMA for the lower band. */
     retCode = sma( 0, bufferSize-1, tempBuffer2,
     optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdxDummy), VALUE_HANDLE_OUT(outNbElementDummy),
+    &outBegIdxDummy, &outNbElementDummy,
     outRealLowerBand );
 
-    ARRAY_FREE( tempBuffer1 );
-    ARRAY_FREE( tempBuffer2 );
+    free(tempBuffer1);
+    free(tempBuffer2);
 
-    if( (retCode != TA_SUCCESS ) || ((int)VALUE_HANDLE_GET(outNbElementDummy) != outputSize) )
+    if( (retCode != TA_SUCCESS ) || ((int)outNbElementDummy != outputSize) )
     {
     *outBegIdx = 0;
     *outNBElement = 0;

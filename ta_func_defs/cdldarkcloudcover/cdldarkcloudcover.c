@@ -1,6 +1,6 @@
 int cdldarkcloudcover_lookback(double        optInPenetration)
 {
-    UNUSED_VARIABLE(optInPenetration);
+    (void)optInPenetration;
     
     return TA_CANDLEAVGPERIOD(BodyLong) + 1;
 }

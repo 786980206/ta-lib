@@ -8,7 +8,7 @@ int ht_trendline_lookback(void)
     * 31 is for being compatible with Tradestation.
     * See mama_lookback for an explanation of the "32".
     */
-    return 63 + TA_GetUnstablePeriod(HT_TRENDLINE);
+    return 63 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_TRENDLINE);
 }
 
 TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *outBegIdx, int *outNBElement, double outReal[])
@@ -28,8 +28,8 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
     double iTrend1, iTrend2, iTrend3;
 
     /* Variables used for the Hilbert Transormation */
-    CONSTANT_DOUBLE(a) = 0.0962;
-    CONSTANT_DOUBLE(b) = 0.5769;
+    const double a = 0.0962;
+    const double b = 0.5769;
     double hilbertTempReal;
     int hilbertIdx;
 
@@ -51,8 +51,8 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
     * smooth price. In the case of this algorithm,
     * we will never need more than 50 values.
     */
-    #define SMOOTH_PRICE_SIZE 50
-    CIRCBUF_PROLOG(smoothPrice,double,SMOOTH_PRICE_SIZE);
+    const int SMOOTH_PRICE_SIZE = 50;
+    double smoothPrice[SMOOTH_PRICE_SIZE]; int smoothPrice_Idx = 0;
     int idx;
 
     /* Variable used to calculate the dominant cycle phase */
@@ -61,18 +61,18 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
 
 
 
-    CIRCBUF_INIT_LOCAL_ONLY(smoothPrice,double);
+    /* circular buffer already declared */
 
     iTrend1 = iTrend2 = iTrend3 = 0.0;
 
     /* Constant */
-    tempReal = std_atan(1);
+    tempReal = atan(1);
     rad2Deg = 45.0/tempReal;
 
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.
     */
-    lookbackTotal = 63 + TA_GetUnstablePeriod(HT_TRENDLINE);
+    lookbackTotal = 63 + TA_GetUnstablePeriod(TA_FUNC_UNST_HT_TRENDLINE);
 
     /* Move up the start index if there is not
     * enough initial data.
@@ -228,7 +228,7 @@ TA_RetCode ht_trendline(int startIdx, int endIdx, const double inReal[], int *ou
     prevI2 = I2;
     tempReal = period;
     if( (Im != 0.0) && (Re != 0.0) )
-    period = 360.0 / (std_atan(Im/Re)*rad2Deg);
+    period = 360.0 / (atan(Im/Re)*rad2Deg);
     tempReal2 = 1.5*tempReal;
     if( period > tempReal2)
     period = tempReal2;

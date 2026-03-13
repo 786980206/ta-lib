@@ -645,7 +645,11 @@ fn test_rsi_c_unstable_period() {
         out.c.contains("TA_GLOBALS_COMPATIBILITY"),
         "C RSI should use TA_GLOBALS_COMPATIBILITY"
     );
-    assert!(out.c.contains("TA_IS_ZERO"), "C RSI should use TA_IS_ZERO");
+    // TA_IS_ZERO was expanded in source to its inline form by replace_macros.py
+    assert!(
+        out.c.contains("-0.00000001"),
+        "C RSI should use inline zero-check (TA_IS_ZERO was expanded)"
+    );
 }
 
 #[test]

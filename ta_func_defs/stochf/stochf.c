@@ -15,9 +15,9 @@ int stochf_lookback(int           optInFastK_Period,                            
 
 TA_RetCode stochf(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInFastK_Period, int optInFastD_Period, TA_MAType optInFastD_MAType, int *outBegIdx, int *outNBElement, double outFastK[], double outFastD[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     double lowest, highest, tmp, diff;
-    ARRAY_REF( tempBuffer );
+    double *tempBuffer;
     int outIdx, lowestIdx, highestIdx;
     int lookbackTotal, lookbackK, lookbackFastD;
     int trailingIdx, today, i;
@@ -125,7 +125,7 @@ TA_RetCode stochf(int startIdx, int endIdx, const double inHigh[], const double 
     else
     {
     bufferIsAllocated = 1;
-    ARRAY_ALLOC(tempBuffer, endIdx-today+1 );
+    double *tempBuffer = malloc((endIdx-today+1) * sizeof(double));
     }
 
     /* Do the K calculation */
@@ -202,7 +202,7 @@ TA_RetCode stochf(int startIdx, int endIdx, const double inHigh[], const double 
 
     if( (retCode != TA_SUCCESS ) || ((int)*outNBElement) == 0 )
     {
-    ARRAY_FREE_COND( bufferIsAllocated, tempBuffer );
+    if (bufferIsAllocated) { free(tempBuffer); }
     /* Something wrong happen? No further data? */
     *outBegIdx = 0;
     *outNBElement = 0;
@@ -217,7 +217,7 @@ TA_RetCode stochf(int startIdx, int endIdx, const double inHigh[], const double 
     TA_ARRAY_COPY( outFastK, 0, tempBuffer, lookbackFastD, (int)*outNBElement );
 
     /* Don't need K anymore, free it if it was allocated here. */
-    ARRAY_FREE_COND( bufferIsAllocated, tempBuffer );
+    if (bufferIsAllocated) { free(tempBuffer); }
 
     if( retCode != TA_SUCCESS )
     {

@@ -1,7 +1,7 @@
 int minus_dm_lookback(int           optInTimePeriod)
 {
     if( optInTimePeriod > 1 )
-    return optInTimePeriod + TA_GetUnstablePeriod(MINUS_DM) - 1;
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
     else
     return 1;
 }
@@ -83,7 +83,7 @@ TA_RetCode minus_dm(int startIdx, int endIdx, const double inHigh[], const doubl
     */
 
     if( optInTimePeriod > 1 )
-    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(MINUS_DM) - 1;
+    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM) - 1;
     else
     lookbackTotal = 1;
 
@@ -164,7 +164,7 @@ TA_RetCode minus_dm(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Process subsequent DM */
 
     /* Skip the unstable period. */
-    i = TA_GetUnstablePeriod(MINUS_DM);
+    i = TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DM);
     while( i-- != 0 )
     {
     today++;

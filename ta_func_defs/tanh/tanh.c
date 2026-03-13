@@ -12,7 +12,7 @@ TA_RetCode tanh(int startIdx, int endIdx, const double inReal[], int *outBegIdx,
 
     for( i=startIdx, outIdx=0; i <= endIdx; i++, outIdx++ )
     {
-    outReal[outIdx] = std_tanh(inReal[i]);
+    outReal[outIdx] = tanh(inReal[i]);
     }
 
     *outNBElement = outIdx;

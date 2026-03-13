@@ -54,8 +54,8 @@ int ma_lookback(int           optInTimePeriod,                                  
 
 TA_RetCode ma(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, TA_MAType optInMAType, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ARRAY_REF(dummyBuffer);
-    ENUM_DECLARATION(RetCode) retCode;
+    double *dummyBuffer;
+    TA_RetCode retCode;
 
     int nbElement;
     int outIdx, todayIdx;
@@ -121,7 +121,7 @@ TA_RetCode ma(int startIdx, int endIdx, const double inReal[], int optInTimePeri
     outBegIdx, outNBElement,
     outReal, dummyBuffer );
 
-    ARRAY_FREE( dummyBuffer );
+    free(dummyBuffer);
     break;
 
     case ENUM_CASE(MAType, TA_MAType_T3, T3 ):

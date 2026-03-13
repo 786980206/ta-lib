@@ -90,10 +90,10 @@ TA_RetCode adosc(int startIdx, int endIdx, const double inHigh[], const double i
     }
 
     /* Constants for EMA */
-    fastk = TA_PER_TO_K( optInFastPeriod );
+    fastk = (2.0 / ((double)( optInFastPeriod ) + 1.0));
     one_minus_fastk = 1.0 - fastk;
 
-    slowk = TA_PER_TO_K( optInSlowPeriod );
+    slowk = (2.0 / ((double)( optInSlowPeriod ) + 1.0));
     one_minus_slowk = 1.0 - slowk;
 
     /* Initialize the two EMA

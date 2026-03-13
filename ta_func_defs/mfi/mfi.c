@@ -1,6 +1,6 @@
 int mfi_lookback(int           optInTimePeriod)
 {
-    return optInTimePeriod + TA_GetUnstablePeriod(MFI);
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MFI);
 }
 
 TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], const double inVolume[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
@@ -9,17 +9,17 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     double tempValue1, tempValue2;
     int lookbackTotal, outIdx, i, today;
 
-    CIRCBUF_PROLOG_CLASS( mflow, MoneyFlow, 50 ); /* Id, Type, Static Size */
+    MoneyFlow mflow[50]; int mflow_Idx = 0; /* Id, Type, Static Size */
 
 
 
-    CIRCBUF_INIT_CLASS( mflow, MoneyFlow, optInTimePeriod );
+    memset(mflow, 0, (optInTimePeriod) * sizeof(MoneyFlow)); mflow_Idx = 0;
 
     *outBegIdx = 0;
     *outNBElement = 0;
 
     /* Adjust startIdx to account for the lookback period. */
-    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(MFI);
+    lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MFI);
 
     if( startIdx < lookbackTotal )
     startIdx = lookbackTotal;
@@ -27,7 +27,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
     {
-    CIRCBUF_DESTROY(mflow);
+    /* circular buffer cleanup (stack-allocated, no-op) */
     return TA_SUCCESS;
     }
 
@@ -50,20 +50,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])negative = tempValue1;
+    mflow[mflow_Idx].negative = tempValue1;
     negSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = tempValue1;
+    mflow[mflow_Idx].positive = tempValue1;
     posSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
     else
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
 
     CIRCBUF_NEXT(mflow);
@@ -89,8 +89,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     */
     while( today < startIdx )
     {
-    posSumMF -= CIRCBUF_REF(mflow[mflow_Idx])positive;
-    negSumMF -= CIRCBUF_REF(mflow[mflow_Idx])negative;
+    posSumMF -= mflow[mflow_Idx].positive;
+    negSumMF -= mflow[mflow_Idx].negative;
 
     tempValue1 = (inHigh[today]+inLow[today]+inClose[today])/3.0;
     tempValue2 = tempValue1 - prevValue;
@@ -98,20 +98,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])negative = tempValue1;
+    mflow[mflow_Idx].negative = tempValue1;
     negSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = tempValue1;
+    mflow[mflow_Idx].positive = tempValue1;
     posSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
     else
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
 
     CIRCBUF_NEXT(mflow);
@@ -123,8 +123,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     */
     while( today <= endIdx )
     {
-    posSumMF -= CIRCBUF_REF(mflow[mflow_Idx])positive;
-    negSumMF -= CIRCBUF_REF(mflow[mflow_Idx])negative;
+    posSumMF -= mflow[mflow_Idx].positive;
+    negSumMF -= mflow[mflow_Idx].negative;
 
     tempValue1 = (inHigh[today]+inLow[today]+inClose[today])/3.0;
     tempValue2 = tempValue1 - prevValue;
@@ -132,20 +132,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])negative = tempValue1;
+    mflow[mflow_Idx].negative = tempValue1;
     negSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = tempValue1;
+    mflow[mflow_Idx].positive = tempValue1;
     posSumMF += tempValue1;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
     else
     {
-    CIRCBUF_REF(mflow[mflow_Idx])positive = 0.0;
-    CIRCBUF_REF(mflow[mflow_Idx])negative = 0.0;
+    mflow[mflow_Idx].positive = 0.0;
+    mflow[mflow_Idx].negative = 0.0;
     }
 
     tempValue1 = posSumMF+negSumMF;
@@ -157,7 +157,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     CIRCBUF_NEXT(mflow);
     }
 
-    CIRCBUF_DESTROY(mflow);
+    /* circular buffer cleanup (stack-allocated, no-op) */
 
     *outBegIdx = startIdx;
     *outNBElement = outIdx;

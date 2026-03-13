@@ -7,19 +7,19 @@ int atr_lookback(int           optInTimePeriod)
     * (optInTimePeriod-1) is for the simple
     * moving average.
     */
-    return optInTimePeriod + TA_GetUnstablePeriod(ATR);
+    return optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_ATR);
 }
 
 TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inLow[], const double inClose[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int outIdx, today, lookbackTotal;
     int nbATR;
-    VALUE_HANDLE_INT(outBegIdx1);
-    VALUE_HANDLE_INT(outNbElement1);
+    int outBegIdx1;
+    int outNbElement1;
 
     double prevATR;
-    ARRAY_REF( tempBuffer );
+    double *tempBuffer;
     ARRAY_LOCAL(prevATRTemp,1);
 
 
@@ -61,12 +61,12 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Do TRANGE in the intermediate buffer. */
     retCode = trange( (startIdx-lookbackTotal+1), endIdx,
     inHigh, inLow, inClose,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1, &outNbElement1,
     tempBuffer );
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
 
@@ -76,12 +76,12 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     retCode = sma( optInTimePeriod-1,
     optInTimePeriod-1,
     tempBuffer, optInTimePeriod,
-    VALUE_HANDLE_OUT(outBegIdx1), VALUE_HANDLE_OUT(outNbElement1),
+    &outBegIdx1, &outNbElement1,
     prevATRTemp );
 
     if( retCode != TA_SUCCESS )
     {
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
     return retCode;
     }
     prevATR = prevATRTemp[0];
@@ -93,7 +93,7 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     *  3) Divide by 'period'.
     */
     today = optInTimePeriod;
-    outIdx = TA_GetUnstablePeriod(ATR);
+    outIdx = TA_GetUnstablePeriod(TA_FUNC_UNST_ATR);
     /* Skip the unstable period. */
     while( outIdx != 0 )
     {
@@ -123,7 +123,7 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     *outBegIdx    = startIdx;
     *outNBElement = outIdx;
 
-    ARRAY_FREE( tempBuffer );
+    free(tempBuffer);
 
     return retCode;
 }

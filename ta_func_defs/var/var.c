@@ -1,6 +1,6 @@
 int var_lookback(int           optInTimePeriod,                                            double        optInNbDev)
 {
-    UNUSED_VARIABLE(optInNbDev);
+    (void)optInNbDev;
     
     return optInTimePeriod-1;
 }

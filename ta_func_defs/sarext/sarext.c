@@ -1,13 +1,13 @@
 int sarext_lookback(double        optInStartValue,                                               double        optInOffsetOnReverse,                                               double        optInAccelerationInitLong,                                               double        optInAccelerationLong,                                               double        optInAccelerationMaxLong,                                               double        optInAccelerationInitShort,                                               double        optInAccelerationShort,                                               double        optInAccelerationMaxShort)
 {
-    UNUSED_VARIABLE(optInStartValue);
-    UNUSED_VARIABLE(optInOffsetOnReverse);
-    UNUSED_VARIABLE(optInAccelerationInitLong);
-    UNUSED_VARIABLE(optInAccelerationLong);
-    UNUSED_VARIABLE(optInAccelerationMaxLong);
-    UNUSED_VARIABLE(optInAccelerationInitShort);
-    UNUSED_VARIABLE(optInAccelerationShort);
-    UNUSED_VARIABLE(optInAccelerationMaxShort);
+    (void)optInStartValue;
+    (void)optInOffsetOnReverse;
+    (void)optInAccelerationInitLong;
+    (void)optInAccelerationLong;
+    (void)optInAccelerationMaxLong;
+    (void)optInAccelerationInitShort;
+    (void)optInAccelerationShort;
+    (void)optInAccelerationMaxShort;
     
     /* SAR always sacrifices one price bar to establish the
     * initial extreme price.
@@ -18,12 +18,12 @@ int sarext_lookback(double        optInStartValue,                              
 
 TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double inLow[], double optInStartValue, double optInOffsetOnReverse, double optInAccelerationInitLong, double optInAccelerationLong, double optInAccelerationMaxLong, double optInAccelerationInitShort, double optInAccelerationShort, double optInAccelerationMaxShort, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
 
     int isLong; /* > 0 indicates long. == 0 indicates short */
     int todayIdx, outIdx;
 
-    VALUE_HANDLE_INT(tempInt);
+    int tempInt;
 
     double newHigh, newLow, prevHigh, prevLow;
     double afLong, afShort, ep, sar;
@@ -138,7 +138,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
     *  of the parameter is not significant).
     */
     retCode = minus_dm( startIdx, startIdx, inHigh, inLow, 1,
-    VALUE_HANDLE_OUT(tempInt), VALUE_HANDLE_OUT(tempInt),
+    &tempInt, &tempInt,
     ep_temp );
     if( ep_temp[0] > 0 )
     isLong = 0;
@@ -195,7 +195,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
     else /* if optInStartValue < 0 => Start Short at specified value. */
     {
     ep  = inLow[todayIdx];
-    sar = std_fabs(optInStartValue);
+    sar = fabs(optInStartValue);
     }
 
     SAR_ROUNDING(sar);

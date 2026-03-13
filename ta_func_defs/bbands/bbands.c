@@ -1,7 +1,7 @@
 int bbands_lookback(int           optInTimePeriod,                                               double        optInNbDevUp,                                               double        optInNbDevDn,                                               TA_MAType     optInMAType)
 {
-    UNUSED_VARIABLE(optInNbDevUp);
-    UNUSED_VARIABLE(optInNbDevDn);
+    (void)optInNbDevUp;
+    (void)optInNbDevDn;
     
     /* The lookback is driven by the middle band moving average. */
     return ma_lookback( optInTimePeriod, optInMAType );
@@ -9,11 +9,11 @@ int bbands_lookback(int           optInTimePeriod,                              
 
 TA_RetCode bbands(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, double optInNbDevUp, double optInNbDevDn, TA_MAType optInMAType, int *outBegIdx, int *outNBElement, double outRealUpperBand[], double outRealMiddleBand[], double outRealLowerBand[])
 {
-    ENUM_DECLARATION(RetCode) retCode;
+    TA_RetCode retCode;
     int i;
     double tempReal, tempReal2;
-    ARRAY_REF(tempBuffer1);
-    ARRAY_REF(tempBuffer2);
+    double *tempBuffer1;
+    double *tempBuffer2;
 
 
 
@@ -95,7 +95,7 @@ TA_RetCode bbands(int startIdx, int endIdx, const double inReal[], int optInTime
     */
     if( tempBuffer1 != outRealMiddleBand )
     {
-    ARRAY_COPY( outRealMiddleBand, tempBuffer1, *outNBElement );
+    memcpy(outRealMiddleBand, tempBuffer1, (*outNBElement) * sizeof(double));
     }
 
     /* Now do a tight loop to calculate the upper/lower band at
