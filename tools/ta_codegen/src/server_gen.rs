@@ -233,6 +233,16 @@ static int json_find_int(const char *json, const char *field) {
     return atoi(p);
 }
 
+static double json_find_double(const char *json, const char *field) {
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return 0.0;
+    p += strlen(pattern);
+    while( *p == ' ' ) p++;
+    return strtod(p, NULL);
+}
+
 static int json_find_double_array(const char *json, const char *field,
                                    double *out, int max_count) {
     char pattern[256];
@@ -340,10 +350,17 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
 
         // Extract optional params
         for opt in &func.optional_inputs {
-            s.push_str(&format!(
-                "        int {} = json_find_int(json, \"{}\");\n",
-                opt.name, opt.name
-            ));
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "        double {} = json_find_double(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            } else {
+                s.push_str(&format!(
+                    "        int {} = json_find_int(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            }
         }
 
         // Apply unstable period if provided
@@ -397,10 +414,17 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
 
         // Extract optional params
         for opt in &func.optional_inputs {
-            s.push_str(&format!(
-                "        int {} = json_find_int(json, \"{}\");\n",
-                opt.name, opt.name
-            ));
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "        double {} = json_find_double(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            } else {
+                s.push_str(&format!(
+                    "        int {} = json_find_int(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            }
         }
 
         // Call lookback function
@@ -504,6 +528,16 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("        return Integer.parseInt(json.substring(idx, end));\n");
     s.push_str("    }\n\n");
 
+    s.push_str("    static double jsonDouble(String json, String field) {\n");
+    s.push_str("        int idx = json.indexOf('\"' + field + '\"');\n");
+    s.push_str("        if (idx < 0) return 0.0;\n");
+    s.push_str("        idx = json.indexOf(':', idx) + 1;\n");
+    s.push_str("        while (idx < json.length() && json.charAt(idx) == ' ') idx++;\n");
+    s.push_str("        int end = idx;\n");
+    s.push_str("        while (end < json.length() && \"0123456789-.eE+\".indexOf(json.charAt(end)) >= 0) end++;\n");
+    s.push_str("        return Double.parseDouble(json.substring(idx, end));\n");
+    s.push_str("    }\n\n");
+
     s.push_str("    static double[] jsonDoubleArray(String json, String field) {\n");
     s.push_str("        int idx = json.indexOf('\"' + field + '\"');\n");
     s.push_str("        if (idx < 0) return new double[0];\n");
@@ -558,10 +592,17 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
         // Optional params
         for opt in &func.optional_inputs {
-            s.push_str(&format!(
-                "            int {} = jsonInt(json, \"{}\");\n",
-                opt.name, opt.name
-            ));
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "            double {} = jsonDouble(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            } else {
+                s.push_str(&format!(
+                    "            int {} = jsonInt(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            }
         }
 
         // Apply unstable period if provided
@@ -660,7 +701,12 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
         }
 
         for opt in &func.optional_inputs {
-            s.push_str(&format!("        int {},\n", opt.name));
+            let cs_type = if opt.param_type == ParamType::Real {
+                "double"
+            } else {
+                "int"
+            };
+            s.push_str(&format!("        {cs_type} {},\n", opt.name));
         }
 
         s.push_str("        out int outBegIdx, out int outNBElement,\n");
@@ -702,12 +748,20 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 
         // Extract optional params
         for opt in &func.optional_inputs {
-            #[allow(clippy::cast_possible_truncation)]
-            let default = opt.default.unwrap_or(0.0) as i64;
-            s.push_str(&format!(
-                "                int {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetInt32() : {};\n",
-                opt.name, opt.name, default
-            ));
+            if opt.param_type == ParamType::Real {
+                let default = opt.default.unwrap_or(0.0);
+                s.push_str(&format!(
+                    "                double {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetDouble() : {};\n",
+                    opt.name, opt.name, default
+                ));
+            } else {
+                #[allow(clippy::cast_possible_truncation)]
+                let default = opt.default.unwrap_or(0.0) as i64;
+                s.push_str(&format!(
+                    "                int {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetInt32() : {};\n",
+                    opt.name, opt.name, default
+                ));
+            }
         }
 
         // Apply unstable period if provided
@@ -810,8 +864,12 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
         for _ in &real_inputs {
             s.push_str(", const double*");
         }
-        for _ in &func.optional_inputs {
-            s.push_str(", int");
+        for opt in &func.optional_inputs {
+            if opt.param_type == ParamType::Real {
+                s.push_str(", double");
+            } else {
+                s.push_str(", int");
+            }
         }
         s.push_str(", int*, int*, double*);\n");
 
@@ -820,7 +878,13 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
         let opt_params: Vec<String> = func
             .optional_inputs
             .iter()
-            .map(|_| "int".to_string())
+            .map(|opt| {
+                if opt.param_type == ParamType::Real {
+                    "double".to_string()
+                } else {
+                    "int".to_string()
+                }
+            })
             .collect();
         s.push_str(&opt_params.join(", "));
         if opt_params.is_empty() {
@@ -1066,12 +1130,20 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
         // Optional params
         for opt in &func.optional_inputs {
-            #[allow(clippy::cast_possible_truncation)]
-            let default = opt.default.unwrap_or(0.0) as i64;
-            s.push_str(&format!(
-                "    {} = params.get('{}', {})\n",
-                opt.name, opt.name, default
-            ));
+            if opt.param_type == ParamType::Real {
+                let default = opt.default.unwrap_or(0.0);
+                s.push_str(&format!(
+                    "    {} = float(params.get('{}', {}))\n",
+                    opt.name, opt.name, default
+                ));
+            } else {
+                #[allow(clippy::cast_possible_truncation)]
+                let default = opt.default.unwrap_or(0.0) as i64;
+                s.push_str(&format!(
+                    "    {} = int(params.get('{}', {}))\n",
+                    opt.name, opt.name, default
+                ));
+            }
         }
 
         // Apply unstable period if provided
