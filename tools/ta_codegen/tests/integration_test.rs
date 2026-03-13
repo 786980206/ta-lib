@@ -199,16 +199,16 @@ fn test_rust_backend_generates_mult() {
     let func = load_mult();
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
     assert!(
-        output.contains("mult_lookback") || output.contains("Lookback"),
+        output.contains("mult_lookback"),
         "Rust output missing lookback function"
     );
     assert!(
-        output.contains("fn mult") || output.contains("fn s_mult") || output.contains("MULT"),
-        "Rust output missing mult function"
+        output.contains("fn mult<T: TaFloat>"),
+        "Rust output missing generic mult function"
     );
     assert!(
-        output.contains("f64") || output.contains("f32"),
-        "Rust output missing type annotations"
+        output.contains("T: TaFloat"),
+        "Rust output missing TaFloat generic bound"
     );
 }
 
@@ -223,7 +223,7 @@ fn test_rust_sma_from_c_produces_valid_output() {
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
     assert!(output.contains("sma_lookback"), "Missing sma_lookback function");
-    assert!(output.contains("fn sma_logic"), "Missing sma_logic internal function");
+    assert!(output.contains("fn sma_unguarded<T: TaFloat>"), "Missing sma_unguarded generic function");
     assert!(output.contains("RetCode::Success"), "Missing Success return");
     assert!(output.contains("optInTimePeriod"), "Missing optInTimePeriod");
     assert!(output.contains("periodTotal"), "Missing periodTotal variable");
@@ -445,34 +445,40 @@ fn test_all_backends_produce_nonempty_output() {
 // ---------------------------------------------------------------------------
 
 #[test]
-fn test_rust_generates_logic_variant() {
+fn test_rust_generates_generic_variants() {
     let func = load_sma();
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
-    // _logic variants (renamed from int_)
-    assert!(output.contains("fn sma_logic("), "Missing sma_logic function");
-    assert!(output.contains("fn sma_logic_s("), "Missing sma_logic_s function");
+    // Guarded generic function
+    assert!(output.contains("pub fn sma<T: TaFloat>"), "Missing sma<T: TaFloat> function");
 
-    // Guarded functions should delegate to _logic
-    assert!(output.contains("self.sma_logic("), "Guarded fn should delegate to sma_logic");
-    assert!(output.contains("self.sma_logic_s("), "Guarded fn should delegate to sma_logic_s");
+    // Unguarded generic function (real algorithm)
+    assert!(output.contains("pub fn sma_unguarded<T: TaFloat>"), "Missing sma_unguarded<T: TaFloat> function");
 
-    // Should NOT contain the old int_ naming
-    assert!(!output.contains("fn int_sma("), "Should not contain old int_sma naming");
-    assert!(!output.contains("fn int_sma_s("), "Should not contain old int_sma_s naming");
+    // Guarded function should delegate to unguarded
+    assert!(output.contains("self.sma_unguarded("), "Guarded fn should delegate to sma_unguarded");
 
-    // Unsafe variant placeholder should be present
-    assert!(output.contains("sma_unsafe"), "Missing sma_unsafe placeholder");
-    assert!(output.contains("sma_unsafe_s"), "Missing sma_unsafe_s placeholder");
+    // Unchecked variants (unsafe)
+    assert!(output.contains("pub unsafe fn sma_unchecked<T: TaFloat>"), "Missing sma_unchecked<T: TaFloat> function");
+    assert!(output.contains("pub unsafe fn sma_unguarded_unchecked<T: TaFloat>"), "Missing sma_unguarded_unchecked<T: TaFloat> function");
+
+    // Unchecked guarded should delegate to unguarded_unchecked
+    assert!(output.contains("self.sma_unguarded_unchecked("), "Unchecked fn should delegate to sma_unguarded_unchecked");
+
+    // Should NOT contain the old naming patterns
+    assert!(!output.contains("fn sma_logic("), "Should not contain old sma_logic naming");
+    assert!(!output.contains("fn sma_s("), "Should not contain old sma_s naming");
+    assert!(!output.contains("sma_unsafe"), "Should not contain old sma_unsafe naming");
 }
 
 #[test]
-fn test_rust_mult_generates_logic_names() {
+fn test_rust_mult_generates_generic_variants() {
     let func = load_mult();
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
-    // MULT has no optional inputs, so no separate _logic function.
-    // But unsafe placeholders should still exist.
-    assert!(output.contains("mult_unsafe"), "Missing mult_unsafe placeholder");
-    assert!(output.contains("mult_unsafe_s"), "Missing mult_unsafe_s placeholder");
+    // MULT should have all 4 generic variants regardless of optional inputs
+    assert!(output.contains("pub fn mult<T: TaFloat>"), "Missing mult<T: TaFloat> function");
+    assert!(output.contains("pub fn mult_unguarded<T: TaFloat>"), "Missing mult_unguarded<T: TaFloat> function");
+    assert!(output.contains("pub unsafe fn mult_unchecked<T: TaFloat>"), "Missing mult_unchecked<T: TaFloat> function");
+    assert!(output.contains("pub unsafe fn mult_unguarded_unchecked<T: TaFloat>"), "Missing mult_unguarded_unchecked<T: TaFloat> function");
 }

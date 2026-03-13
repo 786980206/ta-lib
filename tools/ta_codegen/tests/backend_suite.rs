@@ -131,46 +131,32 @@ fn check_c_variants(c: &str, upper: &str, name: &str) {
     );
 }
 
-/// Check that all Rust variants exist for a given indicator.
-fn check_rust_variants(r: &str, snake: &str, has_opt_inputs: bool, name: &str) {
+/// Check that all Rust generic variants exist for a given indicator.
+fn check_rust_generic_variants(r: &str, snake: &str, name: &str) {
+    // Lookback (non-generic)
     assert!(
         r.contains(&format!("{}_lookback", snake)),
         "{}: Rust missing {}_lookback", name, snake
     );
+    // Guarded generic
     assert!(
-        r.contains(&format!("fn {}(", snake))
-            || r.contains(&format!("fn {}(\n", snake)),
-        "{}: Rust missing fn {}", name, snake
+        r.contains(&format!("fn {}<T: TaFloat>", snake)),
+        "{}: Rust missing fn {}<T: TaFloat>", name, snake
     );
-    if has_opt_inputs {
-        assert!(
-            r.contains(&format!("fn {}_logic(", snake))
-                || r.contains(&format!("fn {}_logic(\n", snake)),
-            "{}: Rust missing fn {}_logic", name, snake
-        );
-        assert!(
-            r.contains(&format!("fn {}_logic_s(", snake))
-                || r.contains(&format!("fn {}_logic_s(\n", snake)),
-            "{}: Rust missing fn {}_logic_s", name, snake
-        );
-    } else {
-        assert!(
-            !r.contains(&format!("fn {}_logic(", snake)),
-            "{}: Rust should NOT have {}_logic (no optional inputs)", name, snake
-        );
-    }
+    // Unguarded generic (real algorithm, bounds-checked)
     assert!(
-        r.contains(&format!("{}_unsafe", snake)),
-        "{}: Rust missing {}_unsafe placeholder", name, snake
+        r.contains(&format!("fn {}_unguarded<T: TaFloat>", snake)),
+        "{}: Rust missing fn {}_unguarded<T: TaFloat>", name, snake
     );
+    // Unchecked guarded (unsafe)
     assert!(
-        r.contains(&format!("fn {}_s(", snake))
-            || r.contains(&format!("fn {}_s(\n", snake)),
-        "{}: Rust missing fn {}_s", name, snake
+        r.contains(&format!("fn {}_unchecked<T: TaFloat>", snake)),
+        "{}: Rust missing fn {}_unchecked<T: TaFloat>", name, snake
     );
+    // Unguarded unchecked (unsafe, real algorithm)
     assert!(
-        r.contains(&format!("{}_unsafe_s", snake)),
-        "{}: Rust missing {}_unsafe_s placeholder", name, snake
+        r.contains(&format!("fn {}_unguarded_unchecked<T: TaFloat>", snake)),
+        "{}: Rust missing fn {}_unguarded_unchecked<T: TaFloat>", name, snake
     );
 }
 
@@ -314,11 +300,10 @@ fn test_all_indicators_all_backends() {
         let upper = func.name.clone();
         let snake = name.clone();
         let pascal = to_pascal(name);
-        let has_opt_inputs = !func.optional_inputs.is_empty();
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             check_c_variants(&out.c, &upper, &snake);
-            check_rust_variants(&out.rust, &snake, has_opt_inputs, &snake);
+            check_rust_generic_variants(&out.rust, &snake, &snake);
             check_java_variants(&out.java, &snake, &snake);
             check_dotnet_variants(&out.dotnet, &pascal, &upper, &snake);
             check_swig_variants(&out.swig, &upper, &snake);
@@ -413,7 +398,7 @@ fn test_ma_rust_cross_calls() {
     let out = generate_all(&func, &enums);
     let r = &out.rust;
 
-    // In Rust, cross-calls stay as prefix-free names with self.
+    // In Rust, cross-calls use self.{name}_unguarded for the algorithm
     assert!(
         r.contains("self.sma_lookback("),
         "Rust: MA should call self.sma_lookback"
@@ -423,12 +408,12 @@ fn test_ma_rust_cross_calls() {
         "Rust: MA should call self.ema_lookback"
     );
     assert!(
-        r.contains("self.sma_logic("),
-        "Rust: MA should call self.sma_logic"
+        r.contains("self.sma_unguarded("),
+        "Rust: MA should call self.sma_unguarded"
     );
     assert!(
-        r.contains("self.ema_logic("),
-        "Rust: MA should call self.ema_logic"
+        r.contains("self.ema_unguarded("),
+        "Rust: MA should call self.ema_unguarded"
     );
 }
 
@@ -519,9 +504,8 @@ fn test_rust_sma_guarded_has_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // The guarded Rust function delegates to _logic, but first validates params.
-    // For Rust, the public func (sma) should have endIdx < startIdx check
-    let guarded = extract_section(&out.rust, "pub fn sma(", "fn sma_logic(");
+    // The guarded Rust function delegates to _unguarded, but first validates params.
+    let guarded = extract_section(&out.rust, "pub fn sma<T: TaFloat>", "pub fn sma_unguarded<T: TaFloat>");
     assert!(
         guarded.contains("endIdx < startIdx"),
         "Rust guarded SMA should have endIdx < startIdx check"
@@ -529,20 +513,20 @@ fn test_rust_sma_guarded_has_validation() {
 }
 
 #[test]
-fn test_rust_sma_logic_omits_validation() {
+fn test_rust_sma_unguarded_omits_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // The logic function should not have the range check
-    let logic_start = out.rust.find("fn sma_logic(").expect("Missing sma_logic");
-    let logic_section = &out.rust[logic_start..];
-    let end = logic_section
-        .find("pub fn sma_s(")
-        .unwrap_or(logic_section.len());
-    let logic = &logic_section[..end];
+    // The unguarded function should not have the range check
+    let unguarded_start = out.rust.find("pub fn sma_unguarded<T: TaFloat>").expect("Missing sma_unguarded");
+    let unguarded_section = &out.rust[unguarded_start..];
+    let end = unguarded_section
+        .find("pub unsafe fn sma_unchecked")
+        .unwrap_or(unguarded_section.len());
+    let unguarded = &unguarded_section[..end];
     assert!(
-        !logic.contains("OutOfRangeStartIndex"),
-        "Rust logic SMA should NOT have range validation"
+        !unguarded.contains("OutOfRangeStartIndex"),
+        "Rust unguarded SMA should NOT have range validation"
     );
 }
 

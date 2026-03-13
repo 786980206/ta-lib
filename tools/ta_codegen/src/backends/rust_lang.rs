@@ -10,17 +10,11 @@ struct RustRenderCtx {
     generic: bool,
     /// If true, emit `get_unchecked()` / `get_unchecked_mut()` instead of `[]` for array access.
     unchecked: bool,
-    /// If true, emit `f32` instead of `f64` and generate `_s` suffixed function names.
-    /// Temporary: removed when generic=true replaces single-precision variants.
-    single_precision: bool,
 }
 
 impl RustRenderCtx {
     fn concrete() -> Self {
-        RustRenderCtx { generic: false, unchecked: false, single_precision: false }
-    }
-    fn concrete_single() -> Self {
-        RustRenderCtx { generic: false, unchecked: false, single_precision: true }
+        RustRenderCtx { generic: false, unchecked: false }
     }
 }
 
@@ -86,37 +80,32 @@ fn gen_imports() -> String {
 fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
     let snake = func.name.to_lowercase();
-    let has_opt_inputs = !func.optional_inputs.is_empty();
 
     out.push_str(
         "// Allow non-snake-case names to maintain TA-Lib API compatibility\n\
          #[allow(non_snake_case)]\n\
-         // allow unused variables and dead code due to gen code weirdness\n\
          #[allow(unused_variables)]\n\
          #[allow(dead_code)]\n\
+         #[allow(unused_mut)]\n\
+         #[allow(unused_assignments)]\n\
          impl Core {\n",
     );
 
     out.push_str(&gen_lookback(func, &snake, enums, registry));
 
-    let ctx_f64 = RustRenderCtx::concrete();
-    let ctx_f32 = RustRenderCtx::concrete_single();
+    // Guarded: validates params, delegates to unguarded
+    out.push_str(&gen_guarded_func(func, &snake, enums, registry));
 
-    if has_opt_inputs {
-        // Two-layer structure: public function + private logic function
-        out.push_str(&gen_public_func(func, &snake, &ctx_f64, registry));
-        out.push_str(&gen_internal_func(func, &snake, &ctx_f64, enums, registry));
-        out.push_str(&gen_public_func(func, &snake, &ctx_f32, registry));
-        out.push_str(&gen_internal_func(func, &snake, &ctx_f32, enums, registry));
-    } else {
-        // Simple flat function (no optional params)
-        out.push_str(&gen_func(func, &snake, &ctx_f64, enums, registry));
-        out.push_str(&gen_func(func, &snake, &ctx_f32, enums, registry));
-    }
+    // Unguarded: real algorithm, bounds-checked array access
+    let safe_ctx = RustRenderCtx { generic: true, unchecked: false };
+    out.push_str(&gen_unguarded_func(func, &snake, &safe_ctx, enums, registry));
 
-    // Generate unsafe variants (double and single precision)
-    out.push_str(&gen_unsafe_func(func, &snake, &ctx_f64));
-    out.push_str(&gen_unsafe_func(func, &snake, &ctx_f32));
+    // Unchecked: validates params, delegates to unguarded_unchecked
+    out.push_str(&gen_unchecked_func(func, &snake, enums, registry));
+
+    // Unguarded unchecked: real algorithm, unchecked array access
+    let unsafe_ctx = RustRenderCtx { generic: true, unchecked: true };
+    out.push_str(&gen_unguarded_func(func, &snake, &unsafe_ctx, enums, registry));
 
     out.push_str("}\n");
     out
@@ -206,128 +195,53 @@ fn gen_lookback(func: &FuncDef, snake: &str, enums: &HashMap<String, EnumDef>, r
     out
 }
 
-/// Generate the public wrapper function (for functions with optional params).
-/// This validates params and delegates to <name>_logic.
-fn gen_public_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, _registry: &Registry) -> String {
+/// Generate the guarded public function.
+/// Validates params, delegates to `{snake}_unguarded`.
+fn gen_guarded_func(func: &FuncDef, snake: &str, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
-    let suffix = if ctx.single_precision { "_s" } else { "" };
-    let func_name = format!("{}{}", snake, suffix);
-    let input_type = if ctx.single_precision { "f32" } else { "f64" };
-    let logic_func_name = format!("{}_logic{}", snake, suffix);
 
     // Doc comments
-    if ctx.single_precision {
-        out.push_str(&format!(
-            "    /// Single-precision variant of [`Core::{}`].\n",
-            snake
-        ));
-    } else {
-        let title = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&func.group);
-        out.push_str(&format!("    /// {}\n", title));
-        out.push_str("    ///\n");
-        out.push_str("    /// # Arguments\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// * `startIdx` - Start index for calculation range\n");
-        out.push_str("    /// * `endIdx` - End index for calculation range (inclusive)\n");
-        for input in &func.inputs {
-            out.push_str(&format!(
-                "    /// * `{}` - Input price series\n",
-                input.name
-            ));
-        }
-        for opt in &func.optional_inputs {
-            if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
-                out.push_str(&format!(
-                    "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
-                    opt.name, default as i64, lo, hi
-                ));
-            }
-        }
-        out.push_str("    /// * `outBegIdx` - First valid output index\n");
-        out.push_str("    /// * `outNBElement` - Number of valid output elements\n");
-        for output in &func.outputs {
-            out.push_str(&format!("    /// * `{}` - Output values\n", output.name));
-        }
-        out.push_str("    ///\n");
-        out.push_str("    /// # Returns\n");
-        out.push_str("    ///\n");
-        out.push_str(
-            "    /// [`RetCode::Success`] on success, or an error code on failure.\n",
-        );
-        out.push_str("    ///\n");
-        out.push_str("    /// # Example\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// ```\n");
-        out.push_str("    /// use ta_lib::ta_func::{Core, RetCode};\n");
-        out.push_str("    ///\n");
-        out.push_str("    ///\n");
-        // Generate example with specific values for SMA-like functions
-        out.push_str("    /// let close_prices = [1.0, 2.0, 3.0, 4.0, 5.0_f64];\n");
-        out.push_str("    /// let mut out = [0.0_f64; 5];\n");
-        out.push_str("    /// let mut out_beg_idx: usize = 0;\n");
-        out.push_str("    /// let mut out_nb_element: usize = 0;\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// let core = Core::new();\n");
-        out.push_str(&format!("    /// let result = core.{}(\n", snake));
-        out.push_str("    ///  0,\n");
-        out.push_str("    ///  4,\n");
-        out.push_str("    ///  &close_prices,\n");
-        // Use a sensible example value for opt params
-        for opt in &func.optional_inputs {
-            if let Some((lo, _hi)) = opt.range {
-                out.push_str(&format!("    ///  {},\n", lo + 1)); // use lo+1 = 3
-            }
-        }
-        out.push_str("    ///  &mut out_beg_idx,\n");
-        out.push_str("    ///  &mut out_nb_element,\n");
-        out.push_str("    ///  &mut out,\n");
-        out.push_str("    /// );\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// assert_eq!(result, RetCode::Success);\n");
-        // Add specific assertions for SMA
-        out.push_str("    /// assert_eq!(out_beg_idx, 2);\n");
-        out.push_str("    /// assert_eq!(out_nb_element, 3);\n");
-        out.push_str("    /// assert!((out[0] - 2.0).abs() < 1e-10);\n");
-        out.push_str("    /// assert!((out[1] - 3.0).abs() < 1e-10);\n");
-        out.push_str("    /// assert!((out[2] - 4.0).abs() < 1e-10);\n");
-        out.push_str("    /// ```\n");
-    }
-
-    // Function signature
-    out.push_str(&format!("    pub fn {}(\n", func_name));
-    out.push_str("        &self,\n");
-    out.push_str("        startIdx: usize,\n");
-    out.push_str("        endIdx: usize,\n");
+    let title = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&func.group);
+    out.push_str(&format!("    /// {}\n", title));
+    out.push_str("    ///\n");
+    out.push_str("    /// # Arguments\n");
+    out.push_str("    ///\n");
+    out.push_str("    /// * `startIdx` - Start index for calculation range\n");
+    out.push_str("    /// * `endIdx` - End index for calculation range (inclusive)\n");
     for input in &func.inputs {
         out.push_str(&format!(
-            "        {}: &[{}],\n",
-            input.name, input_type
+            "    /// * `{}` - Input price series\n",
+            input.name
         ));
     }
     for opt in &func.optional_inputs {
-        let rust_type = match opt.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!("        mut {}: {},\n", opt.name, rust_type));
+        if let (Some(default), Some((lo, hi))) = (opt.default, opt.range) {
+            out.push_str(&format!(
+                "    /// * `{}` - Number of period (default: {}, range: {}..={})\n",
+                opt.name, default as i64, lo, hi
+            ));
+        }
     }
+    out.push_str("    /// * `outBegIdx` - First valid output index\n");
+    out.push_str("    /// * `outNBElement` - Number of valid output elements\n");
+    for output in &func.outputs {
+        out.push_str(&format!("    /// * `{}` - Output values\n", output.name));
+    }
+
+    // Function signature
+    out.push_str(&format!("    pub fn {}<T: TaFloat>(\n", snake));
+    out.push_str("        &self,\n");
+    out.push_str("        startIdx: usize,\n");
+    out.push_str("        endIdx: usize,\n");
+    out.push_str(&gen_generic_params(func));
     out.push_str("        outBegIdx: &mut usize,\n");
     out.push_str("        outNBElement: &mut usize,\n");
-    for output in &func.outputs {
-        let rust_type = match output.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!(
-            "        {}: &mut [{}],\n",
-            output.name, rust_type
-        ));
-    }
+    out.push_str(&gen_generic_output_params(func));
     out.push_str("    ) -> RetCode {\n");
 
     // Range check
     out.push_str("        if endIdx < startIdx {\n");
-    out.push_str("            return RetCode::OutOfRangeEndIndex;\n");
+    out.push_str("            return RetCode::OutOfRangeStartIndex;\n");
     out.push_str("        }\n");
 
     // Param validation
@@ -335,8 +249,8 @@ fn gen_public_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, _registry: 
         out.push_str(&gen_opt_param_validation(opt, "        ", false));
     }
 
-    // Delegate to logic function
-    out.push_str(&format!("        return self.{}(\n", logic_func_name));
+    // Delegate to unguarded function
+    out.push_str(&format!("        return self.{}_unguarded(\n", snake));
     out.push_str("            startIdx,\n");
     out.push_str("            endIdx,\n");
     for input in &func.inputs {
@@ -356,43 +270,27 @@ fn gen_public_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, _registry: 
     out
 }
 
-/// Generate the logic (private) function for functions with optional params.
-fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
+/// Generate the unguarded function (real algorithm, bounds-checked or unchecked array access).
+/// When `ctx.unchecked == false`: `pub fn {snake}_unguarded<T: TaFloat>(...)`
+/// When `ctx.unchecked == true`: `pub unsafe fn {snake}_unguarded_unchecked<T: TaFloat>(...)`
+fn gen_unguarded_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
     let mut out = String::new();
-    let suffix = if ctx.single_precision { "_s" } else { "" };
-    let func_name = format!("{}_logic{}", snake, suffix);
-    let input_type = if ctx.single_precision { "f32" } else { "f64" };
+    let func_name = if ctx.unchecked {
+        format!("{}_unguarded_unchecked", snake)
+    } else {
+        format!("{}_unguarded", snake)
+    };
+    let visibility = if ctx.unchecked { "pub unsafe fn" } else { "pub fn" };
 
-    // Function signature (private)
-    out.push_str(&format!("    fn {}(\n", func_name));
+    // Function signature
+    out.push_str(&format!("    {} {}<T: TaFloat>(\n", visibility, func_name));
     out.push_str("        &self,\n");
     out.push_str("        mut startIdx: usize,\n");
     out.push_str("        endIdx: usize,\n");
-    for input in &func.inputs {
-        out.push_str(&format!(
-            "        {}: &[{}],\n",
-            input.name, input_type
-        ));
-    }
-    for opt in &func.optional_inputs {
-        let rust_type = match opt.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
-    }
+    out.push_str(&gen_generic_params(func));
     out.push_str("        outBegIdx: &mut usize,\n");
     out.push_str("        outNBElement: &mut usize,\n");
-    for output in &func.outputs {
-        let rust_type = match output.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!(
-            "        {}: &mut [{}],\n",
-            output.name, rust_type
-        ));
-    }
+    out.push_str(&gen_generic_output_params(func));
     out.push_str("    ) -> RetCode {\n");
 
     // Declare local variables (excluding loop iterators consumed by for-loops)
@@ -408,6 +306,15 @@ fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &H
             }
         })
         .collect();
+
+    // Collect names of OptInput Real params for generic wrapping
+    let opt_real_params: Vec<String> = func
+        .optional_inputs
+        .iter()
+        .filter(|o| o.param_type == ParamType::Real)
+        .map(|o| o.name.clone())
+        .collect();
+
     for stmt in &func.body {
         if let Statement::VarDecl {
             var_type, name, ..
@@ -417,12 +324,11 @@ fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &H
                 continue;
             }
             let rust_type = match var_type {
-                VarType::Real => "f64",
+                VarType::Real => if ctx.generic { "T" } else { "f64" },
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
                 VarType::RetCodeType => "RetCode",
             };
-            // Determine if mut is needed: variable assigned more than once total
             let total_assigns = count_assignments(name, &func.body);
             let needs_mut = total_assigns > 1;
             if needs_mut {
@@ -456,12 +362,12 @@ fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &H
                 continue;
             }
             if body_assigned.contains(name) {
-                continue; // body assignment will handle it
+                continue;
             }
             out.push_str(&format!(
                 "        {} = {};\n",
                 name,
-                render_expr(init, ctx, registry)
+                render_expr(init, ctx, &opt_real_params, registry)
             ));
         }
     }
@@ -471,7 +377,7 @@ fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &H
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 8, ctx, &for_loop_vars, &var_inits, &output_names, enums, registry));
+        out.push_str(&render_statement(stmt, 8, ctx, &for_loop_vars, &var_inits, &output_names, &opt_real_params, enums, registry));
     }
 
     out.push_str("        return RetCode::Success;\n");
@@ -480,235 +386,82 @@ fn gen_internal_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &H
     out
 }
 
-/// Generate a flat function (for functions without optional params, like MULT).
-fn gen_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
+/// Generate the unchecked function: validates params, delegates to `{snake}_unguarded_unchecked`.
+fn gen_unchecked_func(func: &FuncDef, snake: &str, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
-    let suffix = if ctx.single_precision { "_s" } else { "" };
-    let func_name = format!("{}{}", snake, suffix);
 
-    // Doc comments
-    if ctx.single_precision {
-        out.push_str(&format!(
-            "    /// Single-precision variant of [`Core::{}`].\n",
-            snake
-        ));
-    } else {
-        let title = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&func.group);
-        out.push_str(&format!("    /// {}\n", title));
-        out.push_str("    ///\n");
-        out.push_str("    /// # Arguments\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// * `startIdx` - Start index for calculation range\n");
-        out.push_str("    /// * `endIdx` - End index for calculation range (inclusive)\n");
-        for input in &func.inputs {
-            out.push_str(&format!(
-                "    /// * `{}` - Input price series\n",
-                input.name
-            ));
-        }
-        out.push_str("    /// * `outBegIdx` - First valid output index\n");
-        out.push_str("    /// * `outNBElement` - Number of valid output elements\n");
-        for output in &func.outputs {
-            out.push_str(&format!("    /// * `{}` - Output values\n", output.name));
-        }
-        out.push_str("    ///\n");
-        out.push_str("    /// # Returns\n");
-        out.push_str("    ///\n");
-        out.push_str(
-            "    /// [`RetCode::Success`] on success, or an error code on failure.\n",
-        );
-        out.push_str("    ///\n");
-        out.push_str("    /// # Example\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// ```\n");
-        out.push_str("    /// use ta_lib::ta_func::{Core, RetCode};\n");
-        out.push_str("    ///\n");
-        // Generate example input declarations
-        for _input in &func.inputs {
-            out.push_str("    /// let input = [1.0_f64; 50];\n");
-        }
-        out.push_str("    /// let mut out = [0.0_f64; 50];\n");
-        out.push_str("    /// let mut out_beg_idx: usize = 0;\n");
-        out.push_str("    /// let mut out_nb_element: usize = 0;\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// let core = Core::new();\n");
-        out.push_str(&format!("    /// let result = core.{}(\n", snake));
-        out.push_str("    ///  0,\n");
-        out.push_str("    ///  49,\n");
-        for _input in &func.inputs {
-            out.push_str("    ///  &input,\n");
-        }
-        out.push_str("    ///  &mut out_beg_idx,\n");
-        out.push_str("    ///  &mut out_nb_element,\n");
-        out.push_str("    ///  &mut out,\n");
-        out.push_str("    /// );\n");
-        out.push_str("    ///\n");
-        out.push_str("    /// assert_eq!(result, RetCode::Success);\n");
-        out.push_str("    /// ```\n");
-    }
-
-    // Function signature
-    let input_type = if ctx.single_precision { "f32" } else { "f64" };
-
-    out.push_str(&format!("    pub fn {}(\n", func_name));
+    out.push_str(&format!("    pub unsafe fn {}_unchecked<T: TaFloat>(\n", snake));
     out.push_str("        &self,\n");
     out.push_str("        startIdx: usize,\n");
     out.push_str("        endIdx: usize,\n");
-    for input in &func.inputs {
-        out.push_str(&format!(
-            "        {}: &[{}],\n",
-            input.name, input_type
-        ));
-    }
-    for opt in &func.optional_inputs {
-        let rust_type = match opt.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!("        {}: {},\n", opt.name, rust_type));
-    }
+    out.push_str(&gen_generic_params(func));
     out.push_str("        outBegIdx: &mut usize,\n");
     out.push_str("        outNBElement: &mut usize,\n");
-    for output in &func.outputs {
-        let rust_type = match output.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!(
-            "        {}: &mut [{}],\n",
-            output.name, rust_type
-        ));
-    }
+    out.push_str(&gen_generic_output_params(func));
     out.push_str("    ) -> RetCode {\n");
 
-    // Declare local variables (excluding loop iterators consumed by for-loops)
-    let for_loop_vars = collect_for_loop_vars(&func.body);
-    // Build map of VarDecl init expressions for for-loop start values
-    let var_inits: std::collections::HashMap<String, &Expr> = func
-        .body
-        .iter()
-        .filter_map(|s| {
-            if let Statement::VarDecl { name, init: Some(init), .. } = s {
-                Some((name.clone(), init))
-            } else {
-                None
-            }
-        })
-        .collect();
-    for stmt in &func.body {
-        if let Statement::VarDecl {
-            var_type, name, ..
-        } = stmt
-        {
-            if for_loop_vars.contains(name) {
-                continue;
-            }
-            let rust_type = match var_type {
-                VarType::Real => "f64",
-                VarType::Integer => "i32",
-                VarType::Index => "usize",
-                VarType::RetCodeType => "RetCode",
-            };
-            // Determine if mut is needed: variable assigned more than once total
-            let total_assigns = count_assignments(name, &func.body);
-            let needs_mut = total_assigns > 1;
-            if needs_mut {
-                out.push_str(&format!("        let mut {}: {};\n", name, rust_type));
-            } else {
-                out.push_str(&format!("        let {}: {};\n", name, rust_type));
-            }
-        }
-    }
-
-    // Validation (no startIdx < 0 for usize)
     out.push_str("        if endIdx < startIdx {\n");
-    out.push_str("            return RetCode::OutOfRangeEndIndex;\n");
+    out.push_str("            return RetCode::OutOfRangeStartIndex;\n");
     out.push_str("        }\n");
 
-    // Emit VarDecl initializations (excluding for-loop vars)
-    for stmt in &func.body {
-        if let Statement::VarDecl { name, init: Some(init), .. } = stmt {
-            if for_loop_vars.contains(name) {
-                continue;
-            }
-            out.push_str(&format!(
-                "        {} = {};\n",
-                name,
-                render_expr(init, ctx, registry)
-            ));
-        }
+    for opt in &func.optional_inputs {
+        out.push_str(&gen_opt_param_validation(opt, "        ", false));
     }
 
-    // Collect output array names for cast insertion
-    let output_names: Vec<String> = func.outputs.iter().map(|o| o.name.clone()).collect();
-
-    // Render body statements
-    for stmt in &func.body {
-        if matches!(stmt, Statement::VarDecl { .. }) {
-            continue;
-        }
-        out.push_str(&render_statement(stmt, 8, ctx, &for_loop_vars, &var_inits, &output_names, enums, registry));
+    out.push_str(&format!("        return self.{}_unguarded_unchecked(\n", snake));
+    out.push_str("            startIdx,\n");
+    out.push_str("            endIdx,\n");
+    for input in &func.inputs {
+        out.push_str(&format!("            {},\n", input.name));
     }
-
-    out.push_str("        return RetCode::Success;\n");
+    for opt in &func.optional_inputs {
+        out.push_str(&format!("            {},\n", opt.name));
+    }
+    out.push_str("            outBegIdx,\n");
+    out.push_str("            outNBElement,\n");
+    for output in &func.outputs {
+        out.push_str(&format!("            {},\n", output.name));
+    }
+    out.push_str("        );\n");
     out.push_str("    }\n");
 
     out
 }
 
-/// Generate an unsafe raw-pointer variant that wraps the logic/guarded function.
-/// Uses `*const f64` / `*mut f64` instead of slices for FFI compatibility.
-fn gen_unsafe_func(func: &FuncDef, snake: &str, ctx: &RustRenderCtx) -> String {
+/// Generate generic input parameter declarations for a function signature.
+fn gen_generic_params(func: &FuncDef) -> String {
     let mut out = String::new();
-    let suffix = if ctx.single_precision { "_s" } else { "" };
-    let func_name = format!("{}_unsafe{}", snake, suffix);
-    let input_type = if ctx.single_precision { "f32" } else { "f64" };
-    let delegate_name = format!("{}{}", snake, suffix);
-
-    out.push_str(&format!(
-        "    // TODO: unsafe variant — thin wrapper around {} with raw pointer API\n",
-        delegate_name
-    ));
-    out.push_str(&format!(
-        "    // pub unsafe fn {}(\n",
-        func_name
-    ));
-    out.push_str("    //     &self,\n");
-    out.push_str("    //     startIdx: usize,\n");
-    out.push_str("    //     endIdx: usize,\n");
     for input in &func.inputs {
-        out.push_str(&format!(
-            "    //     {}: *const {},\n",
-            input.name, input_type
-        ));
+        let param_type = match input.param_type {
+            ParamType::Real => "&[T]",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "&[i32]",
+        };
+        out.push_str(&format!("        {}: {},\n", input.name, param_type));
     }
     for opt in &func.optional_inputs {
         let rust_type = match opt.param_type {
             ParamType::Real => "f64",
             ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
         };
-        out.push_str(&format!("    //     {}: {},\n", opt.name, rust_type));
+        out.push_str(&format!("        mut {}: {},\n", opt.name, rust_type));
     }
-    out.push_str("    //     outBegIdx: *mut usize,\n");
-    out.push_str("    //     outNBElement: *mut usize,\n");
-    for output in &func.outputs {
-        let rust_type = match output.param_type {
-            ParamType::Real => "f64",
-            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "i32",
-        };
-        out.push_str(&format!(
-            "    //     {}: *mut {},\n",
-            output.name, rust_type
-        ));
-    }
-    out.push_str("    // ) -> RetCode { ... }\n");
+    out
+}
 
+/// Generate generic output parameter declarations for a function signature.
+fn gen_generic_output_params(func: &FuncDef) -> String {
+    let mut out = String::new();
+    for output in &func.outputs {
+        let param_type = match output.param_type {
+            ParamType::Real => "&mut [T]",
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "&mut [i32]",
+        };
+        out.push_str(&format!("        {}: {},\n", output.name, param_type));
+    }
     out
 }
 
 /// Generate optional parameter validation code.
-/// For lookback functions, the error return is -1.
-/// For main functions, the error return is RetCode::BadParam.
 fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> String {
     let mut out = String::new();
     let name = &opt.name;
@@ -748,8 +501,6 @@ fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> Str
 }
 
 /// Count how many times a variable is assigned in the body (including VarDecl inits).
-/// Assignments inside loops count as 2 (since they execute multiple times).
-/// Used to determine if `mut` is needed on a local variable declaration.
 fn count_assignments(name: &str, body: &[Statement]) -> usize {
     count_assignments_inner(name, body, false)
 }
@@ -766,7 +517,6 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
             Statement::Assign { target, .. } => {
                 if let Expr::Var(tname) = target {
                     if tname == name {
-                        // Assignments in loops count as multiple
                         count += if in_loop { 2 } else { 1 };
                     }
                 }
@@ -797,12 +547,8 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
     count
 }
 
-/// Detect while loops that are simple for-loop patterns:
-/// `while i <= endIdx { ... i += 1; }` where i is declared as `index i = startIdx`
-/// Returns the set of variable names used as loop iterators.
 fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
     let mut vars = Vec::new();
-    // Find VarDecl + While pairs
     let decls: std::collections::HashMap<String, &Expr> = body
         .iter()
         .filter_map(|s| {
@@ -822,7 +568,6 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
                     vars.push(iter_var);
                 }
             }
-            // These statement types don't contain for-loop patterns at the top level
             Statement::For { .. } | Statement::ForC { .. } | Statement::Block { .. }
             | Statement::VarDecl { .. } | Statement::Assign { .. } | Statement::If { .. }
             | Statement::Return { .. } | Statement::Break | Statement::Continue
@@ -832,18 +577,14 @@ fn collect_for_loop_vars(body: &[Statement]) -> Vec<String> {
     vars
 }
 
-/// Check if a while loop matches the pattern: while iter_var <= bound { ... iter_var += 1 }
 fn detect_for_pattern(
     condition: &Expr,
     while_body: &[Statement],
     decls: &std::collections::HashMap<String, &Expr>,
 ) -> Option<String> {
-    // condition must be BinOp(Var(iter), LessEq, Var(bound))
     if let Expr::BinOp(left, BinOp::LessEq, _right) = condition {
         if let Expr::Var(iter_name) = left.as_ref() {
-            // Check that iter_name is declared as an index var
             if decls.contains_key(iter_name) {
-                // Check last statement is iter_name += 1
                 if let Some(Statement::Assign { target, value, .. }) = while_body.last() {
                     if let Expr::Var(tname) = target {
                         if tname == iter_name {
@@ -872,62 +613,61 @@ fn render_statement(
     for_loop_vars: &[String],
     var_inits: &std::collections::HashMap<String, &Expr>,
     output_names: &[String],
+    opt_real_params: &[String],
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
-        Statement::VarDecl { .. } => String::new(), // already handled
+        Statement::VarDecl { .. } => String::new(),
         Statement::Block { body: block_body } => {
             let mut out = String::new();
             for s in block_body {
-                out.push_str(&render_statement(s, indent, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
             out
         }
         Statement::For { var, count, body: for_body } => {
             let mut out = format!(
                 "{}for {} in (1..={}).rev() {{\n",
-                pad, var, render_expr(count, ctx, registry)
+                pad, var, render_expr(count, ctx, opt_real_params, registry)
             );
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::ForC { init, condition, update, body: for_body } => {
-            let init_str = render_statement(init, 0, ctx, for_loop_vars, var_inits, output_names, enums, registry);
+            let init_str = render_statement(init, 0, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry);
             let init_trimmed = init_str.trim().trim_end_matches(';');
-            let update_str = render_statement(update, 0, ctx, for_loop_vars, var_inits, output_names, enums, registry);
+            let update_str = render_statement(update, 0, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry);
             let update_trimmed = update_str.trim().trim_end_matches(';');
             let mut out = format!(
                 "{}// for( {}; {}; {} )\n",
-                pad, init_trimmed, render_expr(condition, ctx, registry), update_trimmed
+                pad, init_trimmed, render_expr(condition, ctx, opt_real_params, registry), update_trimmed
             );
             out.push_str(&format!("{}{};\n", pad, init_trimmed));
-            out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, ctx, registry)));
+            out.push_str(&format!("{}while {} {{\n", pad, render_expr(condition, ctx, opt_real_params, registry)));
             for s in for_body {
-                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
             out.push_str(&format!("{}    {};\n", pad, update_trimmed));
             out.push_str(&format!("{}}}\n", pad));
             out
         }
         Statement::Assign { target, value, compound } => {
-            // Statement-level FuncCall: when target is Var("_"), render just the expansion
             if let Expr::Var(tname) = target {
                 if tname == "_" {
                     if let Expr::FuncCall(fname, args) = value {
                         return format!(
                             "{}{};\n",
                             pad,
-                            render_func_call(fname, args, ctx, registry)
+                            render_func_call(fname, args, ctx, opt_real_params, registry)
                         );
                     }
                 }
             }
-            // Only fold compound assignments if the original source used +=/-=/etc.
             if *compound {
                 if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
                     if let Expr::Var(lname) = left.as_ref() {
@@ -944,24 +684,24 @@ fn render_statement(
                             };
                             if !op_str.is_empty() {
                                 let target_str =
-                                    render_assign_target(target, ctx, registry);
+                                    render_assign_target(target, ctx, opt_real_params, registry);
                                 return format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, ctx, registry)
+                                    render_expr(right, ctx, opt_real_params, registry)
                                 );
                             }
                         }
                     }
                 }
             }
-            let target_str = render_assign_target(target, ctx, registry);
-            let value_str = render_expr(value, ctx, registry);
-            // Add `as f64` cast for output array assignments only when the value
-            // contains uncast input array accesses (which may be f32 in single precision)
-            let needs_cast = if let Expr::ArrayAccess(name, _) = target {
+            let target_str = render_assign_target(target, ctx, opt_real_params, registry);
+            let value_str = render_expr(value, ctx, opt_real_params, registry);
+            let needs_cast = if ctx.generic {
+                false
+            } else if let Expr::ArrayAccess(name, _) = target {
                 output_names.contains(name) && expr_has_uncast_array_access(value)
             } else {
                 false
@@ -972,96 +712,71 @@ fn render_statement(
                 format!("{}{} = {};\n", pad, target_str, value_str)
             }
         }
-        Statement::While {
-            condition,
-            body: while_body,
-        } => {
-            // Check if this is a for-loop pattern
+        Statement::While { condition, body: while_body } => {
             if let Expr::BinOp(left, BinOp::LessEq, right) = condition {
                 if let Expr::Var(iter_name) = left.as_ref() {
                     if for_loop_vars.contains(iter_name) {
                         let start_expr = if let Some(init) = var_inits.get(iter_name) {
-                            render_expr(init, ctx, registry)
+                            render_expr(init, ctx, opt_real_params, registry)
                         } else {
                             iter_name.clone()
                         };
-                        let end_expr = render_expr(right, ctx, registry);
+                        let end_expr = render_expr(right, ctx, opt_real_params, registry);
                         let mut out = format!(
                             "{}for {} in ({} as usize)..=({} as usize) {{\n",
                             pad, iter_name, start_expr, end_expr
                         );
-                        // Render body except last statement (the i += 1)
                         for s in &while_body[..while_body.len() - 1] {
-                            out.push_str(&render_statement(
-                                s,
-                                indent + 4,
-                                ctx,
-                                for_loop_vars,
-                                var_inits,
-                                output_names,
-                                enums,
-                                registry,
-                            ));
+                            out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
                         }
                         out.push_str(&format!("{}}}\n", pad));
                         return out;
                     }
                 }
             }
-            // Regular while loop
             let mut out = format!(
                 "{}while {} {{\n",
                 pad,
-                render_expr(condition, ctx, registry)
+                render_expr(condition, ctx, opt_real_params, registry)
             );
             for s in while_body {
-                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
             out.push_str(&format!("{}}}\n", pad));
             out
         }
-        Statement::DoWhile {
-            condition,
-            body: while_body,
-        } => {
+        Statement::DoWhile { condition, body: while_body } => {
             let mut out = format!("{}loop {{\n", pad);
             for s in while_body {
-                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
-            out.push_str(&format!("{}    if !({}) {{ break; }}\n", pad, render_expr(condition, ctx, registry)));
+            out.push_str(&format!("{}    if !({}) {{ break; }}\n", pad, render_expr(condition, ctx, opt_real_params, registry)));
             out.push_str(&format!("{}}}\n", pad));
             out
         }
-        Statement::If {
-            condition,
-            then_body,
-            else_body,
-        } => {
+        Statement::If { condition, then_body, else_body } => {
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
-                render_expr(condition, ctx, registry)
+                render_expr(condition, ctx, opt_real_params, registry)
             );
             for s in then_body {
-                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
             }
             if else_body.is_empty() {
                 out.push_str(&format!("{}}}\n", pad));
             } else {
                 out.push_str(&format!("{}}} else ", pad));
-                // Check if the else body is a single if statement (else-if chain)
                 if else_body.len() == 1 {
                     if let Statement::If { .. } = &else_body[0] {
-                        // Render as else if (strip leading pad since we already have "} else ")
-                        let if_str = render_statement(&else_body[0], indent, ctx, for_loop_vars, var_inits, output_names, enums, registry);
-                        // Remove leading whitespace from the if statement
+                        let if_str = render_statement(&else_body[0], indent, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry);
                         out.push_str(if_str.trim_start());
                         return out;
                     }
                 }
                 out.push_str("{\n");
                 for s in else_body {
-                    out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                    out.push_str(&render_statement(s, indent + 4, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
                 }
                 out.push_str(&format!("{}}}\n", pad));
             }
@@ -1070,7 +785,7 @@ fn render_statement(
         Statement::Return { value } => {
             match value {
                 Some(expr) => {
-                    let rendered = render_return_expr(expr, ctx, registry);
+                    let rendered = render_return_expr(expr, ctx, opt_real_params, registry);
                     format!("{}return {};\n", pad, rendered)
                 }
                 None => format!("{}return;\n", pad),
@@ -1079,19 +794,19 @@ fn render_statement(
         Statement::Break => format!("{}break;\n", pad),
         Statement::Continue => format!("{}continue;\n", pad),
         Statement::Switch { expr, cases, default } => {
-            let mut out = format!("{}match {} {{\n", pad, render_expr(expr, ctx, registry));
+            let mut out = format!("{}match {} {{\n", pad, render_expr(expr, ctx, opt_real_params, registry));
             for (label, case_body) in cases {
                 let rust_label = render_switch_label(label, enums);
                 out.push_str(&format!("{}    {} => {{\n", pad, rust_label));
                 for s in case_body {
-                    out.push_str(&render_statement(s, indent + 8, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                    out.push_str(&render_statement(s, indent + 8, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
                 }
             if !default.is_empty() {
                 out.push_str(&format!("{}    _ => {{\n", pad));
                 for s in default {
-                    out.push_str(&render_statement(s, indent + 8, ctx, for_loop_vars, var_inits, output_names, enums, registry));
+                    out.push_str(&render_statement(s, indent + 8, ctx, for_loop_vars, var_inits, output_names, opt_real_params, enums, registry));
                 }
                 out.push_str(&format!("{}    }}\n", pad));
             }
@@ -1101,8 +816,6 @@ fn render_statement(
     }
 }
 
-/// Map a switch case label to Rust. For enum variant labels like `MAType_SMA`,
-/// look up the integer value from the enum definitions.
 fn render_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String {
     if let Some((_enum_name, variant)) = lookup_variant(label, enums) {
         format!("{}", variant.value)
@@ -1111,14 +824,10 @@ fn render_switch_label(label: &str, enums: &HashMap<String, EnumDef>) -> String 
     }
 }
 
-/// Check if an expression contains array accesses that are NOT wrapped in a Cast.
-/// This is used to determine if an output array assignment needs an `as f64` cast.
-/// Input array accesses that are already cast (e.g., `(double)inReal[i]`) don't need
-/// an outer cast because they're already f64.
 fn expr_has_uncast_array_access(expr: &Expr) -> bool {
     match expr {
         Expr::ArrayAccess(_, _) => true,
-        Expr::Cast(_, _) => false, // Cast wraps the array access, so it's already typed
+        Expr::Cast(_, _) => false,
         Expr::BinOp(left, _, right) => {
             expr_has_uncast_array_access(left) || expr_has_uncast_array_access(right)
         }
@@ -1134,24 +843,28 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
     }
 }
 
-fn render_assign_target(expr: &Expr, ctx: &RustRenderCtx, registry: &Registry) -> String {
+fn render_assign_target(expr: &Expr, ctx: &RustRenderCtx, opt_real_params: &[String], registry: &Registry) -> String {
     match expr {
         Expr::Var(name) if name == "outBegIdx" || name == "outNBElement" => {
             format!("(*{})", name)
         }
         Expr::Var(name) => name.clone(),
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}]", name, render_expr(idx, ctx, registry))
+            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry);
+            if ctx.unchecked {
+                format!("*{}.get_unchecked_mut({})", name, idx_rendered)
+            } else {
+                format!("{}[{}]", name, idx_rendered)
+            }
         }
         Expr::Literal(_) | Expr::IntLiteral(_) | Expr::BinOp(_, _, _)
         | Expr::Cast(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_) | Expr::PostIncrement(_) | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _)
-        => render_expr(expr, ctx, registry),
+        => render_expr(expr, ctx, opt_real_params, registry),
     }
 }
 
-/// Get operator precedence (higher = binds tighter).
 fn op_precedence(op: &BinOp) -> u8 {
     match op {
         BinOp::Or => 1,
@@ -1160,61 +873,62 @@ fn op_precedence(op: &BinOp) -> u8 {
         BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 4,
         BinOp::Add | BinOp::Sub => 5,
         BinOp::Mul | BinOp::Div | BinOp::Mod => 6,
-        BinOp::Shr | BinOp::Shl => 5, // same as additive in Rust
+        BinOp::Shr | BinOp::Shl => 5,
     }
 }
 
-/// Render a BinOp operand, adding parens when the child BinOp has lower precedence
-/// (or same precedence on the right side for left-associative ops).
-/// Also wraps Cast expressions for correct `as` precedence.
 fn render_binop_operand(
     expr: &Expr,
     parent_op: &BinOp,
     is_left: bool,
     ctx: &RustRenderCtx,
+    opt_real_params: &[String],
     registry: &Registry,
 ) -> String {
     match expr {
-        Expr::Cast(_, _) => format!("({})", render_expr(expr, ctx, registry)),
+        Expr::Cast(_, _) => format!("({})", render_expr(expr, ctx, opt_real_params, registry)),
         Expr::BinOp(_, child_op, _) => {
             let parent_prec = op_precedence(parent_op);
             let child_prec = op_precedence(child_op);
-            // Need parens if child has lower precedence, or same precedence on right side
             if child_prec < parent_prec || (!is_left && child_prec == parent_prec) {
-                format!("({})", render_expr(expr, ctx, registry))
+                format!("({})", render_expr(expr, ctx, opt_real_params, registry))
             } else {
-                render_expr(expr, ctx, registry)
+                render_expr(expr, ctx, opt_real_params, registry)
             }
         }
         Expr::Literal(_) | Expr::IntLiteral(_) | Expr::Var(_)
         | Expr::ArrayAccess(_, _) | Expr::Not(_) | Expr::FuncCall(_, _)
         | Expr::PointerDeref(_) | Expr::PostIncrement(_) | Expr::PostDecrement(_)
         | Expr::Ternary(_, _, _)
-        => render_expr(expr, ctx, registry),
+        => render_expr(expr, ctx, opt_real_params, registry),
     }
 }
 
-/// Render a return expression, mapping known enum values to Rust constants.
-fn render_return_expr(expr: &Expr, ctx: &RustRenderCtx, registry: &Registry) -> String {
+fn render_return_expr(expr: &Expr, ctx: &RustRenderCtx, opt_real_params: &[String], registry: &Registry) -> String {
     if let Expr::Var(name) = expr {
         return match name.as_str() {
             "SUCCESS" => "RetCode::Success".to_string(),
             "BadParam" => "RetCode::BadParam".to_string(),
             "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex".to_string(),
             "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex".to_string(),
-            _ => render_expr(expr, ctx, registry),
+            _ => render_expr(expr, ctx, opt_real_params, registry),
         };
     }
-    render_expr(expr, ctx, registry)
+    render_expr(expr, ctx, opt_real_params, registry)
 }
 
-fn render_expr(expr: &Expr, ctx: &RustRenderCtx, registry: &Registry) -> String {
+fn render_expr(expr: &Expr, ctx: &RustRenderCtx, opt_real_params: &[String], registry: &Registry) -> String {
     match expr {
         Expr::Literal(f) => {
-            if *f == f.floor() && f.abs() < 1e15 {
+            let lit_str = if *f == f.floor() && f.abs() < 1e15 {
                 format!("{}.0", *f as i64)
             } else {
                 format!("{}", f)
+            };
+            if ctx.generic {
+                format!("T::ta_from_f64({})", lit_str)
+            } else {
+                lit_str
             }
         }
         Expr::IntLiteral(i) => format!("{}", i),
@@ -1224,12 +938,23 @@ fn render_expr(expr: &Expr, ctx: &RustRenderCtx, registry: &Registry) -> String 
             "DEFAULT" => "Compatibility::Default".to_string(),
             "BAD_PARAM" => "RetCode::BadParam".to_string(),
             "SUCCESS" => "RetCode::Success".to_string(),
-            _ => name.clone(),
+            _ => {
+                if ctx.generic && opt_real_params.contains(name) {
+                    format!("T::ta_from_f64({})", name)
+                } else {
+                    name.clone()
+                }
+            }
         },
         Expr::ArrayAccess(name, idx) => {
-            format!("{}[{}]", name, render_expr(idx, ctx, registry))
+            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry);
+            if ctx.unchecked {
+                format!("*{}.get_unchecked({})", name, idx_rendered)
+            } else {
+                format!("{}[{}]", name, idx_rendered)
+            }
         }
-        Expr::FuncCall(fname, args) => render_func_call(fname, args, ctx, registry),
+        Expr::FuncCall(fname, args) => render_func_call(fname, args, ctx, opt_real_params, registry),
         Expr::BinOp(left, op, right) => {
             let op_str = match op {
                 BinOp::Add => " + ",
@@ -1248,46 +973,57 @@ fn render_expr(expr: &Expr, ctx: &RustRenderCtx, registry: &Registry) -> String 
                 BinOp::Shr => " >> ",
                 BinOp::Shl => " << ",
             };
-            // Wrap Cast subexpressions in parens for correct Rust `as` precedence
-            let left_str = render_binop_operand(left, op, true, ctx, registry);
-            let right_str = render_binop_operand(right, op, false, ctx, registry);
-            format!(
-                "{}{}{}",
-                left_str,
-                op_str,
-                right_str
-            )
+            let left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry);
+            let right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry);
+            format!("{}{}{}", left_str, op_str, right_str)
         }
         Expr::Cast(var_type, inner) => {
-            let rust_type = match var_type {
-                VarType::Real => "f64",
-                VarType::Integer => "i32",
-                VarType::Index => "usize",
-                VarType::RetCodeType => "RetCode",
-            };
-            format!("({}) as {}", render_expr(inner, ctx, registry), rust_type)
+            if ctx.generic && *var_type == VarType::Real {
+                if expr_is_integer(inner) {
+                    format!("T::ta_from_i32({})", render_expr(inner, ctx, opt_real_params, registry))
+                } else {
+                    format!("T::ta_from_f64(({}).ta_to_f64())", render_expr(inner, ctx, opt_real_params, registry))
+                }
+            } else {
+                let rust_type = match var_type {
+                    VarType::Real => "f64",
+                    VarType::Integer => "i32",
+                    VarType::Index => "usize",
+                    VarType::RetCodeType => "RetCode",
+                };
+                format!("({}) as {}", render_expr(inner, ctx, opt_real_params, registry), rust_type)
+            }
         }
         Expr::Not(inner) => {
-            format!("!({})", render_expr(inner, ctx, registry))
+            format!("!({})", render_expr(inner, ctx, opt_real_params, registry))
         }
         Expr::PointerDeref(name) => format!("(*{})", name),
         Expr::PostIncrement(inner) => {
-            // Rust doesn't have postfix ++ — render as a block expression
-            let rendered = render_expr(inner, ctx, registry);
+            let rendered = render_expr(inner, ctx, opt_real_params, registry);
             format!("{{ let _v = {}; {} += 1; _v }}", rendered, rendered)
         }
         Expr::PostDecrement(inner) => {
-            let rendered = render_expr(inner, ctx, registry);
+            let rendered = render_expr(inner, ctx, opt_real_params, registry);
             format!("{{ let _v = {}; {} -= 1; _v }}", rendered, rendered)
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
                 "if {} {{ {} }} else {{ {} }}",
-                render_expr(cond, ctx, registry),
-                render_expr(then_expr, ctx, registry),
-                render_expr(else_expr, ctx, registry)
+                render_expr(cond, ctx, opt_real_params, registry),
+                render_expr(then_expr, ctx, opt_real_params, registry),
+                render_expr(else_expr, ctx, opt_real_params, registry)
             )
         }
+    }
+}
+
+/// Check if an expression is clearly integer-typed (for Cast optimization in generic mode).
+fn expr_is_integer(expr: &Expr) -> bool {
+    match expr {
+        Expr::IntLiteral(_) => true,
+        Expr::Var(_) => false,
+        Expr::Cast(VarType::Integer, _) | Expr::Cast(VarType::Index, _) => true,
+        _ => false,
     }
 }
 
@@ -1297,8 +1033,8 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, r
     let empty_for_loop_vars: Vec<String> = Vec::new();
     let empty_var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
     let empty_output_names: Vec<String> = Vec::new();
+    let empty_opt_real_params: Vec<String> = Vec::new();
 
-    // Declare local variables from VarDecl statements
     for stmt in stmts {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
             let rust_type = match var_type {
@@ -1307,7 +1043,6 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, r
                 VarType::Index => "usize",
                 VarType::RetCodeType => "RetCode",
             };
-            // Count assignments to determine mutability
             let total_assigns = count_assignments(name, stmts);
             let needs_mut = total_assigns > 1;
             if needs_mut {
@@ -1318,7 +1053,6 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, r
         }
     }
 
-    // Render non-VarDecl statements
     let lookback_ctx = RustRenderCtx::concrete();
     for stmt in stmts {
         if matches!(stmt, Statement::VarDecl { .. }) {
@@ -1331,6 +1065,7 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, r
             &empty_for_loop_vars,
             &empty_var_inits,
             &empty_output_names,
+            &empty_opt_real_params,
             enums,
             registry,
         ));
@@ -1339,8 +1074,6 @@ fn render_lookback_code(stmts: &[Statement], enums: &HashMap<String, EnumDef>, r
     out
 }
 
-/// Convert a function identifier to PascalCase for FuncUnstId enum.
-/// e.g., "RSI" -> "Rsi", "SMA" -> "Sma"
 fn to_pascal_case(s: &str) -> String {
     let lower = s.to_lowercase();
     let mut chars = lower.chars();
@@ -1350,97 +1083,94 @@ fn to_pascal_case(s: &str) -> String {
     }
 }
 
-/// Render a FuncCall expression to Rust code.
-fn render_func_call(fname: &str, args: &[Expr], ctx: &RustRenderCtx, registry: &Registry) -> String {
+/// Known math functions that map to TaFloat trait methods.
+const MATH_FUNCTIONS: &[&str] = &[
+    "sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "exp", "log", "log10",
+    "ceil", "floor", "abs", "fabs",
+];
+
+fn render_func_call(fname: &str, args: &[Expr], ctx: &RustRenderCtx, opt_real_params: &[String], registry: &Registry) -> String {
     if fname == "UNSTABLE_PERIOD" {
-        // UNSTABLE_PERIOD(RSI) -> self.unstable_period[FuncUnstId::Rsi as usize]
         if let Some(Expr::Var(func_name)) = args.first() {
             let pascal = to_pascal_case(func_name);
             return format!("self.unstable_period[FuncUnstId::{} as usize]", pascal);
         }
         "self.unstable_period[0]".to_string()
     } else if fname == "COMPATIBILITY" {
-        // COMPATIBILITY() -> self.compatibility
         "self.compatibility".to_string()
     } else if fname == "IS_ZERO" {
-        // IS_ZERO(x) -> ((-(0.00000000000001)) < x) && (x < (0.00000000000001))
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry);
-            return format!(
-                "((-(0.00000000000001)) < {}) && ({} < (0.00000000000001))",
-                x, x
-            );
-        }
-        "false".to_string()
-    } else if fname == "ARRAY_COPY" {
-        // ARRAY_COPY(dst, dstOff, src, srcOff, count)
-        if args.len() == 5 {
-            let dst = render_expr(&args[0], ctx, registry);
-            let dst_off = render_expr(&args[1], ctx, registry);
-            let src = render_expr(&args[2], ctx, registry);
-            let src_off = render_expr(&args[3], ctx, registry);
-            let count = render_expr(&args[4], ctx, registry);
-            if ctx.single_precision {
-                // f32 -> f64: element-wise loop
-                return format!(
-                    "{{\n            let _n = ({}) as usize;\n            let _di = ({}) as usize;\n            let _si = ({}) as usize;\n            for _k in 0.._n {{\n                {}[_di + _k] = {}[_si + _k] as f64;\n            }}\n        }}",
-                    count, dst_off, src_off, dst, src
-                );
+            let x = render_expr(arg, ctx, opt_real_params, registry);
+            if ctx.generic {
+                return format!("{}.ta_abs() < T::ta_epsilon()", x);
             } else {
-                // f64 -> f64: copy_from_slice
                 return format!(
-                    "{{\n            let _n = ({}) as usize;\n            let _di = ({}) as usize;\n            let _si = ({}) as usize;\n            {}[_di.._di + _n].copy_from_slice(&{}[_si.._si + _n]);\n        }}",
-                    count, dst_off, src_off, dst, src
+                    "((-(0.00000000000001)) < {}) && ({} < (0.00000000000001))",
+                    x, x
                 );
             }
         }
+        "false".to_string()
+    } else if fname == "ARRAY_COPY" {
+        if args.len() == 5 {
+            let dst = render_expr(&args[0], ctx, opt_real_params, registry);
+            let dst_off = render_expr(&args[1], ctx, opt_real_params, registry);
+            let src = render_expr(&args[2], ctx, opt_real_params, registry);
+            let src_off = render_expr(&args[3], ctx, opt_real_params, registry);
+            let count = render_expr(&args[4], ctx, opt_real_params, registry);
+            return format!(
+                "{{\n            let _n = ({}) as usize;\n            let _di = ({}) as usize;\n            let _si = ({}) as usize;\n            {}[_di.._di + _n].copy_from_slice(&{}[_si.._si + _n]);\n        }}",
+                count, dst_off, src_off, dst, src
+            );
+        }
         "/* ARRAY_COPY: bad args */".to_string()
     } else if fname == "PER_TO_K" {
-        // PER_TO_K(period) -> 2.0_f64 / ((period) as f64 + 1.0_f64)
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, registry);
-            return format!("2.0_f64 / (({}) as f64 + 1.0_f64)", x);
+            let x = render_expr(arg, ctx, opt_real_params, registry);
+            if ctx.generic {
+                return format!("T::ta_from_f64(2.0) / (T::ta_from_i32({}) + T::ta_one())", x);
+            } else {
+                return format!("2.0_f64 / (({}) as f64 + 1.0_f64)", x);
+            }
         }
-        "0.0_f64".to_string()
+        if ctx.generic { "T::ta_zero()".to_string() } else { "0.0_f64".to_string() }
     } else if fname.ends_with("_Lookback") {
-        // RSI_Lookback(args...) -> self.rsi_lookback(args...)
         let rust_name = fname.to_lowercase();
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, registry)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, opt_real_params, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if fname.ends_with("_lookback") {
-        // sma_lookback(args...) -> self.sma_lookback(args...)  (prefix-free names from C source)
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, registry)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, opt_real_params, registry)).collect();
         format!("self.{}({})", fname, rendered_args.join(", "))
     } else if registry.contains(fname) {
-        // Bare indicator name cross-call: sma(args...) -> self.sma_logic(args...) or self.sma_logic_s(args...) for single precision
-        let rust_name = if ctx.single_precision {
-            format!("{}_logic_s", fname)
+        let rust_name = if ctx.generic {
+            format!("{}_unguarded", fname)
         } else {
             format!("{}_logic", fname)
         };
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, registry)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, opt_real_params, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if is_ta_function(fname) {
-        // TA function call: SMA(...) -> self.sma(...) or self.sma_s(...) for single precision
-        let rust_name = if ctx.single_precision {
-            format!("{}_s", fname.to_lowercase())
-        } else {
-            fname.to_lowercase()
-        };
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, registry)).collect();
+        let rust_name = fname.to_lowercase();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, opt_real_params, registry)).collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
+    } else if ctx.generic && is_math_function(fname) {
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, ctx, opt_real_params, registry);
+            let method = if fname == "fabs" { "ta_abs".to_string() } else { format!("ta_{}", fname) };
+            return format!("{}.{}()", x, method);
+        }
+        format!("{}()", fname)
     } else {
-        // Generic function call (math functions etc.)
-        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, registry)).collect();
+        let rendered_args: Vec<String> = args.iter().map(|a| render_expr(a, ctx, opt_real_params, registry)).collect();
         format!("{}({})", fname, rendered_args.join(", "))
     }
 }
 
-/// Check if a function name is a known TA-Lib function (uppercase name).
-/// These get mapped to self.name() method calls in Rust.
+fn is_math_function(name: &str) -> bool {
+    MATH_FUNCTIONS.contains(&name)
+}
+
 fn is_ta_function(name: &str) -> bool {
-    // TA function names are all-uppercase (SMA, EMA, RSI, etc.)
-    // Exclude known builtins that are handled separately
     !name.is_empty()
         && name.chars().all(|c| c.is_ascii_uppercase() || c == '_')
         && !matches!(
