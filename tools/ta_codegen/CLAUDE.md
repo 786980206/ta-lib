@@ -71,11 +71,11 @@ Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expr
 - Server generation for all 5 languages (C, Java, .NET, Python/SWIG, Rust)
 - `ta_codegen build` compiles servers into executables in `bin/`
 
-**What's limited (the gap to close):**
-- Only 3 hand-coded test callbacks in `test_codegen.c`: SMA, MULT, RSI — each manually builds JSON-RPC requests
-- Need a **generic callback** that auto-generates requests from function metadata (YAML/IR) to cover all 158 indicators
-- No `list_functions` discovery — servers don't report what they support yet
-- No timing data collection from servers
+**What's working end-to-end:**
+- Generic callback in `test_codegen.c` auto-generates JSON-RPC requests from ta_abstract metadata for all 158 indicators
+- `list_functions` implemented — servers report available indicators with parameter metadata
+- `timing_ns` returned with each response — ta_regtest collects and prints a timing summary
+- `set_unstable_period` and `set_compatibility` implemented for all 24 unstable-period functions
 
 ### How It Works
 
@@ -86,11 +86,11 @@ Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expr
 5. For each indicator, ta_regtest calls the C reference AND sends the same call to the server
 6. `compare_codegen_output()` validates retCode, outBegIdx, outNbElement, and output values match
 
-### What This Replaces
+### What This Replaced
 
-- **Rust FFI layer** (`rust/ffi/`) — legacy approach where C calls Rust via `extern "C"`. Being replaced by server architecture.
-- **Hand-written Rust test files** (`rust/tests/mult_test.rs`, `sma_test.rs`, `rsi_test.rs`) — legacy from manual porting. All indicator testing should go through ta_regtest.
-- **`ta_regtest_rust` CMake target** — linked ta_regtest against Rust staticlib. Replaced by server-based approach.
+- **Rust FFI layer** (`rust/ffi/`) — legacy `extern "C"` wrappers letting C call Rust directly. Deleted in favor of server architecture.
+- **Hand-written Rust test files** (`rust/tests/mult_test.rs`, `sma_test.rs`, `rsi_test.rs`) — legacy from manual porting phase. Deleted; all indicator testing goes through ta_regtest.
+- **`ta_regtest_rust` CMake target** — linked ta_regtest against Rust staticlib. Deleted; replaced by server-based approach.
 
 ### Server Protocol
 
@@ -121,18 +121,15 @@ JSON-RPC over stdin/stdout.
 {"retCode": 0, "outBegIdx": 14, "outNBElement": 50, "outInteger": [...]}
 ```
 
-**Not yet implemented:**
-- `list_functions` — report available indicators with parameter metadata
-- `set_unstable_period` / `set_compatibility` — global state management
-- `timing_ns` — execution timing per call
-
-### Server Gen Gaps
-
-Current `server_gen.rs` limitations that need fixing:
-- `func_unst_id()` only maps EMA and RSI — needs all 24 unstable-period functions (ADX, ADXR, ATR, CMO, DX, EMA, HT_DCPERIOD, HT_DCPHASE, HT_PHASOR, HT_SINE, HT_TRENDLINE, HT_TRENDMODE, IMI, KAMA, MAMA, MFI, MINUS_DI, MINUS_DM, NATR, PLUS_DI, PLUS_DM, RSI, STOCHRSI, T3)
-- Optional param parsing uses `json_find_int` for all params — needs `json_find_double` for `TA_OptInput_RealRange` params (e.g., BBANDS' `optInNbDevUp`, SAR's `optInAcceleration`)
-- Only handles single `Real` input — needs `Price` input support (OHLCV arrays)
-- Only handles single output buffer — needs multi-output support
+**Server protocol is complete:**
+- `list_functions` — servers report available indicators with parameter metadata
+- `set_unstable_period` / `set_compatibility` — global state management implemented
+- `timing_ns` — execution timing returned with every response
+- All 24 unstable-period functions mapped in `func_unst_id()`
+- Real-valued optional params use `json_find_double` (e.g., BBANDS `optInNbDevUp`, SAR `optInAcceleration`)
+- Price input support (OHLCV arrays) for STOCH, BBANDS, ADX, MACD, etc.
+- Multi-output support (BBANDS=3, MACD=3, STOCH=2) with `outReal`, `outReal1`, `outReal2`
+- Integer output support (CDL* patterns, MINMAXINDEX) with `outInteger`
 
 ## Rust Backend Details
 

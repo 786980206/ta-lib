@@ -85,15 +85,23 @@ cd rust && cargo test
 # Format and lint Rust code (done automatically by gen_code)
 cd rust && cargo fix --lib -p ta-lib --allow-dirty && cargo fmt
 
-# Build and run ta_regtest against Rust implementations
-cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release -DENABLE_RUST_REGTEST=ON && make ta_regtest_rust -j4
-cd ../bin && ./ta_regtest_rust --function=RSI
+# Build ta_regtest (universal test runner)
+cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make ta_regtest -j4
+
+# Run C reference tests (standard)
+cd ../bin && ./ta_regtest
+
+# Run codegen verification against all languages (all 158 indicators)
+./ta_regtest --codegen
+
+# Run codegen verification, skip C reference tests
+./ta_regtest --codegen-only
+
+# Filter by language and function
+./ta_regtest --codegen --language=c,rust --function=RSI,SMA
 
 # Run ta_regtest with multiple function filters
-./ta_regtest_rust --function=MATH,RSI,"Moving Averages"
-
-# Run C ta_regtest (unchanged, validates C code)
-./ta_regtest
+./ta_regtest --function=MATH,RSI,"Moving Averages"
 ```
 
 ## Cross-Language Regression Testing
@@ -122,17 +130,13 @@ All of ta_regtest's existing test logic, test data, range testing, and expected 
 
 ### Current State
 
-The plumbing is complete — `codegen_pipe.c/h` handles subprocess management and JSON-RPC communication. `test_codegen.c` has full multi-language orchestration, doRangeTest integration, and output comparison. Currently 3 hand-coded test callbacks (SMA, MULT, RSI). The gap is generalizing to all 158 indicators automatically using function metadata.
-
-### Complexity Beyond the 3 Simple Functions
-
-The 3 existing test callbacks (SMA, MULT, RSI) are the easy case: single real inputs, single real output, integer optional params. Scaling to all 158 indicators requires handling:
-- **Price inputs** (STOCH, BBANDS, ADX) — OHLCV arrays mapped from `TA_History` via `TA_InputParameterInfo.flags`
-- **Multi-output** (BBANDS=3, MACD=3, STOCH=2) — `doRangeTest` calls per-output via `outputNb`
-- **Integer outputs** (CDL* candlestick patterns, MINMAXINDEX) — exact match comparison
-- **Real optional params** (BBANDS `optInNbDevUp`, SAR `optInAcceleration`) — servers currently only parse ints
-- **24 unstable-period functions** — must propagate unstable period to servers
-- **`doRangeTest` ↔ `TA_CallFunc` bridging** — `TA_CallFunc` fills all outputs at once, callback must copy per-`outputNb`
+The system is fully implemented. `codegen_pipe.c/h` handles subprocess management and JSON-RPC communication. `test_codegen.c` has a generic callback driven by `TA_ForEachFunc` enumeration — it covers all 158 indicators automatically using ta_abstract function metadata. The callback handles:
+- Price inputs (STOCH, BBANDS, ADX) via `TA_InputParameterInfo.flags` → OHLCV arrays
+- Multi-output functions (BBANDS=3, MACD=3, STOCH=2) via per-`outputNb` `doRangeTest` calls
+- Integer outputs (CDL* candlestick patterns, MINMAXINDEX) with exact match comparison
+- Real optional params (BBANDS `optInNbDevUp`, SAR `optInAcceleration`) via `json_find_double`
+- All 24 unstable-period functions with `unstablePeriod` propagation to servers
+- Timing summary, cross-language comparison table, and JSONL report output
 
 See `src/tools/ta_regtest/CLAUDE.md` and `tools/ta_codegen/CLAUDE.md` for detailed specs.
 
@@ -160,12 +164,6 @@ The `--function` flag accepts a comma-separated list of names. Each name is subs
 | `ADX` | ADX,ADXR,DI,DM,DX |
 
 Without `--function`, all test groups run (existing behavior).
-
-### Legacy Approaches (being replaced)
-
-- **Rust FFI layer** (`rust/ffi/`) — `extern "C"` wrappers letting C call Rust directly. Replaced by server architecture.
-- **`ta_regtest_rust` CMake target** — linked ta_regtest against Rust staticlib. Replaced by server approach.
-- **Hand-written Rust test files** (`rust/tests/mult_test.rs`, `sma_test.rs`, `rsi_test.rs`) — from manual porting phase. All indicator testing goes through ta_regtest.
 
 ### Key Files
 
