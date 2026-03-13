@@ -247,8 +247,34 @@ fn gen_func(
     out
 }
 
+/// Render a ForC init or update clause. If it's a Block with multiple
+/// statements, comma-separate them instead of using semicolons.
+fn render_forc_part(
+    stmt: &Statement,
+    single_precision: bool,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+) -> String {
+    match stmt {
+        Statement::Block { body } => body
+            .iter()
+            .map(|s| {
+                render_statement(s, 0, single_precision, enums, registry)
+                    .trim()
+                    .trim_end_matches(';')
+                    .to_string()
+            })
+            .collect::<Vec<_>>()
+            .join(", "),
+        _ => render_statement(stmt, 0, single_precision, enums, registry)
+            .trim()
+            .trim_end_matches(';')
+            .to_string(),
+    }
+}
+
 #[allow(clippy::too_many_lines)]
-fn render_statement(
+pub fn render_statement(
     stmt: &Statement,
     indent: usize,
     single_precision: bool,
@@ -460,14 +486,8 @@ fn render_statement(
             update,
             body,
         } => {
-            let init_str = render_statement(init, 0, single_precision, enums, registry)
-                .trim()
-                .trim_end_matches(';')
-                .to_string();
-            let update_str = render_statement(update, 0, single_precision, enums, registry)
-                .trim()
-                .trim_end_matches(';')
-                .to_string();
+            let init_str = render_forc_part(init, single_precision, enums, registry);
+            let update_str = render_forc_part(update, single_precision, enums, registry);
             let mut out = format!(
                 "{}for( {}; {}; {} )\n{}{{\n",
                 pad,
