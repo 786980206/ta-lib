@@ -1092,3 +1092,48 @@ fn test_all_indicators_contain_success_returns() {
         );
     }
 }
+
+// ---------------------------------------------------------------------------
+// Rust generic output smoke test
+// ---------------------------------------------------------------------------
+
+#[test]
+fn test_rust_generic_output_smoke() {
+    let (func, enums) = load_indicator("sma");
+    let out = generate_all(&func, &enums);
+    let r = &out.rust;
+
+    // 1. Generic signatures present
+    assert!(
+        r.contains("<T: TaFloat>"),
+        "Rust SMA should use generic <T: TaFloat> signatures"
+    );
+
+    // 2. No _s suffix methods
+    assert!(
+        !r.contains("fn sma_s(") && !r.contains("fn sma_s<"),
+        "Rust SMA should NOT contain _s suffixed methods"
+    );
+
+    // 3. Output params use generic T
+    assert!(
+        r.contains("&mut [T]"),
+        "Rust SMA output params should use generic type &mut [T]"
+    );
+
+    // 4. Input params use generic T
+    assert!(
+        r.contains("&[T]"),
+        "Rust SMA input params should use generic type &[T]"
+    );
+
+    // 5. No f64-specific function signatures (except lookback which is non-generic)
+    // The guarded/unguarded/unchecked functions should NOT have f64 in their signature
+    assert!(
+        !r.contains("fn sma(&self") && !r.contains("pub fn sma(&self"),
+        "Rust SMA should use generic signature, not concrete f64"
+    );
+
+    // 6. Verify also for an indicator with optional Real inputs (if any exist)
+    // For now SMA is sufficient as it covers the common case
+}
