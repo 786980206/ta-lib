@@ -12,27 +12,39 @@ There are 164 directories in `ta_func_defs/`. The 6 working functions already co
 
 The `extract` command pulls logic from `src/ta_func/ta_*.c` into `ta_func_defs/<name>/<name>.c`. These extracted files preserve macro invocations. The parser handles some macros correctly (converting them to useful IR), but others are either parsed with args discarded or not recognized at all.
 
-**Macros the parser already resolves (backends handle these):**
+**Cross-language macros the parser currently resolves (still need removal):**
 
-| Macro | Parser output |
-|-------|--------------|
-| `ENUM_DECLARATION(RetCode) retCode;` | `VarDecl { type: RetCodeType, name: retCode }` |
-| `ARRAY_REF(buf)` | `VarDecl { type: Real, name: buf }` (pointer decl) |
-| `CONSTANT_DOUBLE(name) = value;` | `VarDecl { type: Real, name, init }` |
-| `CONSTANT_INTEGER(name) = value;` | `VarDecl { type: Integer, name, init }` |
-| `HILBERT_VARIABLES(prefix)` | Multi-variable declaration |
-| `INIT_HILBERT_VARIABLES(...)` | `FuncCall(name, args)` — args preserved |
-| `DO_HILBERT_ODD(...)` / `DO_HILBERT_EVEN(...)` | `FuncCall(name, args)` — args preserved |
-| `DO_PRICE_WMA(...)` | `FuncCall(name, args)` — args preserved |
-| `TA_GetUnstablePeriod(X)` | Translated to `UNSTABLE_PERIOD` |
-| `TA_GetCompatibility()` | Translated to `COMPATIBILITY` |
-| `CIRCBUF_REF(arr[idx])field` | `ArrayAccess("arr_field", idx)` |
-| `TA_IS_ZERO(x)` | `FuncCall("IS_ZERO", args)` |
-| `CAST_TO_INDEX(v)` / `CAST_TO_I32(v)` / `CAST_TO_F64(v)` | `FuncCall` with args preserved |
-| `UNUSED_VARIABLE(x)` | `FuncCall(name, args)` — ALL_CAPS handler |
-| `TRUE_RANGE(...)` / `SAR_ROUNDING(...)` | `FuncCall(name, args)` — ALL_CAPS handler |
+These macros exist solely to enable cross-language compilation in the legacy `gen_code` pipeline. Even though the parser handles them today, they should be replaced with plain C to simplify the source files and eliminate parser complexity.
 
-These macros do NOT need replacement in the extracted source files.
+| Macro | Plain C replacement |
+|-------|-------------------|
+| `ENUM_DECLARATION(RetCode) retCode;` | `TA_RetCode retCode;` |
+| `ARRAY_REF(buf)` | `double *buf;` |
+| `CONSTANT_DOUBLE(name) = value;` | `const double name = value;` |
+| `CONSTANT_INTEGER(name) = value;` | `const int name = value;` |
+| `TA_IS_ZERO(x)` | `((-0.00000001 < x) && (x < 0.00000001))` |
+| `CAST_TO_INDEX(v)` | `(int)(v)` |
+| `CAST_TO_I32(v)` | `(int)(v)` |
+| `CAST_TO_F64(v)` | `(double)(v)` |
+| `UNUSED_VARIABLE(x)` | `(void)x;` |
+| `TA_GetUnstablePeriod(X)` | `TA_GetUnstablePeriod(TA_FUNC_UNST_##X)` (plain function call) |
+| `TA_GetCompatibility()` | `TA_GetCompatibility()` (already plain C — just ensure parser handles it) |
+
+**Reusability macros — consider helper files:**
+
+These macros exist for code reuse across multiple indicators, not cross-language switching. They should be pulled into a shared helper file that the parser processes separately, or inline-expanded in each extracted `.c` file.
+
+| Macro | Used in | Strategy |
+|-------|---------|----------|
+| `HILBERT_VARIABLES(prefix)` | 6 HT_* files | Shared helper (declares ~20 vars per prefix) |
+| `INIT_HILBERT_VARIABLES(...)` | 6 HT_* files | Shared helper |
+| `DO_HILBERT_ODD(...)` / `DO_HILBERT_EVEN(...)` | 6 HT_* files | Shared helper |
+| `DO_PRICE_WMA(...)` | 6 HT_* files | Shared helper |
+| `TRUE_RANGE(TH,TL,YC,OUT)` | adx, adxr, dx, minus_di, plus_di, trange | Inline-expand (simple block) |
+| `SAR_ROUNDING(v)` | sar, sarext | Inline-expand |
+| `CIRCBUF_REF(arr[idx])field` | mfi, cci | Inline-expand to `arr[idx].field` |
+
+For the Hilbert transform family: these 4 macros are used identically across 6 files (`ht_trendmode`, `ht_dcperiod`, `ht_dcphase`, `ht_phasor`, `ht_sine`, `ht_trendline`). Best approach: extract into a `ta_func_defs/_helpers/hilbert.c` shared helper that gets parsed once and included in each HT function's IR.
 
 **Macros the parser recognizes but discards args (19 files, ~113 occurrences):**
 
@@ -111,7 +123,7 @@ Important: we modify ONLY the `ta_func_defs/<name>/<name>.c` files. The old `src
 
 #### Which macros need replacement
 
-Only macros the parser discards args for or doesn't recognize. Macros the parser already resolves correctly (see table in Root Causes §1) stay as-is.
+ALL macros that exist for cross-language compilation get replaced with plain C — even ones the parser currently handles. This simplifies the source files and reduces parser complexity. Reusability macros (Hilbert helpers, TRUE_RANGE, etc.) get either inline-expanded or pulled into shared helper files.
 
 #### Macro → Plain C mapping
 
@@ -146,13 +158,13 @@ The CIRCBUF family has multiple variants. MFI uses class-based circular buffers 
 | `CIRCBUF_NEXT(buf)` | `buf_Idx = (buf_Idx + 1) % bufSize;` (bufSize from context) |
 | `CIRCBUF_DESTROY(buf)` | *(no-op for stack-allocated buffers)* |
 
-Note: `CIRCBUF_REF(arr[idx])field` is already handled by the parser (converts to `ArrayAccess`). No source replacement needed.
+Note: `CIRCBUF_REF(arr[idx])field` should be inline-expanded to `arr[idx].field` in the source (see reusability macros table above).
 
 **Local `#define` macros:**
 
 For simple constants (e.g., `#define SMOOTH_PRICE_SIZE 50`), replace with `const int SMOOTH_PRICE_SIZE = 50;`.
 
-For function-like local macros (`TRUE_RANGE`, `DO_PRICE_WMA`, `CALC_TERMS`), these are already parsed by the ALL_CAPS handler into `FuncCall` nodes with args preserved. The backends need to recognize and expand them. Strategy: inline-expand these macros in the extracted `.c` files where the expansion is straightforward. For complex ones (e.g., Hilbert transform macros), keep as-is since the parser already handles them.
+For function-like local macros (`TRUE_RANGE`, `CALC_TERMS`, etc.), inline-expand them in the extracted `.c` files — replace the `#define` and all call sites with the equivalent plain C block. For complex shared macros (Hilbert transform family), extract into shared helper files (see reusability macros table in Root Causes §1).
 
 **Standard library wrappers:**
 
@@ -242,7 +254,6 @@ SWIG backend exports the same function names as the C backend. Ensure the SWIG `
 - Modifying the legacy `gen_code.c` pipeline
 - Adding new indicators
 - Performance optimization of generated code (beyond idiomatic patterns)
-- Macros already handled by the parser (ENUM_DECLARATION, ARRAY_REF, CONSTANT_DOUBLE, HILBERT_VARIABLES, TA_GetUnstablePeriod, TA_GetCompatibility, CIRCBUF_REF, TA_IS_ZERO, CAST_TO_*, UNUSED_VARIABLE, TRUE_RANGE, SAR_ROUNDING)
 
 ## Verification
 
