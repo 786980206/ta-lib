@@ -1,0 +1,166 @@
+# ta_codegen — TA-Lib Code Generation Tool
+
+## What This Is
+
+`ta_codegen` is the Rust-based code generator that replaces the old `gen_code.c` pipeline for indicator code generation. It reads YAML function definitions extracted from the C source, produces language-specific indicator implementations, and generates JSON-RPC servers for cross-language regression testing.
+
+## Architecture
+
+```
+ta_func_defs/*.yaml          (extracted indicator definitions)
+       ↓
+    parser                   (YAML → raw parsed structs)
+       ↓
+    ir                       (parsed → FuncDef intermediate representation)
+       ↓
+  ┌────┴────┐
+backends  server_gen
+  ↓           ↓
+rust_lang.rs  JSON-RPC servers (C, Java, .NET, Python/SWIG)
+  ↓
+rust/src/ta_func/*.rs        (generated indicator code)
+```
+
+### Key Modules
+
+| Module | Purpose |
+|--------|---------|
+| `parser` | Parses YAML files into raw function definitions |
+| `ir` | Intermediate representation (`FuncDef`, `ParamType`, etc.) |
+| `extractor` | Extracts indicator definitions from C source files → YAML |
+| `backends/rust_lang.rs` | Generates Rust indicator implementations with `<T: TaFloat>` generics |
+| `server_gen` | Generates JSON-RPC server wrappers for each target language |
+| `registry` | Function registry for tracking available indicators |
+
+## Commands
+
+```bash
+# Run from tools/ta_codegen/
+cargo run -- generate                        # Generate indicator code for all backends
+cargo run -- generate --func=SMA,RSI         # Generate specific functions
+cargo run -- generate --backend=rust         # Generate for specific backend
+
+cargo run -- generate-servers                # Generate JSON-RPC servers for all languages
+cargo run -- generate-servers --backend=c    # Generate server for specific language
+
+cargo run -- build                           # Compile generated servers into executables
+cargo run -- build --backend=c,java          # Build specific servers
+
+cargo run -- extract                         # Extract all indicators from C source → YAML
+cargo run -- extract --function=EMA          # Extract specific indicator
+```
+
+## Testing
+
+```bash
+cd tools/ta_codegen && cargo test            # Run all 97+ tests
+cd tools/ta_codegen && cargo clippy          # Strict pedantic lints enabled
+```
+
+Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expression types, generic signatures, and function variants.
+
+## Cross-Language Testing Architecture
+
+**The big picture**: `ta_regtest` is the universal test runner. It should test ALL languages, not just C.
+
+### Current State
+
+**Fully working:**
+- `codegen_pipe.c/h` in ta_regtest — complete subprocess pipe abstraction (fork, exec, stdin/stdout JSON-RPC)
+- `test_codegen.c/h` in ta_regtest — full orchestration: multi-language loop, JSON helpers, `doRangeTest` integration, epsilon comparison (`1e-6`), language/function filters
+- Server generation for all 5 languages (C, Java, .NET, Python/SWIG, Rust)
+- `ta_codegen build` compiles servers into executables in `bin/`
+
+**What's limited (the gap to close):**
+- Only 3 hand-coded test callbacks in `test_codegen.c`: SMA, MULT, RSI — each manually builds JSON-RPC requests
+- Need a **generic callback** that auto-generates requests from function metadata (YAML/IR) to cover all 158 indicators
+- No `list_functions` discovery — servers don't report what they support yet
+- No timing data collection from servers
+
+### How It Works
+
+1. `ta_codegen generate-servers` produces a JSON-RPC server per language
+2. `ta_codegen build` compiles them into executables in `bin/`
+3. Each server reads JSON-RPC from stdin, dispatches to compiled indicators, writes responses to stdout
+4. `ta_regtest` spawns each server as a subprocess via `codegen_pipe`
+5. For each indicator, ta_regtest calls the C reference AND sends the same call to the server
+6. `compare_codegen_output()` validates retCode, outBegIdx, outNbElement, and output values match
+
+### What This Replaces
+
+- **Rust FFI layer** (`rust/ffi/`) — legacy approach where C calls Rust via `extern "C"`. Being replaced by server architecture.
+- **Hand-written Rust test files** (`rust/tests/mult_test.rs`, `sma_test.rs`, `rsi_test.rs`) — legacy from manual porting. All indicator testing should go through ta_regtest.
+- **`ta_regtest_rust` CMake target** — linked ta_regtest against Rust staticlib. Replaced by server-based approach.
+
+### Server Protocol
+
+JSON-RPC over stdin/stdout.
+
+**Request format:**
+```json
+{"method": "TA_SMA", "params": {"startIdx": 0, "endIdx": 251, "optInTimePeriod": 30, "inReal": [...]}}
+```
+
+**Input types vary by function:**
+- `inReal` / `inReal0` / `inReal1` — for functions with `TA_Input_Real` params
+- `inHigh`, `inLow`, `inClose`, etc. — for functions with `TA_Input_Price` params (STOCH, BBANDS, ADX, etc.)
+- The server must handle both styles based on the function's signature
+
+**Response format:**
+```json
+{"retCode": 0, "outBegIdx": 14, "outNBElement": 237, "outReal": [...], "timing_ns": 1842}
+```
+
+**Multi-output functions** (STOCH, BBANDS, MACD, etc.) return multiple arrays:
+```json
+{"retCode": 0, "outBegIdx": 14, "outNBElement": 50, "outReal": [...], "outReal1": [...], "outReal2": [...]}
+```
+
+**Integer output functions** (CDL* candlestick patterns, MINMAXINDEX) return:
+```json
+{"retCode": 0, "outBegIdx": 14, "outNBElement": 50, "outInteger": [...]}
+```
+
+**Not yet implemented:**
+- `list_functions` — report available indicators with parameter metadata
+- `set_unstable_period` / `set_compatibility` — global state management
+- `timing_ns` — execution timing per call
+
+### Server Gen Gaps
+
+Current `server_gen.rs` limitations that need fixing:
+- `func_unst_id()` only maps EMA and RSI — needs all 24 unstable-period functions (ADX, ADXR, ATR, CMO, DX, EMA, HT_DCPERIOD, HT_DCPHASE, HT_PHASOR, HT_SINE, HT_TRENDLINE, HT_TRENDMODE, IMI, KAMA, MAMA, MFI, MINUS_DI, MINUS_DM, NATR, PLUS_DI, PLUS_DM, RSI, STOCHRSI, T3)
+- Optional param parsing uses `json_find_int` for all params — needs `json_find_double` for `TA_OptInput_RealRange` params (e.g., BBANDS' `optInNbDevUp`, SAR's `optInAcceleration`)
+- Only handles single `Real` input — needs `Price` input support (OHLCV arrays)
+- Only handles single output buffer — needs multi-output support
+
+## Rust Backend Details
+
+### Generic Type System
+
+All generated Rust indicator functions use `<T: TaFloat>` — a sealed trait implemented for f32 and f64. No `_s` suffix convention.
+
+### 4 Function Variants Per Indicator
+
+| Variant | Safety | Purpose |
+|---------|--------|---------|
+| `fn sma<T: TaFloat>(...)` | Safe | Public API with parameter validation |
+| `fn sma_unguarded<T: TaFloat>(...)` | Safe | Cross-indicator calls (skip validation) |
+| `unsafe fn sma_unchecked<T: TaFloat>(...)` | Unsafe | Performance (get_unchecked indexing) |
+| `unsafe fn sma_unguarded_unchecked<T: TaFloat>(...)` | Unsafe | Internal hot paths |
+
+### Known Code Quality Issues (non-blocking)
+
+1. **Stale `_logic` suffix** in `render_func_call` for non-generic cross-indicator calls
+2. **`collect_for_loop_vars`** doesn't recurse into nested structures
+3. **`gen_opt_param_validation`** silently skips Real/Enum optional params
+
+## Linting
+
+Strict Clippy pedantic lints are enabled in `src/lib.rs`. Allowed exceptions:
+- `module_name_repetitions` — common in codegen
+- `must_use_candidate` — codegen builders don't need this
+- `format_push_string` — string building is the natural codegen pattern
+- `doc_markdown` — generated doc comments come from upstream C
+
+`rustfmt.toml`: edition 2021, max_width 100, use_field_init_shorthand true.
