@@ -191,3 +191,20 @@ pub enum BinOp {
     Shl, // << left shift
     Or,
 }
+
+/// A helper function definition (parsed from ta_func_defs/helpers/*.c).
+/// Helpers are inlined at call sites during code generation.
+#[derive(Debug, Clone)]
+pub struct HelperDef {
+    pub name: String,
+    pub return_type: VarType,
+    pub params: Vec<HelperParam>,
+    pub body: Vec<Statement>,
+}
+
+/// A parameter of a helper function.
+#[derive(Debug, Clone)]
+pub struct HelperParam {
+    pub name: String,
+    pub var_type: VarType,
+}

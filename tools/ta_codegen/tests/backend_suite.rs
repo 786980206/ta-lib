@@ -1609,3 +1609,30 @@ fn report_failing_parse_indicators() {
     eprintln!("Total failing: {} / {}", failing.len(), indicators.len());
 }
 
+#[test]
+fn helper_def_stores_params_and_body() {
+    use ta_codegen_lib::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
+
+    let helper = HelperDef {
+        name: "ta_realbody".to_string(),
+        return_type: VarType::Real,
+        params: vec![
+            HelperParam { name: "close".to_string(), var_type: VarType::Real },
+            HelperParam { name: "open".to_string(), var_type: VarType::Real },
+        ],
+        body: vec![Statement::Return {
+            value: Some(Expr::FuncCall(
+                "fabs".to_string(),
+                vec![Expr::BinOp(
+                    Box::new(Expr::Var("close".to_string())),
+                    BinOp::Sub,
+                    Box::new(Expr::Var("open".to_string())),
+                )],
+            )),
+        }],
+    };
+    assert_eq!(helper.name, "ta_realbody");
+    assert_eq!(helper.params.len(), 2);
+    assert_eq!(helper.params[0].name, "close");
+}
+
