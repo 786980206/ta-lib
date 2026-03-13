@@ -146,18 +146,29 @@ fn test_parse_sma_body() {
         !func.body.is_empty(),
         "SMA body should contain parsed statements"
     );
-    let has_if = func.body.iter().any(|s| matches!(s, ir::Statement::If { .. }));
-    let has_while = func.body.iter().any(|s| matches!(s, ir::Statement::While { .. }));
+    let has_if = func
+        .body
+        .iter()
+        .any(|s| matches!(s, ir::Statement::If { .. }));
+    let has_while = func
+        .body
+        .iter()
+        .any(|s| matches!(s, ir::Statement::While { .. }));
     assert!(has_if, "SMA body should contain if statements");
     assert!(has_while, "SMA body should contain while loops");
     let has_nested_return = func.body.iter().any(|s| {
         if let ir::Statement::If { then_body, .. } = s {
-            then_body.iter().any(|ts| matches!(ts, ir::Statement::Return { .. }))
+            then_body
+                .iter()
+                .any(|ts| matches!(ts, ir::Statement::Return { .. }))
         } else {
             false
         }
     });
-    assert!(has_nested_return, "SMA body should contain a return inside an if");
+    assert!(
+        has_nested_return,
+        "SMA body should contain a return inside an if"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -222,15 +233,38 @@ fn test_rust_sma_from_c_produces_valid_output() {
     let func = load_sma();
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
-    assert!(output.contains("sma_lookback"), "Missing sma_lookback function");
-    assert!(output.contains("fn sma_unguarded<T: TaFloat>"), "Missing sma_unguarded generic function");
-    assert!(output.contains("RetCode::Success"), "Missing Success return");
-    assert!(output.contains("optInTimePeriod"), "Missing optInTimePeriod");
-    assert!(output.contains("periodTotal"), "Missing periodTotal variable");
-    assert!(output.contains("lookbackTotal"), "Missing lookbackTotal variable");
-    assert!(output.contains("optInTimePeriod - 1"), "Missing lookback expression");
-    assert!(output.contains("i += 1") || output.contains("i = i + 1"),
-        "Missing increment pattern");
+    assert!(
+        output.contains("sma_lookback"),
+        "Missing sma_lookback function"
+    );
+    assert!(
+        output.contains("fn sma_unguarded<T: TaFloat>"),
+        "Missing sma_unguarded generic function"
+    );
+    assert!(
+        output.contains("RetCode::Success"),
+        "Missing Success return"
+    );
+    assert!(
+        output.contains("optInTimePeriod"),
+        "Missing optInTimePeriod"
+    );
+    assert!(
+        output.contains("periodTotal"),
+        "Missing periodTotal variable"
+    );
+    assert!(
+        output.contains("lookbackTotal"),
+        "Missing lookbackTotal variable"
+    );
+    assert!(
+        output.contains("optInTimePeriod - 1"),
+        "Missing lookback expression"
+    );
+    assert!(
+        output.contains("i += 1") || output.contains("i = i + 1"),
+        "Missing increment pattern"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -320,8 +354,13 @@ fn test_sma_from_c_lookback_body() {
     match &func.lookback {
         Some(ir::LookbackExpr::Code(stmts)) => {
             assert!(!stmts.is_empty(), "Lookback body should not be empty");
-            let has_return = stmts.iter().any(|s| matches!(s, ir::Statement::Return { .. }));
-            assert!(has_return, "Lookback body should contain a return statement");
+            let has_return = stmts
+                .iter()
+                .any(|s| matches!(s, ir::Statement::Return { .. }));
+            assert!(
+                has_return,
+                "Lookback body should contain a return statement"
+            );
         }
         other => panic!("Expected LookbackExpr::Code, got {:?}", other),
     }
@@ -334,8 +373,14 @@ fn test_sma_from_c_has_logic_function() {
     let parsed = parser::c_source::parse_c_source(&c_path);
 
     assert_eq!(parsed.functions.len(), 1, "Should have one function");
-    assert_eq!(parsed.functions[0].name, "sma", "Function name should be sma");
-    assert!(!parsed.functions[0].body.is_empty(), "Function body should not be empty");
+    assert_eq!(
+        parsed.functions[0].name, "sma",
+        "Function name should be sma"
+    );
+    assert!(
+        !parsed.functions[0].body.is_empty(),
+        "Function body should not be empty"
+    );
 }
 
 // test_sma_all_backends_generate removed: covered by dynamic
@@ -378,9 +423,8 @@ fn test_all_backends_produce_nonempty_output() {
 
     for name in &indicators {
         // Try to load; skip indicators whose parser doesn't support them yet
-        let func = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            load_func(name)
-        })) {
+        let func = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| load_func(name)))
+        {
             Ok(f) => f,
             Err(_) => continue,
         };
@@ -408,10 +452,26 @@ fn test_all_backends_produce_nonempty_output() {
             assert!(!swig_out.is_empty(), "{}: SWIG output is empty", name);
 
             assert!(c_out.len() > 100, "{}: C output suspiciously short", name);
-            assert!(rust_out.len() > 100, "{}: Rust output suspiciously short", name);
-            assert!(java_out.len() > 100, "{}: Java output suspiciously short", name);
-            assert!(dotnet_out.len() > 100, "{}: Dotnet output suspiciously short", name);
-            assert!(swig_out.len() > 100, "{}: SWIG output suspiciously short", name);
+            assert!(
+                rust_out.len() > 100,
+                "{}: Rust output suspiciously short",
+                name
+            );
+            assert!(
+                java_out.len() > 100,
+                "{}: Java output suspiciously short",
+                name
+            );
+            assert!(
+                dotnet_out.len() > 100,
+                "{}: Dotnet output suspiciously short",
+                name
+            );
+            assert!(
+                swig_out.len() > 100,
+                "{}: SWIG output suspiciously short",
+                name
+            );
         }));
         if let Err(e) = result {
             let msg = if let Some(s) = e.downcast_ref::<String>() {
@@ -427,7 +487,11 @@ fn test_all_backends_produce_nonempty_output() {
         }
     }
 
-    assert!(tested >= 6, "Expected at least 6 indicators to pass, got {}", tested);
+    assert!(
+        tested >= 6,
+        "Expected at least 6 indicators to pass, got {}",
+        tested
+    );
 
     if !failures.is_empty() {
         panic!(
@@ -437,7 +501,10 @@ fn test_all_backends_produce_nonempty_output() {
         );
     }
 
-    eprintln!("{} indicators produce non-empty output for all backends", tested);
+    eprintln!(
+        "{} indicators produce non-empty output for all backends",
+        tested
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -450,25 +517,52 @@ fn test_rust_generates_generic_variants() {
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
     // Guarded generic function
-    assert!(output.contains("pub fn sma<T: TaFloat>"), "Missing sma<T: TaFloat> function");
+    assert!(
+        output.contains("pub fn sma<T: TaFloat>"),
+        "Missing sma<T: TaFloat> function"
+    );
 
     // Unguarded generic function (real algorithm)
-    assert!(output.contains("pub fn sma_unguarded<T: TaFloat>"), "Missing sma_unguarded<T: TaFloat> function");
+    assert!(
+        output.contains("pub fn sma_unguarded<T: TaFloat>"),
+        "Missing sma_unguarded<T: TaFloat> function"
+    );
 
     // Guarded function should delegate to unguarded
-    assert!(output.contains("self.sma_unguarded("), "Guarded fn should delegate to sma_unguarded");
+    assert!(
+        output.contains("self.sma_unguarded("),
+        "Guarded fn should delegate to sma_unguarded"
+    );
 
     // Unchecked variants (unsafe)
-    assert!(output.contains("pub unsafe fn sma_unchecked<T: TaFloat>"), "Missing sma_unchecked<T: TaFloat> function");
-    assert!(output.contains("pub unsafe fn sma_unguarded_unchecked<T: TaFloat>"), "Missing sma_unguarded_unchecked<T: TaFloat> function");
+    assert!(
+        output.contains("pub unsafe fn sma_unchecked<T: TaFloat>"),
+        "Missing sma_unchecked<T: TaFloat> function"
+    );
+    assert!(
+        output.contains("pub unsafe fn sma_unguarded_unchecked<T: TaFloat>"),
+        "Missing sma_unguarded_unchecked<T: TaFloat> function"
+    );
 
     // Unchecked guarded should delegate to unguarded_unchecked
-    assert!(output.contains("self.sma_unguarded_unchecked("), "Unchecked fn should delegate to sma_unguarded_unchecked");
+    assert!(
+        output.contains("self.sma_unguarded_unchecked("),
+        "Unchecked fn should delegate to sma_unguarded_unchecked"
+    );
 
     // Should NOT contain the old naming patterns
-    assert!(!output.contains("fn sma_logic("), "Should not contain old sma_logic naming");
-    assert!(!output.contains("fn sma_s("), "Should not contain old sma_s naming");
-    assert!(!output.contains("sma_unsafe"), "Should not contain old sma_unsafe naming");
+    assert!(
+        !output.contains("fn sma_logic("),
+        "Should not contain old sma_logic naming"
+    );
+    assert!(
+        !output.contains("fn sma_s("),
+        "Should not contain old sma_s naming"
+    );
+    assert!(
+        !output.contains("sma_unsafe"),
+        "Should not contain old sma_unsafe naming"
+    );
 }
 
 #[test]
@@ -477,8 +571,20 @@ fn test_rust_mult_generates_generic_variants() {
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry());
 
     // MULT should have all 4 generic variants regardless of optional inputs
-    assert!(output.contains("pub fn mult<T: TaFloat>"), "Missing mult<T: TaFloat> function");
-    assert!(output.contains("pub fn mult_unguarded<T: TaFloat>"), "Missing mult_unguarded<T: TaFloat> function");
-    assert!(output.contains("pub unsafe fn mult_unchecked<T: TaFloat>"), "Missing mult_unchecked<T: TaFloat> function");
-    assert!(output.contains("pub unsafe fn mult_unguarded_unchecked<T: TaFloat>"), "Missing mult_unguarded_unchecked<T: TaFloat> function");
+    assert!(
+        output.contains("pub fn mult<T: TaFloat>"),
+        "Missing mult<T: TaFloat> function"
+    );
+    assert!(
+        output.contains("pub fn mult_unguarded<T: TaFloat>"),
+        "Missing mult_unguarded<T: TaFloat> function"
+    );
+    assert!(
+        output.contains("pub unsafe fn mult_unchecked<T: TaFloat>"),
+        "Missing mult_unchecked<T: TaFloat> function"
+    );
+    assert!(
+        output.contains("pub unsafe fn mult_unguarded_unchecked<T: TaFloat>"),
+        "Missing mult_unguarded_unchecked<T: TaFloat> function"
+    );
 }

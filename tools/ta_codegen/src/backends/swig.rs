@@ -1,7 +1,8 @@
-use std::collections::HashMap;
-use crate::ir::*;
+use crate::ir::{EnumDef, FuncDef, LookbackExpr, ParamType};
 use crate::registry::Registry;
+use std::collections::HashMap;
 
+#[allow(clippy::implicit_hasher)]
 pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
     out.push_str(&gen_comment_block(func));
@@ -18,7 +19,11 @@ pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &R
 fn gen_comment_block(func: &FuncDef) -> String {
     let mut out = String::new();
     let default_desc = format!("TA_{}", func.name);
-    let desc = func.description.as_deref().or(func.hint.as_deref()).unwrap_or(&default_desc);
+    let desc = func
+        .description
+        .as_deref()
+        .or(func.hint.as_deref())
+        .unwrap_or(&default_desc);
 
     out.push_str("/*\n");
     out.push_str(&format!(" * TA_{} - {}\n", func.name, desc));
@@ -53,7 +58,7 @@ fn gen_comment_block(func: &FuncDef) -> String {
         out.push_str(" * -------------------\n");
         for opt in &func.optional_inputs {
             let range_str = match opt.range {
-                Some((min, max)) => format!("(From {} to {})", min, max),
+                Some((min, max)) => format!("(From {min} to {max})"),
                 None => String::new(),
             };
             out.push_str(&format!(" * {}:{}\n", opt.name, range_str));
@@ -107,12 +112,11 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
     for opt in &func.optional_inputs {
         let (c_type, marker) = match opt.param_type {
             ParamType::Real => ("double", "OPT_REAL"),
-            ParamType::Integer => ("int", "OPT_INT"),
-            ParamType::Enum(_) | ParamType::Price(_) => ("int", "OPT_INT"),
+            ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => ("int", "OPT_INT"),
         };
         let trailing = opt
             .range
-            .map(|(min, max)| format!(" /* From {} to {} */", min, max));
+            .map(|(min, max)| format!(" /* From {min} to {max} */"));
         params.push(SwigParam {
             text: format!("{}           {} /* {} */", c_type, marker, opt.name),
             trailing_comment: trailing,
@@ -133,7 +137,12 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
             ParamType::Real => "double",
             ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
         };
-        let padded = format!("{:width$}*OUT_ARRAY /* {} */", c_type, output.name, width = 13);
+        let padded = format!(
+            "{:width$}*OUT_ARRAY /* {} */",
+            c_type,
+            output.name,
+            width = 13
+        );
         params.push(SwigParam {
             text: padded,
             trailing_comment: None,
@@ -141,14 +150,14 @@ fn gen_func_decl(func: &FuncDef, logic: bool) -> String {
     }
 
     // Format the function signature
-    let sig_prefix = format!("TA_RetCode {}( ", prefix);
+    let sig_prefix = format!("TA_RetCode {prefix}( ");
     let indent = " ".repeat(sig_prefix.len());
 
     out.push_str(&sig_prefix);
     let last = params.len() - 1;
     for (i, param) in params.iter().enumerate() {
         if i > 0 {
-            out.push_str(&format!("\n{}", indent));
+            out.push_str(&format!("\n{indent}"));
         }
         out.push_str(&param.text);
         if i < last {
@@ -170,10 +179,7 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
             format!("int TA_{}_Lookback( void );\n", func.name)
         }
         Some(LookbackExpr::ParamMinus(param, _)) => {
-            let opt = func
-                .optional_inputs
-                .iter()
-                .find(|o| o.name == *param);
+            let opt = func.optional_inputs.iter().find(|o| o.name == *param);
             let c_type = match opt {
                 Some(o) => match o.param_type {
                     ParamType::Real => "double",
@@ -182,7 +188,7 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
                 None => "int",
             };
             let range_comment = match opt.and_then(|o| o.range) {
-                Some((min, max)) => format!("  /* From {} to {} */", min, max),
+                Some((min, max)) => format!("  /* From {min} to {max} */"),
                 None => String::new(),
             };
             format!(
@@ -195,21 +201,22 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
                 return format!("int TA_{}_Lookback( void );\n", func.name);
             }
             // Code lookback uses optional params
-            let params: Vec<String> = func.optional_inputs.iter().map(|opt| {
-                let c_type = match opt.param_type {
-                    ParamType::Real => "double",
-                    ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
-                };
-                let range_comment = match opt.range {
-                    Some((min, max)) => format!("  /* From {} to {} */", min, max),
-                    None => String::new(),
-                };
-                format!("{}           {}{}", c_type, opt.name, range_comment)
-            }).collect();
-            return format!(
-                "int TA_{}_Lookback( {} );\n",
-                func.name, params.join(", ")
-            );
+            let params: Vec<String> = func
+                .optional_inputs
+                .iter()
+                .map(|opt| {
+                    let c_type = match opt.param_type {
+                        ParamType::Real => "double",
+                        ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
+                    };
+                    let range_comment = match opt.range {
+                        Some((min, max)) => format!("  /* From {min} to {max} */"),
+                        None => String::new(),
+                    };
+                    format!("{}           {}{}", c_type, opt.name, range_comment)
+                })
+                .collect();
+            format!("int TA_{}_Lookback( {} );\n", func.name, params.join(", "))
         }
     }
 }
@@ -217,9 +224,9 @@ fn gen_lookback_decl(func: &FuncDef) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
     use crate::parser;
     use crate::registry::Registry;
+    use std::path::Path;
 
     fn make_registry() -> Registry {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
@@ -245,10 +252,15 @@ mod tests {
         let output = generate(&func, &enums, &registry);
 
         // Should contain the logic variant declaration
-        assert!(output.contains("TA_SMA_Logic("), "Missing TA_SMA_Logic declaration");
+        assert!(
+            output.contains("TA_SMA_Logic("),
+            "Missing TA_SMA_Logic declaration"
+        );
 
         // Should still contain the regular declaration
-        assert!(output.contains("TA_SMA(") || output.contains("TA_RetCode TA_SMA("),
-            "Missing regular TA_SMA declaration");
+        assert!(
+            output.contains("TA_SMA(") || output.contains("TA_RetCode TA_SMA("),
+            "Missing regular TA_SMA declaration"
+        );
     }
 }

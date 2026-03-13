@@ -24,7 +24,7 @@ pub fn load_enums(path: &Path) -> HashMap<String, EnumDef> {
 
     raw.into_iter()
         .map(|(name, variants)| {
-            let prefix = format!("TA_{}_", name);
+            let prefix = format!("TA_{name}_");
             let variants = variants
                 .into_iter()
                 .map(|v| {
@@ -50,13 +50,14 @@ pub fn load_enums(path: &Path) -> HashMap<String, EnumDef> {
 ///
 /// Returns `(enum_name, &EnumVariant)` if found, or `None` if the label
 /// doesn't match any known enum variant.
+#[allow(clippy::implicit_hasher)]
 pub fn lookup_variant<'a>(
     label: &str,
     enums: &'a HashMap<String, EnumDef>,
 ) -> Option<(&'a str, &'a EnumVariant)> {
     // Labels have the format `EnumName_VARIANT`, e.g. `MAType_SMA`
     for (enum_name, enum_def) in enums {
-        let prefix = format!("{}_", enum_name);
+        let prefix = format!("{enum_name}_");
         if label.starts_with(&prefix) {
             let short = &label[prefix.len()..];
             if let Some(variant) = enum_def.variants.iter().find(|v| v.short_name == short) {

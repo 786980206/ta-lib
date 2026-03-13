@@ -16,7 +16,7 @@ pub enum Lang {
 /// then translates prefix-free calls (e.g. `sma_lookback`) to
 /// language-specific names (e.g. `TA_SMA_Lookback` for C).
 pub struct Registry {
-    /// Sorted by descending length so longest-match wins in parse_func_name.
+    /// Sorted by descending length so longest-match wins in `parse_func_name`.
     indicators: Vec<String>,
 }
 
@@ -26,13 +26,13 @@ impl Registry {
         let mut indicators = Vec::new();
 
         if let Ok(entries) = std::fs::read_dir(base_dir) {
-            for entry in entries.filter_map(|e| e.ok()) {
+            for entry in entries.filter_map(std::result::Result::ok) {
                 let path = entry.path();
                 if !path.is_dir() {
                     continue;
                 }
                 let dir_name = entry.file_name().to_string_lossy().to_string();
-                let yaml_path = path.join(format!("{}.yaml", dir_name));
+                let yaml_path = path.join(format!("{dir_name}.yaml"));
                 if yaml_path.exists() {
                     indicators.push(dir_name);
                 }
@@ -65,17 +65,16 @@ impl Registry {
             return match lang {
                 Lang::Rust => func_name.to_string(),
                 Lang::C | Lang::Swig => format!("TA_INT_{}", func_name.to_uppercase()),
-                Lang::Java => format!("{}Logic", func_name),
+                Lang::Java => format!("{func_name}Logic"),
                 Lang::DotNet => {
                     let pascal = capitalize(func_name);
-                    format!("{}Logic", pascal)
+                    format!("{pascal}Logic")
                 }
             };
         }
 
-        let (indicator, suffix) = match self.parse_func_name(func_name) {
-            Some(parts) => parts,
-            None => return func_name.to_string(),
+        let Some((indicator, suffix)) = self.parse_func_name(func_name) else {
+            return func_name.to_string();
         };
 
         match lang {
@@ -95,12 +94,12 @@ impl Registry {
     }
 
     /// Parse a prefix-free function name into (indicator, suffix).
-    /// e.g. "sma_lookback" -> ("sma", "lookback")
+    /// e.g. "`sma_lookback`" -> ("sma", "lookback")
     fn parse_func_name(&self, func_name: &str) -> Option<(String, String)> {
         // Try matching known indicators by checking if func_name starts with
         // an indicator name followed by underscore
         for indicator in &self.indicators {
-            let prefix = format!("{}_", indicator);
+            let prefix = format!("{indicator}_");
             if func_name.starts_with(&prefix) {
                 let suffix = func_name[prefix.len()..].to_string();
                 return Some((indicator.clone(), suffix));
@@ -110,14 +109,16 @@ impl Registry {
     }
 
     /// Convert to C naming: `sma_lookback` -> `TA_SMA_Lookback`
+    #[allow(clippy::unused_self)]
     fn to_c_name(&self, indicator: &str, suffix: &str) -> String {
         let upper = indicator.to_uppercase();
         // Capitalize first letter of suffix
         let cap_suffix = capitalize(suffix);
-        format!("TA_{}_{}", upper, cap_suffix)
+        format!("TA_{upper}_{cap_suffix}")
     }
 
-    /// Convert snake_case to camelCase: `sma_lookback` -> `smaLookback`
+    /// Convert `snake_case` to camelCase: `sma_lookback` -> `smaLookback`
+    #[allow(clippy::unused_self)]
     fn to_camel_case(&self, name: &str) -> String {
         let parts: Vec<&str> = name.split('_').collect();
         let mut result = String::new();
@@ -131,9 +132,10 @@ impl Registry {
         result
     }
 
-    /// Convert snake_case to PascalCase: `sma_lookback` -> `SmaLookback`
+    /// Convert `snake_case` to `PascalCase`: `sma_lookback` -> `SmaLookback`
+    #[allow(clippy::unused_self)]
     fn to_pascal_case(&self, name: &str) -> String {
-        name.split('_').map(|part| capitalize(part)).collect()
+        name.split('_').map(capitalize).collect()
     }
 }
 
@@ -165,7 +167,10 @@ mod tests {
         let registry = Registry::from_dir(&base);
 
         // C backend: lookback suffixed calls
-        assert_eq!(registry.resolve_call("sma_lookback", Lang::C), "TA_SMA_Lookback");
+        assert_eq!(
+            registry.resolve_call("sma_lookback", Lang::C),
+            "TA_SMA_Lookback"
+        );
 
         // C backend: bare indicator names resolve to TA_INT_<NAME>
         assert_eq!(registry.resolve_call("sma", Lang::C), "TA_INT_SMA");
@@ -173,18 +178,30 @@ mod tests {
 
         // Rust backend (bare names stay as-is)
         assert_eq!(registry.resolve_call("ema", Lang::Rust), "ema");
-        assert_eq!(registry.resolve_call("ema_lookback", Lang::Rust), "ema_lookback");
+        assert_eq!(
+            registry.resolve_call("ema_lookback", Lang::Rust),
+            "ema_lookback"
+        );
 
         // Java backend (camelCase for lookback, Logic suffix for bare names)
-        assert_eq!(registry.resolve_call("ema_lookback", Lang::Java), "emaLookback");
+        assert_eq!(
+            registry.resolve_call("ema_lookback", Lang::Java),
+            "emaLookback"
+        );
         assert_eq!(registry.resolve_call("ema", Lang::Java), "emaLogic");
 
         // .NET backend (PascalCase for lookback, Logic suffix for bare names)
-        assert_eq!(registry.resolve_call("sma_lookback", Lang::DotNet), "SmaLookback");
+        assert_eq!(
+            registry.resolve_call("sma_lookback", Lang::DotNet),
+            "SmaLookback"
+        );
         assert_eq!(registry.resolve_call("sma", Lang::DotNet), "SmaLogic");
 
         // SWIG mirrors C
-        assert_eq!(registry.resolve_call("rsi_lookback", Lang::Swig), "TA_RSI_Lookback");
+        assert_eq!(
+            registry.resolve_call("rsi_lookback", Lang::Swig),
+            "TA_RSI_Lookback"
+        );
         assert_eq!(registry.resolve_call("rsi", Lang::Swig), "TA_INT_RSI");
     }
 
@@ -192,7 +209,10 @@ mod tests {
     fn test_registry_unknown_func_returns_unchanged() {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
         let registry = Registry::from_dir(&base);
-        assert_eq!(registry.resolve_call("unknown_func", Lang::C), "unknown_func");
+        assert_eq!(
+            registry.resolve_call("unknown_func", Lang::C),
+            "unknown_func"
+        );
     }
 
     #[test]

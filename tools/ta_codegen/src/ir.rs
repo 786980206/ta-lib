@@ -29,7 +29,7 @@ pub struct OptInput {
     pub display_name: Option<String>,
     pub hint: Option<String>,
     pub flags: Vec<String>,
-    /// Optimization hints: [suggested_start, suggested_end, suggested_increment]
+    /// Optimization hints: [`suggested_start`, `suggested_end`, `suggested_increment`]
     pub suggested: Option<(f64, f64, f64)>,
 }
 
@@ -64,9 +64,9 @@ pub struct EnumDef {
 pub struct EnumVariant {
     /// C constant name, e.g. `TA_MAType_SMA`
     pub c_name: String,
-    /// PascalCase name used in Java/.NET, e.g. `Sma`
+    /// `PascalCase` name used in Java/.NET, e.g. `Sma`
     pub pascal_name: String,
-    /// UPPER_CASE short name used in source labels, e.g. `SMA`
+    /// `UPPER_CASE` short name used in source labels, e.g. `SMA`
     pub short_name: String,
     /// Integer value
     pub value: i32,
@@ -135,7 +135,7 @@ pub enum Statement {
         update: Box<Statement>,
         body: Vec<Statement>,
     },
-    /// A block of statements (used for ARRAY_COPY expansion in some backends).
+    /// A block of statements (used for `ARRAY_COPY` expansion in some backends).
     Block {
         body: Vec<Statement>,
     },
@@ -158,8 +158,8 @@ pub enum Expr {
     BinOp(Box<Expr>, BinOp, Box<Expr>),
     Cast(VarType, Box<Expr>),
     Not(Box<Expr>),
-    /// Function/builtin call: UNSTABLE_PERIOD(RSI), IS_ZERO(x), ARRAY_COPY(...),
-    /// RSI_Lookback(params...), etc.
+    /// Function/builtin call: `UNSTABLE_PERIOD(RSI)`, `IS_ZERO(x)`, `ARRAY_COPY`(...),
+    /// `RSI_Lookback(params`...), etc.
     FuncCall(String, Vec<Expr>),
     /// Pointer dereference: *outBegIdx
     PointerDeref(String),
@@ -167,7 +167,7 @@ pub enum Expr {
     PostIncrement(Box<Expr>),
     /// Post-decrement: var-- (evaluates to var, then decrements)
     PostDecrement(Box<Expr>),
-    /// Ternary: condition ? then_expr : else_expr
+    /// Ternary: condition ? `then_expr` : `else_expr`
     Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
 }
 
@@ -177,7 +177,7 @@ pub enum BinOp {
     Sub,
     Mul,
     Div,
-    Mod,  // % operator
+    Mod, // % operator
     LessEq,
     Less,
     Greater,
@@ -185,7 +185,7 @@ pub enum BinOp {
     Eq,
     NotEq,
     And,
-    Shr,  // >> right shift
-    Shl,  // << left shift
+    Shr, // >> right shift
+    Shl, // << left shift
     Or,
 }

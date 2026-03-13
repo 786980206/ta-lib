@@ -1,6 +1,6 @@
 use ta_codegen_lib::backends;
-use ta_codegen_lib::extractor::table_parser::{parse_shared_defs, parse_table};
 use ta_codegen_lib::extractor::func_extractor::extract_function_source;
+use ta_codegen_lib::extractor::table_parser::{parse_shared_defs, parse_table};
 use ta_codegen_lib::extractor::TableFuncDef;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
@@ -42,12 +42,18 @@ fn main() {
             eprintln!("  extract          Extract indicators from C source to ta_func_defs/");
             eprintln!();
             eprintln!("Options for 'generate' / 'generate-servers' / 'build':");
-            eprintln!("  --func=NAME[,NAME,...]      Only generate specified functions (default: all)");
-            eprintln!("  --backend=NAME[,NAME,...]    Only generate specified backends (default: all)");
+            eprintln!(
+                "  --func=NAME[,NAME,...]      Only generate specified functions (default: all)"
+            );
+            eprintln!(
+                "  --backend=NAME[,NAME,...]    Only generate specified backends (default: all)"
+            );
             eprintln!("                               Backends: c, rust, java, dotnet, swig");
             eprintln!();
             eprintln!("Options for 'extract':");
-            eprintln!("  --function=NAME[,NAME,...]   Only extract specified functions (default: all)");
+            eprintln!(
+                "  --function=NAME[,NAME,...]   Only extract specified functions (default: all)"
+            );
             std::process::exit(1);
         }
     }
@@ -82,11 +88,8 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         .collect();
     func_dirs.sort_by_key(|e| e.file_name());
 
-    let filter_names: Option<Vec<String>> = func_filter.map(|f| {
-        f.split(',')
-            .map(|s| s.trim().to_uppercase())
-            .collect()
-    });
+    let filter_names: Option<Vec<String>> =
+        func_filter.map(|f| f.split(',').map(|s| s.trim().to_uppercase()).collect());
 
     let backends_to_run: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
@@ -143,11 +146,8 @@ fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
         .collect();
     func_dirs.sort_by_key(|e| e.file_name());
 
-    let filter_names: Option<Vec<String>> = func_filter.map(|f| {
-        f.split(',')
-            .map(|s| s.trim().to_uppercase())
-            .collect()
-    });
+    let filter_names: Option<Vec<String>> =
+        func_filter.map(|f| f.split(',').map(|s| s.trim().to_uppercase()).collect());
 
     let mut funcs = Vec::new();
 
@@ -258,7 +258,10 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
         }
     }
 
-    println!("Server source files generated for {} function(s).", funcs.len());
+    println!(
+        "Server source files generated for {} function(s).",
+        funcs.len()
+    );
 }
 
 fn build_servers(backend_filter: Option<&str>) {
@@ -335,8 +338,10 @@ fn build_servers(backend_filter: Option<&str>) {
                 match std::process::Command::new("dotnet")
                     .args([
                         "publish",
-                        "-c", "Release",
-                        "-o", dotnet_out.to_str().unwrap(),
+                        "-c",
+                        "Release",
+                        "-o",
+                        dotnet_out.to_str().unwrap(),
                         dotnet_dir.to_str().unwrap(),
                     ])
                     .status()
@@ -368,8 +373,10 @@ fn build_servers(backend_filter: Option<&str>) {
                 match std::process::Command::new("swig")
                     .args([
                         "-python",
-                        "-o", swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
-                        "-outdir", swig_dir.to_str().unwrap(),
+                        "-o",
+                        swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
+                        "-outdir",
+                        swig_dir.to_str().unwrap(),
                         swig_dir.join("ta_codegen.i").to_str().unwrap(),
                     ])
                     .status()
@@ -388,13 +395,19 @@ fn build_servers(backend_filter: Option<&str>) {
                 // Step 2: Compile wrapper + generated C functions into _ta_lib.so
                 print!("  Compiling SWIG module... ");
                 let python_include = std::process::Command::new("python3")
-                    .args(["-c", "import sysconfig; print(sysconfig.get_path('include'))"])
+                    .args([
+                        "-c",
+                        "import sysconfig; print(sysconfig.get_path('include'))",
+                    ])
                     .output()
                     .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
                     .unwrap_or_default();
 
                 let ext_suffix = std::process::Command::new("python3")
-                    .args(["-c", "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))"])
+                    .args([
+                        "-c",
+                        "import sysconfig; print(sysconfig.get_config_var('EXT_SUFFIX'))",
+                    ])
                     .output()
                     .map(|o| String::from_utf8_lossy(&o.stdout).trim().to_string())
                     .unwrap_or_else(|_| ".so".to_string());
@@ -408,7 +421,8 @@ fn build_servers(backend_filter: Option<&str>) {
                     sorted.sort_by_key(|e| e.file_name());
                     for entry in sorted {
                         let name = entry.file_name().to_string_lossy().to_string();
-                        if name.starts_with("ta_") && name.ends_with(".c")
+                        if name.starts_with("ta_")
+                            && name.ends_with(".c")
                             && name != "ta_codegen_serve.c"
                             && name != "ta_codegen_funcs.c"
                         {
@@ -440,16 +454,19 @@ fn build_servers(backend_filter: Option<&str>) {
                     .args([
                         shared_flag,
                         "-fPIC",
-                        "-o", so_path.to_str().unwrap(),
+                        "-o",
+                        so_path.to_str().unwrap(),
                         swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
                         swig_unity_path.to_str().unwrap(),
                         &format!("-I{}", python_include),
                         &format!("-I{}", c_dir.to_str().unwrap()),
                         &format!("-I{}", swig_dir.to_str().unwrap()),
-                        "-lm", "-O2",
+                        "-lm",
+                        "-O2",
                         "-Wno-parentheses-equality",
                         "-Wno-unused-function",
-                        "-undefined", "dynamic_lookup",
+                        "-undefined",
+                        "dynamic_lookup",
                     ])
                     .status()
                 {
@@ -472,7 +489,8 @@ fn build_servers(backend_filter: Option<&str>) {
                 std::fs::copy(
                     swig_dir.join("ta_codegen_serve.py"),
                     bin_dir.join("ta_codegen_serve.py"),
-                ).ok();
+                )
+                .ok();
                 println!("  SWIG/Python server installed");
             }
             "rust" => {
@@ -521,7 +539,8 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         sorted.sort_by_key(|e| e.file_name());
         for entry in sorted {
             let name = entry.file_name().to_string_lossy().to_string();
-            if name.starts_with("ta_") && name.ends_with(".c")
+            if name.starts_with("ta_")
+                && name.ends_with(".c")
                 && name != "ta_codegen_serve.c"
                 && name != "ta_codegen_funcs.c"
             {
@@ -560,10 +579,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         "-Wno-parentheses-equality".to_string(),
     ];
 
-    match std::process::Command::new("gcc")
-        .args(&args)
-        .status()
-    {
+    match std::process::Command::new("gcc").args(&args).status() {
         Ok(s) if s.success() => {
             println!("OK");
             std::fs::write(&marker, "").ok();
@@ -581,8 +597,7 @@ fn extract(func_filter: Option<&str>) {
     let out_dir = base.join("ta_func_defs");
 
     // 1. Parse shared definitions
-    let def_ui_source = std::fs::read_to_string(&def_ui_path)
-        .expect("Cannot read ta_def_ui.c");
+    let def_ui_source = std::fs::read_to_string(&def_ui_path).expect("Cannot read ta_def_ui.c");
     let shared = parse_shared_defs(&def_ui_source);
 
     // 2. Parse all table files
@@ -606,9 +621,8 @@ fn extract(func_filter: Option<&str>) {
     println!("Found {} indicators in abstract tables", all_funcs.len());
 
     // 3. Apply function filter
-    let filter_names: Option<Vec<String>> = func_filter.map(|f| {
-        f.split(',').map(|s| s.trim().to_uppercase()).collect()
-    });
+    let filter_names: Option<Vec<String>> =
+        func_filter.map(|f| f.split(',').map(|s| s.trim().to_uppercase()).collect());
 
     let mut succeeded = 0;
     let mut failed = 0;
@@ -644,11 +658,9 @@ fn extract(func_filter: Option<&str>) {
         let name_clone = name_lower.clone();
         let (tx, rx) = std::sync::mpsc::channel();
         std::thread::spawn(move || {
-            let result = std::panic::catch_unwind(
-                std::panic::AssertUnwindSafe(|| {
-                    extract_function_source(&source_clone, &name_clone)
-                })
-            );
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                extract_function_source(&source_clone, &name_clone)
+            }));
             let _ = tx.send(result);
         });
 
@@ -690,8 +702,13 @@ fn extract(func_filter: Option<&str>) {
     }
 
     println!();
-    println!("Extracted {} indicators ({} succeeded, {} failed, {} skipped)",
-        succeeded + failed + skipped, succeeded, failed, skipped);
+    println!(
+        "Extracted {} indicators ({} succeeded, {} failed, {} skipped)",
+        succeeded + failed + skipped,
+        succeeded,
+        failed,
+        skipped
+    );
 }
 
 fn func_to_yaml(func: &TableFuncDef) -> String {
@@ -715,8 +732,10 @@ fn func_to_yaml(func: &TableFuncDef) -> String {
         out.push_str(&format!("  - name: {}\n", input.name));
         out.push_str(&format!("    type: {}\n", input.param_type));
         if input.param_type == "price" && !input.price_flags.is_empty() {
-            out.push_str(&format!("    price_components: [{}]\n",
-                input.price_flags.join(", ")));
+            out.push_str(&format!(
+                "    price_components: [{}]\n",
+                input.price_flags.join(", ")
+            ));
         }
     }
 
@@ -733,15 +752,22 @@ fn func_to_yaml(func: &TableFuncDef) -> String {
                 out.push_str(&format!("    hint: {}\n", opt.hint));
             }
             if let Some((min, max)) = opt.range {
-                out.push_str(&format!("    range: [{}, {}]\n",
-                    format_yaml_num(min), format_yaml_num(max)));
+                out.push_str(&format!(
+                    "    range: [{}, {}]\n",
+                    format_yaml_num(min),
+                    format_yaml_num(max)
+                ));
             }
             if let Some(default) = opt.default {
                 out.push_str(&format!("    default: {}\n", format_yaml_num(default)));
             }
             if let Some((start, end, inc)) = opt.suggested {
-                out.push_str(&format!("    suggested: [{}, {}, {}]\n",
-                    format_yaml_num(start), format_yaml_num(end), format_yaml_num(inc)));
+                out.push_str(&format!(
+                    "    suggested: [{}, {}, {}]\n",
+                    format_yaml_num(start),
+                    format_yaml_num(end),
+                    format_yaml_num(inc)
+                ));
             }
             if !opt.flags.is_empty() {
                 out.push_str(&format!("    flags: [{}]\n", opt.flags.join(", ")));
@@ -777,7 +803,12 @@ fn format_yaml_num(v: f64) -> String {
     }
 }
 
-fn generate_backend(func_def: &ir::FuncDef, backend: &str, enums: &HashMap<String, ir::EnumDef>, registry: &Registry) {
+fn generate_backend(
+    func_def: &ir::FuncDef,
+    backend: &str,
+    enums: &HashMap<String, ir::EnumDef>,
+    registry: &Registry,
+) {
     let out_base = Path::new("../../ta_codegen_output");
 
     match backend {

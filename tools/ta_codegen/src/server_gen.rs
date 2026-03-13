@@ -11,13 +11,13 @@ use std::path::Path;
 /// Returns None for functions without unstable period.
 fn func_unst_id(name: &str) -> Option<i32> {
     match name {
-        "EMA" => Some(0),  // TA_FUNC_UNST_EMA
-        "RSI" => Some(1),  // TA_FUNC_UNST_RSI
+        "EMA" => Some(0), // TA_FUNC_UNST_EMA
+        "RSI" => Some(1), // TA_FUNC_UNST_RSI
         _ => None,
     }
 }
 
-/// Replace @@CORE_XXX@@ markers in the Java server template with actual
+/// Replace @@`CORE_XXX`@@ markers in the Java server template with actual
 /// method bodies read from the generated Core_*.java files.
 pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDef]) -> String {
     let mut result = template.to_string();
@@ -41,7 +41,7 @@ pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDe
                 if trimmed.trim().is_empty() {
                     lines.push(String::new());
                 } else {
-                    lines.push(format!("    {}", trimmed));
+                    lines.push(format!("    {trimmed}"));
                 }
             }
             lines.join("\n")
@@ -56,8 +56,8 @@ pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDe
 /// Generate a standalone C JSON-RPC server source file.
 ///
 /// The generated file #includes the generated ta_*.c files and provides
-/// a main() loop that reads JSON-RPC from stdin.
-/// Generate a minimal ta_func.h stub for standalone compilation of the C server.
+/// a `main()` loop that reads JSON-RPC from stdin.
+/// Generate a minimal `ta_func.h` stub for standalone compilation of the C server.
 ///
 /// This file provides just the type definitions that the generated ta_*.c files
 /// expect, without pulling in the full TA-Lib headers.
@@ -141,16 +141,16 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     // Simple heuristic: include in sorted order, then move MA to the end
     // since it dispatches to SMA, EMA, WMA, etc.
     let mut sorted_names: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
-    sorted_names.sort();
+    sorted_names.sort_unstable();
     // Move MA to end if present (it calls other functions)
     if let Some(pos) = sorted_names.iter().position(|n| *n == "MA") {
         let ma = sorted_names.remove(pos);
         sorted_names.push(ma);
     }
     for name in &sorted_names {
-        s.push_str(&format!("#include \"ta_{}.c\"\n", name));
+        s.push_str(&format!("#include \"ta_{name}.c\"\n"));
     }
-    s.push_str("\n");
+    s.push('\n');
 
     // JSON helpers
     s.push_str(&generate_c_json_helpers());
@@ -238,6 +238,7 @@ static int json_write_double_array(char *buf, int buf_size,
     .to_string()
 }
 
+#[allow(clippy::too_many_lines)]
 fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -252,7 +253,9 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str("    int methodLen = 0;\n");
     s.push_str("    const char *method = json_find_string(json, \"method\", &methodLen);\n");
     s.push_str("    if( !method ) {\n");
-    s.push_str("        snprintf(resp, resp_size, \"{\\\"error\\\":\\\"Missing method field\\\"}\");\n");
+    s.push_str(
+        "        snprintf(resp, resp_size, \"{\\\"error\\\":\\\"Missing method field\\\"}\");\n",
+    );
     s.push_str("        return;\n");
     s.push_str("    }\n\n");
 
@@ -282,12 +285,12 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             .collect();
 
         for (j, name) in input_names.iter().enumerate() {
-            let buf = format!("g_inBuf{}", j);
+            let buf = format!("g_inBuf{j}");
             s.push_str(&format!(
                 "        int n{j} = json_find_double_array(json, \"{name}\", {buf}, MAX_ARRAY_SIZE);\n",
             ));
             // Suppress unused warning
-            s.push_str(&format!("        (void)n{};\n", j));
+            s.push_str(&format!("        (void)n{j};\n"));
         }
 
         // Extract optional params
@@ -301,8 +304,7 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         // Apply unstable period if provided
         if let Some(id) = func_unst_id(&func.name) {
             s.push_str(&format!(
-                "        TA_SetUnstablePeriod({}, json_find_int(json, \"unstablePeriod\"));\n",
-                id
+                "        TA_SetUnstablePeriod({id}, json_find_int(json, \"unstablePeriod\"));\n"
             ));
         }
 
@@ -315,7 +317,7 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
 
         // Input arrays
         for (j, _name) in input_names.iter().enumerate() {
-            s.push_str(&format!("            g_inBuf{},\n", j));
+            s.push_str(&format!("            g_inBuf{j},\n"));
         }
 
         // Optional params
@@ -357,8 +359,15 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         }
 
         // Call lookback function
-        s.push_str(&format!("        int lookback = TA_{}_Lookback(", func.name));
-        let opt_names: Vec<String> = func.optional_inputs.iter().map(|o| o.name.clone()).collect();
+        s.push_str(&format!(
+            "        int lookback = TA_{}_Lookback(",
+            func.name
+        ));
+        let opt_names: Vec<String> = func
+            .optional_inputs
+            .iter()
+            .map(|o| o.name.clone())
+            .collect();
         s.push_str(&opt_names.join(", "));
         s.push_str(");\n");
 
@@ -371,7 +380,9 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     // Unknown method
     s.push_str("    else {\n");
     s.push_str("        snprintf(resp, resp_size,\n");
-    s.push_str("            \"{\\\"error\\\":\\\"Unknown method: %.*s\\\"}\", methodLen, method);\n");
+    s.push_str(
+        "            \"{\\\"error\\\":\\\"Unknown method: %.*s\\\"}\", methodLen, method);\n",
+    );
     s.push_str("    }\n");
 
     s.push_str("}\n\n");
@@ -381,7 +392,8 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
 /// Generate a Java JSON-RPC server source file.
 ///
 /// Generates a single TaCodegenServe.java with all necessary classes inline
-/// (RetCode enum, MInteger, Core class with methods, main server loop).
+/// (`RetCode` enum, `MInteger`, Core class with methods, main server loop).
+#[allow(clippy::too_many_lines)]
 pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -473,16 +485,11 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     for (i, func) in funcs.iter().enumerate() {
         let method_name = format!("TA_{}", func.name);
-        let cond = if i == 0 {
-            "if"
-        } else {
-            "else if"
-        };
+        let cond = if i == 0 { "if" } else { "else if" };
         let func_lower = func.name.to_lowercase();
 
         s.push_str(&format!(
-            "        {} (json.contains(\"\\\"{}\\\"\")) {{\n",
-            cond, method_name
+            "        {cond} (json.contains(\"\\\"{method_name}\\\"\")) {{\n"
         ));
         s.push_str("            int startIdx = jsonInt(json, \"startIdx\");\n");
         s.push_str("            int endIdx = jsonInt(json, \"endIdx\");\n");
@@ -497,8 +504,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
         for name in &real_inputs {
             s.push_str(&format!(
-                "            double[] {} = jsonDoubleArray(json, \"{}\");\n",
-                name, name
+                "            double[] {name} = jsonDoubleArray(json, \"{name}\");\n"
             ));
         }
 
@@ -513,8 +519,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         // Apply unstable period if provided
         if let Some(id) = func_unst_id(&func.name) {
             s.push_str(&format!(
-                "            core.unstablePeriod[{}] = jsonInt(json, \"unstablePeriod\");\n",
-                id
+                "            core.unstablePeriod[{id}] = jsonInt(json, \"unstablePeriod\");\n"
             ));
         }
 
@@ -524,10 +529,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         s.push_str("            MInteger outNBElement = new MInteger();\n");
 
         // Call
-        s.push_str(&format!("            RetCode rc = core.{}(\n", func_lower));
+        s.push_str(&format!("            RetCode rc = core.{func_lower}(\n"));
         s.push_str("                startIdx, endIdx,\n");
         for name in &real_inputs {
-            s.push_str(&format!("                {},\n", name));
+            s.push_str(&format!("                {name},\n"));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("                {},\n", opt.name));
@@ -548,7 +553,9 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // Main method
     s.push_str("    public static void main(String[] args) throws Exception {\n");
-    s.push_str("        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));\n");
+    s.push_str(
+        "        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));\n",
+    );
     s.push_str("        String line;\n");
     s.push_str("        while ((line = reader.readLine()) != null) {\n");
     s.push_str("            if (line.trim().isEmpty()) continue;\n");
@@ -565,6 +572,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 ///
 /// Note: The .NET backend currently generates C++/CLI headers, not full C# implementations.
 /// This generates a placeholder that will work once the backend is extended.
+#[allow(clippy::too_many_lines)]
 pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
@@ -594,17 +602,13 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             .collect();
 
         s.push_str(&format!(
-            "    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_{}\")]\n",
-            func_upper
+            "    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_{func_upper}\")]\n"
         ));
-        s.push_str(&format!(
-            "    static extern int TA_{}(\n",
-            func_upper
-        ));
+        s.push_str(&format!("    static extern int TA_{func_upper}(\n"));
         s.push_str("        int startIdx, int endIdx,\n");
 
         for name in &real_inputs {
-            s.push_str(&format!("        double[] {},\n", name));
+            s.push_str(&format!("        double[] {name},\n"));
         }
 
         for opt in &func.optional_inputs {
@@ -638,20 +642,19 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             .collect();
 
         s.push_str(&format!(
-            "            {} (method == \"{}\") {{\n",
-            cond, method_name
+            "            {cond} (method == \"{method_name}\") {{\n"
         ));
 
         // Extract input arrays
         for name in &real_inputs {
             s.push_str(&format!(
-                "                double[] {} = GetDoubleArray(p, \"{}\");\n",
-                name, name
+                "                double[] {name} = GetDoubleArray(p, \"{name}\");\n"
             ));
         }
 
         // Extract optional params
         for opt in &func.optional_inputs {
+            #[allow(clippy::cast_possible_truncation)]
             let default = opt.default.unwrap_or(0.0) as i64;
             s.push_str(&format!(
                 "                int {} = p.TryGetProperty(\"{}\", out var _{0}Val) ? _{0}Val.GetInt32() : {};\n",
@@ -661,12 +664,9 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 
         // Apply unstable period if provided
         if let Some(id) = func_unst_id(&func.name) {
+            s.push_str("                int unstablePeriod = p.TryGetProperty(\"unstablePeriod\", out var _upVal) ? _upVal.GetInt32() : 0;\n");
             s.push_str(&format!(
-                "                int unstablePeriod = p.TryGetProperty(\"unstablePeriod\", out var _upVal) ? _upVal.GetInt32() : 0;\n"
-            ));
-            s.push_str(&format!(
-                "                TA_SetUnstablePeriod({}, unstablePeriod);\n",
-                id
+                "                TA_SetUnstablePeriod({id}, unstablePeriod);\n"
             ));
         }
 
@@ -677,13 +677,15 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             func.name
         ));
         for name in &real_inputs {
-            s.push_str(&format!("{}, ", name));
+            s.push_str(&format!("{name}, "));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("{}, ", opt.name));
         }
         s.push_str("out int outBegIdx, out int outNBElement, outReal);\n");
-        s.push_str("                return FormatResponse(rc, outBegIdx, outNBElement, outReal);\n");
+        s.push_str(
+            "                return FormatResponse(rc, outBegIdx, outNBElement, outReal);\n",
+        );
         s.push_str("            }\n");
     }
 
@@ -767,7 +769,11 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
 
         // Lookback
         s.push_str(&format!("extern int TA_{}_Lookback(", func.name));
-        let opt_params: Vec<String> = func.optional_inputs.iter().map(|_| "int".to_string()).collect();
+        let opt_params: Vec<String> = func
+            .optional_inputs
+            .iter()
+            .map(|_| "int".to_string())
+            .collect();
         s.push_str(&opt_params.join(", "));
         if opt_params.is_empty() {
             s.push_str("void");
@@ -789,10 +795,7 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     // These use the special parameter names (START_IDX, IN_ARRAY, etc.)
     // that the typemaps above match on.
     for func in funcs {
-        s.push_str(&format!(
-            "\n/* TA_{} */\n",
-            func.name
-        ));
+        s.push_str(&format!("\n/* TA_{} */\n", func.name));
 
         // Include the generated .swg file
         s.push_str(&format!("%include \"ta_{}.swg\"\n", func.name));
@@ -801,6 +804,7 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     s
 }
 
+#[allow(clippy::too_many_lines)]
 fn generate_swig_python3_typemaps() -> String {
     // Python 3 typemaps for SWIG, adapted from the existing ta_libc.python.swg
     r#"/* ---- Python 3 typemaps for TA-Lib functions ---- */
@@ -961,8 +965,8 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         let method_name = format!("TA_{}", func.name);
         let func_lower = func.name.to_lowercase();
 
-        s.push_str(&format!("    if method == '{}':\n", method_name));
-        s.push_str(&format!("        return handle_{}(params)\n", func_lower));
+        s.push_str(&format!("    if method == '{method_name}':\n"));
+        s.push_str(&format!("        return handle_{func_lower}(params)\n"));
     }
 
     s.push_str("    return {'error': f'Unknown method: {method}'}\n\n");
@@ -972,7 +976,7 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         let func_lower = func.name.to_lowercase();
         let func_upper = &func.name;
 
-        s.push_str(&format!("def handle_{}(params):\n", func_lower));
+        s.push_str(&format!("def handle_{func_lower}(params):\n"));
         s.push_str("    start_idx = params.get('startIdx', 0)\n");
         s.push_str("    end_idx = params.get('endIdx', 0)\n");
 
@@ -986,13 +990,13 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
         for name in &real_inputs {
             s.push_str(&format!(
-                "    {} = [float(x) for x in params.get('{}', [])]\n",
-                name, name
+                "    {name} = [float(x) for x in params.get('{name}', [])]\n"
             ));
         }
 
         // Optional params
         for opt in &func.optional_inputs {
+            #[allow(clippy::cast_possible_truncation)]
             let default = opt.default.unwrap_or(0.0) as i64;
             s.push_str(&format!(
                 "    {} = params.get('{}', {})\n",
@@ -1003,17 +1007,16 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
         // Apply unstable period if provided
         if let Some(id) = func_unst_id(&func.name) {
             s.push_str(&format!(
-                "    ta_lib.TA_SetUnstablePeriod({}, params.get('unstablePeriod', 0))\n",
-                id
+                "    ta_lib.TA_SetUnstablePeriod({id}, params.get('unstablePeriod', 0))\n"
             ));
         }
 
         // Call via SWIG module — returns (outBegIdx, outReal) on success
         s.push_str("    try:\n");
-        s.push_str(&format!("        result = ta_lib.TA_{}(\n", func_upper));
+        s.push_str(&format!("        result = ta_lib.TA_{func_upper}(\n"));
         s.push_str("            start_idx, end_idx,\n");
         for name in &real_inputs {
-            s.push_str(&format!("            {},\n", name));
+            s.push_str(&format!("            {name},\n"));
         }
         for opt in &func.optional_inputs {
             s.push_str(&format!("            {},\n", opt.name));

@@ -12,7 +12,7 @@ pub fn extract_function_source(source: &str, name: &str) -> String {
     let logic = extract_logic(&lines, &upper, &lower);
 
     let mut result = lookback;
-    result.push_str("\n");
+    result.push('\n');
     result.push_str(&logic);
     result
 }
@@ -55,8 +55,7 @@ fn extract_lookback(lines: &[&str], upper: &str, lower: &str) -> String {
     // Collect body lines, skipping GENCODE section 2 and /* Generated */ lines.
     let mut body_lines: Vec<String> = Vec::new();
     let mut in_gencode_2 = false;
-    for i in body_start..body_end {
-        let line = lines[i];
+    for line in &lines[body_start..body_end] {
         if line.contains("START GENCODE SECTION 2") {
             in_gencode_2 = true;
             continue;
@@ -84,18 +83,21 @@ fn extract_lookback(lines: &[&str], upper: &str, lower: &str) -> String {
     body_lines = strip_preprocessor_conditionals(&body_lines);
 
     // Trim leading/trailing blank lines from body
-    while body_lines.first().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.first().is_some_and(|l| l.trim().is_empty()) {
         body_lines.remove(0);
     }
-    while body_lines.last().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.last().is_some_and(|l| l.trim().is_empty()) {
         body_lines.pop();
     }
 
     // Apply macro expansions to body lines
-    let body_lines: Vec<String> = body_lines.iter().map(|l| expand_macros(l, upper, lower)).collect();
+    let body_lines: Vec<String> = body_lines
+        .iter()
+        .map(|l| expand_macros(l, upper, lower))
+        .collect();
 
     // Build the lookback function
-    let mut result = format!("int {}_lookback({})\n{{\n", lower, lookback_params);
+    let mut result = format!("int {lower}_lookback({lookback_params})\n{{\n");
     for line in &body_lines {
         result.push_str(&format!("    {}\n", line.trim()));
     }
@@ -106,7 +108,7 @@ fn extract_lookback(lines: &[&str], upper: &str, lower: &str) -> String {
 /// Extract lookback function parameters from Section 1.
 /// Looks for `TA_LIB_API int TA_<NAME>_Lookback( ... )` in the `#else` C path.
 fn extract_lookback_params(lines: &[&str], start: usize, end: usize, upper: &str) -> String {
-    let target = format!("TA_{}_Lookback", upper);
+    let target = format!("TA_{upper}_Lookback");
     for i in start..end {
         let line = strip_generated_prefix(lines[i]);
         if line.contains(&target) {
@@ -132,9 +134,9 @@ fn collect_until_paren_close(lines: &[&str], start: usize, end: usize) -> String
     let mut result = String::new();
     let mut depth = 0i32;
     let mut found_open = false;
-    for i in start..end {
-        let line = strip_generated_prefix(lines[i]);
-        for ch in line.chars() {
+    for line in &lines[start..end] {
+        let stripped = strip_generated_prefix(line);
+        for ch in stripped.chars() {
             if ch == '(' {
                 found_open = true;
                 depth += 1;
@@ -143,7 +145,7 @@ fn collect_until_paren_close(lines: &[&str], start: usize, end: usize) -> String
                 depth -= 1;
             }
         }
-        result.push_str(&line);
+        result.push_str(&stripped);
         result.push(' ');
         if found_open && depth <= 0 {
             break;
@@ -166,8 +168,8 @@ fn extract_parens(s: &str) -> Option<String> {
 /// Strip `/* Generated */` prefix from a line.
 fn strip_generated_prefix(line: &str) -> String {
     let trimmed = line.trim_start();
-    if trimmed.starts_with("/* Generated */") {
-        trimmed["/* Generated */".len()..].to_string()
+    if let Some(rest) = trimmed.strip_prefix("/* Generated */") {
+        rest.to_string()
     } else {
         line.to_string()
     }
@@ -179,7 +181,7 @@ fn strip_inline_comments(s: &str) -> String {
     re.replace_all(s, "").to_string().trim().to_string()
 }
 
-/// Extract the logic function (main body / TA_INT function).
+/// Extract the logic function (main body / `TA_INT` function).
 fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
     let end_sec3 = find_line(lines, "END GENCODE SECTION 3").expect("missing END SECTION 3");
     let start_sec5 = find_line(lines, "START GENCODE SECTION 5").expect("missing START SECTION 5");
@@ -210,7 +212,7 @@ fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
         let int_func = extract_int_function(lines, main_body_end, start_sec5, upper, lower);
         if let Some((int_params, int_body)) = int_func {
             // Use the TA_INT function's params (may have extra like optInK_1).
-            let mut result = format!("TA_RetCode {}({})\n{{\n", lower, int_params);
+            let mut result = format!("TA_RetCode {lower}({int_params})\n{{\n");
             result.push_str(&int_body);
             result.push_str("}\n");
             return result;
@@ -219,7 +221,7 @@ fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
 
     // Inline logic: extract from main function body (after GENCODE SECTION 4).
     let body = extract_main_body(lines, main_body_start, main_body_end, upper, lower);
-    let mut result = format!("TA_RetCode {}({})\n{{\n", lower, main_sig_params);
+    let mut result = format!("TA_RetCode {lower}({main_sig_params})\n{{\n");
     result.push_str(&body);
     result.push_str("}\n");
     result
@@ -227,11 +229,14 @@ fn extract_logic(lines: &[&str], upper: &str, lower: &str) -> String {
 
 /// Extract main function parameters from Section 3 (C variant).
 fn extract_main_func_params(lines: &[&str], start: usize, end: usize, upper: &str) -> String {
-    let target = format!("TA_LIB_API TA_RetCode TA_{}", upper);
+    let target = format!("TA_LIB_API TA_RetCode TA_{upper}");
     // Also check for just `TA_RetCode TA_{upper}` without TA_LIB_API for the TA_INT variant
     for i in start..end {
         let line = strip_generated_prefix(lines[i]);
-        if line.contains(&target) || line.contains(&format!("TA_RetCode TA_{}(", upper)) || line.contains(&format!("TA_RetCode TA_{} (", upper)) {
+        if line.contains(&target)
+            || line.contains(&format!("TA_RetCode TA_{upper}("))
+            || line.contains(&format!("TA_RetCode TA_{upper} ("))
+        {
             let combined = collect_until_paren_close(lines, i, end);
             if let Some(params) = extract_parens(&combined) {
                 return clean_params(&params, upper);
@@ -254,8 +259,8 @@ fn clean_params(params: &str, _upper: &str) -> String {
 /// Find the matching closing `}` for an opening `{` at `open_brace_line`.
 fn find_matching_brace(lines: &[&str], open_brace_line: usize, limit: usize) -> usize {
     let mut depth = 0i32;
-    for i in open_brace_line..limit {
-        for ch in lines[i].chars() {
+    for (i, line) in lines.iter().enumerate().take(limit).skip(open_brace_line) {
+        for ch in line.chars() {
             if ch == '{' {
                 depth += 1;
             }
@@ -270,12 +275,11 @@ fn find_matching_brace(lines: &[&str], open_brace_line: usize, limit: usize) -> 
     limit
 }
 
-/// Check if the main function body just delegates to TA_INT_<NAME> via FUNCTION_CALL.
+/// Check if the main function body just delegates to `TA_INT`_<NAME> via `FUNCTION_CALL`.
 fn check_delegates_to_int(lines: &[&str], start: usize, end: usize, upper: &str) -> bool {
-    let pattern1 = format!("FUNCTION_CALL(INT_{})", upper);
-    let pattern2 = format!("TA_INT_{}", upper);
-    for i in start..end {
-        let line = lines[i];
+    let pattern1 = format!("FUNCTION_CALL(INT_{upper})");
+    let pattern2 = format!("TA_INT_{upper}");
+    for line in &lines[start..end] {
         // Skip GENCODE sections
         if line.contains("GENCODE SECTION") {
             continue;
@@ -290,7 +294,7 @@ fn check_delegates_to_int(lines: &[&str], start: usize, end: usize, upper: &str)
     false
 }
 
-/// Extract the TA_INT_<NAME> function (signature + body).
+/// Extract the `TA_INT`_<NAME> function (signature + body).
 fn extract_int_function(
     lines: &[&str],
     after_main_end: usize,
@@ -305,8 +309,8 @@ fn extract_int_function(
     // or possibly:
     //   TA_RetCode TA_INT_<NAME>( ... )
 
-    let prefix_pattern = format!("TA_PREFIX(INT_{})", upper);
-    let direct_pattern = format!("TA_INT_{}", upper);
+    let prefix_pattern = format!("TA_PREFIX(INT_{upper})");
+    let direct_pattern = format!("TA_INT_{upper}");
 
     // Find the C path of the TA_INT function signature.
     // The structure has nested #if/#else blocks:
@@ -330,8 +334,13 @@ fn extract_int_function(
     // and take the LAST one (which will be the C #else path).
     let mut sig_line = None;
 
-    for i in (after_main_end + 1)..before_sec5 {
-        let stripped = strip_generated_prefix(lines[i]);
+    for (i, line) in lines
+        .iter()
+        .enumerate()
+        .take(before_sec5)
+        .skip(after_main_end + 1)
+    {
+        let stripped = strip_generated_prefix(line);
         let trimmed = stripped.trim();
 
         if trimmed.contains(&prefix_pattern) || trimmed.contains(&direct_pattern) {
@@ -346,15 +355,22 @@ fn extract_int_function(
     // Replace TA_PREFIX(INT_<NAME>) with a placeholder to avoid confusing extract_parens
     // (it would match the macro parens instead of the parameter list parens).
     let combined = combined
-        .replace(&format!("TA_PREFIX(INT_{})", upper), &format!("TA_INT_{}", upper))
-        .replace(&format!("TA_PREFIX( INT_{} )", upper), &format!("TA_INT_{}", upper));
+        .replace(
+            &format!("TA_PREFIX(INT_{upper})"),
+            &format!("TA_INT_{upper}"),
+        )
+        .replace(
+            &format!("TA_PREFIX( INT_{upper} )"),
+            &format!("TA_INT_{upper}"),
+        );
     let params_raw = extract_parens(&combined)?;
     let params = clean_params(&params_raw, upper);
 
     // Find the opening `{` after the signature (and after #endif).
     let mut body_open = sig_line;
     while body_open < before_sec5 {
-        if lines[body_open].trim() == "{" || strip_generated_prefix(lines[body_open]).trim() == "{" {
+        if lines[body_open].trim() == "{" || strip_generated_prefix(lines[body_open]).trim() == "{"
+        {
             break;
         }
         body_open += 1;
@@ -365,8 +381,7 @@ fn extract_int_function(
 
     // Extract body lines.
     let mut body_lines: Vec<String> = Vec::new();
-    for i in (body_open + 1)..body_close {
-        let line = lines[i];
+    for line in &lines[(body_open + 1)..body_close] {
         let stripped = strip_generated_prefix(line);
         body_lines.push(stripped);
     }
@@ -382,10 +397,10 @@ fn extract_int_function(
 
     // Trim leading/trailing blank lines
     let mut body_lines = body_lines;
-    while body_lines.first().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.first().is_some_and(|l| l.trim().is_empty()) {
         body_lines.remove(0);
     }
-    while body_lines.last().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.last().is_some_and(|l| l.trim().is_empty()) {
         body_lines.pop();
     }
 
@@ -402,8 +417,9 @@ fn extract_int_function(
 }
 
 /// Strip all `#if`/`#else`/`#endif` preprocessor blocks, resolving for C double-precision target.
-/// Symbols _JAVA, _MANAGED, USE_SUBARRAY, USE_SINGLE_PRECISION_INPUT are all undefined for C.
+/// Symbols _JAVA, _MANAGED, `USE_SUBARRAY`, `USE_SINGLE_PRECISION_INPUT` are all undefined for C.
 /// `#define` and `#undef` lines are preserved (they're local macros the backends handle).
+#[allow(clippy::similar_names)]
 fn strip_preprocessor_conditionals(lines: &[String]) -> Vec<String> {
     let mut result = Vec::new();
     // Stack tracks: (keeping_content, depth)
@@ -449,7 +465,7 @@ fn strip_preprocessor_conditionals(lines: &[String]) -> Vec<String> {
 }
 
 /// Evaluate a `#if` condition for C double-precision target.
-/// All of _JAVA, _MANAGED, USE_SUBARRAY, USE_SINGLE_PRECISION_INPUT, _RUST are undefined.
+/// All of _JAVA, _MANAGED, `USE_SUBARRAY`, `USE_SINGLE_PRECISION_INPUT`, _RUST are undefined.
 fn eval_condition_for_c(directive: &str) -> bool {
     let trimmed = directive.trim();
 
@@ -463,15 +479,25 @@ fn eval_condition_for_c(directive: &str) -> bool {
     }
 
     // #if ... — extract the condition after "#if "
-    let cond = if trimmed.starts_with("#if ") {
-        &trimmed[4..]
-    } else {
+    let Some(cond) = trimmed.strip_prefix("#if ") else {
         return true; // unknown directive, keep content
     };
 
     // Check for positive defined() terms — if any target symbol is positively tested, condition is false
-    let positive_defines = ["_JAVA", "_MANAGED", "USE_SUBARRAY", "USE_SINGLE_PRECISION_INPUT", "_RUST"];
-    let negative_defines = ["_JAVA", "_MANAGED", "USE_SUBARRAY", "USE_SINGLE_PRECISION_INPUT", "_RUST"];
+    let positive_defines = [
+        "_JAVA",
+        "_MANAGED",
+        "USE_SUBARRAY",
+        "USE_SINGLE_PRECISION_INPUT",
+        "_RUST",
+    ];
+    let negative_defines = [
+        "_JAVA",
+        "_MANAGED",
+        "USE_SUBARRAY",
+        "USE_SINGLE_PRECISION_INPUT",
+        "_RUST",
+    ];
 
     // Simple heuristic: if the condition has `defined(X)` (without `!`) for any target symbol → false
     // If the condition has `!defined(X)` for target symbols → true
@@ -482,9 +508,9 @@ fn eval_condition_for_c(directive: &str) -> bool {
     let has_positive = positive_defines.iter().any(|sym| {
         // Match `defined(SYM)` or `defined( SYM )` NOT preceded by `!`
         let patterns = [
-            format!("defined({})", sym),
-            format!("defined( {} )", sym),
-            format!("defined({})", sym),
+            format!("defined({sym})"),
+            format!("defined( {sym} )"),
+            format!("defined({sym})"),
         ];
         for pat in &patterns {
             if let Some(pos) = cond.find(pat.as_str()) {
@@ -501,10 +527,10 @@ fn eval_condition_for_c(directive: &str) -> bool {
 
     let has_negative = negative_defines.iter().any(|sym| {
         let patterns = [
-            format!("!defined({})", sym),
-            format!("!defined( {} )", sym),
-            format!("! defined({})", sym),
-            format!("! defined( {} )", sym),
+            format!("!defined({sym})"),
+            format!("!defined( {sym} )"),
+            format!("! defined({sym})"),
+            format!("! defined( {sym} )"),
         ];
         patterns.iter().any(|pat| cond.contains(pat.as_str()))
     });
@@ -541,8 +567,7 @@ fn extract_main_body(
     let mut body_lines: Vec<String> = Vec::new();
     let mut in_gencode_4 = false;
 
-    for i in body_start..body_end {
-        let line = lines[i];
+    for line in &lines[body_start..body_end] {
         if line.contains("START GENCODE SECTION 4") {
             in_gencode_4 = true;
             continue;
@@ -564,17 +589,17 @@ fn extract_main_body(
         if trimmed.starts_with("/* insert ") && trimmed.ends_with("*/") {
             continue;
         }
-        body_lines.push(line.to_string());
+        body_lines.push((*line).to_string());
     }
 
     // Resolve preprocessor conditionals for C double-precision target
     body_lines = strip_preprocessor_conditionals(&body_lines);
 
     // Trim leading/trailing blank lines
-    while body_lines.first().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.first().is_some_and(|l| l.trim().is_empty()) {
         body_lines.remove(0);
     }
-    while body_lines.last().map_or(false, |l| l.trim().is_empty()) {
+    while body_lines.last().is_some_and(|l| l.trim().is_empty()) {
         body_lines.pop();
     }
 
@@ -600,8 +625,8 @@ fn expand_macros(line: &str, upper: &str, lower: &str) -> String {
 
     // Remove `/* Generated */` prefix
     let trimmed = s.trim_start();
-    if trimmed.starts_with("/* Generated */") {
-        s = trimmed["/* Generated */".len()..].to_string();
+    if let Some(rest) = trimmed.strip_prefix("/* Generated */") {
+        s = rest.to_string();
     }
 
     // DECLARE macros
@@ -629,7 +654,7 @@ fn expand_macros(line: &str, upper: &str, lower: &str) -> String {
     s = s.replace("INPUT_TYPE", "double");
 
     // TA_PREFIX(INT_<NAME>) -> <name>
-    let prefix_int = format!("TA_PREFIX(INT_{})", upper);
+    let prefix_int = format!("TA_PREFIX(INT_{upper})");
     s = s.replace(&prefix_int, lower);
 
     // Clean up PER_TO_K -> TA_PER_TO_K (keep the macro, it's used in prefix-free too)
@@ -673,19 +698,20 @@ fn expand_declare_macros(line: &str) -> String {
 }
 
 /// Expand CAST_* macros.
+#[allow(clippy::similar_names)]
 fn expand_cast_macros(line: &str) -> String {
     let mut s = line.to_string();
     // These can be nested, so we need to handle them carefully.
     // Use a simple approach: expand innermost first, iterate.
+    // Compile regexes outside the loop to avoid repeated compilation.
+    let re_cast_f64 = Regex::new(r"CAST_TO_F64\(([^()]*)\)").unwrap();
+    let re_index = Regex::new(r"CAST_TO_INDEX\(([^()]*)\)").unwrap();
+    let re_cast_i32 = Regex::new(r"CAST_TO_I32\(([^()]*)\)").unwrap();
     for _ in 0..5 {
-        let re_f64 = Regex::new(r"CAST_TO_F64\(([^()]*)\)").unwrap();
-        let re_index = Regex::new(r"CAST_TO_INDEX\(([^()]*)\)").unwrap();
-        let re_i32 = Regex::new(r"CAST_TO_I32\(([^()]*)\)").unwrap();
-
         let prev = s.clone();
-        s = re_f64.replace_all(&s, "(double)($1)").to_string();
+        s = re_cast_f64.replace_all(&s, "(double)($1)").to_string();
         s = re_index.replace_all(&s, "(size_t)($1)").to_string();
-        s = re_i32.replace_all(&s, "(int)($1)").to_string();
+        s = re_cast_i32.replace_all(&s, "(int)($1)").to_string();
         if s == prev {
             break;
         }
@@ -700,7 +726,7 @@ fn expand_cast_macros(line: &str) -> String {
     s
 }
 
-/// Expand VALUE_HANDLE_DEREF* macros.
+/// Expand `VALUE_HANDLE_DEREF`* macros.
 fn expand_value_handle_macros(line: &str) -> String {
     let mut s = line.to_string();
 
@@ -719,7 +745,7 @@ fn expand_value_handle_macros(line: &str) -> String {
     s
 }
 
-/// Expand ENUM_VALUE(Type,TA_VALUE,CamelValue) -> TA_VALUE.
+/// Expand `ENUM_VALUE(Type,TA_VALUE,CamelValue)` -> `TA_VALUE`.
 fn expand_enum_value(line: &str) -> String {
     let mut s = line.to_string();
     let re = Regex::new(r"ENUM_VALUE\(\w+,\s*(\w+),\s*\w+\)").unwrap();
@@ -727,7 +753,7 @@ fn expand_enum_value(line: &str) -> String {
     s
 }
 
-/// Expand FUNCTION_CALL, LOOKBACK_CALL, and direct TA_<NAME> references.
+/// Expand `FUNCTION_CALL`, `LOOKBACK_CALL`, and direct TA_<NAME> references.
 fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
     let mut s = line.to_string();
 
@@ -735,33 +761,25 @@ fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
     // This pattern handles any indicator name, not just the current one.
     let re_func_int = Regex::new(r"FUNCTION_CALL\(INT_(\w+)\)").unwrap();
     s = re_func_int
-        .replace_all(&s, |caps: &regex::Captures| {
-            caps[1].to_lowercase()
-        })
+        .replace_all(&s, |caps: &regex::Captures| caps[1].to_lowercase())
         .to_string();
 
     // FUNCTION_CALL(<NAME>) -> <name>
     let re_func = Regex::new(r"FUNCTION_CALL\((\w+)\)").unwrap();
     s = re_func
-        .replace_all(&s, |caps: &regex::Captures| {
-            caps[1].to_lowercase()
-        })
+        .replace_all(&s, |caps: &regex::Captures| caps[1].to_lowercase())
         .to_string();
 
     // FUNCTION_CALL_DOUBLE(INT_<NAME>) -> <name>
     let re_func_dbl = Regex::new(r"FUNCTION_CALL_DOUBLE\(INT_(\w+)\)").unwrap();
     s = re_func_dbl
-        .replace_all(&s, |caps: &regex::Captures| {
-            caps[1].to_lowercase()
-        })
+        .replace_all(&s, |caps: &regex::Captures| caps[1].to_lowercase())
         .to_string();
 
     // FUNCTION_CALL_DOUBLE(<NAME>) -> <name>
     let re_func_dbl2 = Regex::new(r"FUNCTION_CALL_DOUBLE\((\w+)\)").unwrap();
     s = re_func_dbl2
-        .replace_all(&s, |caps: &regex::Captures| {
-            caps[1].to_lowercase()
-        })
+        .replace_all(&s, |caps: &regex::Captures| caps[1].to_lowercase())
         .to_string();
 
     // LOOKBACK_CALL(<NAME>) -> <name>_lookback
@@ -776,9 +794,7 @@ fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
     // But be careful not to match TA_INT_<NAME> inside macro definitions.
     let re_ta_int = Regex::new(r"\bTA_INT_(\w+)\b").unwrap();
     s = re_ta_int
-        .replace_all(&s, |caps: &regex::Captures| {
-            caps[1].to_lowercase()
-        })
+        .replace_all(&s, |caps: &regex::Captures| caps[1].to_lowercase())
         .to_string();
 
     // TA_<NAME>_Lookback -> <name>_lookback
@@ -793,7 +809,7 @@ fn expand_function_calls(line: &str, upper: &str, lower: &str) -> String {
     s
 }
 
-/// Expand TA_GLOBALS_* macros.
+/// Expand `TA_GLOBALS`_* macros.
 fn expand_globals_macros(line: &str) -> String {
     let mut s = line.to_string();
 
@@ -824,8 +840,7 @@ fn expand_loop_macros(line: &str) -> String {
         let i = &caps[3];
         let out_idx = &caps[4];
         s = format!(
-            "{} = 0;\n    {} = (size_t){};\n    while( {} <= (size_t){} ) {{",
-            out_idx, i, start, i, end
+            "{out_idx} = 0;\n    {i} = (size_t){start};\n    while( {i} <= (size_t){end} ) {{"
         );
     }
 
@@ -844,7 +859,7 @@ fn expand_loop_macros(line: &str) -> String {
     if let Some(caps) = re_fcd.captures(&s) {
         let n = &caps[1];
         let i = &caps[2];
-        s = format!("for( {} = {}; {} > 0; {}-- ) {{", i, n, i, i);
+        s = format!("for( {i} = {n}; {i} > 0; {i}-- ) {{");
     }
 
     // FOR_COUNTDOWN_END -> }
@@ -862,8 +877,9 @@ mod tests {
     fn read_source_file(name: &str) -> String {
         let path = Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../../src/ta_func")
-            .join(format!("ta_{}.c", name));
-        fs::read_to_string(&path).unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e))
+            .join(format!("ta_{name}.c"));
+        fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e))
     }
 
     #[test]
@@ -872,27 +888,48 @@ mod tests {
         let result = extract_function_source(&source, "sma");
 
         // Contains expected function names
-        assert!(result.contains("sma_lookback("), "should contain sma_lookback(");
+        assert!(
+            result.contains("sma_lookback("),
+            "should contain sma_lookback("
+        );
         assert!(result.contains("sma("), "should contain sma(");
 
         // Does NOT contain original prefixed names
-        assert!(!result.contains("TA_SMA_Lookback"), "should not contain TA_SMA_Lookback");
-        assert!(!result.contains("TA_INT_SMA"), "should not contain TA_INT_SMA");
+        assert!(
+            !result.contains("TA_SMA_Lookback"),
+            "should not contain TA_SMA_Lookback"
+        );
+        assert!(
+            !result.contains("TA_INT_SMA"),
+            "should not contain TA_INT_SMA"
+        );
 
         // Does NOT contain GENCODE markers
         assert!(!result.contains("GENCODE"), "should not contain GENCODE");
 
         // Does NOT contain /* Generated */ prefix
-        assert!(!result.contains("/* Generated */"), "should not contain /* Generated */");
+        assert!(
+            !result.contains("/* Generated */"),
+            "should not contain /* Generated */"
+        );
 
         // Does NOT contain managed code guards
-        assert!(!result.contains("#if defined( _MANAGED )"), "should not contain _MANAGED guards");
+        assert!(
+            !result.contains("#if defined( _MANAGED )"),
+            "should not contain _MANAGED guards"
+        );
 
         // Contains the lookback body
-        assert!(result.contains("return optInTimePeriod - 1;"), "should contain lookback return");
+        assert!(
+            result.contains("return optInTimePeriod - 1;"),
+            "should contain lookback return"
+        );
 
         // Contains TA_SUCCESS
-        assert!(result.contains("return TA_SUCCESS;"), "should contain return TA_SUCCESS");
+        assert!(
+            result.contains("return TA_SUCCESS;"),
+            "should contain return TA_SUCCESS"
+        );
     }
 
     #[test]
@@ -901,7 +938,10 @@ mod tests {
         let result = extract_function_source(&source, "rsi");
 
         // Contains expected function names
-        assert!(result.contains("rsi_lookback("), "should contain rsi_lookback(");
+        assert!(
+            result.contains("rsi_lookback("),
+            "should contain rsi_lookback("
+        );
         assert!(result.contains("TA_RetCode rsi("), "should contain rsi(");
 
         // Contains expanded globals macros
@@ -935,18 +975,23 @@ mod tests {
         let result = extract_function_source(&source, "mult");
 
         // Contains expected function names
-        assert!(result.contains("mult_lookback("), "should contain mult_lookback(");
+        assert!(
+            result.contains("mult_lookback("),
+            "should contain mult_lookback("
+        );
         assert!(result.contains("mult("), "should contain mult(");
 
         // Does NOT contain TA_MULT (except in lookback/logic names)
         assert!(
             !result.contains("TA_MULT"),
-            "should not contain TA_MULT, got:\n{}",
-            result
+            "should not contain TA_MULT, got:\n{result}"
         );
 
         // Contains return 0 for lookback
-        assert!(result.contains("return 0;"), "should contain return 0 for lookback");
+        assert!(
+            result.contains("return 0;"),
+            "should contain return 0 for lookback"
+        );
     }
 
     #[test]
@@ -955,7 +1000,10 @@ mod tests {
         let result = extract_function_source(&source, "ema");
 
         // Contains expected function names
-        assert!(result.contains("ema_lookback("), "should contain ema_lookback(");
+        assert!(
+            result.contains("ema_lookback("),
+            "should contain ema_lookback("
+        );
         assert!(result.contains("TA_RetCode ema("), "should contain ema(");
 
         // EMA internally calls SMA via LOOKBACK_CALL and FUNCTION_CALL.
@@ -966,12 +1014,24 @@ mod tests {
         );
 
         // Does NOT contain TA_INT_SMA or TA_INT_EMA (these are generated by backends, not source defs)
-        assert!(!result.contains("TA_INT_SMA"), "should not contain TA_INT_SMA");
-        assert!(!result.contains("TA_INT_EMA"), "should not contain TA_INT_EMA");
+        assert!(
+            !result.contains("TA_INT_SMA"),
+            "should not contain TA_INT_SMA"
+        );
+        assert!(
+            !result.contains("TA_INT_EMA"),
+            "should not contain TA_INT_EMA"
+        );
         // Does NOT contain _logic suffix (plain names now)
-        assert!(!result.contains("ema_logic"), "should not contain ema_logic");
+        assert!(
+            !result.contains("ema_logic"),
+            "should not contain ema_logic"
+        );
 
         // Contains TA_SUCCESS
-        assert!(result.contains("return TA_SUCCESS;"), "should contain return TA_SUCCESS");
+        assert!(
+            result.contains("return TA_SUCCESS;"),
+            "should contain return TA_SUCCESS"
+        );
     }
 }

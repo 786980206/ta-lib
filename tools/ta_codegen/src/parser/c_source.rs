@@ -65,8 +65,10 @@ fn strip_local_macros(input: &str) -> String {
             in_macro = trimmed.ends_with('\\');
             continue;
         }
-        if trimmed.starts_with("#define ") || trimmed.starts_with("#define\t")
-            || trimmed.starts_with("#undef ") || trimmed.starts_with("#undef\t")
+        if trimmed.starts_with("#define ")
+            || trimmed.starts_with("#define\t")
+            || trimmed.starts_with("#undef ")
+            || trimmed.starts_with("#undef\t")
         {
             in_macro = trimmed.ends_with('\\');
             continue;
@@ -76,6 +78,7 @@ fn strip_local_macros(input: &str) -> String {
     result.join("\n")
 }
 
+#[allow(clippy::cognitive_complexity, clippy::too_many_lines)]
 fn tokenize(input: &str) -> Vec<Token> {
     let input = strip_local_macros(input);
     let mut tokens = Vec::new();
@@ -294,7 +297,8 @@ fn tokenize(input: &str) -> Vec<Token> {
         }
 
         // Numbers (including leading-dot floats like .0)
-        if c.is_ascii_digit() || (c == '.' && i + 1 < chars.len() && chars[i + 1].is_ascii_digit()) {
+        if c.is_ascii_digit() || (c == '.' && i + 1 < chars.len() && chars[i + 1].is_ascii_digit())
+        {
             let start = i;
             let mut is_float = c == '.';
             if c == '.' {
@@ -352,7 +356,7 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
-        panic!("Unexpected character: {:?} at position {}", c, i);
+        panic!("Unexpected character: {c:?} at position {i}");
     }
 
     tokens
@@ -486,13 +490,13 @@ impl Parser {
     fn expect_op(&mut self, op: &str) {
         match self.advance() {
             Token::Op(ref s) if s == op => {}
-            other => panic!("Expected '{}', got {:?}", op, other),
+            other => panic!("Expected '{op}', got {other:?}"),
         }
     }
 
     fn expect(&mut self, expected: &Token) {
         let tok = self.advance();
-        assert_eq!(&tok, expected, "Expected {:?}, got {:?}", expected, tok);
+        assert_eq!(&tok, expected, "Expected {expected:?}, got {tok:?}");
     }
 
     fn parse_statements(&mut self) -> Vec<Statement> {
@@ -571,14 +575,15 @@ impl Parser {
     }
 
     /// Parse macro declarations/statements like:
-    ///   ENUM_DECLARATION(RetCode) retCode;  -> VarDecl { type: RetCodeType, name: retCode }
-    ///   ARRAY_REF(buf);                      -> VarDecl { type: Real, name: buf }
-    ///   ARRAY_ALLOC(buf, expr);              -> skip (no-op for code generation)
-    ///   ARRAY_FREE(buf);                     -> skip (no-op for code generation)
+    ///   `ENUM_DECLARATION(RetCode)` retCode;  -> `VarDecl` { type: `RetCodeType`, name: retCode }
+    ///   `ARRAY_REF(buf)`;                      -> `VarDecl` { type: Real, name: buf }
+    ///   `ARRAY_ALLOC(buf`, expr);              -> skip (no-op for code generation)
+    ///   `ARRAY_FREE(buf)`;                     -> skip (no-op for code generation)
+    #[allow(clippy::too_many_lines)]
     fn parse_macro_decl(&mut self) -> Statement {
         let macro_name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected macro name, got {:?}", other),
+            other => panic!("Expected macro name, got {other:?}"),
         };
         self.expect(&Token::LParen);
 
@@ -587,14 +592,13 @@ impl Parser {
                 // ENUM_DECLARATION(RetCode) varName;
                 let type_name = match self.advance() {
                     Token::Ident(s) => s,
-                    other => panic!("Expected type name in ENUM_DECLARATION, got {:?}", other),
+                    other => panic!("Expected type name in ENUM_DECLARATION, got {other:?}"),
                 };
                 self.expect(&Token::RParen);
                 let var_name = match self.advance() {
                     Token::Ident(s) => s,
                     other => panic!(
-                        "Expected variable name after ENUM_DECLARATION({}), got {:?}",
-                        type_name, other
+                        "Expected variable name after ENUM_DECLARATION({type_name}), got {other:?}"
                     ),
                 };
                 self.consume_semicolon();
@@ -613,7 +617,7 @@ impl Parser {
                 // ARRAY_REF(buf);
                 let var_name = match self.advance() {
                     Token::Ident(s) => s,
-                    other => panic!("Expected variable name in ARRAY_REF, got {:?}", other),
+                    other => panic!("Expected variable name in ARRAY_REF, got {other:?}"),
                 };
                 self.expect(&Token::RParen);
                 self.consume_semicolon();
@@ -623,10 +627,14 @@ impl Parser {
                     init: None,
                 }
             }
-            "ARRAY_ALLOC" | "ARRAY_FREE"
-            | "CIRCBUF_PROLOG" | "CIRCBUF_PROLOG_CLASS"
-            | "CIRCBUF_CONSTRUCT" | "CIRCBUF_INIT_CLASS"
-            | "CIRCBUF_DESTROY" | "CIRCBUF_NEXT" => {
+            "ARRAY_ALLOC"
+            | "ARRAY_FREE"
+            | "CIRCBUF_PROLOG"
+            | "CIRCBUF_PROLOG_CLASS"
+            | "CIRCBUF_CONSTRUCT"
+            | "CIRCBUF_INIT_CLASS"
+            | "CIRCBUF_DESTROY"
+            | "CIRCBUF_NEXT" => {
                 // Skip all tokens until matching RParen, then semicolon
                 let mut depth = 1;
                 while depth > 0 {
@@ -647,7 +655,7 @@ impl Parser {
                 // CONSTANT_DOUBLE(name) = value;
                 let var_name = match self.advance() {
                     Token::Ident(s) => s,
-                    other => panic!("Expected variable name in CONSTANT_DOUBLE, got {:?}", other),
+                    other => panic!("Expected variable name in CONSTANT_DOUBLE, got {other:?}"),
                 };
                 self.expect(&Token::RParen);
                 self.expect_op("=");
@@ -663,7 +671,7 @@ impl Parser {
                 // CONSTANT_INTEGER(name) = value;
                 let var_name = match self.advance() {
                     Token::Ident(s) => s,
-                    other => panic!("Expected variable name in CONSTANT_INTEGER, got {:?}", other),
+                    other => panic!("Expected variable name in CONSTANT_INTEGER, got {other:?}"),
                 };
                 self.expect(&Token::RParen);
                 self.expect_op("=");
@@ -675,8 +683,7 @@ impl Parser {
                     init: Some(init),
                 }
             }
-            "INIT_HILBERT_VARIABLES"
-            | "DO_HILBERT_ODD" | "DO_HILBERT_EVEN" | "DO_PRICE_WMA" => {
+            "INIT_HILBERT_VARIABLES" | "DO_HILBERT_ODD" | "DO_HILBERT_EVEN" | "DO_PRICE_WMA" => {
                 // Function-like macro call as statement
                 let args = self.parse_call_args();
                 self.expect(&Token::RParen);
@@ -691,23 +698,47 @@ impl Parser {
                 // HILBERT_VARIABLES(prefix); -> declares multiple variables
                 let prefix = match self.advance() {
                     Token::Ident(s) => s,
-                    other => panic!("Expected identifier in HILBERT_VARIABLES, got {:?}", other),
+                    other => panic!("Expected identifier in HILBERT_VARIABLES, got {other:?}"),
                 };
                 self.expect(&Token::RParen);
                 self.consume_semicolon();
                 // Expand to variable declarations for the Hilbert Transform variables
                 Statement::Block {
                     body: vec![
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd0", prefix), init: None },
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd1", prefix), init: None },
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Odd2", prefix), init: None },
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even0", prefix), init: None },
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even1", prefix), init: None },
-                        Statement::VarDecl { var_type: VarType::Real, name: format!("{}_Even2", prefix), init: None },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Odd0"),
+                            init: None,
+                        },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Odd1"),
+                            init: None,
+                        },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Odd2"),
+                            init: None,
+                        },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Even0"),
+                            init: None,
+                        },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Even1"),
+                            init: None,
+                        },
+                        Statement::VarDecl {
+                            var_type: VarType::Real,
+                            name: format!("{prefix}_Even2"),
+                            init: None,
+                        },
                     ],
                 }
             }
-            _ => panic!("Unhandled macro: {}", macro_name),
+            _ => panic!("Unhandled macro: {macro_name}"),
         }
     }
 
@@ -717,7 +748,7 @@ impl Parser {
             "double" => VarType::Real,
             "size_t" => VarType::Index,
             "TA_RetCode" => VarType::RetCodeType,
-            other => panic!("Unknown type keyword: {}", other),
+            other => panic!("Unknown type keyword: {other}"),
         }
     }
 
@@ -749,7 +780,7 @@ impl Parser {
     fn parse_single_var_decl(&mut self, var_type: VarType) -> Statement {
         let name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier in var decl, got {:?}", other),
+            other => panic!("Expected identifier in var decl, got {other:?}"),
         };
 
         // Check for init
@@ -773,7 +804,7 @@ impl Parser {
     }
 
     /// Parse the right-hand side of an assignment, handling chained assignments.
-    /// Returns (preceding_assignments, final_value) where preceding_assignments
+    /// Returns (`preceding_assignments`, `final_value`) where `preceding_assignments`
     /// are the desugared inner assignments. Does NOT consume the trailing semicolon.
     /// Example: for `b = c = 0.0`, returns ([c = 0.0, b = c], Var(c))
     ///          for `expr`, returns ([], expr)
@@ -811,7 +842,7 @@ impl Parser {
         self.advance(); // consume *
         let name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier after *, got {:?}", other),
+            other => panic!("Expected identifier after *, got {other:?}"),
         };
         self.expect_op("=");
         // Check for chained assignment: *ptr = name2 = expr
@@ -838,7 +869,7 @@ impl Parser {
         // expect "while"
         match self.advance() {
             Token::Ident(s) if s == "while" => {}
-            other => panic!("Expected 'while' after do block, got {:?}", other),
+            other => panic!("Expected 'while' after do block, got {other:?}"),
         }
         self.expect(&Token::LParen);
         let condition = self.parse_expr();
@@ -948,7 +979,7 @@ impl Parser {
             self.advance();
             let name = match self.advance() {
                 Token::Ident(s) => s,
-                other => panic!("Expected identifier after ++ in for update, got {:?}", other),
+                other => panic!("Expected identifier after ++ in for update, got {other:?}"),
             };
             return Statement::Assign {
                 target: Expr::Var(name.clone()),
@@ -965,7 +996,7 @@ impl Parser {
             self.advance();
             let name = match self.advance() {
                 Token::Ident(s) => s,
-                other => panic!("Expected identifier after -- in for update, got {:?}", other),
+                other => panic!("Expected identifier after -- in for update, got {other:?}"),
             };
             return Statement::Assign {
                 target: Expr::Var(name.clone()),
@@ -980,7 +1011,7 @@ impl Parser {
         // Usually i++ or i-- or i += 1
         let name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier in for update, got {:?}", other),
+            other => panic!("Expected identifier in for update, got {other:?}"),
         };
 
         match self.peek() {
@@ -1112,26 +1143,28 @@ impl Parser {
                                 self.expect(&Token::LParen);
                                 let enum_type = match self.advance() {
                                     Token::Ident(n) => n,
-                                    other => panic!("Expected ENUM_CASE type name, got {:?}", other),
+                                    other => {
+                                        panic!("Expected ENUM_CASE type name, got {other:?}")
+                                    }
                                 };
                                 self.expect(&Token::Comma);
                                 let c_name = match self.advance() {
                                     Token::Ident(n) => n,
-                                    other => panic!("Expected ENUM_CASE C name, got {:?}", other),
+                                    other => panic!("Expected ENUM_CASE C name, got {other:?}"),
                                 };
                                 self.expect(&Token::Comma);
                                 let _pascal_name = self.advance(); // e.g. Sma
                                 self.expect(&Token::RParen);
                                 // Strip "TA_<Type>_" prefix from c_name to get short name
-                                let prefix = format!("TA_{}_", enum_type);
+                                let prefix = format!("TA_{enum_type}_");
                                 let short = c_name.strip_prefix(&prefix).unwrap_or(&c_name);
-                                format!("{}_{}", enum_type, short)
+                                format!("{enum_type}_{short}")
                             } else {
                                 s
                             }
                         }
-                        Token::IntNumber(n) => format!("{}", n),
-                        other => panic!("Expected case label, got {:?}", other),
+                        Token::IntNumber(n) => format!("{n}"),
+                        other => panic!("Expected case label, got {other:?}"),
                     };
                     self.expect(&Token::Colon);
 
@@ -1139,9 +1172,7 @@ impl Parser {
                     loop {
                         match self.peek() {
                             Some(Token::RBrace) => break,
-                            Some(Token::Ident(ref s))
-                                if s == "case" || s == "default" =>
-                            {
+                            Some(Token::Ident(ref s)) if s == "case" || s == "default" => {
                                 break;
                             }
                             Some(Token::Ident(ref s)) if s == "break" => {
@@ -1169,7 +1200,7 @@ impl Parser {
                         }
                     }
                 }
-                other => panic!("Expected 'case' or 'default' in switch, got {:?}", other),
+                other => panic!("Expected 'case' or 'default' in switch, got {other:?}"),
             }
         }
         self.expect(&Token::RBrace);
@@ -1223,17 +1254,20 @@ impl Parser {
         self.parse_expr()
     }
 
-    /// Check if an identifier looks like an ALL_CAPS macro name.
+    /// Check if an identifier looks like an `ALL_CAPS` macro name.
     fn is_all_caps_macro(name: &str) -> bool {
         name.len() > 1
-            && name.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
-            && name.chars().next().map_or(false, |c| c.is_ascii_uppercase())
+            && name
+                .chars()
+                .all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
+            && name.chars().next().is_some_and(|c| c.is_ascii_uppercase())
     }
 
+    #[allow(clippy::too_many_lines)]
     fn parse_assignment_or_expr_stmt(&mut self) -> Statement {
         let name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier, got {:?}", other),
+            other => panic!("Expected identifier, got {other:?}"),
         };
 
         // Handle ALL_CAPS macro as standalone statement without args: CALCULATE_AD;
@@ -1248,14 +1282,18 @@ impl Parser {
 
         // Handle ALL_CAPS macro calls as standalone statements
         // e.g., TRUE_RANGE(a,b,c,d); UNUSED_VARIABLE(x); SAR_ROUNDING(v);
-        if Self::is_all_caps_macro(&name) && self.peek() == Some(&Token::LParen)
-            && !Self::is_type_keyword(&name) // not a type keyword
+        if Self::is_all_caps_macro(&name)
+            && self.peek() == Some(&Token::LParen)
+            && !Self::is_type_keyword(&name)
+        // not a type keyword
         {
             let save_pos = self.pos;
             self.advance(); // consume (
             let args = self.parse_call_args();
             self.expect(&Token::RParen);
-            if matches!(self.peek(), Some(&Token::Semicolon) | None) || self.pos >= self.tokens.len() {
+            if matches!(self.peek(), Some(&Token::Semicolon) | None)
+                || self.pos >= self.tokens.len()
+            {
                 self.consume_semicolon();
                 return Statement::Assign {
                     target: Expr::Var("_".to_string()),
@@ -1320,19 +1358,24 @@ impl Parser {
             if name == "CIRCBUF_REF" {
                 if let Some(Token::Ident(field)) = self.peek().cloned() {
                     self.advance(); // consume field name
-                    // Build synthetic array name: arr_field
-                    let target = if let Some(Expr::ArrayAccess(arr_name, idx)) = args.into_iter().next() {
-                        Expr::ArrayAccess(format!("{}_{}", arr_name, field), idx)
-                    } else {
-                        Expr::Var(format!("circbuf_{}", field))
-                    };
+                                    // Build synthetic array name: arr_field
+                    let target =
+                        if let Some(Expr::ArrayAccess(arr_name, idx)) = args.into_iter().next() {
+                            Expr::ArrayAccess(format!("{arr_name}_{field}"), idx)
+                        } else {
+                            Expr::Var(format!("circbuf_{field}"))
+                        };
                     // Parse = or compound assignment
                     match self.peek().cloned() {
                         Some(Token::Op(ref op)) if op == "=" => {
                             self.advance();
                             let value = self.parse_expr();
                             self.consume_semicolon();
-                            return Statement::Assign { target, value, compound: false };
+                            return Statement::Assign {
+                                target,
+                                value,
+                                compound: false,
+                            };
                         }
                         Some(Token::Op(ref op))
                             if op == "+=" || op == "-=" || op == "*=" || op == "/=" =>
@@ -1365,9 +1408,7 @@ impl Parser {
 
             // Check for compound assignment on array
             match self.peek().cloned() {
-                Some(Token::Op(ref op))
-                    if op == "+=" || op == "-=" || op == "*=" || op == "/=" =>
-                {
+                Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
                     let op_str = op.clone();
                     self.advance();
                     let bin_op = compound_op(&op_str);
@@ -1413,9 +1454,7 @@ impl Parser {
                     Statement::Block { body: chain_stmts }
                 }
             }
-            Some(Token::Op(ref op))
-                if op == "+=" || op == "-=" || op == "*=" || op == "/=" =>
-            {
+            Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
                 let op_str = op.clone();
                 self.advance();
                 let bin_op = compound_op(&op_str);
@@ -1433,17 +1472,14 @@ impl Parser {
                     Statement::Block { body: chain_stmts }
                 }
             }
-            other => panic!(
-                "Expected '=' or compound assignment after '{}', got {:?}",
-                name, other
-            ),
+            other => panic!("Expected '=' or compound assignment after '{name}', got {other:?}"),
         }
     }
 
     fn parse_assignment_no_semicolon(&mut self) -> Statement {
         let name = match self.advance() {
             Token::Ident(s) => s,
-            other => panic!("Expected identifier, got {:?}", other),
+            other => panic!("Expected identifier, got {other:?}"),
         };
         self.expect_op("=");
         let value = self.parse_expr();
@@ -1609,32 +1645,20 @@ impl Parser {
             let operand = self.parse_unary();
             // Pre-increment evaluates to the incremented value
             // For simplicity, treat as (expr + 1) — backends handle appropriately
-            return Expr::BinOp(
-                Box::new(operand),
-                BinOp::Add,
-                Box::new(Expr::IntLiteral(1)),
-            );
+            return Expr::BinOp(Box::new(operand), BinOp::Add, Box::new(Expr::IntLiteral(1)));
         }
         // Pre-decrement: --expr
         if self.peek() == Some(&Token::MinusMinus) {
             self.advance();
             let operand = self.parse_unary();
-            return Expr::BinOp(
-                Box::new(operand),
-                BinOp::Sub,
-                Box::new(Expr::IntLiteral(1)),
-            );
+            return Expr::BinOp(Box::new(operand), BinOp::Sub, Box::new(Expr::IntLiteral(1)));
         }
         // Unary minus or unary plus
         if let Some(Token::Op(ref op)) = self.peek() {
             if op == "-" {
                 self.advance();
                 let operand = self.parse_unary();
-                return Expr::BinOp(
-                    Box::new(Expr::IntLiteral(0)),
-                    BinOp::Sub,
-                    Box::new(operand),
-                );
+                return Expr::BinOp(Box::new(Expr::IntLiteral(0)), BinOp::Sub, Box::new(operand));
             }
             if op == "+" {
                 self.advance();
@@ -1646,87 +1670,83 @@ impl Parser {
     }
 
     fn parse_primary(&mut self) -> Expr {
-        match self.peek().cloned() {
-            Some(Token::LParen) => {
-                self.advance(); // consume (
-                // Check for C-style cast: (double), (int), (size_t)
-                if let Some(Token::Ident(ref s)) = self.peek() {
-                    if Self::is_type_keyword(s) {
-                        let type_name = s.clone();
-                        self.advance();
-                        self.expect(&Token::RParen);
-                        let var_type = Self::type_from_keyword(&type_name);
-                        let operand = self.parse_unary();
-                        return Expr::Cast(var_type, Box::new(operand));
-                    }
+        if let Some(Token::LParen) = self.peek().cloned() {
+            self.advance(); // consume (
+                            // Check for C-style cast: (double), (int), (size_t)
+            if let Some(Token::Ident(ref s)) = self.peek() {
+                if Self::is_type_keyword(s) {
+                    let type_name = s.clone();
+                    self.advance();
+                    self.expect(&Token::RParen);
+                    let var_type = Self::type_from_keyword(&type_name);
+                    let operand = self.parse_unary();
+                    return Expr::Cast(var_type, Box::new(operand));
                 }
-                // Parenthesized expression
-                let expr = self.parse_expr();
-                self.expect(&Token::RParen);
-                expr
             }
-            _ => {
-                let tok = self.advance();
-                match tok {
-                    Token::IntNumber(n) => Expr::IntLiteral(n),
-                    Token::Number(n) => Expr::Literal(n),
-                    Token::Ident(name) => {
-                        // Function call
-                        if self.peek() == Some(&Token::LParen) {
-                            self.advance(); // consume (
-                            let args = self.parse_call_args();
-                            self.expect(&Token::RParen);
+            // Parenthesized expression
+            let expr = self.parse_expr();
+            self.expect(&Token::RParen);
+            expr
+        } else {
+            let tok = self.advance();
+            match tok {
+                Token::IntNumber(n) => Expr::IntLiteral(n),
+                Token::Number(n) => Expr::Literal(n),
+                Token::Ident(name) => {
+                    // Function call
+                    if self.peek() == Some(&Token::LParen) {
+                        self.advance(); // consume (
+                        let args = self.parse_call_args();
+                        self.expect(&Token::RParen);
 
-                            // CIRCBUF_REF(arr[idx])field -> ArrayAccess("arr_field", idx)
-                            if name == "CIRCBUF_REF" {
-                                if let Some(Token::Ident(field)) = self.peek().cloned() {
-                                    self.advance();
-                                    // Extract array name and index from the first arg
-                                    if let Some(Expr::ArrayAccess(arr_name, idx)) = args.into_iter().next() {
-                                        return Expr::ArrayAccess(
-                                            format!("{}_{}", arr_name, field),
-                                            idx,
-                                        );
-                                    }
+                        // CIRCBUF_REF(arr[idx])field -> ArrayAccess("arr_field", idx)
+                        if name == "CIRCBUF_REF" {
+                            if let Some(Token::Ident(field)) = self.peek().cloned() {
+                                self.advance();
+                                // Extract array name and index from the first arg
+                                if let Some(Expr::ArrayAccess(arr_name, idx)) =
+                                    args.into_iter().next()
+                                {
+                                    return Expr::ArrayAccess(format!("{arr_name}_{field}"), idx);
                                 }
-                                // Fallback: treat as opaque function call
-                                return Expr::FuncCall("CIRCBUF_REF".to_string(), vec![]);
                             }
+                            // Fallback: treat as opaque function call
+                            return Expr::FuncCall("CIRCBUF_REF".to_string(), vec![]);
+                        }
 
-                            let func_name = transform_func_name(&name);
-                            return Expr::FuncCall(func_name, args);
-                        }
-                        // Array access
-                        if self.peek() == Some(&Token::LBracket) {
-                            self.advance(); // consume [
-                            let index = self.parse_expr();
-                            self.expect(&Token::RBracket);
-                            let arr_expr = Expr::ArrayAccess(name, Box::new(index));
-                            // Check for postfix ++/-- on array access
-                            if self.peek() == Some(&Token::PlusPlus) {
-                                self.advance();
-                                return Expr::PostIncrement(Box::new(arr_expr));
-                            }
-                            if self.peek() == Some(&Token::MinusMinus) {
-                                self.advance();
-                                return Expr::PostDecrement(Box::new(arr_expr));
-                            }
-                            return arr_expr;
-                        }
-                        // Postfix ++/-- on plain identifier
+                        let func_name = transform_func_name(&name);
+                        return Expr::FuncCall(func_name, args);
+                    }
+                    // Array access
+                    if self.peek() == Some(&Token::LBracket) {
+                        self.advance(); // consume [
+                        let index = self.parse_expr();
+                        self.expect(&Token::RBracket);
+                        let arr_expr = Expr::ArrayAccess(name, Box::new(index));
+                        // Check for postfix ++/-- on array access
                         if self.peek() == Some(&Token::PlusPlus) {
                             self.advance();
-                            return Expr::PostIncrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
+                            return Expr::PostIncrement(Box::new(arr_expr));
                         }
                         if self.peek() == Some(&Token::MinusMinus) {
                             self.advance();
-                            return Expr::PostDecrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
+                            return Expr::PostDecrement(Box::new(arr_expr));
                         }
-                        // Plain identifier — strip TA_ from enum-like values
-                        Expr::Var(strip_ta_prefix(&name))
+                        return arr_expr;
                     }
-                    other => panic!("Unexpected token in expression: {:?}", other),
+                    // Postfix ++/-- on plain identifier
+                    if self.peek() == Some(&Token::PlusPlus) {
+                        self.advance();
+                        return Expr::PostIncrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
+                    }
+                    if self.peek() == Some(&Token::MinusMinus) {
+                        self.advance();
+                        return Expr::PostDecrement(Box::new(Expr::Var(strip_ta_prefix(&name))));
+                    }
+                    // Plain identifier — strip TA_ from enum-like values
+                    Expr::Var(strip_ta_prefix(&name))
                 }
+                other => panic!("Unexpected token in expression: {other:?}"),
             }
         }
     }
@@ -1739,13 +1759,19 @@ impl Parser {
 fn strip_ta_prefix(name: &str) -> String {
     // Handle TA_COMPATIBILITY_XXX -> strip to just the variant (METASTOCK, DEFAULT)
     if let Some(rest) = name.strip_prefix("TA_COMPATIBILITY_") {
-        if rest.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit()) {
+        if rest
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
+        {
             return rest.to_string();
         }
     }
     if let Some(rest) = name.strip_prefix("TA_") {
         // Only strip if the rest looks like an enum value (uppercase/underscores)
-        if rest.chars().all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit()) {
+        if rest
+            .chars()
+            .all(|c| c.is_ascii_uppercase() || c == '_' || c.is_ascii_digit())
+        {
             return rest.to_string();
         }
     }
@@ -1766,14 +1792,14 @@ fn transform_func_name(name: &str) -> String {
     name.to_string()
 }
 
-/// Map compound assignment operator string to BinOp.
+/// Map compound assignment operator string to `BinOp`.
 fn compound_op(op: &str) -> BinOp {
     match op {
         "+=" => BinOp::Add,
         "-=" => BinOp::Sub,
         "*=" => BinOp::Mul,
         "/=" => BinOp::Div,
-        _ => panic!("Unknown compound operator: {}", op),
+        _ => panic!("Unknown compound operator: {op}"),
     }
 }
 
@@ -1841,11 +1867,7 @@ mod tests {
         let tokens = tokenize("0.0 1.5 42");
         assert_eq!(
             tokens,
-            vec![
-                Token::Number(0.0),
-                Token::Number(1.5),
-                Token::IntNumber(42),
-            ]
+            vec![Token::Number(0.0), Token::Number(1.5), Token::IntNumber(42),]
         );
     }
 
@@ -1880,7 +1902,7 @@ mod tests {
 
     #[test]
     fn test_extract_mult_functions() {
-        let source = r#"
+        let source = r"
 int TA_MULT_Lookback(void)
 {
     return 0;
@@ -1899,7 +1921,7 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
     *outBegIdx = startIdx;
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
         assert!(!parsed.lookback_body.is_empty());
         assert_eq!(parsed.functions.len(), 1);
@@ -1909,7 +1931,7 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
 
     #[test]
     fn test_extract_internal_function() {
-        let source = r#"
+        let source = r"
 TA_RetCode TA_INT_SMA(int startIdx, int endIdx,
                       const double inReal[],
                       int optInTimePeriod,
@@ -1919,7 +1941,7 @@ TA_RetCode TA_INT_SMA(int startIdx, int endIdx,
     double periodTotal = 0.0;
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
         assert_eq!(parsed.functions.len(), 1);
         assert_eq!(parsed.functions[0].name, "TA_INT_SMA");
@@ -1928,22 +1950,22 @@ TA_RetCode TA_INT_SMA(int startIdx, int endIdx,
 
     #[test]
     fn test_parse_pointer_deref() {
-        let source = r#"
+        let source = r"
 TA_RetCode TA_TEST(int startIdx, int endIdx, int *outBegIdx, int *outNBElement)
 {
     *outBegIdx = startIdx;
     *outNBElement = 0;
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
         let body = &parsed.functions[0].body;
         match &body[0] {
             Statement::Assign { target, .. } => match target {
                 Expr::PointerDeref(name) => assert_eq!(name, "outBegIdx"),
-                other => panic!("Expected PointerDeref, got {:?}", other),
+                other => panic!("Expected PointerDeref, got {other:?}"),
             },
-            other => panic!("Expected Assign, got {:?}", other),
+            other => panic!("Expected Assign, got {other:?}"),
         }
     }
 
@@ -1957,16 +1979,16 @@ TA_RetCode TA_TEST(int startIdx, int endIdx, int *outBegIdx, int *outNBElement)
                 assert_eq!(var_type, VarType::Index);
                 match *inner {
                     Expr::Var(name) => assert_eq!(name, "startIdx"),
-                    other => panic!("Expected Var, got {:?}", other),
+                    other => panic!("Expected Var, got {other:?}"),
                 }
             }
-            other => panic!("Expected Cast, got {:?}", other),
+            other => panic!("Expected Cast, got {other:?}"),
         }
     }
 
     #[test]
     fn test_parse_while_loop() {
-        let source = r#"
+        let source = r"
 TA_RetCode TA_TEST(void)
 {
     size_t i;
@@ -1976,7 +1998,7 @@ TA_RetCode TA_TEST(void)
     }
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
         let body = &parsed.functions[0].body;
         // i decl, i = 0, while loop, return
@@ -1985,7 +2007,7 @@ TA_RetCode TA_TEST(void)
             Statement::While { body, .. } => {
                 assert_eq!(body.len(), 1);
             }
-            other => panic!("Expected While, got {:?}", other),
+            other => panic!("Expected While, got {other:?}"),
         }
     }
 
@@ -2001,10 +2023,10 @@ TA_RetCode TA_TEST(void)
                 assert!(compound);
                 match target {
                     Expr::Var(name) => assert_eq!(name, "outIdx"),
-                    other => panic!("Expected Var, got {:?}", other),
+                    other => panic!("Expected Var, got {other:?}"),
                 }
             }
-            other => panic!("Expected Assign, got {:?}", other),
+            other => panic!("Expected Assign, got {other:?}"),
         }
 
         // Test actual i++ syntax
@@ -2018,10 +2040,10 @@ TA_RetCode TA_TEST(void)
                 assert!(compound);
                 match target {
                     Expr::Var(name) => assert_eq!(name, "i"),
-                    other => panic!("Expected Var, got {:?}", other),
+                    other => panic!("Expected Var, got {other:?}"),
                 }
             }
-            other => panic!("Expected Assign, got {:?}", other),
+            other => panic!("Expected Assign, got {other:?}"),
         }
     }
 
@@ -2039,7 +2061,7 @@ TA_RetCode TA_TEST(void)
                 assert_eq!(then_body.len(), 1);
                 assert!(else_body.is_empty());
             }
-            other => panic!("Expected If, got {:?}", other),
+            other => panic!("Expected If, got {other:?}"),
         }
     }
 
@@ -2057,7 +2079,7 @@ TA_RetCode TA_TEST(void)
                 assert_eq!(then_body.len(), 1);
                 assert_eq!(else_body.len(), 1);
             }
-            other => panic!("Expected If, got {:?}", other),
+            other => panic!("Expected If, got {other:?}"),
         }
     }
 
@@ -2074,11 +2096,11 @@ TA_RetCode TA_TEST(void)
                         Statement::VarDecl { var_type, .. } => {
                             assert_eq!(*var_type, VarType::Index);
                         }
-                        other => panic!("Expected VarDecl, got {:?}", other),
+                        other => panic!("Expected VarDecl, got {other:?}"),
                     }
                 }
             }
-            other => panic!("Expected Block for multi-var decl, got {:?}", other),
+            other => panic!("Expected Block for multi-var decl, got {other:?}"),
         }
     }
 
@@ -2097,7 +2119,7 @@ TA_RetCode TA_TEST(void)
                 assert_eq!(name, "x");
                 assert!(init.is_some());
             }
-            other => panic!("Expected VarDecl, got {:?}", other),
+            other => panic!("Expected VarDecl, got {other:?}"),
         }
     }
 
@@ -2113,10 +2135,10 @@ TA_RetCode TA_TEST(void)
                 assert!(!compound);
                 match target {
                     Expr::ArrayAccess(name, _) => assert_eq!(name, "outReal"),
-                    other => panic!("Expected ArrayAccess, got {:?}", other),
+                    other => panic!("Expected ArrayAccess, got {other:?}"),
                 }
             }
-            other => panic!("Expected Assign, got {:?}", other),
+            other => panic!("Expected Assign, got {other:?}"),
         }
     }
 
@@ -2130,7 +2152,7 @@ TA_RetCode TA_TEST(void)
                 assert_eq!(name, "SMA_Lookback");
                 assert_eq!(args.len(), 1);
             }
-            other => panic!("Expected FuncCall, got {:?}", other),
+            other => panic!("Expected FuncCall, got {other:?}"),
         }
     }
 
@@ -2143,7 +2165,7 @@ TA_RetCode TA_TEST(void)
             Expr::FuncCall(name, _) => {
                 assert_eq!(name, "UNSTABLE_PERIOD");
             }
-            other => panic!("Expected FuncCall, got {:?}", other),
+            other => panic!("Expected FuncCall, got {other:?}"),
         }
 
         let tokens2 = tokenize("TA_GetCompatibility()");
@@ -2154,7 +2176,7 @@ TA_RetCode TA_TEST(void)
                 assert_eq!(name, "COMPATIBILITY");
                 assert!(args.is_empty());
             }
-            other => panic!("Expected FuncCall, got {:?}", other),
+            other => panic!("Expected FuncCall, got {other:?}"),
         }
     }
 
@@ -2164,7 +2186,10 @@ TA_RetCode TA_TEST(void)
         assert_eq!(strip_ta_prefix("TA_INTERNAL_ERROR"), "INTERNAL_ERROR");
         assert_eq!(strip_ta_prefix("startIdx"), "startIdx");
         // Mixed case should NOT be stripped
-        assert_eq!(strip_ta_prefix("TA_GetUnstablePeriod"), "TA_GetUnstablePeriod");
+        assert_eq!(
+            strip_ta_prefix("TA_GetUnstablePeriod"),
+            "TA_GetUnstablePeriod"
+        );
     }
 
     #[test]
@@ -2182,19 +2207,19 @@ TA_RetCode TA_TEST(void)
                 match *init {
                     Statement::Assign { ref target, .. } => match target {
                         Expr::Var(name) => assert_eq!(name, "i"),
-                        other => panic!("Expected Var, got {:?}", other),
+                        other => panic!("Expected Var, got {other:?}"),
                     },
-                    other => panic!("Expected Assign init, got {:?}", other),
+                    other => panic!("Expected Assign init, got {other:?}"),
                 }
                 assert_eq!(body.len(), 1);
             }
-            other => panic!("Expected ForC, got {:?}", other),
+            other => panic!("Expected ForC, got {other:?}"),
         }
     }
 
     #[test]
     fn test_full_mult_body() {
-        let source = r#"
+        let source = r"
 int TA_MULT_Lookback(void)
 {
     return 0;
@@ -2222,14 +2247,16 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
 
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
 
         // Lookback body
         assert_eq!(parsed.lookback_body.len(), 1);
         match &parsed.lookback_body[0] {
-            Statement::Return { value: Some(Expr::IntLiteral(0)) } => {}
-            other => panic!("Expected Return with IntLiteral(0), got {:?}", other),
+            Statement::Return {
+                value: Some(Expr::IntLiteral(0)),
+            } => {}
+            other => panic!("Expected Return with IntLiteral(0), got {other:?}"),
         }
 
         // Main function
@@ -2247,20 +2274,22 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
             Statement::While { body, .. } => {
                 assert_eq!(body.len(), 3); // arr assign, outIdx+=1, i+=1
             }
-            other => panic!("Expected While, got {:?}", other),
+            other => panic!("Expected While, got {other:?}"),
         }
 
         // Check return
         match &body[7] {
-            Statement::Return { value: Some(Expr::Var(s)) } if s == "SUCCESS" => {}
-            other => panic!("Expected Return with Var(SUCCESS), got {:?}", other),
+            Statement::Return {
+                value: Some(Expr::Var(s)),
+            } if s == "SUCCESS" => {}
+            other => panic!("Expected Return with Var(SUCCESS), got {other:?}"),
         }
     }
 
     #[test]
     fn test_switch_statement() {
         let tokens = tokenize(
-            r#"switch( mode ) {
+            r"switch( mode ) {
                 case MODE_A:
                     x = 1;
                     break;
@@ -2270,20 +2299,18 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
                 default:
                     x = 0;
                     break;
-            }"#,
+            }",
         );
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Switch {
-                cases, default, ..
-            } => {
+            Statement::Switch { cases, default, .. } => {
                 assert_eq!(cases.len(), 2);
                 assert_eq!(cases[0].0, "MODE_A");
                 assert_eq!(cases[1].0, "MODE_B");
                 assert_eq!(default.len(), 1);
             }
-            other => panic!("Expected Switch, got {:?}", other),
+            other => panic!("Expected Switch, got {other:?}"),
         }
     }
 
@@ -2295,7 +2322,7 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         // Should parse as (x > 0 && y < 10) || (z == 5)
         match expr {
             Expr::BinOp(_, BinOp::Or, _) => {} // top level is Or
-            other => panic!("Expected Or at top level, got {:?}", other),
+            other => panic!("Expected Or at top level, got {other:?}"),
         }
     }
 
@@ -2307,15 +2334,15 @@ TA_RetCode TA_MULT(int startIdx, int endIdx,
         match expr {
             Expr::Not(inner) => match *inner {
                 Expr::Var(name) => assert_eq!(name, "flag"),
-                other => panic!("Expected Var, got {:?}", other),
+                other => panic!("Expected Var, got {other:?}"),
             },
-            other => panic!("Expected Not, got {:?}", other),
+            other => panic!("Expected Not, got {other:?}"),
         }
     }
 
     #[test]
     fn test_extract_prefix_free_functions() {
-        let source = r#"
+        let source = r"
 int sma_lookback(int optInTimePeriod)
 {
     return optInTimePeriod - 1;
@@ -2332,7 +2359,7 @@ TA_RetCode sma(int startIdx, int endIdx,
     *outNBElement = 0;
     return TA_SUCCESS;
 }
-"#;
+";
         let parsed = parse_c_source_str(source);
         assert!(
             !parsed.lookback_body.is_empty(),
@@ -2349,17 +2376,19 @@ TA_RetCode sma(int startIdx, int endIdx,
         let mut parser = Parser::new(tokens);
         let stmt = parser.parse_statement();
         match stmt {
-            Statement::Return { value: Some(Expr::BinOp(left, BinOp::Sub, right)) } => {
+            Statement::Return {
+                value: Some(Expr::BinOp(left, BinOp::Sub, right)),
+            } => {
                 match left.as_ref() {
                     Expr::Var(s) => assert_eq!(s, "optInTimePeriod"),
-                    other => panic!("Expected Var, got {:?}", other),
+                    other => panic!("Expected Var, got {other:?}"),
                 }
                 match right.as_ref() {
                     Expr::IntLiteral(1) => {}
-                    other => panic!("Expected IntLiteral(1), got {:?}", other),
+                    other => panic!("Expected IntLiteral(1), got {other:?}"),
                 }
             }
-            other => panic!("Expected Return with BinOp, got {:?}", other),
+            other => panic!("Expected Return with BinOp, got {other:?}"),
         }
     }
 }

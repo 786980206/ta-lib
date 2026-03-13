@@ -58,7 +58,7 @@ struct YamlOptParam {
     hint: Option<String>,
     #[serde(default)]
     flags: YamlFlags,
-    /// Optimization hints: [suggested_start, suggested_end, suggested_increment]
+    /// Optimization hints: [`suggested_start`, `suggested_end`, `suggested_increment`]
     suggested: Option<Vec<f64>>,
 }
 
@@ -74,16 +74,22 @@ struct YamlOutput {
 /// Convert a YAML value to i32, resolving TA-Lib symbolic constants.
 fn yaml_val_to_i32(v: &serde_yaml::Value) -> i32 {
     match v {
-        serde_yaml::Value::Number(n) => n.as_i64().unwrap_or(n.as_f64().unwrap_or(0.0) as i64) as i32,
+        serde_yaml::Value::Number(n) => {
+            #[allow(clippy::cast_possible_truncation)]
+            let result = n.as_i64().unwrap_or({
+                #[allow(clippy::cast_possible_truncation)]
+                let f = n.as_f64().unwrap_or(0.0) as i64;
+                f
+            }) as i32;
+            result
+        }
         serde_yaml::Value::String(s) => match s.as_str() {
-            "TA_INTEGER_MIN" => i32::MIN,
-            "TA_INTEGER_MAX" => i32::MAX,
-            "TA_REAL_MIN" => i32::MIN, // Clamped to i32 range for range fields
-            "TA_REAL_MAX" => i32::MAX,
+            "TA_INTEGER_MIN" | "TA_REAL_MIN" => i32::MIN,
+            "TA_INTEGER_MAX" | "TA_REAL_MAX" => i32::MAX,
             "TA_INTEGER_DEFAULT" => 0,
-            other => panic!("Unknown range constant: {}", other),
+            other => panic!("Unknown range constant: {other}"),
         },
-        other => panic!("Unexpected YAML range value: {:?}", other),
+        other => panic!("Unexpected YAML range value: {other:?}"),
     }
 }
 
@@ -92,14 +98,13 @@ fn parse_param_type(s: &str, price_components: Option<Vec<String>>) -> ParamType
         "real" => ParamType::Real,
         "integer" => ParamType::Integer,
         "price" => {
-            let components = price_components
-                .unwrap_or_else(|| vec!["open".into(), "high".into(), "low".into(), "close".into()]);
+            let components = price_components.unwrap_or_else(|| {
+                vec!["open".into(), "high".into(), "low".into(), "close".into()]
+            });
             ParamType::Price(components)
         }
-        other if other.starts_with("enum:") => {
-            ParamType::Enum(other["enum:".len()..].to_string())
-        }
-        other => panic!("Unknown param type: {}", other),
+        other if other.starts_with("enum:") => ParamType::Enum(other["enum:".len()..].to_string()),
+        other => panic!("Unknown param type: {other}"),
     }
 }
 
@@ -124,7 +129,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
                         .map(|c| {
                             let capitalized = format!("{}{}", c[..1].to_uppercase(), &c[1..]);
                             Input {
-                                name: format!("in{}", capitalized),
+                                name: format!("in{capitalized}"),
                                 param_type: ParamType::Real,
                             }
                         })
@@ -145,7 +150,9 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         .map(|p| OptInput {
             name: p.name,
             param_type: parse_param_type(&p.param_type, None),
-            range: p.range.map(|r| (yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))),
+            range: p
+                .range
+                .map(|r| (yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))),
             default: p.default,
             display_name: p.display_name,
             hint: p.hint,

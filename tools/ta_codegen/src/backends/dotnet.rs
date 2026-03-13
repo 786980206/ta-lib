@@ -1,7 +1,8 @@
-use std::collections::HashMap;
-use crate::ir::*;
+use crate::ir::{EnumDef, FuncDef, LookbackExpr, ParamType};
 use crate::registry::Registry;
+use std::collections::HashMap;
 
+#[allow(clippy::implicit_hasher)]
 pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
     let mut out = String::new();
     let pascal = to_pascal_case(&func.name);
@@ -23,7 +24,7 @@ pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &R
 
     // Logic variant declarations (same signatures, different name)
     out.push_str("#if defined( _MANAGED ) && defined( USE_SUBARRAY )\n");
-    let logic_pascal = format!("{}Logic", pascal);
+    let logic_pascal = format!("{pascal}Logic");
     out.push_str(&gen_subarray_decl(func, &logic_pascal, false));
     out.push('\n');
     out.push_str(&gen_subarray_decl(func, &logic_pascal, true));
@@ -50,16 +51,15 @@ fn to_pascal_case(name: &str) -> String {
     }
 }
 
-/// Map a ParamType to the C++/CLI type string for optional inputs.
+/// Map a `ParamType` to the C++/CLI type string for optional inputs.
 fn opt_input_type(pt: &ParamType) -> &'static str {
     match pt {
         ParamType::Real => "double",
-        ParamType::Integer => "int",
-        ParamType::Enum(_) | ParamType::Price(_) => "int",
+        ParamType::Integer | ParamType::Enum(_) | ParamType::Price(_) => "int",
     }
 }
 
-/// Map a ParamType to a C++/CLI type string for inputs (non-single-precision).
+/// Map a `ParamType` to a C++/CLI type string for inputs (non-single-precision).
 fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
     if single_precision {
         match pt {
@@ -74,7 +74,7 @@ fn input_type(pt: &ParamType, single_precision: bool) -> &'static str {
     }
 }
 
-/// Map a ParamType to a C++/CLI type string for outputs.
+/// Map a `ParamType` to a C++/CLI type string for outputs.
 fn output_type(pt: &ParamType) -> &'static str {
     match pt {
         ParamType::Real => "double",
@@ -92,12 +92,11 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
                 let c_type = opt_input_type(&opt.param_type);
                 if let Some((lo, hi)) = opt.range {
                     format!(
-                        "{}           {} );\
-                     /* From {} to {} */",
-                        c_type, param, lo, hi
+                        "{c_type}           {param} );\
+                     /* From {lo} to {hi} */"
                     )
                 } else {
-                    format!("{}           {}", c_type, param)
+                    format!("{c_type}           {param}")
                 }
             } else {
                 "void".to_string()
@@ -107,17 +106,24 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
             if func.optional_inputs.is_empty() {
                 "void".to_string()
             } else {
-                let param_parts: Vec<String> = func.optional_inputs.iter().map(|opt| {
-                    let c_type = opt_input_type(&opt.param_type);
-                    let range = opt.range.map(|r| format!("  /* From {} to {} */", r.0, r.1)).unwrap_or_default();
-                    format!("{}           {}{}", c_type, opt.name, range)
-                }).collect();
+                let param_parts: Vec<String> = func
+                    .optional_inputs
+                    .iter()
+                    .map(|opt| {
+                        let c_type = opt_input_type(&opt.param_type);
+                        let range = opt
+                            .range
+                            .map(|r| format!("  /* From {} to {} */", r.0, r.1))
+                            .unwrap_or_default();
+                        format!("{}           {}{}", c_type, opt.name, range)
+                    })
+                    .collect();
                 param_parts.join(", ")
             }
         }
     };
 
-    format!("         static int {}Lookback( {} );\n", pascal, params)
+    format!("         static int {pascal}Lookback( {params} );\n")
 }
 
 fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> String {
@@ -172,7 +178,7 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
     let mut out = format_decl_inline(pascal, &params);
 
     // Build dispatch call body
-    out.push_str(&format!("         {{ return {}( startIdx, endIdx,\n", pascal));
+    out.push_str(&format!("         {{ return {pascal}( startIdx, endIdx,\n"));
 
     // Wrap inputs
     for input in &func.inputs {
@@ -242,25 +248,21 @@ fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> S
 fn gen_macros(_func: &FuncDef, pascal: &str) -> String {
     let upper = pascal.to_uppercase();
     format!(
-        "         #define TA_{} Core::{}\n\
-         \x20        #define TA_{}_Lookback Core::{}Lookback\n\
-         \x20        #define TA_{}_Logic Core::{}Logic\n\
-         \x20        #define TA_INT_{} Core::{}Logic\n",
-        upper, pascal,
-        upper, pascal,
-        upper, pascal,
-        upper, pascal
+        "         #define TA_{upper} Core::{pascal}\n\
+         \x20        #define TA_{upper}_Lookback Core::{pascal}Lookback\n\
+         \x20        #define TA_{upper}_Logic Core::{pascal}Logic\n\
+         \x20        #define TA_INT_{upper} Core::{pascal}Logic\n"
     )
 }
 
 /// Format a declaration-only signature (semicolon terminated).
 fn format_decl(pascal: &str, params: &[String]) -> String {
-    let prefix = format!("         static enum class RetCode {}( ", pascal);
+    let prefix = format!("         static enum class RetCode {pascal}( ");
     let indent = " ".repeat(prefix.len());
     let mut out = prefix;
     for (i, param) in params.iter().enumerate() {
         if i > 0 {
-            out.push_str(&format!(",\n{}", indent));
+            out.push_str(&format!(",\n{indent}"));
         }
         out.push_str(param);
     }
@@ -270,12 +272,12 @@ fn format_decl(pascal: &str, params: &[String]) -> String {
 
 /// Format a declaration with inline body (no semicolon, open for body).
 fn format_decl_inline(pascal: &str, params: &[String]) -> String {
-    let prefix = format!("         static enum class RetCode {}( ", pascal);
+    let prefix = format!("         static enum class RetCode {pascal}( ");
     let indent = " ".repeat(prefix.len());
     let mut out = prefix;
     for (i, param) in params.iter().enumerate() {
         if i > 0 {
-            out.push_str(&format!(",\n{}", indent));
+            out.push_str(&format!(",\n{indent}"));
         }
         out.push_str(param);
     }
@@ -286,9 +288,9 @@ fn format_decl_inline(pascal: &str, params: &[String]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
     use crate::parser;
     use crate::registry::Registry;
+    use std::path::Path;
 
     fn make_registry() -> Registry {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
@@ -317,12 +319,21 @@ mod tests {
         assert!(output.contains("SmaLogic("), "Missing SmaLogic declaration");
 
         // Should contain the TA_INT_SMA macro
-        assert!(output.contains("#define TA_INT_SMA"), "Missing #define TA_INT_SMA");
+        assert!(
+            output.contains("#define TA_INT_SMA"),
+            "Missing #define TA_INT_SMA"
+        );
 
         // Should contain the TA_SMA_Logic macro
-        assert!(output.contains("#define TA_SMA_Logic Core::SmaLogic"), "Missing #define TA_SMA_Logic");
+        assert!(
+            output.contains("#define TA_SMA_Logic Core::SmaLogic"),
+            "Missing #define TA_SMA_Logic"
+        );
 
         // Should contain the TA_INT_SMA macro pointing to Core::SmaLogic
-        assert!(output.contains("#define TA_INT_SMA Core::SmaLogic"), "Missing #define TA_INT_SMA Core::SmaLogic");
+        assert!(
+            output.contains("#define TA_INT_SMA Core::SmaLogic"),
+            "Missing #define TA_INT_SMA Core::SmaLogic"
+        );
     }
 }

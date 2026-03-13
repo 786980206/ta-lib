@@ -105,29 +105,39 @@ fn to_pascal(name: &str) -> String {
 fn check_c_variants(c: &str, upper: &str, name: &str) {
     assert!(
         c.contains(&format!("TA_{}_Lookback", upper)),
-        "{}: C missing TA_{}_Lookback", name, upper
+        "{}: C missing TA_{}_Lookback",
+        name,
+        upper
     );
     assert!(
-        c.contains(&format!("TA_{}(", upper))
-            || c.contains(&format!("TA_{} (", upper)),
-        "{}: C missing TA_{}", name, upper
+        c.contains(&format!("TA_{}(", upper)) || c.contains(&format!("TA_{} (", upper)),
+        "{}: C missing TA_{}",
+        name,
+        upper
     );
     assert!(
         c.contains(&format!("TA_{}_Logic(", upper)),
-        "{}: C missing TA_{}_Logic", name, upper
+        "{}: C missing TA_{}_Logic",
+        name,
+        upper
     );
     assert!(
         c.contains(&format!("#define TA_INT_{}", upper)),
-        "{}: C missing #define TA_INT_{}", name, upper
+        "{}: C missing #define TA_INT_{}",
+        name,
+        upper
     );
     assert!(
-        c.contains(&format!("TA_S_{}(", upper))
-            || c.contains(&format!("TA_S_{} (", upper)),
-        "{}: C missing TA_S_{}", name, upper
+        c.contains(&format!("TA_S_{}(", upper)) || c.contains(&format!("TA_S_{} (", upper)),
+        "{}: C missing TA_S_{}",
+        name,
+        upper
     );
     assert!(
         c.contains(&format!("TA_S_{}_Logic(", upper)),
-        "{}: C missing TA_S_{}_Logic", name, upper
+        "{}: C missing TA_S_{}_Logic",
+        name,
+        upper
     );
 }
 
@@ -136,27 +146,37 @@ fn check_rust_generic_variants(r: &str, snake: &str, name: &str) {
     // Lookback (non-generic)
     assert!(
         r.contains(&format!("{}_lookback", snake)),
-        "{}: Rust missing {}_lookback", name, snake
+        "{}: Rust missing {}_lookback",
+        name,
+        snake
     );
     // Guarded generic
     assert!(
         r.contains(&format!("fn {}<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}<T: TaFloat>", name, snake
+        "{}: Rust missing fn {}<T: TaFloat>",
+        name,
+        snake
     );
     // Unguarded generic (real algorithm, bounds-checked)
     assert!(
         r.contains(&format!("fn {}_unguarded<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unguarded<T: TaFloat>", name, snake
+        "{}: Rust missing fn {}_unguarded<T: TaFloat>",
+        name,
+        snake
     );
     // Unchecked guarded (unsafe)
     assert!(
         r.contains(&format!("fn {}_unchecked<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unchecked<T: TaFloat>", name, snake
+        "{}: Rust missing fn {}_unchecked<T: TaFloat>",
+        name,
+        snake
     );
     // Unguarded unchecked (unsafe, real algorithm)
     assert!(
         r.contains(&format!("fn {}_unguarded_unchecked<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unguarded_unchecked<T: TaFloat>", name, snake
+        "{}: Rust missing fn {}_unguarded_unchecked<T: TaFloat>",
+        name,
+        snake
     );
 }
 
@@ -164,16 +184,21 @@ fn check_rust_generic_variants(r: &str, snake: &str, name: &str) {
 fn check_java_variants(j: &str, lower: &str, name: &str) {
     assert!(
         j.contains(&format!("{}Lookback(", lower)),
-        "{}: Java missing {}Lookback", name, lower
+        "{}: Java missing {}Lookback",
+        name,
+        lower
     );
     assert!(
-        j.contains(&format!("RetCode {}(", lower))
-            || j.contains(&format!("RetCode {} (", lower)),
-        "{}: Java missing {} function", name, lower
+        j.contains(&format!("RetCode {}(", lower)) || j.contains(&format!("RetCode {} (", lower)),
+        "{}: Java missing {} function",
+        name,
+        lower
     );
     assert!(
         j.contains(&format!("{}Logic(", lower)),
-        "{}: Java missing {}Logic", name, lower
+        "{}: Java missing {}Logic",
+        name,
+        lower
     );
 }
 
@@ -181,46 +206,62 @@ fn check_java_variants(j: &str, lower: &str, name: &str) {
 fn check_dotnet_variants(d: &str, pascal: &str, upper: &str, name: &str) {
     assert!(
         d.contains(&format!("{}Lookback(", pascal)),
-        "{}: .NET missing {}Lookback", name, pascal
+        "{}: .NET missing {}Lookback",
+        name,
+        pascal
     );
     assert!(
-        d.contains(&format!("{}(", pascal))
-            || d.contains(&format!("{} (", pascal)),
-        "{}: .NET missing {} function", name, pascal
+        d.contains(&format!("{}(", pascal)) || d.contains(&format!("{} (", pascal)),
+        "{}: .NET missing {} function",
+        name,
+        pascal
     );
     assert!(
         d.contains(&format!("{}Logic(", pascal)),
-        "{}: .NET missing {}Logic declaration", name, pascal
+        "{}: .NET missing {}Logic declaration",
+        name,
+        pascal
     );
     assert!(
         d.contains(&format!("#define TA_{} ", upper))
             || d.contains(&format!("#define TA_{}\n", upper)),
-        "{}: .NET missing #define TA_{}", name, upper
+        "{}: .NET missing #define TA_{}",
+        name,
+        upper
     );
     assert!(
         d.contains(&format!("#define TA_{}_Logic", upper)),
-        "{}: .NET missing #define TA_{}_Logic", name, upper
+        "{}: .NET missing #define TA_{}_Logic",
+        name,
+        upper
     );
     assert!(
         d.contains(&format!("#define TA_INT_{}", upper)),
-        "{}: .NET missing #define TA_INT_{}", name, upper
+        "{}: .NET missing #define TA_INT_{}",
+        name,
+        upper
     );
 }
 
 /// Check that all SWIG variants exist for a given indicator.
 fn check_swig_variants(s: &str, upper: &str, name: &str) {
     assert!(
-        s.contains(&format!("TA_{}(", upper))
-            || s.contains(&format!("TA_{} (", upper)),
-        "{}: SWIG missing TA_{}", name, upper
+        s.contains(&format!("TA_{}(", upper)) || s.contains(&format!("TA_{} (", upper)),
+        "{}: SWIG missing TA_{}",
+        name,
+        upper
     );
     assert!(
         s.contains(&format!("TA_{}_Logic(", upper)),
-        "{}: SWIG missing TA_{}_Logic", name, upper
+        "{}: SWIG missing TA_{}_Logic",
+        name,
+        upper
     );
     assert!(
         s.contains(&format!("TA_{}_Lookback", upper)),
-        "{}: SWIG missing TA_{}_Lookback", name, upper
+        "{}: SWIG missing TA_{}_Lookback",
+        name,
+        upper
     );
 }
 
@@ -228,7 +269,10 @@ fn check_swig_variants(s: &str, upper: &str, name: &str) {
 fn check_c_int_alias(c: &str, upper: &str, name: &str) {
     assert!(
         c.contains(&format!("#define TA_INT_{} TA_{}_Logic", upper, upper)),
-        "{}: C missing #define TA_INT_{} TA_{}_Logic", name, upper, upper
+        "{}: C missing #define TA_INT_{} TA_{}_Logic",
+        name,
+        upper,
+        upper
     );
 }
 
@@ -236,27 +280,40 @@ fn check_c_int_alias(c: &str, upper: &str, name: &str) {
 fn check_dotnet_macros(d: &str, pascal: &str, upper: &str, name: &str) {
     assert!(
         d.contains(&format!("#define TA_{} Core::{}", upper, pascal)),
-        "{}: .NET TA_{} should point to Core::{}", name, upper, pascal
+        "{}: .NET TA_{} should point to Core::{}",
+        name,
+        upper,
+        pascal
     );
     assert!(
-        d.contains(&format!("#define TA_{}_Lookback Core::{}Lookback", upper, pascal)),
-        "{}: .NET TA_{}_Lookback should point to Core::{}Lookback", name, upper, pascal
+        d.contains(&format!(
+            "#define TA_{}_Lookback Core::{}Lookback",
+            upper, pascal
+        )),
+        "{}: .NET TA_{}_Lookback should point to Core::{}Lookback",
+        name,
+        upper,
+        pascal
     );
     assert!(
         d.contains(&format!("#define TA_{}_Logic Core::{}Logic", upper, pascal)),
-        "{}: .NET TA_{}_Logic should point to Core::{}Logic", name, upper, pascal
+        "{}: .NET TA_{}_Logic should point to Core::{}Logic",
+        name,
+        upper,
+        pascal
     );
     assert!(
         d.contains(&format!("#define TA_INT_{} Core::{}Logic", upper, pascal)),
-        "{}: .NET TA_INT_{} should point to Core::{}Logic", name, upper, pascal
+        "{}: .NET TA_INT_{} should point to Core::{}Logic",
+        name,
+        upper,
+        pascal
     );
 }
 
 /// Try to load an indicator, returning None if parsing fails (not yet supported).
 fn try_load_indicator(name: &str) -> Option<(ir::FuncDef, HashMap<String, ir::EnumDef>)> {
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        load_indicator(name)
-    }));
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| load_indicator(name)));
     result.ok()
 }
 
@@ -265,9 +322,8 @@ fn try_generate_all(
     func: &ir::FuncDef,
     enums: &HashMap<String, ir::EnumDef>,
 ) -> Option<AllOutputs> {
-    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-        generate_all(func, enums)
-    }));
+    let result =
+        std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| generate_all(func, enums)));
     result.ok()
 }
 
@@ -289,11 +345,17 @@ fn test_all_indicators_all_backends() {
         let loaded = try_load_indicator(name);
         let (func, enums) = match loaded {
             Some(v) => v,
-            None => { skipped += 1; continue; }
+            None => {
+                skipped += 1;
+                continue;
+            }
         };
         let out = match try_generate_all(&func, &enums) {
             Some(v) => v,
-            None => { skipped += 1; continue; }
+            None => {
+                skipped += 1;
+                continue;
+            }
         };
 
         // Phase 2: run variant checks (failures here are real bugs)
@@ -327,7 +389,9 @@ fn test_all_indicators_all_backends() {
 
     eprintln!(
         "Variant checks: {} tested, {} skipped (parse not yet supported), {} failed",
-        tested, skipped, failures.len()
+        tested,
+        skipped,
+        failures.len()
     );
 
     // Ensure we tested at least the 6 known-good indicators
@@ -505,7 +569,11 @@ fn test_rust_sma_guarded_has_validation() {
     let out = generate_all(&func, &enums);
 
     // The guarded Rust function delegates to _unguarded, but first validates params.
-    let guarded = extract_section(&out.rust, "pub fn sma<T: TaFloat>", "pub fn sma_unguarded<T: TaFloat>");
+    let guarded = extract_section(
+        &out.rust,
+        "pub fn sma<T: TaFloat>",
+        "pub fn sma_unguarded<T: TaFloat>",
+    );
     assert!(
         guarded.contains("endIdx < startIdx"),
         "Rust guarded SMA should have endIdx < startIdx check"
@@ -518,7 +586,10 @@ fn test_rust_sma_unguarded_omits_validation() {
     let out = generate_all(&func, &enums);
 
     // The unguarded function should not have the range check
-    let unguarded_start = out.rust.find("pub fn sma_unguarded<T: TaFloat>").expect("Missing sma_unguarded");
+    let unguarded_start = out
+        .rust
+        .find("pub fn sma_unguarded<T: TaFloat>")
+        .expect("Missing sma_unguarded");
     let unguarded_section = &out.rust[unguarded_start..];
     let end = unguarded_section
         .find("pub unsafe fn sma_unchecked")
@@ -574,10 +645,7 @@ fn test_rsi_c_unstable_period() {
         out.c.contains("TA_GLOBALS_COMPATIBILITY"),
         "C RSI should use TA_GLOBALS_COMPATIBILITY"
     );
-    assert!(
-        out.c.contains("TA_IS_ZERO"),
-        "C RSI should use TA_IS_ZERO"
-    );
+    assert!(out.c.contains("TA_IS_ZERO"), "C RSI should use TA_IS_ZERO");
 }
 
 #[test]
@@ -763,10 +831,26 @@ fn test_all_indicators_nonempty_output() {
             assert!(!out.swig.is_empty(), "{}: SWIG output is empty", name);
 
             assert!(out.c.len() > 200, "{}: C output suspiciously short", name);
-            assert!(out.rust.len() > 200, "{}: Rust output suspiciously short", name);
-            assert!(out.java.len() > 100, "{}: Java output suspiciously short", name);
-            assert!(out.dotnet.len() > 100, "{}: .NET output suspiciously short", name);
-            assert!(out.swig.len() > 100, "{}: SWIG output suspiciously short", name);
+            assert!(
+                out.rust.len() > 200,
+                "{}: Rust output suspiciously short",
+                name
+            );
+            assert!(
+                out.java.len() > 100,
+                "{}: Java output suspiciously short",
+                name
+            );
+            assert!(
+                out.dotnet.len() > 100,
+                "{}: .NET output suspiciously short",
+                name
+            );
+            assert!(
+                out.swig.len() > 100,
+                "{}: SWIG output suspiciously short",
+                name
+            );
         }));
         if let Err(e) = result {
             let msg = if let Some(s) = e.downcast_ref::<String>() {
@@ -782,7 +866,11 @@ fn test_all_indicators_nonempty_output() {
         }
     }
 
-    assert!(tested >= 6, "Expected at least 6 indicators to pass non-empty checks, got {}", tested);
+    assert!(
+        tested >= 6,
+        "Expected at least 6 indicators to pass non-empty checks, got {}",
+        tested
+    );
 
     if !failures.is_empty() {
         panic!(
@@ -792,7 +880,10 @@ fn test_all_indicators_nonempty_output() {
         );
     }
 
-    eprintln!("{} indicators produce non-empty output for all backends", tested);
+    eprintln!(
+        "{} indicators produce non-empty output for all backends",
+        tested
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -818,11 +909,14 @@ fn test_swig_comment_blocks() {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             assert!(
                 out.swig.contains("/*"),
-                "SWIG {}: missing comment block", name
+                "SWIG {}: missing comment block",
+                name
             );
             assert!(
                 out.swig.contains(&format!("TA_{}", func_name)),
-                "SWIG {}: comment block missing TA_{} reference", name, func_name
+                "SWIG {}: comment block missing TA_{} reference",
+                name,
+                func_name
             );
         }));
         if let Err(e) = result {
@@ -838,7 +932,11 @@ fn test_swig_comment_blocks() {
     }
 
     if !failures.is_empty() {
-        panic!("{} indicator(s) failed SWIG comment checks:\n{}", failures.len(), failures.join("\n"));
+        panic!(
+            "{} indicator(s) failed SWIG comment checks:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
     }
 }
 
@@ -864,11 +962,13 @@ fn test_rust_impl_core_structure() {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             assert!(
                 out.rust.contains("impl Core {"),
-                "Rust {}: missing impl Core block", name
+                "Rust {}: missing impl Core block",
+                name
             );
             assert!(
                 out.rust.contains("use super::*;"),
-                "Rust {}: missing use super::* import", name
+                "Rust {}: missing use super::* import",
+                name
             );
         }));
         if let Err(e) = result {
@@ -884,7 +984,11 @@ fn test_rust_impl_core_structure() {
     }
 
     if !failures.is_empty() {
-        panic!("{} indicator(s) failed Rust structure checks:\n{}", failures.len(), failures.join("\n"));
+        panic!(
+            "{} indicator(s) failed Rust structure checks:\n{}",
+            failures.len(),
+            failures.join("\n")
+        );
     }
 }
 
@@ -954,15 +1058,18 @@ fn test_all_indicators_contain_success_returns() {
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             assert!(
                 out.c.contains("TA_SUCCESS"),
-                "C {}: missing TA_SUCCESS return", name
+                "C {}: missing TA_SUCCESS return",
+                name
             );
             assert!(
                 out.rust.contains("RetCode::Success"),
-                "Rust {}: missing RetCode::Success return", name
+                "Rust {}: missing RetCode::Success return",
+                name
             );
             assert!(
                 out.java.contains("RetCode.Success"),
-                "Java {}: missing RetCode.Success return", name
+                "Java {}: missing RetCode.Success return",
+                name
             );
         }));
         if let Err(e) = result {

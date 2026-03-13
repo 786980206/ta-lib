@@ -78,7 +78,7 @@ fn strip_c_comments(s: &str) -> String {
     re.replace_all(s, "").to_string()
 }
 
-/// Parse a numeric literal, handling TA_REAL_MIN / TA_REAL_MAX sentinels.
+/// Parse a numeric literal, handling `TA_REAL_MIN` / `TA_REAL_MAX` sentinels.
 fn parse_num(s: &str) -> f64 {
     let s = s.trim();
     if s == "TA_REAL_MIN" {
@@ -150,7 +150,7 @@ fn parse_output_flags(raw: &str) -> Vec<String> {
     out
 }
 
-/// Map TA_IN_PRICE_* flags to lowercase price component names.
+/// Map `TA_IN_PRICE`_* flags to lowercase price component names.
 fn parse_price_flags(raw: &str) -> Vec<String> {
     let raw = strip_c_comments(raw);
     let raw = raw.trim();
@@ -212,10 +212,8 @@ pub fn parse_shared_defs(source: &str) -> SharedDefs {
 
 fn parse_group_ids(source: &str, defs: &mut SharedDefs) {
     // Match: const char TA_GroupId_XxxString[] = "Value";
-    let re = Regex::new(
-        r#"const\s+char\s+(TA_GroupId_\w+String)\s*\[\s*\]\s*=\s*"([^"]+)""#,
-    )
-    .unwrap();
+    let re =
+        Regex::new(r#"const\s+char\s+(TA_GroupId_\w+String)\s*\[\s*\]\s*=\s*"([^"]+)""#).unwrap();
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
         let value = cap[2].to_string();
@@ -229,9 +227,9 @@ fn parse_group_ids(source: &str, defs: &mut SharedDefs) {
 fn parse_input_defs(source: &str, defs: &mut SharedDefs) {
     // Match: const TA_InputParameterInfo TA_DEF_UI_Input_XXX = { type, "name", flags };
     // Multi-line, so we use a pattern that captures the whole initializer block.
-    let re = Regex::new(
-        r"(?s)const\s+TA_InputParameterInfo\s+(TA_DEF_UI_Input_\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re =
+        Regex::new(r"(?s)const\s+TA_InputParameterInfo\s+(TA_DEF_UI_Input_\w+)\s*=\s*\{([^}]+)\}")
+            .unwrap();
 
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
@@ -240,7 +238,11 @@ fn parse_input_defs(source: &str, defs: &mut SharedDefs) {
         if parts.len() >= 3 {
             let input_type_raw = parts[0].trim();
             let name = parts[1].trim().trim_matches('"').to_string();
-            let flags_raw: String = parts[2..].iter().map(|s| s.trim()).collect::<Vec<_>>().join("|");
+            let flags_raw: String = parts[2..]
+                .iter()
+                .map(|s| s.trim())
+                .collect::<Vec<_>>()
+                .join("|");
 
             let input_type = match input_type_raw {
                 "TA_Input_Real" => "real",
@@ -270,8 +272,9 @@ fn parse_input_defs(source: &str, defs: &mut SharedDefs) {
 
 fn parse_output_defs(source: &str, defs: &mut SharedDefs) {
     let re = Regex::new(
-        r"(?s)const\s+TA_OutputParameterInfo\s+(TA_DEF_UI_Output_\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+        r"(?s)const\s+TA_OutputParameterInfo\s+(TA_DEF_UI_Output_\w+)\s*=\s*\{([^}]+)\}",
+    )
+    .unwrap();
 
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
@@ -280,7 +283,11 @@ fn parse_output_defs(source: &str, defs: &mut SharedDefs) {
         if parts.len() >= 3 {
             let output_type_raw = parts[0].trim();
             let name = parts[1].trim().trim_matches('"').to_string();
-            let flags_raw = parts[2..].iter().map(|s| s.trim()).collect::<Vec<_>>().join("|");
+            let flags_raw = parts[2..]
+                .iter()
+                .map(|s| s.trim())
+                .collect::<Vec<_>>()
+                .join("|");
 
             let output_type = match output_type_raw {
                 "TA_Output_Real" => "real",
@@ -305,17 +312,12 @@ fn parse_output_defs(source: &str, defs: &mut SharedDefs) {
 
 fn parse_integer_ranges(source: &str, defs: &mut SharedDefs) {
     // Match: const TA_IntegerRange NAME = { val, val, val, val, val };
-    let re = Regex::new(
-        r"(?s)const\s+TA_IntegerRange\s+(TA_DEF_\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re = Regex::new(r"(?s)const\s+TA_IntegerRange\s+(TA_DEF_\w+)\s*=\s*\{([^}]+)\}").unwrap();
 
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
         let body = strip_c_comments(&cap[2]);
-        let vals: Vec<f64> = body
-            .split(',')
-            .map(|s| parse_num(s.trim()))
-            .collect();
+        let vals: Vec<f64> = body.split(',').map(|s| parse_num(s.trim())).collect();
         if vals.len() >= 5 {
             defs.integer_ranges.insert(
                 var_name,
@@ -332,23 +334,19 @@ fn parse_integer_ranges(source: &str, defs: &mut SharedDefs) {
 }
 
 fn parse_real_ranges(source: &str, defs: &mut SharedDefs) {
-    let re = Regex::new(
-        r"(?s)const\s+TA_RealRange\s+(TA_DEF_\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re = Regex::new(r"(?s)const\s+TA_RealRange\s+(TA_DEF_\w+)\s*=\s*\{([^}]+)\}").unwrap();
 
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
         let body = strip_c_comments(&cap[2]);
-        let vals: Vec<f64> = body
-            .split(',')
-            .map(|s| parse_num(s.trim()))
-            .collect();
+        let vals: Vec<f64> = body.split(',').map(|s| parse_num(s.trim())).collect();
         if vals.len() >= 6 {
             defs.real_ranges.insert(
                 var_name,
                 RealRange {
                     min: vals[0],
                     max: vals[1],
+                    #[allow(clippy::cast_possible_truncation)]
                     precision: vals[2] as i32,
                     suggested_start: vals[3],
                     suggested_end: vals[4],
@@ -362,8 +360,9 @@ fn parse_real_ranges(source: &str, defs: &mut SharedDefs) {
 fn parse_opt_input_defs(source: &str, defs: &mut SharedDefs) {
     // Match both `const` and `static const` opt input parameter info blocks.
     let re = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_OptInputParameterInfo\s+(TA_DEF_UI_\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+        r"(?s)(?:static\s+)?const\s+TA_OptInputParameterInfo\s+(TA_DEF_UI_\w+)\s*=\s*\{([^}]+)\}",
+    )
+    .unwrap();
 
     for cap in re.captures_iter(source) {
         let var_name = cap[1].to_string();
@@ -545,83 +544,81 @@ pub fn parse_table(table_source: &str, shared: &SharedDefs) -> Vec<TableFuncDef>
     results
 }
 
+#[allow(clippy::too_many_lines, clippy::similar_names)]
 fn parse_local_defs(source: &str, defs: &mut SharedDefs) {
     // Parse local TA_RealRange (static or const)
-    let re_real = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_RealRange\s+(\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re_real =
+        Regex::new(r"(?s)(?:static\s+)?const\s+TA_RealRange\s+(\w+)\s*=\s*\{([^}]+)\}").unwrap();
     for cap in re_real.captures_iter(source) {
         let var_name = cap[1].to_string();
-        if !defs.real_ranges.contains_key(&var_name) {
+        if let std::collections::hash_map::Entry::Vacant(e) = defs.real_ranges.entry(var_name) {
             let body = strip_c_comments(&cap[2]);
             let vals: Vec<f64> = body.split(',').map(|s| parse_num(s.trim())).collect();
             if vals.len() >= 6 {
-                defs.real_ranges.insert(
-                    var_name,
-                    RealRange {
-                        min: vals[0],
-                        max: vals[1],
-                        precision: vals[2] as i32,
-                        suggested_start: vals[3],
-                        suggested_end: vals[4],
-                        suggested_increment: vals[5],
-                    },
-                );
+                e.insert(RealRange {
+                    min: vals[0],
+                    max: vals[1],
+                    #[allow(clippy::cast_possible_truncation)]
+                    precision: vals[2] as i32,
+                    suggested_start: vals[3],
+                    suggested_end: vals[4],
+                    suggested_increment: vals[5],
+                });
             }
         }
     }
 
     // Parse local TA_IntegerRange (static or const)
-    let re_int = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_IntegerRange\s+(\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re_int =
+        Regex::new(r"(?s)(?:static\s+)?const\s+TA_IntegerRange\s+(\w+)\s*=\s*\{([^}]+)\}").unwrap();
     for cap in re_int.captures_iter(source) {
         let var_name = cap[1].to_string();
-        if !defs.integer_ranges.contains_key(&var_name) {
+        if let std::collections::hash_map::Entry::Vacant(e) = defs.integer_ranges.entry(var_name) {
             let body = strip_c_comments(&cap[2]);
             let vals: Vec<f64> = body.split(',').map(|s| parse_num(s.trim())).collect();
             if vals.len() >= 5 {
-                defs.integer_ranges.insert(
-                    var_name,
-                    IntegerRange {
-                        min: vals[0],
-                        max: vals[1],
-                        suggested_start: vals[2],
-                        suggested_end: vals[3],
-                        suggested_increment: vals[4],
-                    },
-                );
+                e.insert(IntegerRange {
+                    min: vals[0],
+                    max: vals[1],
+                    suggested_start: vals[2],
+                    suggested_end: vals[3],
+                    suggested_increment: vals[4],
+                });
             }
         }
     }
 
     // Parse local opt-input definitions
-    let re_opt = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_OptInputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re_opt =
+        Regex::new(r"(?s)(?:static\s+)?const\s+TA_OptInputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}")
+            .unwrap();
     for cap in re_opt.captures_iter(source) {
         let var_name = cap[1].to_string();
-        if !defs.opt_inputs.contains_key(&var_name) {
+        if let std::collections::hash_map::Entry::Vacant(e) = defs.opt_inputs.entry(var_name) {
             if let Some(opt) = parse_opt_input_body(&cap[2]) {
-                defs.opt_inputs.insert(var_name, opt);
+                e.insert(opt);
             }
         }
     }
 
     // Parse local output definitions
-    let re_out = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_OutputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    #[allow(clippy::similar_names)]
+    let re_out =
+        Regex::new(r"(?s)(?:static\s+)?const\s+TA_OutputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}")
+            .unwrap();
     for cap in re_out.captures_iter(source) {
         let var_name = cap[1].to_string();
-        if !defs.outputs.contains_key(&var_name) {
+        if let std::collections::hash_map::Entry::Vacant(e) = defs.outputs.entry(var_name) {
             let body = strip_c_comments(&cap[2]);
             let parts: Vec<&str> = body.split(',').collect();
             if parts.len() >= 3 {
                 let output_type_raw = parts[0].trim();
                 let name = parts[1].trim().trim_matches('"').to_string();
-                let flags_raw =
-                    parts[2..].iter().map(|s| s.trim()).collect::<Vec<_>>().join("|");
+                let flags_raw = parts[2..]
+                    .iter()
+                    .map(|s| s.trim())
+                    .collect::<Vec<_>>()
+                    .join("|");
                 let output_type = match output_type_raw {
                     "TA_Output_Real" => "real",
                     "TA_Output_Integer" => "integer",
@@ -629,32 +626,32 @@ fn parse_local_defs(source: &str, defs: &mut SharedDefs) {
                 }
                 .to_string();
                 let flags = parse_output_flags(&flags_raw);
-                defs.outputs.insert(
-                    var_name,
-                    SharedOutputDef {
-                        output_type,
-                        name,
-                        flags,
-                    },
-                );
+                e.insert(SharedOutputDef {
+                    output_type,
+                    name,
+                    flags,
+                });
             }
         }
     }
 
     // Parse local input definitions
-    let re_in = Regex::new(
-        r"(?s)(?:static\s+)?const\s+TA_InputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}"
-    ).unwrap();
+    let re_in =
+        Regex::new(r"(?s)(?:static\s+)?const\s+TA_InputParameterInfo\s+(\w+)\s*=\s*\{([^}]+)\}")
+            .unwrap();
     for cap in re_in.captures_iter(source) {
         let var_name = cap[1].to_string();
-        if !defs.inputs.contains_key(&var_name) {
+        if let std::collections::hash_map::Entry::Vacant(e) = defs.inputs.entry(var_name) {
             let body = strip_c_comments(&cap[2]);
             let parts: Vec<&str> = body.split(',').collect();
             if parts.len() >= 3 {
                 let input_type_raw = parts[0].trim();
                 let name = parts[1].trim().trim_matches('"').to_string();
-                let flags_raw: String =
-                    parts[2..].iter().map(|s| s.trim()).collect::<Vec<_>>().join("|");
+                let flags_raw: String = parts[2..]
+                    .iter()
+                    .map(|s| s.trim())
+                    .collect::<Vec<_>>()
+                    .join("|");
                 let input_type = match input_type_raw {
                     "TA_Input_Real" => "real",
                     "TA_Input_Integer" => "integer",
@@ -667,24 +664,20 @@ fn parse_local_defs(source: &str, defs: &mut SharedDefs) {
                 } else {
                     vec![]
                 };
-                defs.inputs.insert(
-                    var_name,
-                    SharedInputDef {
-                        input_type,
-                        name,
-                        price_flags,
-                    },
-                );
+                e.insert(SharedInputDef {
+                    input_type,
+                    name,
+                    price_flags,
+                });
             }
         }
     }
 }
 
 fn parse_math_unary_operators(source: &str, results: &mut Vec<TableFuncDef>) {
-    let re = Regex::new(
-        r#"DEF_MATH_UNARY_OPERATOR\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"#,
-    )
-    .unwrap();
+    let re =
+        Regex::new(r#"DEF_MATH_UNARY_OPERATOR\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"#)
+            .unwrap();
 
     for cap in re.captures_iter(source) {
         results.push(TableFuncDef {
@@ -709,10 +702,9 @@ fn parse_math_unary_operators(source: &str, results: &mut Vec<TableFuncDef>) {
 }
 
 fn parse_math_binary_operators(source: &str, results: &mut Vec<TableFuncDef>) {
-    let re = Regex::new(
-        r#"DEF_MATH_BINARY_OPERATOR\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"#,
-    )
-    .unwrap();
+    let re =
+        Regex::new(r#"DEF_MATH_BINARY_OPERATOR\(\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*\)"#)
+            .unwrap();
 
     for cap in re.captures_iter(source) {
         results.push(TableFuncDef {
@@ -748,8 +740,9 @@ fn parse_def_functions(source: &str, local: &SharedDefs, results: &mut Vec<Table
     let stripped = strip_c_comments(source);
     // Match DEF_FUNCTION(...) calls with 5 arguments
     let re = Regex::new(
-        r#"(?s)DEF_FUNCTION\(\s*(\w+)\s*,\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*([^)]+)\)"#
-    ).unwrap();
+        r#"(?s)DEF_FUNCTION\(\s*(\w+)\s*,\s*(\w+)\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*([^)]+)\)"#,
+    )
+    .unwrap();
 
     for cap in re.captures_iter(&stripped) {
         let name = cap[1].to_string();
@@ -813,11 +806,7 @@ fn resolve_inputs(func_name: &str, source: &str, defs: &SharedDefs) -> Vec<Input
     inputs
 }
 
-fn resolve_opt_inputs(
-    func_name: &str,
-    source: &str,
-    defs: &SharedDefs,
-) -> Vec<OptInputDef> {
+fn resolve_opt_inputs(func_name: &str, source: &str, defs: &SharedDefs) -> Vec<OptInputDef> {
     let pattern = format!(
         r"(?s)\*TA_{}_OptInputs\s*\[\s*\]\s*=\s*\{{([^}}]*)\}}",
         regex::escape(func_name)
@@ -882,6 +871,7 @@ fn resolve_outputs(func_name: &str, source: &str, defs: &SharedDefs) -> Vec<Outp
 // ---------------------------------------------------------------------------
 
 #[cfg(test)]
+#[allow(clippy::float_cmp)]
 mod tests {
     use super::*;
     use std::path::Path;
@@ -889,11 +879,7 @@ mod tests {
     fn load_file(relative_path: &str) -> String {
         // Walk up from this file to find the project root
         let manifest_dir = env!("CARGO_MANIFEST_DIR");
-        let project_root = Path::new(manifest_dir)
-            .parent()
-            .unwrap()
-            .parent()
-            .unwrap();
+        let project_root = Path::new(manifest_dir).parent().unwrap().parent().unwrap();
         let path = project_root.join(relative_path);
         std::fs::read_to_string(&path)
             .unwrap_or_else(|e| panic!("Failed to read {}: {}", path.display(), e))
@@ -905,6 +891,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::cognitive_complexity)]
     fn test_parse_shared_defs() {
         let defs = load_shared();
 
@@ -945,7 +932,7 @@ mod tests {
             .get("TA_DEF_TimePeriod_Positive_Minimum2")
             .unwrap();
         assert_eq!(range.min, 2.0);
-        assert_eq!(range.max, 100000.0);
+        assert_eq!(range.max, 100_000.0);
         assert_eq!(range.suggested_start, 4.0);
         assert_eq!(range.suggested_end, 200.0);
         assert_eq!(range.suggested_increment, 1.0);
@@ -985,7 +972,10 @@ mod tests {
         let table_source = load_file("src/ta_abstract/tables/table_s.c");
         let funcs = parse_table(&table_source, &shared);
 
-        let sma = funcs.iter().find(|f| f.name == "SMA").expect("SMA not found");
+        let sma = funcs
+            .iter()
+            .find(|f| f.name == "SMA")
+            .expect("SMA not found");
 
         assert_eq!(sma.name, "SMA");
         assert_eq!(sma.camel_case, "Sma");
@@ -1005,7 +995,7 @@ mod tests {
         assert_eq!(opt.param_type, "integer");
         assert_eq!(opt.display_name, "Time Period");
         assert_eq!(opt.hint, "Number of period");
-        assert_eq!(opt.range, Some((2.0, 100000.0)));
+        assert_eq!(opt.range, Some((2.0, 100_000.0)));
         assert_eq!(opt.default, Some(30.0));
         assert_eq!(opt.suggested, Some((4.0, 200.0, 1.0)));
 
@@ -1022,7 +1012,10 @@ mod tests {
         let table_source = load_file("src/ta_abstract/tables/table_m.c");
         let funcs = parse_table(&table_source, &shared);
 
-        let mult = funcs.iter().find(|f| f.name == "MULT").expect("MULT not found");
+        let mult = funcs
+            .iter()
+            .find(|f| f.name == "MULT")
+            .expect("MULT not found");
 
         assert_eq!(mult.name, "MULT");
         assert_eq!(mult.camel_case, "Mult");
@@ -1047,12 +1040,16 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::similar_names)]
     fn test_parse_stoch_from_table() {
         let shared = load_shared();
         let table_source = load_file("src/ta_abstract/tables/table_s.c");
         let funcs = parse_table(&table_source, &shared);
 
-        let stoch = funcs.iter().find(|f| f.name == "STOCH").expect("STOCH not found");
+        let stoch = funcs
+            .iter()
+            .find(|f| f.name == "STOCH")
+            .expect("STOCH not found");
 
         assert_eq!(stoch.name, "STOCH");
         assert_eq!(stoch.camel_case, "Stoch");
@@ -1099,7 +1096,10 @@ mod tests {
         let table_source = load_file("src/ta_abstract/tables/table_s.c");
         let funcs = parse_table(&table_source, &shared);
 
-        let sin = funcs.iter().find(|f| f.name == "SIN").expect("SIN not found");
+        let sin = funcs
+            .iter()
+            .find(|f| f.name == "SIN")
+            .expect("SIN not found");
 
         assert_eq!(sin.name, "SIN");
         assert_eq!(sin.camel_case, "Sin");
@@ -1127,7 +1127,10 @@ mod tests {
         let table_source = load_file("src/ta_abstract/tables/table_s.c");
         let funcs = parse_table(&table_source, &shared);
 
-        let sar = funcs.iter().find(|f| f.name == "SAR").expect("SAR not found");
+        let sar = funcs
+            .iter()
+            .find(|f| f.name == "SAR")
+            .expect("SAR not found");
 
         assert_eq!(sar.name, "SAR");
         assert_eq!(sar.camel_case, "Sar");
