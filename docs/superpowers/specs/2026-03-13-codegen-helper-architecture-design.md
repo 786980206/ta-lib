@@ -11,7 +11,9 @@ The first round of codegen backend fixes (spec: `2026-03-13-codegen-backend-fixe
 
 This spec covers the architecture for resolving all of these.
 
-**Out of scope (deferred):** Pre-compute pattern for internal function variants (EMA's `optInK_1`, PO's `tempBuffer`/`doPercentageOutput`). Will be designed after helper inlining is working — the inlining machinery built here is the foundation that pattern needs.
+**Out of scope (deferred):**
+- Pre-compute pattern for internal function variants (EMA's `optInK_1`, PO's `tempBuffer`/`doPercentageOutput`). Will be designed after helper inlining is working — the inlining machinery built here is the foundation that pattern needs.
+- Hilbert transform macros (`HILBERT_VARIABLES`, `INIT_HILBERT_VARIABLES`, `DO_HILBERT_ODD`, `DO_HILBERT_EVEN`, `DO_PRICE_WMA`) — ~140 calls across 7 files (ht_dcperiod, ht_dcphase, ht_phasor, ht_sine, ht_trendline, ht_trendmode, mama). These are complex stateful macro blocks with heavy internal state. They need their own helper files in `ta_func_defs/helpers/` using the same architecture described here, but the extraction and parameterization is a separate task.
 
 ---
 
@@ -25,8 +27,9 @@ ta_func_defs/helpers/
   range.c             — TRUE_RANGE, HighLowRange
   rounding.c          — round_pos, SAR_ROUNDING
   ultosc_helpers.c    — CALC_TERMS, PRIME_TOTALS
-  adosc_helpers.c     — CALCULATE_AD
 ```
+
+**`CALCULATE_AD` is NOT a helper function.** It's a statement block that mutates 5 local variables (`high`, `low`, `tmp`, `close`, `ad`) and increments a counter (`today++`). It cannot be represented as a pure function. The replacement script should **inline-expand** `CALCULATE_AD` directly at its 2 call sites in `adosc.c`, replacing the macro with the equivalent C statements. No helper file needed.
 
 No YAML files for helpers. The parser extracts function signatures and bodies directly from the C source.
 
@@ -113,7 +116,10 @@ double ta_sar_rounding(double x) {
 }
 ```
 
-Each helper file gets a corresponding test file to verify the helper logic independently.
+Each helper file gets corresponding tests in the Rust codegen test suite (`tools/ta_codegen/tests/`). Tests verify:
+- The parser correctly extracts helper function signatures and bodies from the C source
+- Each backend renders the inlined helper correctly (C, Rust, Java)
+- Known input/output pairs produce expected results
 
 ---
 
@@ -153,7 +159,7 @@ Where `Set` is a candle setting name like `BodyLong`, `BodyShort`, `ShadowLong`,
 | `round_pos(x)` | `ta_round_pos(x)` |
 | `CALC_TERMS(day)` | `ta_calc_terms(day)` |
 | `PRIME_TOTALS(a, b, period)` | `ta_prime_totals(a, b, period)` |
-| `CALCULATE_AD` | `ta_calculate_ad(...)` (expand with actual locals) |
+| `CALCULATE_AD` | (inline-expand at call sites — see section 1) |
 | `SAR_ROUNDING(x)` | `ta_sar_rounding(x)` |
 
 The script handles regex matching with arbitrary index expressions (not just single variables — expressions like `i-1`, `lookbackTotal`, etc.).
@@ -168,8 +174,14 @@ The codegen inlines helper function bodies at call sites during generation, avoi
 
 At startup, the codegen:
 1. Scans `ta_func_defs/helpers/*.c`
-2. Parses each file using the existing C parser
-3. Builds a **helper registry**: `HashMap<String, HelperDef>` where `HelperDef` contains the function's parameter list, return type, and IR body
+2. Parses each file in **helper mode** — a new parser mode that expects standalone utility functions rather than indicator structure (no lookback/main split, no YAML-defined params). Each function in the file produces a `HelperDef`.
+3. Builds a **helper registry**: `HashMap<String, HelperDef>` where `HelperDef` contains the function name, parameter list (name + type), return type, and IR body (Vec<Statement>)
+
+**Parser changes required:** The existing `c_source.rs` parser expects TA-Lib indicator files (lookback + main function with specific structure). Helper files are simpler — just standalone C functions. Add a `parse_helper_file()` entry point that:
+- Tokenizes the file normally
+- Parses each top-level function definition (return type, name, params, body)
+- Returns `Vec<HelperDef>` instead of `ParsedCSource`
+- Reuses all existing expression/statement parsing — only the top-level structure differs
 
 ### Generate phase
 
@@ -200,18 +212,22 @@ The inliner replaces every reference to `close` with `inClose[i]` and `open` wit
 Example of multi-statement inlining:
 ```c
 // Original call: x = ta_true_range(high, low, prevClose);
-// Inlined:
-double _tr_tmp;
+// Inlined (note unique suffix _0 to avoid name collisions):
+double _tr_tmp_0;
 {
-    double _range = high - low;
-    double _tmp = fabs(high - prevClose);
-    if (_tmp > _range) _range = _tmp;
-    _tmp = fabs(low - prevClose);
-    if (_tmp > _range) _range = _tmp;
-    _tr_tmp = _range;
+    double _range_0 = high - low;
+    double _tmp_0 = fabs(high - prevClose);
+    if (_tmp_0 > _range_0) _range_0 = _tmp_0;
+    _tmp_0 = fabs(low - prevClose);
+    if (_tmp_0 > _range_0) _range_0 = _tmp_0;
+    _tr_tmp_0 = _range_0;
 }
-x = _tr_tmp;
+x = _tr_tmp_0;
 ```
+
+**Name collision avoidance:** The inliner maintains a monotonic counter per function being generated. Each inlining of a multi-statement helper appends `_N` (where N is the counter value) to all local variable names in the inlined body. This prevents collisions when the same helper is inlined multiple times in one function (common for candlestick indicators calling `ta_candlerange` many times).
+
+**Switch statements in helpers:** `ta_candlerange` contains a `switch` on `rangeType`. The inliner emits the full switch at every call site — no constant folding. The rangeType is a runtime value from candle settings, so the switch is necessary.
 
 ### Per-backend rendering
 
@@ -230,13 +246,20 @@ Each backend renders the inlined IR in its own idiom. The inlining happens at th
 
 ### Solution
 
-**Rust, Java, .NET:** Move candle settings and unstable period to fields on the Core instance. Each thread creates its own Core with its own configuration.
+**Rust, Java:** Move candle settings and unstable period to fields on the Core instance. Each thread creates its own Core with its own configuration.
 
 **C:** Keep `TA_Globals->` for backwards compatibility. The C backend continues emitting global state references. Thread-safe C can be added later as an additional API if needed.
+
+**.NET:** Excluded from this work. The .NET backend currently only generates declarations/wrappers, not function bodies. It does not render indicator logic, so helper inlining and Core-instance patterns do not apply.
 
 ### Per-indicator unpacking
 
 For candlestick indicators, the codegen detects which candle settings the indicator uses (from its helper calls) and emits unpacking lines at the top of the function body.
+
+**Lookback functions:** Lookback functions also reference candle avg periods (`TA_CANDLEAVGPERIOD(BodyLong)` → `Set_avgPeriod`). These need candle settings too:
+- **C:** Lookback functions access `TA_Globals->` directly (unchanged)
+- **Rust:** Lookback functions are methods on Core (`self.cdl2crows_lookback()`), so they access `self.candle_settings` — same as the main function
+- **Java:** Lookback functions are instance methods, access `this.candleSettings`
 
 Rust example:
 ```rust
@@ -264,7 +287,7 @@ Core instances initialize candle settings and unstable periods with the same def
 
 ### Unstable period
 
-Same pattern as candle settings. Indicators that reference `TA_Globals->unstablePeriod[TA_FUNC_UNST_X]` get it from Core in Rust/Java/.NET, from globals in C.
+Same pattern as candle settings. Indicators that reference `TA_Globals->unstablePeriod[TA_FUNC_UNST_X]` get it from Core in Rust/Java, from globals in C.
 
 ---
 
@@ -280,7 +303,7 @@ Update `scripts/replace_macros.py` to handle:
 | `ARRAY_ALLOC(name, size)` | remaining instances | 6 |
 | `ENUM_CASE(type, c_val, pascal_val)` | `case c_val:` | 18 |
 | `ENUM_DECLARATION(RetCode)` | `enum RetCode` | 1 |
-| `TA_ARRAY_COPY(dst, src, n)` | `memcpy(dst, src, n * sizeof(double));` | 4 |
+| `TA_ARRAY_COPY(dst, dstOff, src, srcOff, n)` | `memcpy(&dst[dstOff], &src[srcOff], n * sizeof(double));` | 4 |
 | `TA_INTERNAL_ERROR(code)` | `return TA_INTERNAL_ERROR;` | 2 |
 | `CIRCBUF_INIT(name, size, ...)` | manual expansion | 1 |
 
@@ -292,6 +315,8 @@ Add to each backend's MATH_FUNCTIONS constant:
 |------|---|------|------|
 | `max(a, b)` | `fmax(a, b)` | `a.max(b)` | `Math.max(a, b)` |
 | `min(a, b)` | `fmin(a, b)` | `a.min(b)` | `Math.min(a, b)` |
+| `fmax(a, b)` | `fmax(a, b)` | `a.max(b)` | `Math.max(a, b)` |
+| `fmin(a, b)` | `fmin(a, b)` | `a.min(b)` | `Math.min(a, b)` |
 | `ABS(x)` | `fabs(x)` | `x.abs()` | `Math.abs(x)` |
 
 ---
