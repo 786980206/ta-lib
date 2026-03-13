@@ -7,15 +7,15 @@ use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 
 /// Controls how the Rust renderer emits code.
-struct RustRenderCtx {
+pub struct RustRenderCtx {
     /// If true, emit `T` instead of `f64`/`f32` for Real types, wrap literals in `T::ta_from_f64()`, etc.
-    generic: bool,
+    pub generic: bool,
     /// If true, emit `get_unchecked()` / `get_unchecked_mut()` instead of `[]` for array access.
-    unchecked: bool,
+    pub unchecked: bool,
 }
 
 impl RustRenderCtx {
-    fn concrete() -> Self {
+    pub fn concrete() -> Self {
         RustRenderCtx {
             generic: false,
             unchecked: false,
@@ -708,8 +708,44 @@ fn detect_for_pattern(
     None
 }
 
+/// Extracts the init value if `stmt` is a single `Assign { target: Var(var_name), value, .. }`.
+/// Returns `None` for multi-assignment blocks or mismatched targets.
+fn extract_init_value<'a>(stmt: &'a Statement, var_name: &str) -> Option<&'a Expr> {
+    if let Statement::Assign {
+        target: Expr::Var(tname),
+        value,
+        ..
+    } = stmt
+    {
+        if tname == var_name {
+            return Some(value);
+        }
+    }
+    None
+}
+
+/// Returns `true` if `stmt` is `var_name = var_name + 1` (simple increment by 1).
+fn is_simple_increment(stmt: &Statement, var_name: &str) -> bool {
+    if let Statement::Assign {
+        target: Expr::Var(tname),
+        value: Expr::BinOp(left, BinOp::Add, right),
+        ..
+    } = stmt
+    {
+        if tname != var_name {
+            return false;
+        }
+        if let Expr::Var(lname) = left.as_ref() {
+            if lname == var_name {
+                return matches!(right.as_ref(), Expr::IntLiteral(1));
+            }
+        }
+    }
+    false
+}
+
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
-fn render_statement(
+pub fn render_statement(
     stmt: &Statement,
     indent: usize,
     ctx: &RustRenderCtx,
@@ -773,6 +809,36 @@ fn render_statement(
             update,
             body: for_body,
         } => {
+            // Range-iteration fast path: for(i=start; i<=end; i++) → for i in (start as usize)..=(end as usize)
+            if let Expr::BinOp(cond_left, BinOp::LessEq, cond_right) = condition {
+                if let Expr::Var(iter_name) = cond_left.as_ref() {
+                    if let Some(start_expr) = extract_init_value(init, iter_name) {
+                        if is_simple_increment(update, iter_name) {
+                            let start_str = render_expr(start_expr, ctx, opt_real_params, registry);
+                            let end_str = render_expr(cond_right, ctx, opt_real_params, registry);
+                            let mut out = format!(
+                                "{pad}for {iter_name} in ({start_str} as usize)..=({end_str} as usize) {{\n"
+                            );
+                            for s in for_body {
+                                out.push_str(&render_statement(
+                                    s,
+                                    indent + 4,
+                                    ctx,
+                                    for_loop_vars,
+                                    var_inits,
+                                    output_names,
+                                    opt_real_params,
+                                    enums,
+                                    registry,
+                                ));
+                            }
+                            out.push_str(&format!("{pad}}}\n"));
+                            return out;
+                        }
+                    }
+                }
+            }
+            // Generic fallback: init; while cond { body; update; }
             let init_str = render_statement(
                 init,
                 0,

@@ -1279,3 +1279,150 @@ fn java_for_loop_multi_init_comma_separated() {
         "Java ForC init/update should be comma-separated: {rendered}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Rust ForC range iteration optimization
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_forc_emits_range_iteration_when_possible() {
+    use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
+    use ta_codegen_lib::ir::*;
+
+    // Build synthetic ForC: for(i=startIdx; i<=endIdx; i++)
+    // Single counter, <= condition, simple increment by 1
+    let init = Box::new(Statement::Assign {
+        target: Expr::Var("i".into()),
+        value: Expr::Var("startIdx".into()),
+        compound: false,
+    });
+    let condition = Expr::BinOp(
+        Box::new(Expr::Var("i".into())),
+        BinOp::LessEq,
+        Box::new(Expr::Var("endIdx".into())),
+    );
+    let update = Box::new(Statement::Assign {
+        target: Expr::Var("i".into()),
+        value: Expr::BinOp(
+            Box::new(Expr::Var("i".into())),
+            BinOp::Add,
+            Box::new(Expr::IntLiteral(1)),
+        ),
+        compound: false,
+    });
+    let stmt = Statement::ForC {
+        init,
+        condition,
+        update,
+        body: vec![],
+    };
+
+    let ctx = RustRenderCtx::concrete();
+    let for_loop_vars: Vec<String> = vec![];
+    let var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
+    let output_names: Vec<String> = vec![];
+    let opt_real_params: Vec<String> = vec![];
+    let enums = HashMap::new();
+    let registry = make_registry();
+
+    let rendered = render_statement(
+        &stmt,
+        0,
+        &ctx,
+        &for_loop_vars,
+        &var_inits,
+        &output_names,
+        &opt_real_params,
+        &enums,
+        &registry,
+    );
+
+    assert!(
+        rendered.contains("..="),
+        "Simple ForC should emit range iteration: {rendered}"
+    );
+    assert!(
+        !rendered.contains("while "),
+        "Simple ForC should not fall through to while: {rendered}"
+    );
+}
+
+#[test]
+fn rust_forc_multi_init_falls_through_to_while() {
+    use ta_codegen_lib::backends::rust_lang::{render_statement, RustRenderCtx};
+    use ta_codegen_lib::ir::*;
+
+    // Build ForC with multi-init Block — should NOT get range optimization
+    let init = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::Literal(0.0),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::Var("startIdx".into()),
+                compound: false,
+            },
+        ],
+    });
+    let condition = Expr::BinOp(
+        Box::new(Expr::Var("i".into())),
+        BinOp::LessEq,
+        Box::new(Expr::Var("endIdx".into())),
+    );
+    let update = Box::new(Statement::Block {
+        body: vec![
+            Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("i".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Literal(1.0)),
+                ),
+                compound: false,
+            },
+            Statement::Assign {
+                target: Expr::Var("j".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("j".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Literal(1.0)),
+                ),
+                compound: false,
+            },
+        ],
+    });
+    let stmt = Statement::ForC {
+        init,
+        condition,
+        update,
+        body: vec![],
+    };
+
+    let ctx = RustRenderCtx::concrete();
+    let for_loop_vars: Vec<String> = vec![];
+    let var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
+    let output_names: Vec<String> = vec![];
+    let opt_real_params: Vec<String> = vec![];
+    let enums = HashMap::new();
+    let registry = make_registry();
+
+    let rendered = render_statement(
+        &stmt,
+        0,
+        &ctx,
+        &for_loop_vars,
+        &var_inits,
+        &output_names,
+        &opt_real_params,
+        &enums,
+        &registry,
+    );
+
+    assert!(
+        rendered.contains("while "),
+        "Multi-init ForC should fall through to while: {rendered}"
+    );
+}
