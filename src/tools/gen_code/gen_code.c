@@ -296,7 +296,6 @@ static void writeRustMod( void );
 static void genRustCodePhase2( const TA_FuncInfo *funcInfo );
 void rustCargoFix( void );
 void rustCargoFormat( void );
-void writeRustFfiGenerated( void );
 
 static void genJavaCodePhase1( const TA_FuncInfo *funcInfo );
 static void genJavaCodePhase2( const TA_FuncInfo *funcInfo );
@@ -1153,7 +1152,6 @@ static int genCode(int argc, char* argv[])
 
    #if defined(ENABLE_RUST)
       writeRustMod();
-      writeRustFfiGenerated();
    #endif
 
    /* Close all files who were updated with the list of TA functions. */
