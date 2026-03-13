@@ -53,6 +53,7 @@ enum Token {
     PlusPlus,
     MinusMinus,
     Question,
+    Dot,
 }
 
 /// Strip #define and #undef lines (including multi-line continuations with \)
@@ -354,6 +355,13 @@ fn tokenize(input: &str) -> Vec<Token> {
             continue;
         }
 
+        // Dot: struct member access (e.g., arr[idx].field)
+        if c == '.' {
+            tokens.push(Token::Dot);
+            i += 1;
+            continue;
+        }
+
         // Hash: skip any remaining preprocessor directives
         if c == '#' {
             while i < chars.len() && chars[i] != '\n' {
@@ -547,6 +555,8 @@ impl Parser {
             }
             Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
+            // (void)identifier; — suppress-unused-variable cast, treat as no-op
+            Some(Token::LParen) => self.parse_void_cast_or_expr(),
             _ => self.parse_assignment_or_expr_stmt(),
         }
     }
@@ -1293,6 +1303,26 @@ impl Parser {
             && name.chars().next().is_some_and(|c| c.is_ascii_uppercase())
     }
 
+    /// Parse a statement starting with `(`, which in TA-Lib source is always
+    /// `(void)identifier;` — a C idiom to suppress unused-variable warnings.
+    /// Treated as a no-op (discarded block).
+    fn parse_void_cast_or_expr(&mut self) -> Statement {
+        self.advance(); // consume (
+        // Expect a type keyword (void, int, double, etc.) or identifier
+        let _type_name = match self.advance() {
+            Token::Ident(s) => s,
+            other => panic!("Expected type identifier after '(', got {other:?}"),
+        };
+        self.expect(&Token::RParen); // consume )
+        // Consume the target expression until semicolon
+        while self.peek() != Some(&Token::Semicolon) && self.pos < self.tokens.len() {
+            self.advance();
+        }
+        self.consume_semicolon();
+        // Emit as an empty block (no-op)
+        Statement::Block { body: vec![] }
+    }
+
     #[allow(clippy::too_many_lines)]
     fn parse_assignment_or_expr_stmt(&mut self) -> Statement {
         let name = match self.advance() {
@@ -1436,6 +1466,45 @@ impl Parser {
             let index_expr = self.parse_expr();
             self.expect(&Token::RBracket);
 
+            // Handle struct member access: arr[idx].field = expr;
+            // Flatten to arr_field[idx] (same pattern as CIRCBUF_REF)
+            if self.peek() == Some(&Token::Dot) {
+                self.advance(); // consume .
+                let field = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected field name after '.', got {other:?}"),
+                };
+                let flat_name = format!("{}_{}", name, field);
+                match self.peek().cloned() {
+                    Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
+                        let op_str = op.clone();
+                        self.advance();
+                        let bin_op = compound_op(&op_str);
+                        let rhs = self.parse_expr();
+                        self.consume_semicolon();
+                        return Statement::Assign {
+                            target: Expr::ArrayAccess(flat_name.clone(), Box::new(index_expr.clone())),
+                            value: Expr::BinOp(
+                                Box::new(Expr::ArrayAccess(flat_name, Box::new(index_expr))),
+                                bin_op,
+                                Box::new(rhs),
+                            ),
+                            compound: true,
+                        };
+                    }
+                    _ => {
+                        self.expect_op("=");
+                        let value = self.parse_expr();
+                        self.consume_semicolon();
+                        return Statement::Assign {
+                            target: Expr::ArrayAccess(flat_name, Box::new(index_expr)),
+                            value,
+                            compound: false,
+                        };
+                    }
+                }
+            }
+
             // Check for compound assignment on array
             match self.peek().cloned() {
                 Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
@@ -1501,6 +1570,15 @@ impl Parser {
                 } else {
                     Statement::Block { body: chain_stmts }
                 }
+            }
+            // Custom type variable declaration: `TypeName varname[size];` or `TypeName varname;`
+            // (e.g., `MoneyFlow mflow[50];`) — treat as no-op since we flatten struct accesses.
+            Some(Token::Ident(_)) => {
+                while self.peek() != Some(&Token::Semicolon) && self.pos < self.tokens.len() {
+                    self.advance();
+                }
+                self.consume_semicolon();
+                Statement::Block { body: vec![] }
             }
             other => panic!("Expected '=' or compound assignment after '{name}', got {other:?}"),
         }
@@ -1758,7 +1836,18 @@ impl Parser {
                         self.advance(); // consume [
                         let index = self.parse_expr();
                         self.expect(&Token::RBracket);
-                        let arr_expr = Expr::ArrayAccess(name, Box::new(index));
+                        // Struct member access: arr[idx].field → arr_field[idx]
+                        let arr_name = if self.peek() == Some(&Token::Dot) {
+                            self.advance(); // consume .
+                            let field = match self.advance() {
+                                Token::Ident(s) => s,
+                                other => panic!("Expected field name after '.', got {other:?}"),
+                            };
+                            format!("{}_{}", name, field)
+                        } else {
+                            name
+                        };
+                        let arr_expr = Expr::ArrayAccess(arr_name, Box::new(index));
                         // Check for postfix ++/-- on array access
                         if self.peek() == Some(&Token::PlusPlus) {
                             self.advance();
