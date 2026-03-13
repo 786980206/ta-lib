@@ -1534,6 +1534,157 @@ fn rust_forc_multi_init_falls_through_to_while() {
 // ---------------------------------------------------------------------------
 
 #[test]
+fn backends_render_max_min_fmax_fmin_abs() {
+    use ta_codegen_lib::backends;
+    use ta_codegen_lib::ir::{
+        Expr, FuncDef, Input, LookbackExpr, Output, ParamType, Statement, VarType,
+    };
+
+    // Build a synthetic FuncDef whose body assigns each math function to a variable.
+    // Variable a = max(x, y)
+    // Variable b = min(x, y)
+    // Variable c = fmax(x, y)
+    // Variable d = fmin(x, y)
+    // Variable e = ABS(x)
+    let make_assign = |var: &str, func: &str, args: Vec<Expr>| Statement::Assign {
+        target: Expr::Var(var.to_string()),
+        value: Expr::FuncCall(func.to_string(), args),
+        compound: false,
+    };
+
+    let x = Expr::Var("x".to_string());
+    let y = Expr::Var("y".to_string());
+
+    let body = vec![
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "x".to_string(),
+            init: Some(Expr::Literal(1.0)),
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "y".to_string(),
+            init: Some(Expr::Literal(2.0)),
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "a".to_string(),
+            init: None,
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "b".to_string(),
+            init: None,
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "c".to_string(),
+            init: None,
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "d".to_string(),
+            init: None,
+        },
+        Statement::VarDecl {
+            var_type: VarType::Real,
+            name: "e".to_string(),
+            init: None,
+        },
+        make_assign("a", "max", vec![x.clone(), y.clone()]),
+        make_assign("b", "min", vec![x.clone(), y.clone()]),
+        make_assign("c", "fmax", vec![x.clone(), y.clone()]),
+        make_assign("d", "fmin", vec![x.clone(), y.clone()]),
+        make_assign("e", "ABS", vec![x.clone()]),
+    ];
+
+    let func = FuncDef {
+        name: "TESTFUNC".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![Input {
+            name: "inReal".to_string(),
+            param_type: ParamType::Real,
+        }],
+        optional_inputs: vec![],
+        outputs: vec![Output {
+            name: "outReal".to_string(),
+            param_type: ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: Some(LookbackExpr::Literal(0)),
+        body,
+    };
+
+    let enums = std::collections::HashMap::new();
+    let registry = make_registry();
+
+    let c_out = backends::c::generate(&func, &enums, &registry);
+    let java_out = backends::java::generate(&func, &enums, &registry);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry);
+
+    // C: max(a,b) → fmax(a,b), min(a,b) → fmin(a,b), ABS(x) → fabs(x)
+    assert!(
+        c_out.contains("fmax("),
+        "C: max/fmax should render as fmax(): {c_out}"
+    );
+    assert!(
+        c_out.contains("fmin("),
+        "C: min/fmin should render as fmin(): {c_out}"
+    );
+    assert!(
+        c_out.contains("fabs("),
+        "C: ABS should render as fabs(): {c_out}"
+    );
+    // C must NOT emit bare max() or min() (which are not in C99 <math.h>)
+    assert!(
+        !c_out.contains("= max(") && !c_out.contains("= min("),
+        "C: must not emit bare max()/min() calls"
+    );
+    // C must NOT emit ABS() calls
+    assert!(
+        !c_out.contains("ABS("),
+        "C: must not emit ABS() calls"
+    );
+
+    // Java: max/fmax → Math.max, min/fmin → Math.min, ABS → Math.abs
+    assert!(
+        java_out.contains("Math.max("),
+        "Java: max/fmax should render as Math.max(): {java_out}"
+    );
+    assert!(
+        java_out.contains("Math.min("),
+        "Java: min/fmin should render as Math.min(): {java_out}"
+    );
+    assert!(
+        java_out.contains("Math.abs("),
+        "Java: ABS should render as Math.abs(): {java_out}"
+    );
+
+    // Rust: max/fmax → .max(), min/fmin → .min(), ABS → .ta_abs() (generic) or .abs()
+    assert!(
+        rust_out.contains(".max("),
+        "Rust: max/fmax should render as .max(): {rust_out}"
+    );
+    assert!(
+        rust_out.contains(".min("),
+        "Rust: min/fmin should render as .min(): {rust_out}"
+    );
+    assert!(
+        rust_out.contains(".ta_abs()") || rust_out.contains(".abs()"),
+        "Rust: ABS should render as .ta_abs() or .abs(): {rust_out}"
+    );
+    // Rust must NOT emit bare ABS() free-function calls
+    assert!(
+        !rust_out.contains("ABS("),
+        "Rust: must not emit bare ABS() calls"
+    );
+}
+
+#[test]
 fn backends_render_math_functions_idiomatically() {
     let (func, enums) = load_indicator("ht_trendmode");
     let registry = make_registry();

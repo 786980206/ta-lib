@@ -682,8 +682,14 @@ fn render_func_call(
         }
         "0.0".to_string()
     } else if MATH_FUNCTIONS.contains(&fname) {
-        // Java uses Math.func() for standard math functions; fabs -> abs
-        let java_name = if fname == "fabs" { "abs" } else { fname };
+        // Java uses Math.func() for standard math functions.
+        // fabs/ABS → Math.abs; max/fmax → Math.max; min/fmin → Math.min
+        let java_name = match fname {
+            "fabs" | "ABS" => "abs",
+            "fmax" => "max",
+            "fmin" => "min",
+            other => other,
+        };
         let rendered: Vec<String> = args
             .iter()
             .map(|a| render_expr(a, single_precision, registry))
@@ -701,9 +707,10 @@ fn render_func_call(
 }
 
 /// Math functions that map to `java.lang.Math` methods.
+/// `fabs`/`ABS` → `Math.abs`; `max`/`fmax` → `Math.max`; `min`/`fmin` → `Math.min`.
 const MATH_FUNCTIONS: &[&str] = &[
     "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
-    "cosh", "sinh", "tanh", "log10",
+    "cosh", "sinh", "tanh", "log10", "ABS", "max", "min", "fmax", "fmin",
 ];
 
 /// Render a complex lookback body (`LookbackExpr::Code`) into Java code.

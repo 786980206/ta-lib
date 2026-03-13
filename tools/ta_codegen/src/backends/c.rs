@@ -774,12 +774,19 @@ fn render_func_call(
         }
         "0.0".to_string()
     } else if MATH_FUNCTIONS.contains(&fname) {
-        // Plain C math functions — pass through as-is (from <math.h>)
+        // Plain C math functions — remap names where needed, then emit as C function calls.
+        // max → fmax, min → fmin, ABS → fabs (all from <math.h>)
+        let c_name = match fname {
+            "max" => "fmax",
+            "min" => "fmin",
+            "ABS" => "fabs",
+            other => other,
+        };
         let rendered: Vec<String> = args
             .iter()
             .map(|a| render_expr(a, single_precision, registry))
             .collect();
-        format!("{}({})", fname, rendered.join(","))
+        format!("{}({})", c_name, rendered.join(","))
     } else {
         // Try cross-call resolution through the registry
         let resolved = registry.resolve_call(fname, Lang::C);
@@ -848,10 +855,11 @@ fn render_lookback_code(
     out
 }
 
-/// Math functions from `<math.h>` that are passed through as-is in C.
+/// Math functions from `<math.h>` supported in C.
+/// `max`/`min` map to `fmax`/`fmin`; `ABS` maps to `fabs`.
 const MATH_FUNCTIONS: &[&str] = &[
     "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
-    "cosh", "sinh", "tanh", "log10",
+    "cosh", "sinh", "tanh", "log10", "max", "min", "fmax", "fmin", "ABS",
 ];
 
 #[cfg(test)]

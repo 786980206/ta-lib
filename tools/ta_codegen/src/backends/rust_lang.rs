@@ -1486,11 +1486,14 @@ fn to_pascal_case(s: &str) -> String {
 }
 
 /// Known math functions that map to `TaFloat` trait methods (generic) or `f64` methods (concrete).
+/// 2-arg functions (`max`, `min`, `fmax`, `fmin`) render as `a.max(b)` / `a.min(b)`.
+/// `ABS` maps to `abs` / `ta_abs`.
 const MATH_FUNCTIONS: &[&str] = &[
     "sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "exp", "log", "log10", "ceil", "floor",
-    "abs", "fabs", "cosh", "sinh", "tanh",
+    "abs", "fabs", "cosh", "sinh", "tanh", "ABS", "max", "fmax", "min", "fmin",
 ];
 
+#[allow(clippy::too_many_lines)]
 fn render_func_call(
     fname: &str,
     args: &[Expr],
@@ -1556,18 +1559,42 @@ fn render_func_call(
     } else if is_math_function(fname) {
         // Math functions take priority over the indicator registry.
         // `atan(x)` in source means the C math function, not a cross-indicator call.
+        //
+        // 2-arg: max/fmax → a.max(b), min/fmin → a.min(b)
+        // 1-arg: ABS/fabs → .ta_abs() (generic) or .abs() (concrete)
+        // 1-arg: all others → .ta_{fname}() (generic) or .{fname}() (concrete)
+        match fname {
+            "max" | "fmax" => {
+                if args.len() >= 2 {
+                    let a = render_expr(&args[0], ctx, opt_real_params, registry);
+                    let b = render_expr(&args[1], ctx, opt_real_params, registry);
+                    return format!("({a}).max({b})");
+                }
+            }
+            "min" | "fmin" => {
+                if args.len() >= 2 {
+                    let a = render_expr(&args[0], ctx, opt_real_params, registry);
+                    let b = render_expr(&args[1], ctx, opt_real_params, registry);
+                    return format!("({a}).min({b})");
+                }
+            }
+            _ => {}
+        }
         if let Some(arg) = args.first() {
             let x = render_expr(arg, ctx, opt_real_params, registry);
             if ctx.generic {
-                let method = if fname == "fabs" {
+                let method = if fname == "fabs" || fname == "ABS" {
                     "ta_abs".to_string()
                 } else {
                     format!("ta_{fname}")
                 };
                 return format!("{x}.{method}()");
             }
-            // Concrete (non-generic) path: use f64 method call syntax; fabs -> abs
-            let method = if fname == "fabs" { "abs" } else { fname };
+            // Concrete (non-generic) path: use f64 method call syntax; fabs/ABS -> abs
+            let method = match fname {
+                "fabs" | "ABS" => "abs",
+                other => other,
+            };
             return format!("({x}).{method}()");
         }
         format!("{fname}()")
