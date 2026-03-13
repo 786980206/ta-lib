@@ -90,3 +90,6 @@ out/
 
 cmake-build-debug/
 rust/target
+
+# Git worktrees
+.worktrees/
