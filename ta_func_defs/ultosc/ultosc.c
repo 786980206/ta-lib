@@ -63,39 +63,65 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     if( startIdx > endIdx ) return TA_SUCCESS;
 
     /* Prime running totals used in moving averages */
-    #define CALC_TERMS(day)                        \
-    {                                              \
-    tempLT = inLow[day];                        \
-    tempHT = inHigh[day];                       \
-    tempCY = inClose[day-1];                    \
-    trueLow = min( tempLT, tempCY );            \
-    closeMinusTrueLow = inClose[day] - trueLow; \
-    trueRange = tempHT - tempLT;                \
-    tempDouble = fabs( tempCY - tempHT );       \
-    if( tempDouble > trueRange )                 \
-    trueRange = tempDouble;                  \
-    tempDouble = fabs( tempCY - tempLT  );      \
-    if( tempDouble > trueRange )                 \
-    trueRange = tempDouble;                  \
+    a1Total = 0;
+    b1Total = 0;
+    for ( i = startIdx-optInTimePeriod1+1; i < startIdx; ++i )
+    {
+        tempLT = inLow[i];
+        tempHT = inHigh[i];
+        tempCY = inClose[i-1];
+        trueLow = min( tempLT, tempCY );
+        closeMinusTrueLow = inClose[i] - trueLow;
+        trueRange = tempHT - tempLT;
+        tempDouble = fabs( tempCY - tempHT );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        tempDouble = fabs( tempCY - tempLT  );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        a1Total += closeMinusTrueLow;
+        b1Total += trueRange;
     }
 
-    #define PRIME_TOTALS(aTotal, bTotal, period)                 \
-    {                                                            \
-    aTotal = 0;                                               \
-    bTotal = 0;                                               \
-    for ( i = startIdx-period+1; i < startIdx; ++i )          \
-    {                                                         \
-    CALC_TERMS(i);                                         \
-    aTotal += closeMinusTrueLow;                           \
-    bTotal += trueRange;                                   \
-    }                                                         \
+    a2Total = 0;
+    b2Total = 0;
+    for ( i = startIdx-optInTimePeriod2+1; i < startIdx; ++i )
+    {
+        tempLT = inLow[i];
+        tempHT = inHigh[i];
+        tempCY = inClose[i-1];
+        trueLow = min( tempLT, tempCY );
+        closeMinusTrueLow = inClose[i] - trueLow;
+        trueRange = tempHT - tempLT;
+        tempDouble = fabs( tempCY - tempHT );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        tempDouble = fabs( tempCY - tempLT  );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        a2Total += closeMinusTrueLow;
+        b2Total += trueRange;
     }
 
-    PRIME_TOTALS(a1Total, b1Total, optInTimePeriod1);
-    PRIME_TOTALS(a2Total, b2Total, optInTimePeriod2);
-    PRIME_TOTALS(a3Total, b3Total, optInTimePeriod3);
-
-    #undef PRIME_TOTALS
+    a3Total = 0;
+    b3Total = 0;
+    for ( i = startIdx-optInTimePeriod3+1; i < startIdx; ++i )
+    {
+        tempLT = inLow[i];
+        tempHT = inHigh[i];
+        tempCY = inClose[i-1];
+        trueLow = min( tempLT, tempCY );
+        closeMinusTrueLow = inClose[i] - trueLow;
+        trueRange = tempHT - tempLT;
+        tempDouble = fabs( tempCY - tempHT );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        tempDouble = fabs( tempCY - tempLT  );
+        if( tempDouble > trueRange )
+            trueRange = tempDouble;
+        a3Total += closeMinusTrueLow;
+        b3Total += trueRange;
+    }
 
     /* Calculate oscillator */
     today = startIdx;
@@ -106,7 +132,18 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     while( today <= endIdx )
     {
     /* Add on today's terms */
-    CALC_TERMS(today);
+    tempLT = inLow[today];
+    tempHT = inHigh[today];
+    tempCY = inClose[today-1];
+    trueLow = min( tempLT, tempCY );
+    closeMinusTrueLow = inClose[today] - trueLow;
+    trueRange = tempHT - tempLT;
+    tempDouble = fabs( tempCY - tempHT );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
+    tempDouble = fabs( tempCY - tempLT  );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
     a1Total += closeMinusTrueLow;
     a2Total += closeMinusTrueLow;
     a3Total += closeMinusTrueLow;
@@ -122,15 +159,48 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     if( !((-0.00000001 < (b3Total)) && ((b3Total) < 0.00000001)) ) output += a3Total/b3Total;
 
     /* Remove the trailing terms to prepare for next day */
-    CALC_TERMS(trailingIdx1);
+    tempLT = inLow[trailingIdx1];
+    tempHT = inHigh[trailingIdx1];
+    tempCY = inClose[trailingIdx1-1];
+    trueLow = min( tempLT, tempCY );
+    closeMinusTrueLow = inClose[trailingIdx1] - trueLow;
+    trueRange = tempHT - tempLT;
+    tempDouble = fabs( tempCY - tempHT );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
+    tempDouble = fabs( tempCY - tempLT  );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
     a1Total -= closeMinusTrueLow;
     b1Total -= trueRange;
 
-    CALC_TERMS(trailingIdx2);
+    tempLT = inLow[trailingIdx2];
+    tempHT = inHigh[trailingIdx2];
+    tempCY = inClose[trailingIdx2-1];
+    trueLow = min( tempLT, tempCY );
+    closeMinusTrueLow = inClose[trailingIdx2] - trueLow;
+    trueRange = tempHT - tempLT;
+    tempDouble = fabs( tempCY - tempHT );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
+    tempDouble = fabs( tempCY - tempLT  );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
     a2Total -= closeMinusTrueLow;
     b2Total -= trueRange;
 
-    CALC_TERMS(trailingIdx3);
+    tempLT = inLow[trailingIdx3];
+    tempHT = inHigh[trailingIdx3];
+    tempCY = inClose[trailingIdx3-1];
+    trueLow = min( tempLT, tempCY );
+    closeMinusTrueLow = inClose[trailingIdx3] - trueLow;
+    trueRange = tempHT - tempLT;
+    tempDouble = fabs( tempCY - tempHT );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
+    tempDouble = fabs( tempCY - tempLT  );
+    if( tempDouble > trueRange )
+        trueRange = tempDouble;
     a3Total -= closeMinusTrueLow;
     b3Total -= trueRange;
 
@@ -149,7 +219,6 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     trailingIdx2++;
     trailingIdx3++;
     }
-    #undef CALC_TERMS
 
     /* All done. Indicate the output limits and return. */
     *outNBElement = outIdx;

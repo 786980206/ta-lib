@@ -74,20 +74,10 @@ TA_RetCode adosc(int startIdx, int endIdx, const double inHigh[], const double i
     *outBegIdx = startIdx;
     today  = startIdx-lookbackTotal;
 
-    /* The following variables and macro are used to
+    /* The following variables are used to
     * calculate the "ad".
     */
     ad = 0.0;
-    #define CALCULATE_AD \
-    { \
-    high  = inHigh[today]; \
-    low   = inLow[today]; \
-    tmp   = high-low; \
-    close = inClose[today]; \
-    if( tmp > 0.0 ) \
-    ad += (((close-low)-(high-close))/tmp)*((double)inVolume[today]); \
-    today++; \
-    }
 
     /* Constants for EMA */
     fastk = (2.0 / ((double)( optInFastPeriod ) + 1.0));
@@ -103,14 +93,26 @@ TA_RetCode adosc(int startIdx, int endIdx, const double inHigh[], const double i
     *
     * Note: Metastock do the same.
     */
-    CALCULATE_AD;
+    high  = inHigh[today];
+    low   = inLow[today];
+    tmp   = high-low;
+    close = inClose[today];
+    if( tmp > 0.0 )
+        ad += (((close-low)-(high-close))/tmp)*((double)inVolume[today]);
+    today++;
     fastEMA = ad;
     slowEMA = ad;
 
     /* Initialize the EMA and skip the unstable period. */
     while( today < startIdx )
     {
-    CALCULATE_AD;
+    high  = inHigh[today];
+    low   = inLow[today];
+    tmp   = high-low;
+    close = inClose[today];
+    if( tmp > 0.0 )
+        ad += (((close-low)-(high-close))/tmp)*((double)inVolume[today]);
+    today++;
     fastEMA = (fastk*ad)+(one_minus_fastk*fastEMA);
     slowEMA = (slowk*ad)+(one_minus_slowk*slowEMA);
     }
@@ -119,7 +121,13 @@ TA_RetCode adosc(int startIdx, int endIdx, const double inHigh[], const double i
     outIdx = 0;
     while( today <= endIdx )
     {
-    CALCULATE_AD;
+    high  = inHigh[today];
+    low   = inLow[today];
+    tmp   = high-low;
+    close = inClose[today];
+    if( tmp > 0.0 )
+        ad += (((close-low)-(high-close))/tmp)*((double)inVolume[today]);
+    today++;
     fastEMA = (fastk*ad)+(one_minus_fastk*fastEMA);
     slowEMA = (slowk*ad)+(one_minus_slowk*slowEMA);
 

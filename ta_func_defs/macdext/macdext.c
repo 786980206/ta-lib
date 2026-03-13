@@ -135,7 +135,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     *outNBElement = 0;
     free(fastMABuffer);
     free(slowMABuffer);
-    return TA_INTERNAL_ERROR(119);
+    return TA_INTERNAL_ERROR;
     }
 
     /* Calculate (fast MA) - (slow MA). */

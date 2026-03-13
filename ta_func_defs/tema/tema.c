@@ -92,7 +92,7 @@ TA_RetCode tema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     /* Allocate a temporary buffer for storing the EMA2 */
-    ARRAY_ALLOC(secondEMA,firstEMANbElement);
+    double *secondEMA = malloc((firstEMANbElement) * sizeof(double));
     if( !secondEMA )
     {
     free(firstEMA);

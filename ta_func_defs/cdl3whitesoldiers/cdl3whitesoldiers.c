@@ -7,9 +7,9 @@ int cdl3whitesoldiers_lookback(void)
 
 TA_RetCode cdl3whitesoldiers(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,3);
-    ARRAY_LOCAL(NearPeriodTotal,3);
-    ARRAY_LOCAL(FarPeriodTotal,3);
+    double ShadowVeryShortPeriodTotal[3];
+    double NearPeriodTotal[3];
+    double FarPeriodTotal[3];
     double BodyShortPeriodTotal;
     int i, outIdx, totIdx, ShadowVeryShortTrailingIdx, NearTrailingIdx, FarTrailingIdx, BodyShortTrailingIdx, lookbackTotal;
 

@@ -7,8 +7,8 @@ int cdlstalledpattern_lookback(void)
 
 TA_RetCode cdlstalledpattern(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(BodyLongPeriodTotal,3);
-    ARRAY_LOCAL(NearPeriodTotal,3);
+    double BodyLongPeriodTotal[3];
+    double NearPeriodTotal[3];
     double BodyShortPeriodTotal, ShadowVeryShortPeriodTotal;
     int i, outIdx, totIdx, BodyLongTrailingIdx, BodyShortTrailingIdx, ShadowVeryShortTrailingIdx, NearTrailingIdx,
     lookbackTotal;

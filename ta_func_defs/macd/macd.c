@@ -175,7 +175,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     *outNBElement = 0;
     free(fastEMABuffer);
     free(slowEMABuffer);
-    return TA_INTERNAL_ERROR(119);
+    return TA_INTERNAL_ERROR;
     }
 
     /* Calculate (fast EMA) - (slow EMA). */

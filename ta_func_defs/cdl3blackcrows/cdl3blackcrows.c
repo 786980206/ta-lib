@@ -5,7 +5,7 @@ int cdl3blackcrows_lookback(void)
 
 TA_RetCode cdl3blackcrows(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,3);
+    double ShadowVeryShortPeriodTotal[3];
     int i, outIdx, totIdx, ShadowVeryShortTrailingIdx, lookbackTotal;
 
 

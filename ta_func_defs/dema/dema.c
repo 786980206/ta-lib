@@ -91,7 +91,7 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     /* Allocate a temporary buffer for storing the EMA of the EMA. */
-    ARRAY_ALLOC(secondEMA, firstEMANbElement);
+    double *secondEMA = malloc((firstEMANbElement) * sizeof(double));
 
     if( !secondEMA )
     {

@@ -20,7 +20,7 @@ TA_RetCode sar(int startIdx, int endIdx, const double inHigh[], const double inL
 
     double newHigh, newLow, prevHigh, prevLow;
     double af, ep, sar;
-    ARRAY_LOCAL(ep_temp,1);
+    double ep_temp[1];
 
 
 

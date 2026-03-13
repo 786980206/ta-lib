@@ -5,7 +5,7 @@ int cdl3linestrike_lookback(void)
 
 TA_RetCode cdl3linestrike(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(NearPeriodTotal,4);
+    double NearPeriodTotal[4];
     int i, outIdx, totIdx, NearTrailingIdx, lookbackTotal;
 
 

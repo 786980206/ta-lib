@@ -9,39 +9,39 @@ int ma_lookback(int           optInTimePeriod,                                  
     
     switch( optInMAType )
     {
-    case ENUM_CASE(MAType, TA_MAType_SMA, Sma ):
+    case TA_MAType_SMA::
     retValue = sma_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
+    case TA_MAType_EMA::
     retValue = ema_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
+    case TA_MAType_WMA::
     retValue = wma_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
+    case TA_MAType_DEMA::
     retValue = dema_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema ):
+    case TA_MAType_TEMA::
     retValue = tema_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima ):
+    case TA_MAType_TRIMA::
     retValue = trima_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama ):
+    case TA_MAType_KAMA::
     retValue = kama_lookback( optInTimePeriod );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama ):
+    case TA_MAType_MAMA::
     retValue = mama_lookback( 0.5, 0.05 );
     break;
     
-    case ENUM_CASE(MAType, TA_MAType_T3, T3):
+    case TA_MAType_T3::
     retValue = t3_lookback( optInTimePeriod, 0.7 );
     break;
     
@@ -73,42 +73,42 @@ TA_RetCode ma(int startIdx, int endIdx, const double inReal[], int optInTimePeri
     /* Simply forward the job to the corresponding TA function. */
     switch( optInMAType )
     {
-    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
+    case TA_MAType_SMA::
     retCode = sma( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
+    case TA_MAType_EMA::
     retCode = ema( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
+    case TA_MAType_WMA::
     retCode = wma( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
+    case TA_MAType_DEMA::
     retCode = dema( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema):
+    case TA_MAType_TEMA::
     retCode = tema( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima):
+    case TA_MAType_TRIMA::
     retCode = trima( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama):
+    case TA_MAType_KAMA::
     retCode = kama( startIdx, endIdx, inReal, optInTimePeriod,
     outBegIdx, outNBElement, outReal );
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
+    case TA_MAType_MAMA::
     /* The optInTimePeriod is ignored and the FAMA output of the MAMA
     * is ignored.
     */
@@ -124,7 +124,7 @@ TA_RetCode ma(int startIdx, int endIdx, const double inReal[], int optInTimePeri
     free(dummyBuffer);
     break;
 
-    case ENUM_CASE(MAType, TA_MAType_T3, T3 ):
+    case TA_MAType_T3::
     retCode = t3( startIdx, endIdx, inReal,
     optInTimePeriod, 0.7,
     outBegIdx, outNBElement, outReal );

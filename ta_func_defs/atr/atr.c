@@ -20,7 +20,7 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
 
     double prevATR;
     double *tempBuffer;
-    ARRAY_LOCAL(prevATRTemp,1);
+    double prevATRTemp[1];
 
 
     /* Average True Range is the greatest of the following:

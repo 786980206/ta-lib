@@ -6,8 +6,8 @@ int cdlkicking_lookback(void)
 
 TA_RetCode cdlkicking(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,2);
-    ARRAY_LOCAL(BodyLongPeriodTotal,2);
+    double ShadowVeryShortPeriodTotal[2];
+    double BodyLongPeriodTotal[2];
     int i, outIdx, totIdx, ShadowVeryShortTrailingIdx, BodyLongTrailingIdx, lookbackTotal;
 
 

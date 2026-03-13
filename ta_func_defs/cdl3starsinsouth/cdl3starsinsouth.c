@@ -8,7 +8,7 @@ int cdl3starsinsouth_lookback(void)
 TA_RetCode cdl3starsinsouth(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
     double BodyLongPeriodTotal, BodyShortPeriodTotal, ShadowLongPeriodTotal;
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,2);
+    double ShadowVeryShortPeriodTotal[2];
     int i, outIdx, totIdx, BodyLongTrailingIdx, BodyShortTrailingIdx, ShadowLongTrailingIdx, ShadowVeryShortTrailingIdx,
     lookbackTotal;
 

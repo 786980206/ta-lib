@@ -5,7 +5,7 @@ int cdlrisefall3methods_lookback(void)
 
 TA_RetCode cdlrisefall3methods(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(BodyPeriodTotal,5);
+    double BodyPeriodTotal[5];
     int i, outIdx, totIdx, BodyShortTrailingIdx, BodyLongTrailingIdx, lookbackTotal;
 
 

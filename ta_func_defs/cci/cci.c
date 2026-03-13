@@ -37,7 +37,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     /* Allocate a circular buffer equal to the requested
     * period.
     */
-    CIRCBUF_INIT( circBuffer, double, optInTimePeriod );
+    memset(circBuffer, 0, (optInTimePeriod) * sizeof(double)); circBuffer_Idx = 0;
 
     /* Do the MA calculation using tight loops. */
 

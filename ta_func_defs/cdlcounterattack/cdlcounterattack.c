@@ -7,7 +7,7 @@ int cdlcounterattack_lookback(void)
 TA_RetCode cdlcounterattack(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
     double EqualPeriodTotal;
-    ARRAY_LOCAL(BodyLongPeriodTotal,2);
+    double BodyLongPeriodTotal[2];
     int i, outIdx, totIdx, EqualTrailingIdx, BodyLongTrailingIdx, lookbackTotal;
 
 

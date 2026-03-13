@@ -58,8 +58,9 @@ def replace_simple_macros(content: str) -> str:
     )
 
     # TA_GetUnstablePeriod(FUNC) -> TA_GetUnstablePeriod(TA_FUNC_UNST_FUNC)
+    # Skip if argument already starts with TA_FUNC_UNST_ (idempotent)
     content = re.sub(
-        r"TA_GetUnstablePeriod\(([^)]+)\)",
+        r"TA_GetUnstablePeriod\((?!TA_FUNC_UNST_)([^)]+)\)",
         lambda m: f"TA_GetUnstablePeriod(TA_FUNC_UNST_{m.group(1)})",
         content,
     )
@@ -75,6 +76,27 @@ def replace_simple_macros(content: str) -> str:
     # std_* math functions -> plain C equivalents
     for fn in STD_MATH_FUNCS:
         content = re.sub(rf"\bstd_{fn}\b", fn, content)
+
+    # ARRAY_LOCAL(name, size); -> double name[size];
+    content = re.sub(
+        r'\bARRAY_LOCAL\(\s*([^,]+?)\s*,\s*([^)]+?)\s*\)\s*;',
+        r'double \1[\2];',
+        content,
+    )
+
+    # case ENUM_CASE(type, c_val, pascal_val) -> case c_val:
+    content = re.sub(
+        r'\bcase\s+ENUM_CASE\(\s*[^,]+?\s*,\s*([^,]+?)\s*,\s*[^)]+?\s*\)',
+        r'case \1:',
+        content,
+    )
+
+    # TA_INTERNAL_ERROR(code) -> TA_INTERNAL_ERROR  (strips the error code argument)
+    content = re.sub(
+        r'\bTA_INTERNAL_ERROR\(\s*[^)]*\)',
+        'TA_INTERNAL_ERROR',
+        content,
+    )
 
     return content
 
@@ -198,6 +220,13 @@ def replace_circbuf_macros(content: str) -> str:
     content = re.sub(
         r"CIRCBUF_REF\((\w+)\[(\w+)\]\)(\w+)",
         r"\1[\2].\3",
+        content,
+    )
+
+    # CIRCBUF_INIT(buf, type, size); -> memset(buf, 0, (size) * sizeof(type)); buf_Idx = 0;
+    content = re.sub(
+        r'CIRCBUF_INIT\(\s*([^,]+?)\s*,\s*([^,]+?)\s*,\s*([^)]+?)\s*\)\s*;',
+        r'memset(\1, 0, (\3) * sizeof(\2)); \1_Idx = 0;',
         content,
     )
 

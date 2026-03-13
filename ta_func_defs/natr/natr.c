@@ -20,7 +20,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
 
     double prevATR, tempValue;
     double *tempBuffer;
-    ARRAY_LOCAL(prevATRTemp,1);
+    double prevATRTemp[1];
 
 
 

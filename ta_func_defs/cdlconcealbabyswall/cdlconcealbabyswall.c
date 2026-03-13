@@ -5,7 +5,7 @@ int cdlconcealbabyswall_lookback(void)
 
 TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,4);
+    double ShadowVeryShortPeriodTotal[4];
     int i, outIdx, totIdx, ShadowVeryShortTrailingIdx, lookbackTotal;
 
 

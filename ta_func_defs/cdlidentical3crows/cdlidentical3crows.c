@@ -6,8 +6,8 @@ int cdlidentical3crows_lookback(void)
 
 TA_RetCode cdlidentical3crows(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowVeryShortPeriodTotal,3);
-    ARRAY_LOCAL(EqualPeriodTotal,3);
+    double ShadowVeryShortPeriodTotal[3];
+    double EqualPeriodTotal[3];
     int i, outIdx, totIdx, ShadowVeryShortTrailingIdx, EqualTrailingIdx, lookbackTotal;
 
 

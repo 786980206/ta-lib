@@ -8,10 +8,10 @@ int cdladvanceblock_lookback(void)
 
 TA_RetCode cdladvanceblock(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
 {
-    ARRAY_LOCAL(ShadowShortPeriodTotal,3);
-    ARRAY_LOCAL(ShadowLongPeriodTotal,2);
-    ARRAY_LOCAL(NearPeriodTotal,3);
-    ARRAY_LOCAL(FarPeriodTotal,3);
+    double ShadowShortPeriodTotal[3];
+    double ShadowLongPeriodTotal[2];
+    double NearPeriodTotal[3];
+    double FarPeriodTotal[3];
     double BodyLongPeriodTotal;
     int i, outIdx, totIdx, BodyLongTrailingIdx, ShadowShortTrailingIdx, ShadowLongTrailingIdx, NearTrailingIdx,
     FarTrailingIdx, lookbackTotal;
