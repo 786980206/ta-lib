@@ -1,6 +1,6 @@
 int cdldoji_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(BodyDoji);
+    return BodyDoji_avgPeriod;
 }
 
 TA_RetCode cdldoji(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -32,11 +32,11 @@ TA_RetCode cdldoji(int startIdx, int endIdx, const double inOpen[], const double
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     BodyDojiPeriodTotal = 0;
-    BodyDojiTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyDoji);
+    BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
 
     i = BodyDojiTrailingIdx;
     while( i < startIdx ) {
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i );
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
 
@@ -51,14 +51,14 @@ TA_RetCode cdldoji(int startIdx, int endIdx, const double inOpen[], const double
     outIdx = 0;
     do
     {
-    if( TA_REALBODY(i) <= TA_CANDLEAVERAGE( BodyDoji, BodyDojiPeriodTotal, i ) )
+    if( ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) )
     outInteger[outIdx++] = 100;
     else
     outInteger[outIdx++] = 0;
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i ) - TA_CANDLERANGE( BodyDoji, BodyDojiTrailingIdx );
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyDoji_rangeType, inOpen[BodyDojiTrailingIdx], inHigh[BodyDojiTrailingIdx], inLow[BodyDojiTrailingIdx], inClose[BodyDojiTrailingIdx]);
     i++;
     BodyDojiTrailingIdx++;
     } while( i <= endIdx );

@@ -1,6 +1,6 @@
 int cdlsticksandwich_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(Equal) + 2;
+    return Equal_avgPeriod + 2;
 }
 
 TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -32,11 +32,11 @@ TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], con
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     EqualPeriodTotal = 0;
-    EqualTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Equal);
+    EqualTrailingIdx = startIdx - Equal_avgPeriod;
 
     i = EqualTrailingIdx;
     while( i < startIdx ) {
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-2 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
     i++;
     }
     i = startIdx;
@@ -54,12 +54,12 @@ TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], con
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-2) == -1 &&                                                        // first black
-    TA_CANDLECOLOR(i-1) == 1 &&                                                         // second white
-    TA_CANDLECOLOR(i) == -1 &&                                                          // third black
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                                        // first black
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&                                                         // second white
+    ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                                          // third black
     inLow[i-1] > inClose[i-2] &&                                                        // 2nd low > prior close
-    inClose[i] <= inClose[i-2] + TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-2 ) && // 1st and 3rd same close
-    inClose[i] >= inClose[i-2] - TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-2 )
+    inClose[i] <= inClose[i-2] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) && // 1st and 3rd same close
+    inClose[i] >= inClose[i-2] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
     )
     outInteger[outIdx++] = 100;
     else
@@ -67,7 +67,7 @@ TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], con
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-2 ) - TA_CANDLERANGE( Equal, EqualTrailingIdx-2 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(Equal_rangeType, inOpen[EqualTrailingIdx-2], inHigh[EqualTrailingIdx-2], inLow[EqualTrailingIdx-2], inClose[EqualTrailingIdx-2]);
     i++;
     EqualTrailingIdx++;
     } while( i <= endIdx );

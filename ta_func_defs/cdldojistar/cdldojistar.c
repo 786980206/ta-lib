@@ -1,6 +1,6 @@
 int cdldojistar_lookback(void)
 {
-    return max( TA_CANDLEAVGPERIOD(BodyDoji), TA_CANDLEAVGPERIOD(BodyLong) ) + 1;
+    return max( BodyDoji_avgPeriod, BodyLong_avgPeriod ) + 1;
 }
 
 TA_RetCode cdldojistar(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,17 +33,17 @@ TA_RetCode cdldojistar(int startIdx, int endIdx, const double inOpen[], const do
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal = 0;
     BodyDojiPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx -1 - TA_CANDLEAVGPERIOD(BodyLong);
-    BodyDojiTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyDoji);
+    BodyLongTrailingIdx = startIdx -1 - BodyLong_avgPeriod;
+    BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx-1 ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = BodyDojiTrailingIdx;
     while( i < startIdx ) {
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i );
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
 
@@ -61,21 +61,21 @@ TA_RetCode cdldojistar(int startIdx, int endIdx, const double inOpen[], const do
     outIdx = 0;
     do
     {
-    if( TA_REALBODY(i-1) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-1 ) &&     // 1st: long real body
-    TA_REALBODY(i) <= TA_CANDLEAVERAGE( BodyDoji, BodyDojiPeriodTotal, i ) &&        // 2nd: doji
-    ( ( TA_CANDLECOLOR(i-1) == 1 && TA_REALBODYGAPUP(i,i-1) )                        //        that gaps up if 1st is white
+    if( ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&     // 1st: long real body
+    ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&        // 2nd: doji
+    ( ( ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 && ta_realbodygapup(inOpen[i], inClose[i], inOpen[i-1], inClose[i-1]) )                        //        that gaps up if 1st is white
     ||
-    ( TA_CANDLECOLOR(i-1) == -1 && TA_REALBODYGAPDOWN(i,i-1) )                        //      or down if 1st is black
+    ( ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 && ta_realbodygapdown(inOpen[i], inClose[i], inOpen[i-1], inClose[i-1]) )                        //      or down if 1st is black
     ) )
-    outInteger[outIdx++] = -TA_CANDLECOLOR(i-1) * 100;
+    outInteger[outIdx++] = -ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
     else
     outInteger[outIdx++] = 0;
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-1 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i ) - TA_CANDLERANGE( BodyDoji, BodyDojiTrailingIdx );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx], inHigh[BodyLongTrailingIdx], inLow[BodyLongTrailingIdx], inClose[BodyLongTrailingIdx]);
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyDoji_rangeType, inOpen[BodyDojiTrailingIdx], inHigh[BodyDojiTrailingIdx], inLow[BodyDojiTrailingIdx], inClose[BodyDojiTrailingIdx]);
     i++;
     BodyLongTrailingIdx++;
     BodyDojiTrailingIdx++;

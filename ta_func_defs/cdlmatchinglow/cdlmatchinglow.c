@@ -1,6 +1,6 @@
 int cdlmatchinglow_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(Equal) + 1;
+    return Equal_avgPeriod + 1;
 }
 
 TA_RetCode cdlmatchinglow(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -32,11 +32,11 @@ TA_RetCode cdlmatchinglow(int startIdx, int endIdx, const double inOpen[], const
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     EqualPeriodTotal = 0;
-    EqualTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Equal);
+    EqualTrailingIdx = startIdx - Equal_avgPeriod;
 
     i = EqualTrailingIdx;
     while( i < startIdx ) {
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -51,10 +51,10 @@ TA_RetCode cdlmatchinglow(int startIdx, int endIdx, const double inOpen[], const
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-1) == -1 &&                                                        // first black
-    TA_CANDLECOLOR(i) == -1 &&                                                          // second black
-    inClose[i] <= inClose[i-1] + TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 ) && // 1st and 2nd same close
-    inClose[i] >= inClose[i-1] - TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 )
+    if( ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                                        // first black
+    ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                                          // second black
+    inClose[i] <= inClose[i-1] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) && // 1st and 2nd same close
+    inClose[i] >= inClose[i-1] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
     )
     outInteger[outIdx++] = 100;
     else
@@ -62,7 +62,7 @@ TA_RetCode cdlmatchinglow(int startIdx, int endIdx, const double inOpen[], const
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 ) - TA_CANDLERANGE( Equal, EqualTrailingIdx-1 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(Equal_rangeType, inOpen[EqualTrailingIdx-1], inHigh[EqualTrailingIdx-1], inLow[EqualTrailingIdx-1], inClose[EqualTrailingIdx-1]);
     i++;
     EqualTrailingIdx++;
     } while( i <= endIdx );

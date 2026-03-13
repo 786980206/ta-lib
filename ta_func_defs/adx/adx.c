@@ -13,18 +13,6 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
 
     int i;
 
-    #define TRUE_RANGE(TH,TL,YC,OUT) {\
-    OUT = TH-TL; \
-    tempReal2 = fabs(TH-YC); \
-    if( tempReal2 > OUT ) \
-    OUT = tempReal2; \
-    tempReal2 = fabs(TL-YC); \
-    if( tempReal2 > OUT ) \
-    OUT = tempReal2; \
-    }
-
-
-
     /*
     * The DM1 (one period) is base on the largest part of
     * today's range that is outside of yesterdays range.
@@ -139,9 +127,6 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
     * you can comment out the following #undef/#define and rebuild the library.
     */
-    #undef  round_pos
-    #define round_pos(x) (x)
-
     lookbackTotal = (2*optInTimePeriod) + TA_GetUnstablePeriod(TA_FUNC_UNST_ADX) - 1;
 
     /* Adjust startIdx to account for the lookback period. */
@@ -195,7 +180,7 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevPlusDM += diffP;
     }
 
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR += tempReal;
     prevClose = inClose[today];
     }
@@ -230,24 +215,24 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     }
 
     /* Calculate the prevTR */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
     /* Calculate the DX. The value is rounded (see Wilder book). */
     if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
-    minusDI = round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI  = round_pos(100.0*(prevPlusDM/prevTR));
+    minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
+    plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
     /* This loop is just to accumulate the initial DX */
     tempReal = minusDI+plusDI;
     if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
-    sumDX  += round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
+    sumDX  += ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
     }
     }
 
     /* Calculate the first ADX */
-    prevADX = round_pos( sumDX / optInTimePeriod );
+    prevADX = ta_round_pos( sumDX / optInTimePeriod );
 
     /* Skip the unstable period */
     i = TA_GetUnstablePeriod(TA_FUNC_UNST_ADX);
@@ -278,21 +263,21 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     }
 
     /* Calculate the prevTR */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
     if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
-    minusDI  = round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI   = round_pos(100.0*(prevPlusDM/prevTR));
+    minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
+    plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
     if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     {
-    tempReal = round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
+    tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */
-    prevADX = round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+    prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
     }
     }
     }
@@ -329,21 +314,21 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     }
 
     /* Calculate the prevTR */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
     if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
-    minusDI  = round_pos(100.0*(prevMinusDM/prevTR));
-    plusDI   = round_pos(100.0*(prevPlusDM/prevTR));
+    minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
+    plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
     if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     {
-    tempReal = round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
+    tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */
-    prevADX = round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
+    prevADX = ta_round_pos(((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
     }
     }
 

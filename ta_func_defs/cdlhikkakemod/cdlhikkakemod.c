@@ -1,6 +1,6 @@
 int cdlhikkakemod_lookback(void)
 {
-    return max( 1, TA_CANDLEAVGPERIOD(Near) ) + 5;
+    return max( 1, Near_avgPeriod ) + 5;
 }
 
 TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -32,10 +32,10 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     NearPeriodTotal = 0;
-    NearTrailingIdx = startIdx - 3 - TA_CANDLEAVGPERIOD(Near);
+    NearTrailingIdx = startIdx - 3 - Near_avgPeriod;
     i = NearTrailingIdx;
     while( i < startIdx - 3 ) {
-    NearPeriodTotal += TA_CANDLERANGE( Near, i-2 );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
     i++;
     }
 
@@ -48,12 +48,12 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     if( inHigh[i-2] < inHigh[i-3] && inLow[i-2] > inLow[i-3] &&             // 2nd: lower high and higher low than 1st
     inHigh[i-1] < inHigh[i-2] && inLow[i-1] > inLow[i-2] &&             // 3rd: lower high and higher low than 2nd
     ( ( inHigh[i] < inHigh[i-1] && inLow[i] < inLow[i-1] &&             // (bull) 4th: lower high and lower low
-    inClose[i-2] <= inLow[i-2] + TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-2 )
+    inClose[i-2] <= inLow[i-2] + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
     // (bull) 2nd: close near the low
     )
     ||
     ( inHigh[i] > inHigh[i-1] && inLow[i] > inLow[i-1] &&             // (bear) 4th: higher high and higher low
-    inClose[i-2] >= inHigh[i-2] - TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-2 )
+    inClose[i-2] >= inHigh[i-2] - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
     // (bull) 2nd: close near the top
     )
     )
@@ -69,7 +69,7 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     )
     )
     patternIdx = 0;
-    NearPeriodTotal += TA_CANDLERANGE( Near, i-2 ) - TA_CANDLERANGE( Near, NearTrailingIdx-2 );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-2], inHigh[NearTrailingIdx-2], inLow[NearTrailingIdx-2], inClose[NearTrailingIdx-2]);
     NearTrailingIdx++;
     i++;
     }
@@ -98,12 +98,12 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     if( inHigh[i-2] < inHigh[i-3] && inLow[i-2] > inLow[i-3] &&             // 2nd: lower high and higher low than 1st
     inHigh[i-1] < inHigh[i-2] && inLow[i-1] > inLow[i-2] &&             // 3rd: lower high and higher low than 2nd
     ( ( inHigh[i] < inHigh[i-1] && inLow[i] < inLow[i-1] &&             // (bull) 4th: lower high and lower low
-    inClose[i-2] <= inLow[i-2] + TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-2 )
+    inClose[i-2] <= inLow[i-2] + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
     // (bull) 2nd: close near the low
     )
     ||
     ( inHigh[i] > inHigh[i-1] && inLow[i] > inLow[i-1] &&             // (bear) 4th: higher high and higher low
-    inClose[i-2] >= inHigh[i-2] - TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-2 )
+    inClose[i-2] >= inHigh[i-2] - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
     // (bull) 2nd: close near the top
     )
     )
@@ -123,7 +123,7 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     patternIdx = 0;
     } else
     outInteger[outIdx++] = 0;
-    NearPeriodTotal += TA_CANDLERANGE( Near, i-2 ) - TA_CANDLERANGE( Near, NearTrailingIdx-2 );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-2], inHigh[NearTrailingIdx-2], inLow[NearTrailingIdx-2], inClose[NearTrailingIdx-2]);
     NearTrailingIdx++;
     i++;
     } while( i <= endIdx );

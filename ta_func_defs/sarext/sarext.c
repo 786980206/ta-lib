@@ -171,8 +171,8 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
     newHigh = inHigh[todayIdx-1];
     newLow  = inLow[todayIdx-1];
 
-    SAR_ROUNDING(newHigh);
-    SAR_ROUNDING(newLow);
+    ta_sar_rounding(newHigh);
+    ta_sar_rounding(newLow);
 
     if(optInStartValue == 0) /* Default action */
     {
@@ -198,7 +198,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
     sar = fabs(optInStartValue);
     }
 
-    SAR_ROUNDING(sar);
+    ta_sar_rounding(sar);
 
     /* Cheat on the newLow and newHigh for the
     * first iteration.
@@ -214,8 +214,8 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
     newHigh = inHigh[todayIdx];
     todayIdx++;
 
-    SAR_ROUNDING(newLow);
-    SAR_ROUNDING(newHigh);
+    ta_sar_rounding(newLow);
+    ta_sar_rounding(newHigh);
 
     if( isLong == 1 )
     {
@@ -245,7 +245,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
 
     /* Calculate the new SAR */
     sar = sar + afShort * (ep - sar);
-    SAR_ROUNDING( sar );
+    ta_sar_rounding(sar);
 
     /* Make sure the new SAR is within
     * yesterday's and today's range.
@@ -273,7 +273,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
 
     /* Calculate the new SAR */
     sar = sar + afLong * (ep - sar);
-    SAR_ROUNDING( sar );
+    ta_sar_rounding(sar);
 
     /* Make sure the new SAR is within
     * yesterday's and today's range.
@@ -312,7 +312,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
 
     /* Calculate the new SAR */
     sar = sar + afLong * (ep - sar);
-    SAR_ROUNDING( sar );
+    ta_sar_rounding(sar);
 
     /* Make sure the new SAR is within
     * yesterday's and today's range.
@@ -340,7 +340,7 @@ TA_RetCode sarext(int startIdx, int endIdx, const double inHigh[], const double 
 
     /* Calculate the new SAR */
     sar = sar + afShort * (ep - sar);
-    SAR_ROUNDING( sar );
+    ta_sar_rounding(sar);
 
     /* Make sure the new SAR is within
     * yesterday's and today's range.

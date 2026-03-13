@@ -1,6 +1,6 @@
 int cdlpiercing_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(BodyLong) + 1;
+    return BodyLong_avgPeriod + 1;
 }
 
 TA_RetCode cdlpiercing(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,12 +33,12 @@ TA_RetCode cdlpiercing(int startIdx, int endIdx, const double inOpen[], const do
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal[1] = 0;
     BodyLongPeriodTotal[0] = 0;
-    BodyLongTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx ) {
-    BodyLongPeriodTotal[1] += TA_CANDLERANGE( BodyLong, i-1 );
-    BodyLongPeriodTotal[0] += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal[1] += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
+    BodyLongPeriodTotal[0] += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = startIdx;
@@ -57,13 +57,13 @@ TA_RetCode cdlpiercing(int startIdx, int endIdx, const double inOpen[], const do
 
     do
     {
-    if( TA_CANDLECOLOR(i-1) == -1 &&                                                        // 1st: black
-    TA_REALBODY(i-1) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal[1], i-1 ) &&  //      long
-    TA_CANDLECOLOR(i) == 1 &&                                                           // 2nd: white
-    TA_REALBODY(i) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal[0], i ) &&      //      long
+    if( ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                                        // 1st: black
+    ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&  //      long
+    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                                           // 2nd: white
+    ta_realbody(inClose[i], inOpen[i]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal[0], inOpen[i], inHigh[i], inLow[i], inClose[i]) &&      //      long
     inOpen[i] < inLow[i-1] &&                                                           //      open below prior low
     inClose[i] < inOpen[i-1] &&                                                         //      close within prior body
-    inClose[i] > inClose[i-1] + TA_REALBODY(i-1) * 0.5                                  //        above midpoint
+    inClose[i] > inClose[i-1] + ta_realbody(inClose[i-1], inOpen[i-1]) * 0.5                                  //        above midpoint
     )
     outInteger[outIdx++] = 100;
     else
@@ -72,8 +72,8 @@ TA_RetCode cdlpiercing(int startIdx, int endIdx, const double inOpen[], const do
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
     for (totIdx = 1; totIdx >= 0; --totIdx)
-    BodyLongPeriodTotal[totIdx] += TA_CANDLERANGE( BodyLong, i-totIdx )
-    - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx-totIdx );
+    BodyLongPeriodTotal[totIdx] += ta_candlerange(BodyLong_rangeType, inOpen[i-totIdx], inHigh[i-totIdx], inLow[i-totIdx], inClose[i-totIdx])
+    - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx-totIdx], inHigh[BodyLongTrailingIdx-totIdx], inLow[BodyLongTrailingIdx-totIdx], inClose[BodyLongTrailingIdx-totIdx]);
     i++;
     BodyLongTrailingIdx++;
     } while( i <= endIdx );

@@ -1,7 +1,7 @@
 int cdlstalledpattern_lookback(void)
 {
-    return max( max( TA_CANDLEAVGPERIOD(BodyLong), TA_CANDLEAVGPERIOD(BodyShort) ),
-    max( TA_CANDLEAVGPERIOD(ShadowVeryShort), TA_CANDLEAVGPERIOD(Near) )
+    return max( max( BodyLong_avgPeriod, BodyShort_avgPeriod ),
+    max( ShadowVeryShort_avgPeriod, Near_avgPeriod )
     ) + 2;
 }
 
@@ -39,36 +39,36 @@ TA_RetCode cdlstalledpattern(int startIdx, int endIdx, const double inOpen[], co
     BodyLongPeriodTotal[2] = 0;
     BodyLongPeriodTotal[1] = 0;
     BodyLongPeriodTotal[0] = 0;
-    BodyLongTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
     BodyShortPeriodTotal = 0;
-    BodyShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyShort);
+    BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
     ShadowVeryShortPeriodTotal = 0;
-    ShadowVeryShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(ShadowVeryShort);
+    ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
     NearPeriodTotal[2] = 0;
     NearPeriodTotal[1] = 0;
     NearPeriodTotal[0] = 0;
-    NearTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Near);
+    NearTrailingIdx = startIdx - Near_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx ) {
-    BodyLongPeriodTotal[2] += TA_CANDLERANGE( BodyLong, i-2 );
-    BodyLongPeriodTotal[1] += TA_CANDLERANGE( BodyLong, i-1 );
+    BodyLongPeriodTotal[2] += ta_candlerange(BodyLong_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
+    BodyLongPeriodTotal[1] += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = BodyShortTrailingIdx;
     while( i < startIdx ) {
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i );
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = ShadowVeryShortTrailingIdx;
     while( i < startIdx ) {
-    ShadowVeryShortPeriodTotal += TA_CANDLERANGE( ShadowVeryShort, i-1 );
+    ShadowVeryShortPeriodTotal += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = NearTrailingIdx;
     while( i < startIdx ) {
-    NearPeriodTotal[2] += TA_CANDLERANGE( Near, i-2 );
-    NearPeriodTotal[1] += TA_CANDLERANGE( Near, i-1 );
+    NearPeriodTotal[2] += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
+    NearPeriodTotal[1] += ta_candlerange(Near_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -89,20 +89,20 @@ TA_RetCode cdlstalledpattern(int startIdx, int endIdx, const double inOpen[], co
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-2) == 1 &&                                             // 1st white
-    TA_CANDLECOLOR(i-1) == 1 &&                                             // 2nd white
-    TA_CANDLECOLOR(i) == 1 &&                                               // 3rd white
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&                                             // 1st white
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&                                             // 2nd white
+    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                               // 3rd white
     inClose[i] > inClose[i-1] && inClose[i-1] > inClose[i-2] &&             // consecutive higher closes
-    TA_REALBODY(i-2) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal[2], i-2 ) &&  // 1st: long real body
-    TA_REALBODY(i-1) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal[1], i-1 ) &&  // 2nd: long real body
+    ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&  // 1st: long real body
+    ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&  // 2nd: long real body
     // very short upper shadow
-    TA_UPPERSHADOW(i-1) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal, i-1 ) &&
+    ta_uppershadow(inHigh[i-1], inClose[i-1], inOpen[i-1]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
     // opens within/near 1st real body
     inOpen[i-1] > inOpen[i-2] &&
-    inOpen[i-1] <= inClose[i-2] + TA_CANDLEAVERAGE( Near, NearPeriodTotal[2], i-2 ) &&
-    TA_REALBODY(i) < TA_CANDLEAVERAGE( BodyShort, BodyShortPeriodTotal, i ) &&       // 3rd: small real body
+    inOpen[i-1] <= inClose[i-2] + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&       // 3rd: small real body
     // rides on the shoulder of 2nd real body
-    inOpen[i] >= inClose[i-1] - TA_REALBODY(i) - TA_CANDLEAVERAGE( Near, NearPeriodTotal[1], i-1 )
+    inOpen[i] >= inClose[i-1] - ta_realbody(inClose[i], inOpen[i]) - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
     )
     outInteger[outIdx++] = -100;
     else
@@ -111,14 +111,14 @@ TA_RetCode cdlstalledpattern(int startIdx, int endIdx, const double inOpen[], co
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
     for (totIdx = 2; totIdx >= 1; --totIdx) {
-    BodyLongPeriodTotal[totIdx] += TA_CANDLERANGE( BodyLong, i-totIdx )
-    - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx-totIdx );
-    NearPeriodTotal[totIdx] += TA_CANDLERANGE( Near, i-totIdx )
-    - TA_CANDLERANGE( Near, NearTrailingIdx-totIdx );
+    BodyLongPeriodTotal[totIdx] += ta_candlerange(BodyLong_rangeType, inOpen[i-totIdx], inHigh[i-totIdx], inLow[i-totIdx], inClose[i-totIdx])
+    - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx-totIdx], inHigh[BodyLongTrailingIdx-totIdx], inLow[BodyLongTrailingIdx-totIdx], inClose[BodyLongTrailingIdx-totIdx]);
+    NearPeriodTotal[totIdx] += ta_candlerange(Near_rangeType, inOpen[i-totIdx], inHigh[i-totIdx], inLow[i-totIdx], inClose[i-totIdx])
+    - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-totIdx], inHigh[NearTrailingIdx-totIdx], inLow[NearTrailingIdx-totIdx], inClose[NearTrailingIdx-totIdx]);
     }
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i ) - TA_CANDLERANGE( BodyShort, BodyShortTrailingIdx );
-    ShadowVeryShortPeriodTotal += TA_CANDLERANGE( ShadowVeryShort, i-1 )
-    - TA_CANDLERANGE( ShadowVeryShort, ShadowVeryShortTrailingIdx-1 );
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyShort_rangeType, inOpen[BodyShortTrailingIdx], inHigh[BodyShortTrailingIdx], inLow[BodyShortTrailingIdx], inClose[BodyShortTrailingIdx]);
+    ShadowVeryShortPeriodTotal += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
+    - ta_candlerange(ShadowVeryShort_rangeType, inOpen[ShadowVeryShortTrailingIdx-1], inHigh[ShadowVeryShortTrailingIdx-1], inLow[ShadowVeryShortTrailingIdx-1], inClose[ShadowVeryShortTrailingIdx-1]);
     i++;
     BodyLongTrailingIdx++;
     BodyShortTrailingIdx++;

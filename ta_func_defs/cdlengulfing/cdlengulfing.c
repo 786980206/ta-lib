@@ -46,22 +46,22 @@ TA_RetCode cdlengulfing(int startIdx, int endIdx, const double inOpen[], const d
     outIdx = 0;
     do
     {
-    if( ( TA_CANDLECOLOR(i) == 1 && TA_CANDLECOLOR(i-1) == -1 &&            // white engulfs black
+    if( ( ta_candlecolor(inClose[i], inOpen[i]) == 1 && ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&            // white engulfs black
     ( ( inClose[i] >= inOpen[i-1] && inOpen[i] < inClose[i-1] ) ||
     ( inClose[i] > inOpen[i-1] && inOpen[i] <= inClose[i-1] )
     )
     )
     ||
-    ( TA_CANDLECOLOR(i) == -1 && TA_CANDLECOLOR(i-1) == 1 &&            // black engulfs white
+    ( ta_candlecolor(inClose[i], inOpen[i]) == -1 && ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&            // black engulfs white
     ( ( inOpen[i] >= inClose[i-1] && inClose[i] < inOpen[i-1] ) ||
     ( inOpen[i] > inClose[i-1] && inClose[i] <= inOpen[i-1] )
     )
     )
     )
     if( inOpen[i] != inClose[i-1] && inClose[i] != inOpen[i-1] )
-    outInteger[outIdx++] = TA_CANDLECOLOR(i) * 100;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 100;
     else
-    outInteger[outIdx++] = TA_CANDLECOLOR(i) * 80;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 80;
     else
     outInteger[outIdx++] = 0;
     i++;

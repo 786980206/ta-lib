@@ -26,9 +26,6 @@ TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double in
     * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
     * you can comment out the following #undef/#define and rebuild the library.
     */
-    #undef  round_pos
-    #define round_pos(x) (x)
-
     /* Move up the start index if there is not
     * enough initial data.
     * Always one price bar gets consumed.
@@ -65,7 +62,7 @@ TA_RetCode adxr(int startIdx, int endIdx, const double inHigh[], const double in
     outIdx = 0;
     nbElement = endIdx-startIdx+2;
     while( --nbElement != 0 )
-    outReal[outIdx++] = round_pos( (adx[i++]+adx[j++])/2.0 );
+    outReal[outIdx++] = ta_round_pos( (adx[i++]+adx[j++])/2.0 );
 
     free(adx);
 

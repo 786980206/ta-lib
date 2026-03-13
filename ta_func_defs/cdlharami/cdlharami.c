@@ -1,6 +1,6 @@
 int cdlharami_lookback(void)
 {
-    return max( TA_CANDLEAVGPERIOD(BodyShort), TA_CANDLEAVGPERIOD(BodyLong) ) + 1;
+    return max( BodyShort_avgPeriod, BodyLong_avgPeriod ) + 1;
 }
 
 TA_RetCode cdlharami(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,17 +33,17 @@ TA_RetCode cdlharami(int startIdx, int endIdx, const double inOpen[], const doub
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal = 0;
     BodyShortPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx -1 - TA_CANDLEAVGPERIOD(BodyLong);
-    BodyShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyShort);
+    BodyLongTrailingIdx = startIdx -1 - BodyLong_avgPeriod;
+    BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx-1 ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = BodyShortTrailingIdx;
     while( i < startIdx ) {
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i );
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = startIdx;
@@ -63,18 +63,18 @@ TA_RetCode cdlharami(int startIdx, int endIdx, const double inOpen[], const doub
     outIdx = 0;
     do
     {
-    if( TA_REALBODY(i-1) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-1 ) &&         // 1st: long
-    TA_REALBODY(i) <= TA_CANDLEAVERAGE( BodyShort, BodyShortPeriodTotal, i )             // 2nd: short
+    if( ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&         // 1st: long
+    ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])             // 2nd: short
     )
     if ( max( inClose[i], inOpen[i] ) < max( inClose[i-1], inOpen[i-1] ) &&              // 2nd is engulfed by 1st
     min( inClose[i], inOpen[i] ) > min( inClose[i-1], inOpen[i-1] )
     )
-    outInteger[outIdx++] = -TA_CANDLECOLOR(i-1) * 100;
+    outInteger[outIdx++] = -ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
     else
     if ( max( inClose[i], inOpen[i] ) <= max( inClose[i-1], inOpen[i-1] ) &&         // 2nd is engulfed by 1st
     min( inClose[i], inOpen[i] ) >= min( inClose[i-1], inOpen[i-1] )            // (one end of real body can match;
     )                                                                             // engulfing guaranteed by "long" and "short")
-    outInteger[outIdx++] = -TA_CANDLECOLOR(i-1) * 80;
+    outInteger[outIdx++] = -ta_candlecolor(inClose[i-1], inOpen[i-1]) * 80;
     else
     outInteger[outIdx++] = 0;
     else
@@ -83,8 +83,8 @@ TA_RetCode cdlharami(int startIdx, int endIdx, const double inOpen[], const doub
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-1 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i ) - TA_CANDLERANGE( BodyShort, BodyShortTrailingIdx );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx], inHigh[BodyLongTrailingIdx], inLow[BodyLongTrailingIdx], inClose[BodyLongTrailingIdx]);
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyShort_rangeType, inOpen[BodyShortTrailingIdx], inHigh[BodyShortTrailingIdx], inLow[BodyShortTrailingIdx], inClose[BodyShortTrailingIdx]);
     i++;
     BodyLongTrailingIdx++;
     BodyShortTrailingIdx++;

@@ -44,18 +44,18 @@ TA_RetCode cdl3outside(int startIdx, int endIdx, const double inOpen[], const do
     outIdx = 0;
     do
     {
-    if( ( TA_CANDLECOLOR(i-1) == 1 && TA_CANDLECOLOR(i-2) == -1 &&          // white engulfs black
+    if( ( ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 && ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&          // white engulfs black
     inClose[i-1] > inOpen[i-2] && inOpen[i-1] < inClose[i-2] &&
     inClose[i] > inClose[i-1]                                         // third candle higher
     )
     ||
-    ( TA_CANDLECOLOR(i-1) == -1 && TA_CANDLECOLOR(i-2) == 1 &&          // black engulfs white
+    ( ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 && ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&          // black engulfs white
     inOpen[i-1] > inClose[i-2] && inClose[i-1] < inOpen[i-2] &&
     inClose[i] < inClose[i-1]                                         // third candle lower
     )
     )
     {
-    outInteger[outIdx++] = TA_CANDLECOLOR(i-1) * 100;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
     }
     else
     outInteger[outIdx++] = 0;

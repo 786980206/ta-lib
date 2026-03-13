@@ -1,6 +1,6 @@
 int cdlgapsidesidewhite_lookback(void)
 {
-    return max( TA_CANDLEAVGPERIOD(Near), TA_CANDLEAVGPERIOD(Equal) ) + 2;
+    return max( Near_avgPeriod, Equal_avgPeriod ) + 2;
 }
 
 TA_RetCode cdlgapsidesidewhite(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,17 +33,17 @@ TA_RetCode cdlgapsidesidewhite(int startIdx, int endIdx, const double inOpen[], 
     /* Add-up the initial period, except for the last value. */
     NearPeriodTotal = 0;
     EqualPeriodTotal = 0;
-    NearTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Near);
-    EqualTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Equal);
+    NearTrailingIdx = startIdx - Near_avgPeriod;
+    EqualTrailingIdx = startIdx - Equal_avgPeriod;
 
     i = NearTrailingIdx;
     while( i < startIdx ) {
-    NearPeriodTotal += TA_CANDLERANGE( Near, i-1 );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = EqualTrailingIdx;
     while( i < startIdx ) {
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -65,25 +65,25 @@ TA_RetCode cdlgapsidesidewhite(int startIdx, int endIdx, const double inOpen[], 
     {
     if(
     ( // upside or downside gap between the 1st candle and both the next 2 candles
-    ( TA_REALBODYGAPUP(i-1,i-2) && TA_REALBODYGAPUP(i,i-2) )
+    ( ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) && ta_realbodygapup(inOpen[i], inClose[i], inOpen[i-2], inClose[i-2]) )
     ||
-    ( TA_REALBODYGAPDOWN(i-1,i-2) && TA_REALBODYGAPDOWN(i,i-2) )
+    ( ta_realbodygapdown(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) && ta_realbodygapdown(inOpen[i], inClose[i], inOpen[i-2], inClose[i-2]) )
     ) &&
-    TA_CANDLECOLOR(i-1) == 1 &&                                                                 // 2nd: white
-    TA_CANDLECOLOR(i) == 1 &&                                                                   // 3rd: white
-    TA_REALBODY(i) >= TA_REALBODY(i-1) - TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 ) &&   // same size 2 and 3
-    TA_REALBODY(i) <= TA_REALBODY(i-1) + TA_CANDLEAVERAGE( Near, NearPeriodTotal, i-1 ) &&
-    inOpen[i] >= inOpen[i-1] - TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 ) &&           // same open 2 and 3
-    inOpen[i] <= inOpen[i-1] + TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 )
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&                                                                 // 2nd: white
+    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                                                   // 3rd: white
+    ta_realbody(inClose[i], inOpen[i]) >= ta_realbody(inClose[i-1], inOpen[i-1]) - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&   // same size 2 and 3
+    ta_realbody(inClose[i], inOpen[i]) <= ta_realbody(inClose[i-1], inOpen[i-1]) + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
+    inOpen[i] >= inOpen[i-1] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&           // same open 2 and 3
+    inOpen[i] <= inOpen[i-1] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
     )
-    outInteger[outIdx++] = ( TA_REALBODYGAPUP(i-1,i-2) ? 100 : -100 );
+    outInteger[outIdx++] = ( ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) ? 100 : -100 );
     else
     outInteger[outIdx++] = 0;
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    NearPeriodTotal += TA_CANDLERANGE( Near, i-1 ) - TA_CANDLERANGE( Near, NearTrailingIdx-1 );
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 ) - TA_CANDLERANGE( Equal, EqualTrailingIdx-1 );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-1], inHigh[NearTrailingIdx-1], inLow[NearTrailingIdx-1], inClose[NearTrailingIdx-1]);
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(Equal_rangeType, inOpen[EqualTrailingIdx-1], inHigh[EqualTrailingIdx-1], inLow[EqualTrailingIdx-1], inClose[EqualTrailingIdx-1]);
     i++;
     NearTrailingIdx++;
     EqualTrailingIdx++;

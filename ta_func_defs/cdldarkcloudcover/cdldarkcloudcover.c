@@ -2,7 +2,7 @@ int cdldarkcloudcover_lookback(double        optInPenetration)
 {
     (void)optInPenetration;
     
-    return TA_CANDLEAVGPERIOD(BodyLong) + 1;
+    return BodyLong_avgPeriod + 1;
 }
 
 TA_RetCode cdldarkcloudcover(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], double optInPenetration, int *outBegIdx, int *outNBElement, int outInteger[])
@@ -34,11 +34,11 @@ TA_RetCode cdldarkcloudcover(int startIdx, int endIdx, const double inOpen[], co
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-1 );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -57,12 +57,12 @@ TA_RetCode cdldarkcloudcover(int startIdx, int endIdx, const double inOpen[], co
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-1) == 1 &&                                                     // 1st: white
-    TA_REALBODY(i-1) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-1 ) && //      long
-    TA_CANDLECOLOR(i) == -1 &&                                                      // 2nd: black
+    if( ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&                                                     // 1st: white
+    ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) && //      long
+    ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                                      // 2nd: black
     inOpen[i] > inHigh[i-1] &&                                                      //      open above prior high
     inClose[i] > inOpen[i-1] &&                                                     //      close within prior body
-    inClose[i] < inClose[i-1] - TA_REALBODY(i-1) * optInPenetration
+    inClose[i] < inClose[i-1] - ta_realbody(inClose[i-1], inOpen[i-1]) * optInPenetration
     )
     outInteger[outIdx++] = -100;
     else
@@ -70,7 +70,7 @@ TA_RetCode cdldarkcloudcover(int startIdx, int endIdx, const double inOpen[], co
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-1 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx-1 );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx-1], inHigh[BodyLongTrailingIdx-1], inLow[BodyLongTrailingIdx-1], inClose[BodyLongTrailingIdx-1]);
     i++;
     BodyLongTrailingIdx++;
     } while( i <= endIdx );

@@ -1,7 +1,7 @@
 int cdlrickshawman_lookback(void)
 {
-    return max( max( TA_CANDLEAVGPERIOD(BodyDoji), TA_CANDLEAVGPERIOD(ShadowLong) ),
-    TA_CANDLEAVGPERIOD(Near)
+    return max( max( BodyDoji_avgPeriod, ShadowLong_avgPeriod ),
+    Near_avgPeriod
     );
 }
 
@@ -34,25 +34,25 @@ TA_RetCode cdlrickshawman(int startIdx, int endIdx, const double inOpen[], const
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     BodyDojiPeriodTotal = 0;
-    BodyDojiTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyDoji);
+    BodyDojiTrailingIdx = startIdx - BodyDoji_avgPeriod;
     ShadowLongPeriodTotal = 0;
-    ShadowLongTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(ShadowLong);
+    ShadowLongTrailingIdx = startIdx - ShadowLong_avgPeriod;
     NearPeriodTotal = 0;
-    NearTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Near);
+    NearTrailingIdx = startIdx - Near_avgPeriod;
 
     i = BodyDojiTrailingIdx;
     while( i < startIdx ) {
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i );
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = ShadowLongTrailingIdx;
     while( i < startIdx ) {
-    ShadowLongPeriodTotal += TA_CANDLERANGE( ShadowLong, i );
+    ShadowLongPeriodTotal += ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = NearTrailingIdx;
     while( i < startIdx ) {
-    NearPeriodTotal += TA_CANDLERANGE( Near, i );
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
 
@@ -68,15 +68,15 @@ TA_RetCode cdlrickshawman(int startIdx, int endIdx, const double inOpen[], const
     outIdx = 0;
     do
     {
-    if( TA_REALBODY(i) <= TA_CANDLEAVERAGE( BodyDoji, BodyDojiPeriodTotal, i ) &&            // doji
-    TA_LOWERSHADOW(i) > TA_CANDLEAVERAGE( ShadowLong, ShadowLongPeriodTotal, i ) &&      // long shadow
-    TA_UPPERSHADOW(i) > TA_CANDLEAVERAGE( ShadowLong, ShadowLongPeriodTotal, i ) &&      // long shadow
+    if( ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&            // doji
+    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) > ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&      // long shadow
+    ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) > ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&      // long shadow
     (                                                                                       // body near midpoint
     min( inOpen[i], inClose[i] )
-    <= inLow[i] + TA_HIGHLOWRANGE(i) / 2 + TA_CANDLEAVERAGE( Near, NearPeriodTotal, i )
+    <= inLow[i] + ta_highlowrange(inHigh[i], inLow[i]) / 2 + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
     &&
     max( inOpen[i], inClose[i] )
-    >= inLow[i] + TA_HIGHLOWRANGE(i) / 2 - TA_CANDLEAVERAGE( Near, NearPeriodTotal, i )
+    >= inLow[i] + ta_highlowrange(inHigh[i], inLow[i]) / 2 - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
     )
     )
     outInteger[outIdx++] = 100;
@@ -86,9 +86,9 @@ TA_RetCode cdlrickshawman(int startIdx, int endIdx, const double inOpen[], const
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyDojiPeriodTotal += TA_CANDLERANGE( BodyDoji, i ) - TA_CANDLERANGE( BodyDoji, BodyDojiTrailingIdx );
-    ShadowLongPeriodTotal += TA_CANDLERANGE( ShadowLong, i ) - TA_CANDLERANGE( ShadowLong, ShadowLongTrailingIdx );
-    NearPeriodTotal += TA_CANDLERANGE( Near, i ) - TA_CANDLERANGE( Near, NearTrailingIdx );
+    BodyDojiPeriodTotal += ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyDoji_rangeType, inOpen[BodyDojiTrailingIdx], inHigh[BodyDojiTrailingIdx], inLow[BodyDojiTrailingIdx], inClose[BodyDojiTrailingIdx]);
+    ShadowLongPeriodTotal += ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(ShadowLong_rangeType, inOpen[ShadowLongTrailingIdx], inHigh[ShadowLongTrailingIdx], inLow[ShadowLongTrailingIdx], inClose[ShadowLongTrailingIdx]);
+    NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx], inHigh[NearTrailingIdx], inLow[NearTrailingIdx], inClose[NearTrailingIdx]);
 
     i++;
     BodyDojiTrailingIdx++;

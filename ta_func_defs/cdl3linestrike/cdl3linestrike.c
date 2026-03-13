@@ -1,6 +1,6 @@
 int cdl3linestrike_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(Near) + 3;
+    return Near_avgPeriod + 3;
 }
 
 TA_RetCode cdl3linestrike(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,12 +33,12 @@ TA_RetCode cdl3linestrike(int startIdx, int endIdx, const double inOpen[], const
     /* Add-up the initial period, except for the last value. */
     NearPeriodTotal[3] = 0;
     NearPeriodTotal[2] = 0;
-    NearTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Near);
+    NearTrailingIdx = startIdx - Near_avgPeriod;
 
     i = NearTrailingIdx;
     while( i < startIdx ) {
-    NearPeriodTotal[3] += TA_CANDLERANGE( Near, i-3 );
-    NearPeriodTotal[2] += TA_CANDLERANGE( Near, i-2 );
+    NearPeriodTotal[3] += ta_candlerange(Near_rangeType, inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]);
+    NearPeriodTotal[2] += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
     i++;
     }
     i = startIdx;
@@ -57,31 +57,31 @@ TA_RetCode cdl3linestrike(int startIdx, int endIdx, const double inOpen[], const
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-3) == TA_CANDLECOLOR(i-2) &&                                   // three with same color
-    TA_CANDLECOLOR(i-2) == TA_CANDLECOLOR(i-1) &&
-    TA_CANDLECOLOR(i) == -TA_CANDLECOLOR(i-1) &&                                    // 4th opposite color
+    if( ta_candlecolor(inClose[i-3], inOpen[i-3]) == ta_candlecolor(inClose[i-2], inOpen[i-2]) &&                                   // three with same color
+    ta_candlecolor(inClose[i-2], inOpen[i-2]) == ta_candlecolor(inClose[i-1], inOpen[i-1]) &&
+    ta_candlecolor(inClose[i], inOpen[i]) == -ta_candlecolor(inClose[i-1], inOpen[i-1]) &&                                    // 4th opposite color
     // 2nd opens within/near 1st rb
-    inOpen[i-2] >= min( inOpen[i-3], inClose[i-3] ) - TA_CANDLEAVERAGE( Near, NearPeriodTotal[3], i-3 ) &&
-    inOpen[i-2] <= max( inOpen[i-3], inClose[i-3] ) + TA_CANDLEAVERAGE( Near, NearPeriodTotal[3], i-3 ) &&
+    inOpen[i-2] >= min( inOpen[i-3], inClose[i-3] ) - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
+    inOpen[i-2] <= max( inOpen[i-3], inClose[i-3] ) + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
     // 3rd opens within/near 2nd rb
-    inOpen[i-1] >= min( inOpen[i-2], inClose[i-2] ) - TA_CANDLEAVERAGE( Near, NearPeriodTotal[2], i-2 ) &&
-    inOpen[i-1] <= max( inOpen[i-2], inClose[i-2] ) + TA_CANDLEAVERAGE( Near, NearPeriodTotal[2], i-2 ) &&
+    inOpen[i-1] >= min( inOpen[i-2], inClose[i-2] ) - ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    inOpen[i-1] <= max( inOpen[i-2], inClose[i-2] ) + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
     (
     (   // if three white
-    TA_CANDLECOLOR(i-1) == 1 &&
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == 1 &&
     inClose[i-1] > inClose[i-2] && inClose[i-2] > inClose[i-3] &&           // consecutive higher closes
     inOpen[i] > inClose[i-1] &&                                             // 4th opens above prior close
     inClose[i] < inOpen[i-3]                                                // 4th closes below 1st open
     ) ||
     (   // if three black
-    TA_CANDLECOLOR(i-1) == -1 &&
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&
     inClose[i-1] < inClose[i-2] && inClose[i-2] < inClose[i-3] &&           // consecutive lower closes
     inOpen[i] < inClose[i-1] &&                                             // 4th opens below prior close
     inClose[i] > inOpen[i-3]                                                // 4th closes above 1st open
     )
     )
     )
-    outInteger[outIdx++] = TA_CANDLECOLOR(i-1) * 100;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
     else
     outInteger[outIdx++] = 0;
 
@@ -89,8 +89,8 @@ TA_RetCode cdl3linestrike(int startIdx, int endIdx, const double inOpen[], const
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
     for (totIdx = 3; totIdx >= 2; --totIdx)
-    NearPeriodTotal[totIdx] += TA_CANDLERANGE( Near, i-totIdx )
-    - TA_CANDLERANGE( Near, NearTrailingIdx-totIdx );
+    NearPeriodTotal[totIdx] += ta_candlerange(Near_rangeType, inOpen[i-totIdx], inHigh[i-totIdx], inLow[i-totIdx], inClose[i-totIdx])
+    - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-totIdx], inHigh[NearTrailingIdx-totIdx], inLow[NearTrailingIdx-totIdx], inClose[NearTrailingIdx-totIdx]);
     i++;
     NearTrailingIdx++;
     } while( i <= endIdx );

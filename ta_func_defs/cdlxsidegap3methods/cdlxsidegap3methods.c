@@ -45,23 +45,23 @@ TA_RetCode cdlxsidegap3methods(int startIdx, int endIdx, const double inOpen[], 
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-2) == TA_CANDLECOLOR(i-1) &&                   // 1st and 2nd of same color
-    TA_CANDLECOLOR(i-1) == -TA_CANDLECOLOR(i) &&                    // 3rd opposite color
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == ta_candlecolor(inClose[i-1], inOpen[i-1]) &&                   // 1st and 2nd of same color
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == -ta_candlecolor(inClose[i], inOpen[i]) &&                    // 3rd opposite color
     inOpen[i] < max(inClose[i-1], inOpen[i-1]) &&                   // 3rd opens within 2nd rb
     inOpen[i] > min(inClose[i-1], inOpen[i-1]) &&
     inClose[i] < max(inClose[i-2], inOpen[i-2]) &&                  // 3rd closes within 1st rb
     inClose[i] > min(inClose[i-2], inOpen[i-2]) &&
     ( (
-    TA_CANDLECOLOR(i-2) == 1 &&                                 // when 1st is white
-    TA_REALBODYGAPUP(i-1,i-2)                                   // upside gap
+    ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&                                 // when 1st is white
+    ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2])                                   // upside gap
     ) ||
     (
-    TA_CANDLECOLOR(i-2) == -1 &&                                // when 1st is black
-    TA_REALBODYGAPDOWN(i-1,i-2)                                 // downside gap
+    ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                // when 1st is black
+    ta_realbodygapdown(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2])                                 // downside gap
     )
     )
     )
-    outInteger[outIdx++] = TA_CANDLECOLOR(i-2) * 100;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i-2], inOpen[i-2]) * 100;
     else
     outInteger[outIdx++] = 0;
     /* add the current range and subtract the first range: this is done after the pattern recognition

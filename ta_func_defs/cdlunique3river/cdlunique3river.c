@@ -1,6 +1,6 @@
 int cdlunique3river_lookback(void)
 {
-    return max( TA_CANDLEAVGPERIOD(BodyShort), TA_CANDLEAVGPERIOD(BodyLong) ) + 2;
+    return max( BodyShort_avgPeriod, BodyLong_avgPeriod ) + 2;
 }
 
 TA_RetCode cdlunique3river(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -33,17 +33,17 @@ TA_RetCode cdlunique3river(int startIdx, int endIdx, const double inOpen[], cons
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal = 0;
     BodyShortPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx -2 - TA_CANDLEAVGPERIOD(BodyLong);
-    BodyShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyShort);
+    BodyLongTrailingIdx = startIdx -2 - BodyLong_avgPeriod;
+    BodyShortTrailingIdx = startIdx - BodyShort_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx-2 ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = BodyShortTrailingIdx;
     while( i < startIdx ) {
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i );
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = startIdx;
@@ -61,13 +61,13 @@ TA_RetCode cdlunique3river(int startIdx, int endIdx, const double inOpen[], cons
     outIdx = 0;
     do
     {
-    if( TA_REALBODY(i-2) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-2 ) &&         // 1st: long
-    TA_CANDLECOLOR(i-2) == -1 &&                                                            //      black
-    TA_CANDLECOLOR(i-1) == -1 &&                                                            // 2nd: black
+    if( ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&         // 1st: long
+    ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                                            //      black
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                                            // 2nd: black
     inClose[i-1] > inClose[i-2] && inOpen[i-1] <= inOpen[i-2] &&                            //      harami
     inLow[i-1] < inLow[i-2] &&                                                              //      lower low
-    TA_REALBODY(i) < TA_CANDLEAVERAGE( BodyShort, BodyShortPeriodTotal, i ) &&           // 3rd: short
-    TA_CANDLECOLOR(i) == 1 &&                                                               //      white
+    ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&           // 3rd: short
+    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                                               //      white
     inOpen[i] > inLow[i-1]                                                                  //      open not lower
     )
     outInteger[outIdx++] = 100;
@@ -76,8 +76,8 @@ TA_RetCode cdlunique3river(int startIdx, int endIdx, const double inOpen[], cons
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-2 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
-    BodyShortPeriodTotal += TA_CANDLERANGE( BodyShort, i ) - TA_CANDLERANGE( BodyShort, BodyShortTrailingIdx );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx], inHigh[BodyLongTrailingIdx], inLow[BodyLongTrailingIdx], inClose[BodyLongTrailingIdx]);
+    BodyShortPeriodTotal += ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyShort_rangeType, inOpen[BodyShortTrailingIdx], inHigh[BodyShortTrailingIdx], inLow[BodyShortTrailingIdx], inClose[BodyShortTrailingIdx]);
     i++;
     BodyLongTrailingIdx++;
     BodyShortTrailingIdx++;

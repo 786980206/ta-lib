@@ -1,6 +1,6 @@
 int cdlconcealbabyswall_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(ShadowVeryShort) + 3;
+    return ShadowVeryShort_avgPeriod + 3;
 }
 
 TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -34,13 +34,13 @@ TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], 
     ShadowVeryShortPeriodTotal[3] = 0;
     ShadowVeryShortPeriodTotal[2] = 0;
     ShadowVeryShortPeriodTotal[1] = 0;
-    ShadowVeryShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(ShadowVeryShort);
+    ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
 
     i = ShadowVeryShortTrailingIdx;
     while( i < startIdx ) {
-    ShadowVeryShortPeriodTotal[3] += TA_CANDLERANGE( ShadowVeryShort, i-3 );
-    ShadowVeryShortPeriodTotal[2] += TA_CANDLERANGE( ShadowVeryShort, i-2 );
-    ShadowVeryShortPeriodTotal[1] += TA_CANDLERANGE( ShadowVeryShort, i-1 );
+    ShadowVeryShortPeriodTotal[3] += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]);
+    ShadowVeryShortPeriodTotal[2] += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]);
+    ShadowVeryShortPeriodTotal[1] += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -60,19 +60,19 @@ TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], 
 
     do
     {
-    if( TA_CANDLECOLOR(i-3) == -1 &&                                    // 1st black
-    TA_CANDLECOLOR(i-2) == -1 &&                                    // 2nd black
-    TA_CANDLECOLOR(i-1) == -1 &&                                    // 3rd black
-    TA_CANDLECOLOR(i) == -1 &&                                      // 4th black
+    if( ta_candlecolor(inClose[i-3], inOpen[i-3]) == -1 &&                                    // 1st black
+    ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                    // 2nd black
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                    // 3rd black
+    ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                      // 4th black
     // 1st: marubozu
-    TA_LOWERSHADOW(i-3) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[3], i-3 ) &&
-    TA_UPPERSHADOW(i-3) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[3], i-3 ) &&
+    ta_lowershadow(inLow[i-3], inClose[i-3], inOpen[i-3]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
+    ta_uppershadow(inHigh[i-3], inClose[i-3], inOpen[i-3]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
     // 2nd: marubozu
-    TA_LOWERSHADOW(i-2) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[2], i-2 ) &&
-    TA_UPPERSHADOW(i-2) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[2], i-2 ) &&
-    TA_REALBODYGAPDOWN(i-1,i-2) &&                                  // 3rd: opens gapping down
+    ta_lowershadow(inLow[i-2], inClose[i-2], inOpen[i-2]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    ta_uppershadow(inHigh[i-2], inClose[i-2], inOpen[i-2]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    ta_realbodygapdown(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) &&                                  // 3rd: opens gapping down
     //      and HAS an upper shadow
-    TA_UPPERSHADOW(i-1) > TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal[1], i-1 ) &&
+    ta_uppershadow(inHigh[i-1], inClose[i-1], inOpen[i-1]) > ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
     inHigh[i-1] > inClose[i-2] &&                                   //      that extends into the prior body
     inHigh[i] > inHigh[i-1] && inLow[i] < inLow[i-1]                // 4th: engulfs the 3rd including the shadows
     )
@@ -84,8 +84,8 @@ TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], 
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
     for (totIdx = 3; totIdx >= 1; --totIdx)
-    ShadowVeryShortPeriodTotal[totIdx] += TA_CANDLERANGE( ShadowVeryShort, i-totIdx )
-    - TA_CANDLERANGE( ShadowVeryShort, ShadowVeryShortTrailingIdx-totIdx );
+    ShadowVeryShortPeriodTotal[totIdx] += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i-totIdx], inHigh[i-totIdx], inLow[i-totIdx], inClose[i-totIdx])
+    - ta_candlerange(ShadowVeryShort_rangeType, inOpen[ShadowVeryShortTrailingIdx-totIdx], inHigh[ShadowVeryShortTrailingIdx-totIdx], inLow[ShadowVeryShortTrailingIdx-totIdx], inClose[ShadowVeryShortTrailingIdx-totIdx]);
     i++;
     ShadowVeryShortTrailingIdx++;
     } while( i <= endIdx );

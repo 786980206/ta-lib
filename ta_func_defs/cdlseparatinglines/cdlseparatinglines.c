@@ -1,7 +1,7 @@
 int cdlseparatinglines_lookback(void)
 {
-    return max( max( TA_CANDLEAVGPERIOD(ShadowVeryShort), TA_CANDLEAVGPERIOD(BodyLong) ),
-    TA_CANDLEAVGPERIOD(Equal)
+    return max( max( ShadowVeryShort_avgPeriod, BodyLong_avgPeriod ),
+    Equal_avgPeriod
     ) + 1;
 }
 
@@ -34,25 +34,25 @@ TA_RetCode cdlseparatinglines(int startIdx, int endIdx, const double inOpen[], c
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     ShadowVeryShortPeriodTotal = 0;
-    ShadowVeryShortTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(ShadowVeryShort);
+    ShadowVeryShortTrailingIdx = startIdx - ShadowVeryShort_avgPeriod;
     BodyLongPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyLongTrailingIdx = startIdx - BodyLong_avgPeriod;
     EqualPeriodTotal = 0;
-    EqualTrailingIdx = startIdx - TA_CANDLEAVGPERIOD(Equal);
+    EqualTrailingIdx = startIdx - Equal_avgPeriod;
 
     i = ShadowVeryShortTrailingIdx;
     while( i < startIdx ) {
-    ShadowVeryShortPeriodTotal += TA_CANDLERANGE( ShadowVeryShort, i );
+    ShadowVeryShortPeriodTotal += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = BodyLongTrailingIdx;
     while( i < startIdx ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = EqualTrailingIdx;
     while( i < startIdx ) {
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 );
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]);
     i++;
     }
     i = startIdx;
@@ -69,30 +69,30 @@ TA_RetCode cdlseparatinglines(int startIdx, int endIdx, const double inOpen[], c
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-1) == -TA_CANDLECOLOR(i) &&                                        // opposite candles
-    inOpen[i] <= inOpen[i-1] + TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 ) &&   // same open
-    inOpen[i] >= inOpen[i-1] - TA_CANDLEAVERAGE( Equal, EqualPeriodTotal, i-1 ) &&
-    TA_REALBODY(i) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i ) &&         // belt hold: long body
+    if( ta_candlecolor(inClose[i-1], inOpen[i-1]) == -ta_candlecolor(inClose[i], inOpen[i]) &&                                        // opposite candles
+    inOpen[i] <= inOpen[i-1] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&   // same open
+    inOpen[i] >= inOpen[i-1] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
+    ta_realbody(inClose[i], inOpen[i]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&         // belt hold: long body
     (
-    ( TA_CANDLECOLOR(i) == 1 &&                                               // with no lower shadow if bullish
-    TA_LOWERSHADOW(i) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal, i )
+    ( ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                               // with no lower shadow if bullish
+    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
     )
     ||
-    ( TA_CANDLECOLOR(i) == -1 &&                                              // with no upper shadow if bearish
-    TA_UPPERSHADOW(i) < TA_CANDLEAVERAGE( ShadowVeryShort, ShadowVeryShortPeriodTotal, i )
+    ( ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                              // with no upper shadow if bearish
+    ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
     )
     )
     )
-    outInteger[outIdx++] = TA_CANDLECOLOR(i) * 100;
+    outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 100;
     else
     outInteger[outIdx++] = 0;
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    ShadowVeryShortPeriodTotal += TA_CANDLERANGE( ShadowVeryShort, i )
-    - TA_CANDLERANGE( ShadowVeryShort, ShadowVeryShortTrailingIdx );
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
-    EqualPeriodTotal += TA_CANDLERANGE( Equal, i-1 ) - TA_CANDLERANGE( Equal, EqualTrailingIdx-1 );
+    ShadowVeryShortPeriodTotal += ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])
+    - ta_candlerange(ShadowVeryShort_rangeType, inOpen[ShadowVeryShortTrailingIdx], inHigh[ShadowVeryShortTrailingIdx], inLow[ShadowVeryShortTrailingIdx], inClose[ShadowVeryShortTrailingIdx]);
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx], inHigh[BodyLongTrailingIdx], inLow[BodyLongTrailingIdx], inClose[BodyLongTrailingIdx]);
+    EqualPeriodTotal += ta_candlerange(Equal_rangeType, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) - ta_candlerange(Equal_rangeType, inOpen[EqualTrailingIdx-1], inHigh[EqualTrailingIdx-1], inLow[EqualTrailingIdx-1], inClose[EqualTrailingIdx-1]);
     i++;
     ShadowVeryShortTrailingIdx++;
     BodyLongTrailingIdx++;

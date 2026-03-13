@@ -1,6 +1,6 @@
 int cdl2crows_lookback(void)
 {
-    return TA_CANDLEAVGPERIOD(BodyLong) + 2;
+    return BodyLong_avgPeriod + 2;
 }
 
 TA_RetCode cdl2crows(int startIdx, int endIdx, const double inOpen[], const double inHigh[], const double inLow[], const double inClose[], int *outBegIdx, int *outNBElement, int outInteger[])
@@ -32,11 +32,11 @@ TA_RetCode cdl2crows(int startIdx, int endIdx, const double inOpen[], const doub
     /* Do the calculation using tight loops. */
     /* Add-up the initial period, except for the last value. */
     BodyLongPeriodTotal = 0;
-    BodyLongTrailingIdx = startIdx -2 - TA_CANDLEAVGPERIOD(BodyLong);
+    BodyLongTrailingIdx = startIdx -2 - BodyLong_avgPeriod;
 
     i = BodyLongTrailingIdx;
     while( i < startIdx-2 ) {
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i]);
     i++;
     }
     i = startIdx;
@@ -55,11 +55,11 @@ TA_RetCode cdl2crows(int startIdx, int endIdx, const double inOpen[], const doub
     outIdx = 0;
     do
     {
-    if( TA_CANDLECOLOR(i-2) == 1 &&                                                         // 1st: white
-    TA_REALBODY(i-2) > TA_CANDLEAVERAGE( BodyLong, BodyLongPeriodTotal, i-2 ) &&     //      long
-    TA_CANDLECOLOR(i-1) == -1 &&                                                        // 2nd: black
-    TA_REALBODYGAPUP(i-1,i-2) &&                                                        //      gapping up
-    TA_CANDLECOLOR(i) == -1 &&                                                          // 3rd: black
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&                                                         // 1st: white
+    ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&     //      long
+    ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                                        // 2nd: black
+    ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) &&                                                        //      gapping up
+    ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                                          // 3rd: black
     inOpen[i] < inOpen[i-1] && inOpen[i] > inClose[i-1] &&                              //      opening within 2nd rb
     inClose[i] > inOpen[i-2] && inClose[i] < inClose[i-2]                               //      closing within 1st rb
     )
@@ -69,7 +69,7 @@ TA_RetCode cdl2crows(int startIdx, int endIdx, const double inOpen[], const doub
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */
-    BodyLongPeriodTotal += TA_CANDLERANGE( BodyLong, i-2 ) - TA_CANDLERANGE( BodyLong, BodyLongTrailingIdx );
+    BodyLongPeriodTotal += ta_candlerange(BodyLong_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(BodyLong_rangeType, inOpen[BodyLongTrailingIdx], inHigh[BodyLongTrailingIdx], inLow[BodyLongTrailingIdx], inClose[BodyLongTrailingIdx]);
     i++;
     BodyLongTrailingIdx++;
     } while( i <= endIdx );

@@ -15,18 +15,6 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
 
     int i;
 
-    #define TRUE_RANGE(TH,TL,YC,OUT) {\
-    OUT = TH-TL; \
-    tempReal2 = fabs(TH-YC); \
-    if( tempReal2 > OUT ) \
-    OUT = tempReal2; \
-    tempReal2 = fabs(TL-YC); \
-    if( tempReal2 > OUT ) \
-    OUT = tempReal2; \
-    }
-
-
-
     /*
     * The DM1 (one period) is base on the largest part of
     * today's range that is outside of yesterdays range.
@@ -120,9 +108,6 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     * TA-Lib does not do the rounding. Still, if you want to reproduce Wilder's examples,
     * you can comment out the following #undef/#define and rebuild the library.
     */
-    #undef  round_pos
-    #define round_pos(x) (x)
-
     if( optInTimePeriod > 1 )
     lookbackTotal = optInTimePeriod + TA_GetUnstablePeriod(TA_FUNC_UNST_MINUS_DI);
     else
@@ -171,7 +156,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     if( (diffM > 0) && (diffP < diffM) )
     {
     /* Case 2 and 4: +DM=0,-DM=diffM */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     if( ((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
     outReal[outIdx++] = (double)0.0;
     else
@@ -212,7 +197,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     prevMinusDM += diffM;
     }
 
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR += tempReal;
     prevClose = inClose[today];
     }
@@ -245,7 +230,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     }
 
     /* Calculate the prevTR */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
     }
@@ -255,7 +240,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     * the caller provided outReal.
     */
     if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
-    outReal[0] = round_pos(100.0*(prevMinusDM/prevTR));
+    outReal[0] = ta_round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[0] = 0.0;
     outIdx = 1;
@@ -282,13 +267,13 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     }
 
     /* Calculate the prevTR */
-    TRUE_RANGE(prevHigh,prevLow,prevClose,tempReal);
+    tempReal = ta_true_range(prevHigh, prevLow, prevClose);
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
     /* Calculate the DI. The value is rounded (see Wilder book). */
     if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
-    outReal[outIdx++] = round_pos(100.0*(prevMinusDM/prevTR));
+    outReal[outIdx++] = ta_round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[outIdx++] = 0.0;
     }
