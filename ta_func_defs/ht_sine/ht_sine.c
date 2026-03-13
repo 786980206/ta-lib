@@ -289,7 +289,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     }
 
     /* Ooof... let's do the next price bar now! */
-    CIRCBUF_NEXT(smoothPrice);
+    smoothPrice_Idx = (smoothPrice_Idx + 1) % SMOOTH_PRICE_SIZE;
     today++;
     }
 

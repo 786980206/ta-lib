@@ -66,7 +66,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     mflow[mflow_Idx].negative = 0.0;
     }
 
-    CIRCBUF_NEXT(mflow);
+    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
     }
 
     /* The following two equations are equivalent:
@@ -114,7 +114,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     mflow[mflow_Idx].negative = 0.0;
     }
 
-    CIRCBUF_NEXT(mflow);
+    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
     }
     }
 
@@ -154,7 +154,7 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     else
     outReal[outIdx++] = 100.0*(posSumMF/tempValue1);
 
-    CIRCBUF_NEXT(mflow);
+    mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
     }
 
     /* circular buffer cleanup (stack-allocated, no-op) */
