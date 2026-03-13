@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #include "ta_libc.h"
 #include "ta_abstract.h"
@@ -38,6 +39,22 @@ static const CodegenLanguage ALL_LANGUAGES[] = {
     {"swig",   "SWIG/Python",  argv_swig},
 };
 #define NUM_LANGUAGES (sizeof(ALL_LANGUAGES) / sizeof(ALL_LANGUAGES[0]))
+
+/* ---- Global timing results store (Task 12) ---- */
+
+#define MAX_FUNCTIONS 200
+
+typedef struct {
+    char   funcName[64];
+    double c_ref_us;
+    struct {
+        int    tested;   /* 0=skipped, 1=pass, -1=fail */
+        double avg_us;
+    } langs[NUM_LANGUAGES];
+} FuncTimingResult;
+
+static FuncTimingResult g_timingResults[MAX_FUNCTIONS];
+static int              g_numTimingResults = 0;
 
 /* ---- Constants ---- */
 
@@ -709,8 +726,11 @@ typedef struct {
     char             *requestBuf;
     char             *responseBuf;
     ErrorNumber       error;
-    int               tested;
+    int               passed;
+    int               failed;
     int               skipped;
+    int               langIndex;   /* index into ALL_LANGUAGES */
+    const CodegenLanguage *lang;
 } ForEachFuncContext;
 
 static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
@@ -739,6 +759,24 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     }
     if( hasIntegerInput )
     {
+        /* Record skip in global table */
+        int ridx = -1;
+        for( int i = 0; i < g_numTimingResults; i++ )
+        {
+            if( strcmp(g_timingResults[i].funcName, funcInfo->name) == 0 )
+            {
+                ridx = i;
+                break;
+            }
+        }
+        if( ridx < 0 && g_numTimingResults < MAX_FUNCTIONS )
+        {
+            ridx = g_numTimingResults++;
+            memset(&g_timingResults[ridx], 0, sizeof(FuncTimingResult));
+            strncpy(g_timingResults[ridx].funcName, funcInfo->name,
+                    sizeof(g_timingResults[ridx].funcName) - 1);
+        }
+        /* langs[langIndex].tested stays 0 (skipped) */
         ctx->skipped++;
         return;
     }
@@ -775,6 +813,17 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     /* Set up output buffers */
     setup_outputs(&params);
 
+    /* Measure C reference call once for timing baseline */
+    TA_Integer begIdx  = 0;
+    TA_Integer nbElem  = 0;
+    clock_t c_t0 = clock();
+    TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
+    clock_t c_t1 = clock();
+    double c_avg_us = (c_t1 > c_t0 && CLOCKS_PER_SEC > 0)
+                      ? (double)(c_t1 - c_t0) / (double)CLOCKS_PER_SEC * 1e6
+                      : 0.0;
+    params.c_ref_total_ns = (long long)((double)(c_t1 - c_t0) / (double)CLOCKS_PER_SEC * 1e9);
+
     /* Run doRangeTest with the generic callback */
     ErrorNumber errNb = doRangeTest(
         codegen_range_generic,
@@ -783,12 +832,42 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         funcInfo->nbOutput,
         get_integer_tolerance(funcInfo));
 
+    /* Compute server average timing */
+    double s_avg_us = (params.timing_count > 0)
+                      ? (double)params.server_total_ns / (double)params.timing_count / 1000.0
+                      : 0.0;
+
+    /* Record results in global timing table */
+    int resultIdx = -1;
+    for( int i = 0; i < g_numTimingResults; i++ )
+    {
+        if( strcmp(g_timingResults[i].funcName, funcInfo->name) == 0 )
+        {
+            resultIdx = i;
+            break;
+        }
+    }
+    if( resultIdx < 0 && g_numTimingResults < MAX_FUNCTIONS )
+    {
+        resultIdx = g_numTimingResults++;
+        memset(&g_timingResults[resultIdx], 0, sizeof(FuncTimingResult));
+        strncpy(g_timingResults[resultIdx].funcName, funcInfo->name,
+                sizeof(g_timingResults[resultIdx].funcName) - 1);
+        g_timingResults[resultIdx].c_ref_us = c_avg_us;
+    }
+
     /* Check for codegen mismatch */
     if( params.codegenError != TA_TEST_PASS )
     {
         printf("CODEGEN FAILED (code=%d)\n", params.codegenError);
+        if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
+        {
+            g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
+            g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+        }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
+        ctx->failed++;
         ctx->error = params.codegenError;
         return;
     }
@@ -796,14 +875,39 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     if( errNb != TA_TEST_PASS )
     {
         printf("RANGE TEST FAILED (code=%d)\n", errNb);
+        if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
+        {
+            g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
+            g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+        }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
+        ctx->failed++;
         ctx->error = errNb;
         return;
     }
 
-    printf("passed\n");
-    ctx->tested++;
+    /* Mark pass in global table */
+    if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
+    {
+        g_timingResults[resultIdx].langs[ctx->langIndex].tested  = 1;
+        g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+    }
+
+    /* Print result with timing and speedup ratio */
+    if( s_avg_us > 0 && c_avg_us > 0 )
+    {
+        double ratio = c_avg_us / s_avg_us;
+        printf("PASS   (C: %.1fus, %s: %.1fus, %.2fx %s)\n",
+               c_avg_us, ctx->lang->display, s_avg_us,
+               (ratio >= 1.0) ? ratio : 1.0 / ratio,
+               (ratio >= 1.0) ? "faster" : "slower");
+    }
+    else
+    {
+        printf("PASS\n");
+    }
+    ctx->passed++;
 
     free_outputs(&params);
     TA_ParamHolderFree(paramHolder);
@@ -813,6 +917,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
 
 static ErrorNumber test_codegen_for_language(
     const CodegenLanguage *lang,
+    int langIndex,
     const TA_History *history,
     const char *functionFilter)
 {
@@ -856,8 +961,11 @@ static ErrorNumber test_codegen_for_language(
     ctx.requestBuf     = requestBuf;
     ctx.responseBuf    = responseBuf;
     ctx.error          = TA_TEST_PASS;
-    ctx.tested         = 0;
+    ctx.passed         = 0;
+    ctx.failed         = 0;
     ctx.skipped        = 0;
+    ctx.langIndex      = langIndex;
+    ctx.lang           = lang;
 
     TA_ForEachFunc(test_one_function, &ctx);
 
@@ -868,10 +976,8 @@ static ErrorNumber test_codegen_for_language(
     if( ctx.error != TA_TEST_PASS )
         return ctx.error;
 
-    printf("\n  %s: %d functions tested", lang->display, ctx.tested);
-    if( ctx.skipped > 0 )
-        printf(", %d skipped", ctx.skipped);
-    printf("\n");
+    printf("\n  %s: %d passed, %d failed, %d skipped\n",
+           lang->display, ctx.passed, ctx.failed, ctx.skipped);
 
     return TA_TEST_PASS;
 }
@@ -894,6 +1000,102 @@ static int language_matches_filter(const char *filter, const char *name)
     return 0;
 }
 
+/* ---- Cross-language timing table (Task 12) ---- */
+
+static void print_timing_table(const char *languageFilter)
+{
+    if( g_numTimingResults == 0 )
+        return;
+
+    /* Collect which language columns to show */
+    int showLang[NUM_LANGUAGES];
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+        showLang[li] = language_matches_filter(languageFilter, ALL_LANGUAGES[li].name);
+
+    printf("\n");
+    printf("=============================================\n");
+    printf("Codegen Results + Timing (avg us/call)\n");
+    printf("=============================================\n");
+
+    /* Header */
+    printf("%-20s %8s", "Function", "C-ref");
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+    {
+        if( showLang[li] )
+            printf(" %9s", ALL_LANGUAGES[li].display);
+    }
+    printf("\n");
+
+    /* Rows */
+    for( int ri = 0; ri < g_numTimingResults; ri++ )
+    {
+        FuncTimingResult *r = &g_timingResults[ri];
+        printf("%-20s %8.1f", r->funcName, r->c_ref_us);
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+        {
+            if( !showLang[li] )
+                continue;
+            int st = r->langs[li].tested;
+            if( st == 0 )
+                printf(" %9s", "--");
+            else if( st == -1 )
+                printf(" %9s", "FAIL");
+            else
+                printf(" %7.1fok", r->langs[li].avg_us);
+        }
+        printf("\n");
+    }
+}
+
+/* ---- JSONL rolling report (Task 13) ---- */
+
+static void write_timing_report(const char *filepath)
+{
+    FILE *f = fopen(filepath, "a");
+    if( !f ) return;
+
+    /* Get git SHA */
+    char gitSha[64] = "unknown";
+    FILE *git = popen("git rev-parse --short HEAD 2>/dev/null", "r");
+    if( git ) { fgets(gitSha, sizeof(gitSha), git); pclose(git); }
+    char *nl = strchr(gitSha, '\n');
+    if( nl ) *nl = '\0';
+
+    /* Get timestamp */
+    time_t now = time(NULL);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
+
+    /* Write JSONL line */
+    fprintf(f, "{\"timestamp\":\"%s\",\"git_sha\":\"%s\",\"results\":{",
+            timestamp, gitSha);
+
+    int first = 1;
+    for( int ri = 0; ri < g_numTimingResults; ri++ )
+    {
+        FuncTimingResult *r = &g_timingResults[ri];
+        if( !first ) fprintf(f, ",");
+        first = 0;
+        fprintf(f, "\"%s\":{\"c_ref_us\":%.3f,\"langs\":{", r->funcName, r->c_ref_us);
+        int firstLang = 1;
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+        {
+            int st = r->langs[li].tested;
+            if( st == 0 ) continue;   /* skip not-tested */
+            if( !firstLang ) fprintf(f, ",");
+            firstLang = 0;
+            fprintf(f, "\"%s\":{\"status\":\"%s\",\"avg_us\":%.3f}",
+                    ALL_LANGUAGES[li].name,
+                    (st == 1) ? "pass" : "fail",
+                    r->langs[li].avg_us);
+        }
+        fprintf(f, "}}");
+    }
+
+    fprintf(f, "}}\n");
+    fclose(f);
+}
+
 ErrorNumber test_codegen(const TA_History *history,
                          const char *languageFilter,
                          const char *functionFilter)
@@ -911,7 +1113,7 @@ ErrorNumber test_codegen(const TA_History *history,
         if( !language_matches_filter(languageFilter, ALL_LANGUAGES[i].name) )
             continue;
 
-        errNb = test_codegen_for_language(&ALL_LANGUAGES[i], history,
+        errNb = test_codegen_for_language(&ALL_LANGUAGES[i], (int)i, history,
                                           functionFilter);
         if( errNb != TA_TEST_PASS )
             return errNb;
@@ -926,9 +1128,13 @@ ErrorNumber test_codegen(const TA_History *history,
         return TA_REGTEST_BAD_USER_PARAM;
     }
 
+    print_timing_table(languageFilter);
+
     printf("\n=============================================\n");
     printf("All %d language(s) passed codegen verification\n", langsTested);
     printf("=============================================\n");
+
+    write_timing_report("ta_regtest_timing.jsonl");
 
     return TA_TEST_PASS;
 }
