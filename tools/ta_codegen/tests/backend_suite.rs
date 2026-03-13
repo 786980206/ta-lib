@@ -1528,3 +1528,84 @@ fn rust_forc_multi_init_falls_through_to_while() {
         "Multi-init ForC should fall through to while: {rendered}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// 16. Math function idiomatic rendering per backend
+// ---------------------------------------------------------------------------
+
+#[test]
+fn backends_render_math_functions_idiomatically() {
+    let (func, enums) = load_indicator("ht_trendmode");
+    let registry = make_registry();
+
+    let c_out = backends::c::generate(&func, &enums, &registry);
+    let java_out = backends::java::generate(&func, &enums, &registry);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry);
+
+    // C: plain atan() from <math.h>
+    assert!(
+        c_out.contains("atan("),
+        "C backend should render atan() as plain C math call: {}",
+        &c_out[c_out.find("atan").unwrap_or(0)..c_out.find("atan").unwrap_or(0) + 40]
+    );
+    // C: must NOT produce TA_atan
+    assert!(
+        !c_out.contains("TA_atan(") && !c_out.contains("TA_S_atan("),
+        "C backend must not prefix math functions with TA_"
+    );
+
+    // Java: Math.atan()
+    assert!(
+        java_out.contains("Math.atan("),
+        "Java backend should render Math.atan()"
+    );
+    // Java: fabs renders as Math.abs, not Math.fabs
+    let java_fabs = java_out.contains("Math.abs(");
+    let java_wrong_fabs = java_out.contains("Math.fabs(");
+    if java_out.contains("fabs(") || java_out.contains("Math.abs(") || java_out.contains("Math.fabs(") {
+        assert!(java_fabs, "Java backend should render fabs as Math.abs");
+        assert!(!java_wrong_fabs, "Java backend must not render Math.fabs");
+    }
+
+    // Rust generic: method call syntax via TaFloat trait
+    assert!(
+        rust_out.contains(".ta_atan()"),
+        "Rust generic backend should render atan as .ta_atan() method call"
+    );
+    // Rust must NOT produce bare atan() free-function calls (but .ta_atan() is fine)
+    let has_bare_atan = rust_out
+        .match_indices("atan(")
+        .any(|(i, _)| !rust_out[..i].ends_with("ta_") && !rust_out[..i].ends_with('.'));
+    assert!(
+        !has_bare_atan,
+        "Rust backend must not render math functions as free-function calls"
+    );
+}
+
+#[test]
+fn report_failing_parse_indicators() {
+    let indicators = discover_indicators();
+    let mut failing = Vec::new();
+    for name in &indicators {
+        let base = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        let c_path = base.join(format!("{}/{}.c", name, name));
+        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            parser::c_source::parse_c_source(&c_path);
+        }));
+        if let Err(e) = result {
+            let msg = if let Some(s) = e.downcast_ref::<String>() {
+                s.clone()
+            } else if let Some(s) = e.downcast_ref::<&str>() {
+                s.to_string()
+            } else {
+                "unknown panic".to_string()
+            };
+            failing.push(format!("{}: {}", name, msg));
+        }
+    }
+    for f in &failing {
+        eprintln!("PARSE_FAIL: {}", f);
+    }
+    eprintln!("Total failing: {} / {}", failing.len(), indicators.len());
+}
+

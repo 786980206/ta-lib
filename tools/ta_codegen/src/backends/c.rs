@@ -773,6 +773,13 @@ fn render_func_call(
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
+    } else if MATH_FUNCTIONS.contains(&fname) {
+        // Plain C math functions — pass through as-is (from <math.h>)
+        let rendered: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, single_precision, registry))
+            .collect();
+        format!("{}({})", fname, rendered.join(","))
     } else {
         // Try cross-call resolution through the registry
         let resolved = registry.resolve_call(fname, Lang::C);
@@ -840,6 +847,12 @@ fn render_lookback_code(
 
     out
 }
+
+/// Math functions from `<math.h>` that are passed through as-is in C.
+const MATH_FUNCTIONS: &[&str] = &[
+    "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
+    "cosh", "sinh", "tanh", "log10",
+];
 
 #[cfg(test)]
 mod tests {

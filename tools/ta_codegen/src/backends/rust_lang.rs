@@ -1485,10 +1485,10 @@ fn to_pascal_case(s: &str) -> String {
     }
 }
 
-/// Known math functions that map to `TaFloat` trait methods.
+/// Known math functions that map to `TaFloat` trait methods (generic) or `f64` methods (concrete).
 const MATH_FUNCTIONS: &[&str] = &[
     "sqrt", "sin", "cos", "tan", "asin", "acos", "atan", "exp", "log", "log10", "ceil", "floor",
-    "abs", "fabs",
+    "abs", "fabs", "cosh", "sinh", "tanh",
 ];
 
 fn render_func_call(
@@ -1553,6 +1553,24 @@ fn render_func_call(
             .map(|a| render_expr(a, ctx, opt_real_params, registry))
             .collect();
         format!("self.{}({})", fname, rendered_args.join(", "))
+    } else if is_math_function(fname) {
+        // Math functions take priority over the indicator registry.
+        // `atan(x)` in source means the C math function, not a cross-indicator call.
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, ctx, opt_real_params, registry);
+            if ctx.generic {
+                let method = if fname == "fabs" {
+                    "ta_abs".to_string()
+                } else {
+                    format!("ta_{fname}")
+                };
+                return format!("{x}.{method}()");
+            }
+            // Concrete (non-generic) path: use f64 method call syntax; fabs -> abs
+            let method = if fname == "fabs" { "abs" } else { fname };
+            return format!("({x}).{method}()");
+        }
+        format!("{fname}()")
     } else if registry.contains(fname) {
         let rust_name = if ctx.generic {
             format!("{fname}_unguarded")
@@ -1571,17 +1589,6 @@ fn render_func_call(
             .map(|a| render_expr(a, ctx, opt_real_params, registry))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
-    } else if ctx.generic && is_math_function(fname) {
-        if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry);
-            let method = if fname == "fabs" {
-                "ta_abs".to_string()
-            } else {
-                format!("ta_{fname}")
-            };
-            return format!("{x}.{method}()");
-        }
-        format!("{fname}()")
     } else {
         let rendered_args: Vec<String> = args
             .iter()

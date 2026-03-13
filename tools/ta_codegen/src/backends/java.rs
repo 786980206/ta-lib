@@ -681,6 +681,14 @@ fn render_func_call(
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
+    } else if MATH_FUNCTIONS.contains(&fname) {
+        // Java uses Math.func() for standard math functions; fabs -> abs
+        let java_name = if fname == "fabs" { "abs" } else { fname };
+        let rendered: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, single_precision, registry))
+            .collect();
+        format!("Math.{}({})", java_name, rendered.join(", "))
     } else {
         // Use registry for cross-call resolution
         let java_name = registry.resolve_call(fname, Lang::Java);
@@ -691,6 +699,12 @@ fn render_func_call(
         format!("{}({})", java_name, rendered.join(", "))
     }
 }
+
+/// Math functions that map to `java.lang.Math` methods.
+const MATH_FUNCTIONS: &[&str] = &[
+    "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
+    "cosh", "sinh", "tanh", "log10",
+];
 
 /// Render a complex lookback body (`LookbackExpr::Code`) into Java code.
 fn render_lookback_code(
