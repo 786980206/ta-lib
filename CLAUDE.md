@@ -122,9 +122,9 @@ ta_regtest (C)
 
 Each server:
 - Exposes compiled, generated indicator code for its language
-- Should report available functions via `list_functions` (not yet implemented)
-- Should return timing data with each call (not yet implemented)
-- Should support `set_unstable_period` and `set_compatibility` for global state
+- Reports available functions via `list_functions`
+- Returns timing data (`timing_ns`) with each call
+- Supports `set_unstable_period` and `set_compatibility` for global state
 
 All of ta_regtest's existing test logic, test data, range testing, and expected values run unchanged — the only difference is the transport layer.
 
