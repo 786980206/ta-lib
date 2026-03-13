@@ -9,10 +9,33 @@ use std::path::Path;
 
 /// Map function name to its unstable period ID (integer value).
 /// Returns None for functions without unstable period.
+/// IDs must match the `TA_FuncUnstId` enum in `include/ta_defs.h`.
 fn func_unst_id(name: &str) -> Option<i32> {
     match name {
-        "EMA" => Some(0), // TA_FUNC_UNST_EMA
-        "RSI" => Some(1), // TA_FUNC_UNST_RSI
+        "ADX" => Some(0),        // TA_FUNC_UNST_ADX
+        "ADXR" => Some(1),       // TA_FUNC_UNST_ADXR
+        "ATR" => Some(2),        // TA_FUNC_UNST_ATR
+        "CMO" => Some(3),        // TA_FUNC_UNST_CMO
+        "DX" => Some(4),         // TA_FUNC_UNST_DX
+        "EMA" => Some(5),        // TA_FUNC_UNST_EMA
+        "HT_DCPERIOD" => Some(6), // TA_FUNC_UNST_HT_DCPERIOD
+        "HT_DCPHASE" => Some(7), // TA_FUNC_UNST_HT_DCPHASE
+        "HT_PHASOR" => Some(8),  // TA_FUNC_UNST_HT_PHASOR
+        "HT_SINE" => Some(9),    // TA_FUNC_UNST_HT_SINE
+        "HT_TRENDLINE" => Some(10), // TA_FUNC_UNST_HT_TRENDLINE
+        "HT_TRENDMODE" => Some(11), // TA_FUNC_UNST_HT_TRENDMODE
+        "IMI" => Some(12),       // TA_FUNC_UNST_IMI
+        "KAMA" => Some(13),      // TA_FUNC_UNST_KAMA
+        "MAMA" => Some(14),      // TA_FUNC_UNST_MAMA
+        "MFI" => Some(15),       // TA_FUNC_UNST_MFI
+        "MINUS_DI" => Some(16),  // TA_FUNC_UNST_MINUS_DI
+        "MINUS_DM" => Some(17),  // TA_FUNC_UNST_MINUS_DM
+        "NATR" => Some(18),      // TA_FUNC_UNST_NATR
+        "PLUS_DI" => Some(19),   // TA_FUNC_UNST_PLUS_DI
+        "PLUS_DM" => Some(20),   // TA_FUNC_UNST_PLUS_DM
+        "RSI" => Some(21),       // TA_FUNC_UNST_RSI
+        "STOCHRSI" => Some(22),  // TA_FUNC_UNST_STOCHRSI
+        "T3" => Some(23),        // TA_FUNC_UNST_T3
         _ => None,
     }
 }
@@ -79,9 +102,31 @@ pub fn generate_c_header_stub() -> String {
     // Cross-language macro stubs for standalone compilation
 
     // Unstable period: backed by a global array, settable via JSON-RPC
-    s.push_str("#define TA_FUNC_UNST_EMA 0\n");
-    s.push_str("#define TA_FUNC_UNST_RSI 1\n");
-    s.push_str("#define TA_FUNC_UNST_ALL 2\n");
+    s.push_str("#define TA_FUNC_UNST_ADX 0\n");
+    s.push_str("#define TA_FUNC_UNST_ADXR 1\n");
+    s.push_str("#define TA_FUNC_UNST_ATR 2\n");
+    s.push_str("#define TA_FUNC_UNST_CMO 3\n");
+    s.push_str("#define TA_FUNC_UNST_DX 4\n");
+    s.push_str("#define TA_FUNC_UNST_EMA 5\n");
+    s.push_str("#define TA_FUNC_UNST_HT_DCPERIOD 6\n");
+    s.push_str("#define TA_FUNC_UNST_HT_DCPHASE 7\n");
+    s.push_str("#define TA_FUNC_UNST_HT_PHASOR 8\n");
+    s.push_str("#define TA_FUNC_UNST_HT_SINE 9\n");
+    s.push_str("#define TA_FUNC_UNST_HT_TRENDLINE 10\n");
+    s.push_str("#define TA_FUNC_UNST_HT_TRENDMODE 11\n");
+    s.push_str("#define TA_FUNC_UNST_IMI 12\n");
+    s.push_str("#define TA_FUNC_UNST_KAMA 13\n");
+    s.push_str("#define TA_FUNC_UNST_MAMA 14\n");
+    s.push_str("#define TA_FUNC_UNST_MFI 15\n");
+    s.push_str("#define TA_FUNC_UNST_MINUS_DI 16\n");
+    s.push_str("#define TA_FUNC_UNST_MINUS_DM 17\n");
+    s.push_str("#define TA_FUNC_UNST_NATR 18\n");
+    s.push_str("#define TA_FUNC_UNST_PLUS_DI 19\n");
+    s.push_str("#define TA_FUNC_UNST_PLUS_DM 20\n");
+    s.push_str("#define TA_FUNC_UNST_RSI 21\n");
+    s.push_str("#define TA_FUNC_UNST_STOCHRSI 22\n");
+    s.push_str("#define TA_FUNC_UNST_T3 23\n");
+    s.push_str("#define TA_FUNC_UNST_ALL 24\n");
     s.push_str("#define TA_FUNC_UNST_NONE 99\n");
     s.push_str("int ta_unstable_period[TA_FUNC_UNST_ALL];\n");
     s.push_str("#define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]\n");
@@ -423,7 +468,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // FuncUnstId and Compatibility enums (referenced by generated Core methods)
     s.push_str("enum FuncUnstId {\n");
-    s.push_str("    Ema, Rsi, None;\n");
+    s.push_str("    Adx, Adxr, Atr, Cmo, Dx, Ema,\n");
+    s.push_str("    HtDcPeriod, HtDcPhase, HtPhasor, HtSine, HtTrendline, HtTrendMode,\n");
+    s.push_str("    Imi, Kama, Mama, Mfi, MinusDI, MinusDM,\n");
+    s.push_str("    Natr, PlusDI, PlusDM, Rsi, StochRsi, T3, None;\n");
     s.push_str("}\n\n");
 
     s.push_str("enum Compatibility {\n");
@@ -784,8 +832,30 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
 
     // Constants and functions visible to Python
     s.push_str("#define TA_SUCCESS 0\n");
-    s.push_str("#define TA_FUNC_UNST_EMA 0\n");
-    s.push_str("#define TA_FUNC_UNST_RSI 1\n");
+    s.push_str("#define TA_FUNC_UNST_ADX 0\n");
+    s.push_str("#define TA_FUNC_UNST_ADXR 1\n");
+    s.push_str("#define TA_FUNC_UNST_ATR 2\n");
+    s.push_str("#define TA_FUNC_UNST_CMO 3\n");
+    s.push_str("#define TA_FUNC_UNST_DX 4\n");
+    s.push_str("#define TA_FUNC_UNST_EMA 5\n");
+    s.push_str("#define TA_FUNC_UNST_HT_DCPERIOD 6\n");
+    s.push_str("#define TA_FUNC_UNST_HT_DCPHASE 7\n");
+    s.push_str("#define TA_FUNC_UNST_HT_PHASOR 8\n");
+    s.push_str("#define TA_FUNC_UNST_HT_SINE 9\n");
+    s.push_str("#define TA_FUNC_UNST_HT_TRENDLINE 10\n");
+    s.push_str("#define TA_FUNC_UNST_HT_TRENDMODE 11\n");
+    s.push_str("#define TA_FUNC_UNST_IMI 12\n");
+    s.push_str("#define TA_FUNC_UNST_KAMA 13\n");
+    s.push_str("#define TA_FUNC_UNST_MAMA 14\n");
+    s.push_str("#define TA_FUNC_UNST_MFI 15\n");
+    s.push_str("#define TA_FUNC_UNST_MINUS_DI 16\n");
+    s.push_str("#define TA_FUNC_UNST_MINUS_DM 17\n");
+    s.push_str("#define TA_FUNC_UNST_NATR 18\n");
+    s.push_str("#define TA_FUNC_UNST_PLUS_DI 19\n");
+    s.push_str("#define TA_FUNC_UNST_PLUS_DM 20\n");
+    s.push_str("#define TA_FUNC_UNST_RSI 21\n");
+    s.push_str("#define TA_FUNC_UNST_STOCHRSI 22\n");
+    s.push_str("#define TA_FUNC_UNST_T3 23\n");
     s.push_str("extern void TA_SetUnstablePeriod(int id, int period);\n\n");
 
     // ---- Python 3 typemaps (adapted from ta_libc.python.swg) ----
