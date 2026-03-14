@@ -599,12 +599,23 @@ pub fn render_statement(
             out
         }
         Statement::While { condition, body } => {
-            let mut out = format!(
+            // Hoist multi-statement helpers from the condition expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_condition = hoist_block_helpers(
+                condition, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry,
+                helpers, inline_counter, address_of_vars,
+            );
+            out.push_str(&format!(
                 "{}while( {} ) {{\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers,
+                render_expr(&new_condition, single_precision, registry, helpers,
                     address_of_vars)
-            );
+            ));
             for s in body {
                 out.push_str(&render_statement(
                     s,
@@ -621,6 +632,15 @@ pub fn render_statement(
             out
         }
         Statement::DoWhile { condition, body } => {
+            // Hoist multi-statement helpers from the condition expression.
+            // For do-while, hoisted blocks go INSIDE the loop body (before the
+            // closing `} while(cond)`) so they execute each iteration.
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_condition = hoist_block_helpers(
+                condition, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
             let mut out = format!("{pad}do {{\n");
             for s in body {
                 out.push_str(&render_statement(
@@ -634,10 +654,14 @@ pub fn render_statement(
                     address_of_vars,
                 ));
             }
+            out.push_str(&render_hoisted_blocks(
+                &hoisted, indent + 3, single_precision, enums, registry,
+                helpers, inline_counter, address_of_vars,
+            ));
             out.push_str(&format!(
                 "{}}} while( {} );\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers,
+                render_expr(&new_condition, single_precision, registry, helpers,
                     address_of_vars)
             ));
             out
@@ -651,12 +675,23 @@ pub fn render_statement(
             if contains_alloc_err_return(then_body) {
                 return String::new();
             }
-            let mut out = format!(
+            // Hoist multi-statement helpers from the condition expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_condition = hoist_block_helpers(
+                condition, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry,
+                helpers, inline_counter, address_of_vars,
+            );
+            out.push_str(&format!(
                 "{}if( {} ) {{\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers,
+                render_expr(&new_condition, single_precision, registry, helpers,
                     address_of_vars)
-            );
+            ));
             for s in then_body {
                 out.push_str(&render_statement(
                     s,
@@ -754,14 +789,25 @@ pub fn render_statement(
                 update, single_precision, enums, registry, helpers, inline_counter,
                 address_of_vars,
             );
-            let mut out = format!(
+            // Hoist multi-statement helpers from the condition expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_condition = hoist_block_helpers(
+                condition, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry,
+                helpers, inline_counter, address_of_vars,
+            );
+            out.push_str(&format!(
                 "{}for( {}; {}; {} ) {{\n",
                 pad,
                 init_str.trim(),
-                render_expr(condition, single_precision, registry, helpers,
+                render_expr(&new_condition, single_precision, registry, helpers,
                     address_of_vars),
                 update_str.trim()
-            );
+            ));
             for s in body {
                 out.push_str(&render_statement(
                     s,
@@ -832,13 +878,24 @@ pub fn render_statement(
             cases,
             default,
         } => {
-            let mut out = format!(
+            // Hoist multi-statement helpers from the switch expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_expr = hoist_block_helpers(
+                expr, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry,
+                helpers, inline_counter, address_of_vars,
+            );
+            out.push_str(&format!(
                 "{}switch( {} )\n{}{{\n",
                 pad,
-                render_expr(expr, single_precision, registry, helpers,
+                render_expr(&new_expr, single_precision, registry, helpers,
                     address_of_vars),
                 pad
-            );
+            ));
             for (label, case_body) in cases {
                 let java_label = render_java_switch_label(label, enums);
                 out.push_str(&format!("{pad}case {java_label}:\n"));
