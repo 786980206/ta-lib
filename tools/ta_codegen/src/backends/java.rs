@@ -12,6 +12,31 @@ fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
     stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
 }
 
+/// Check if an expression already produces a boolean result in Java.
+/// Used to avoid wrapping comparisons with `!= 0` (which would be a type error).
+fn is_boolean_expr(expr: &Expr) -> bool {
+    match expr {
+        Expr::BinOp(_, op, _) => matches!(
+            op,
+            BinOp::Eq
+                | BinOp::NotEq
+                | BinOp::Less
+                | BinOp::LessEq
+                | BinOp::Greater
+                | BinOp::GreaterEq
+                | BinOp::And
+                | BinOp::Or
+        ),
+        Expr::Not(_) => true,
+        _ => false,
+    }
+}
+
+/// Check if an expression is an integer literal with a specific value.
+fn is_int_literal(expr: &Expr, value: i64) -> bool {
+    matches!(expr, Expr::IntLiteral(v) if *v == value)
+}
+
 /// Collect all variable names used in `AddressOf(Var(name))` contexts.
 /// These variables need to be declared as `MInteger` instead of `int` in Java.
 fn collect_address_of_vars(stmts: &[Statement]) -> HashSet<String> {
@@ -610,12 +635,14 @@ pub fn render_statement(
                 &hoisted, indent, single_precision, enums, registry,
                 helpers, inline_counter, address_of_vars,
             );
-            out.push_str(&format!(
-                "{}while( {} ) {{\n",
-                pad,
-                render_expr(&new_condition, single_precision, registry, helpers,
-                    address_of_vars)
-            ));
+            let cond_str =
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars);
+            let cond_java = if is_boolean_expr(&new_condition) {
+                cond_str
+            } else {
+                format!("({cond_str}) != 0")
+            };
+            out.push_str(&format!("{pad}while( {cond_java} ) {{\n"));
             for s in body {
                 out.push_str(&render_statement(
                     s,
@@ -658,12 +685,14 @@ pub fn render_statement(
                 &hoisted, indent + 3, single_precision, enums, registry,
                 helpers, inline_counter, address_of_vars,
             ));
-            out.push_str(&format!(
-                "{}}} while( {} );\n",
-                pad,
-                render_expr(&new_condition, single_precision, registry, helpers,
-                    address_of_vars)
-            ));
+            let cond_str =
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars);
+            let cond_java = if is_boolean_expr(&new_condition) {
+                cond_str
+            } else {
+                format!("({cond_str}) != 0")
+            };
+            out.push_str(&format!("{pad}}} while( {cond_java} );\n"));
             out
         }
         Statement::If {
@@ -686,12 +715,14 @@ pub fn render_statement(
                 &hoisted, indent, single_precision, enums, registry,
                 helpers, inline_counter, address_of_vars,
             );
-            out.push_str(&format!(
-                "{}if( {} ) {{\n",
-                pad,
-                render_expr(&new_condition, single_precision, registry, helpers,
-                    address_of_vars)
-            ));
+            let cond_str =
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars);
+            let cond_java = if is_boolean_expr(&new_condition) {
+                cond_str
+            } else {
+                format!("({cond_str}) != 0")
+            };
+            out.push_str(&format!("{pad}if( {cond_java} ) {{\n"));
             for s in then_body {
                 out.push_str(&render_statement(
                     s,
@@ -1142,6 +1173,18 @@ fn render_expr(
             )
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
+            // (cond) ? (1) : (0) → just the condition (boolean in Java)
+            if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
+                return render_expr(cond, single_precision, registry, helpers, address_of_vars);
+            }
+            // (cond) ? (0) : (1) → !condition
+            if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
+                return format!(
+                    "!({})",
+                    render_expr(cond, single_precision, registry, helpers, address_of_vars)
+                );
+            }
+            // Default: render as Java ternary
             format!(
                 "(({}) ? ({}) : ({}))",
                 render_expr(cond, single_precision, registry, helpers, address_of_vars),
