@@ -71,13 +71,28 @@ fn output_json_key(outputs: &[Output], idx: usize) -> String {
 ///   `["high", "low", "close"]` → `["inHigh", "inLow", "inClose"]`
 /// - All other types (Integer, Enum) are skipped.
 fn expand_input_names(inputs: &[Input]) -> Vec<String> {
-    let real_count = inputs.iter().filter(|i| i.param_type == ParamType::Real).count();
+    // Count Real inputs that are NOT price-expanded (inHigh, inLow, inClose, etc.)
+    // Price-expanded inputs keep their original names; only generic "inReal"/"inPeriods"
+    // style inputs get renamed to inReal0/inReal1 for multi-input functions.
+    let is_price_expanded = |name: &str| -> bool {
+        matches!(
+            name,
+            "inHigh" | "inLow" | "inClose" | "inOpen" | "inVolume" | "inOpenInterest"
+        )
+    };
+    let generic_real_count = inputs
+        .iter()
+        .filter(|i| i.param_type == ParamType::Real && !is_price_expanded(&i.name))
+        .count();
     let mut names = Vec::new();
     let mut real_idx = 0usize;
     for inp in inputs {
         match &inp.param_type {
             ParamType::Real => {
-                if real_count == 1 {
+                if is_price_expanded(&inp.name) {
+                    // Price-expanded input — keep original name (matches ta_regtest)
+                    names.push(inp.name.clone());
+                } else if generic_real_count == 1 {
                     names.push(inp.name.clone());
                 } else {
                     names.push(format!("inReal{real_idx}"));
