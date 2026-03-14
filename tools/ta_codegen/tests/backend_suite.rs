@@ -9,6 +9,7 @@
 use std::collections::HashMap;
 use std::path::Path;
 use ta_codegen_lib::backends;
+use ta_codegen_lib::helper_registry::HelperRegistry;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
 use ta_codegen_lib::registry::Registry;
@@ -77,12 +78,13 @@ fn make_registry() -> Registry {
 
 fn generate_all(func: &ir::FuncDef, enums: &HashMap<String, ir::EnumDef>) -> AllOutputs {
     let registry = make_registry();
+    let helpers = HelperRegistry::empty();
     AllOutputs {
-        c: backends::c::generate(func, enums, &registry),
-        rust: backends::rust_lang::generate(func, enums, &registry),
-        java: backends::java::generate(func, enums, &registry),
-        dotnet: backends::dotnet::generate(func, enums, &registry),
-        swig: backends::swig::generate(func, enums, &registry),
+        c: backends::c::generate(func, enums, &registry, &helpers),
+        rust: backends::rust_lang::generate(func, enums, &registry, &helpers),
+        java: backends::java::generate(func, enums, &registry, &helpers),
+        dotnet: backends::dotnet::generate(func, enums, &registry, &helpers),
+        swig: backends::swig::generate(func, enums, &registry, &helpers),
     }
 }
 
@@ -1201,7 +1203,8 @@ fn c_for_loop_multi_init_comma_separated() {
 
     let enums = HashMap::new();
     let registry = make_registry();
-    let rendered = backends::c::render_statement(&stmt, 0, false, &enums, &registry);
+    let helpers = HelperRegistry::empty();
+    let rendered = backends::c::render_statement(&stmt, 0, false, &enums, &registry, &helpers);
 
     // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
     // NOT: for( j = 0;\ni = startIdx; ... )
@@ -1270,7 +1273,8 @@ fn java_for_loop_multi_init_comma_separated() {
 
     let enums = HashMap::new();
     let registry = make_registry();
-    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry);
+    let helpers = HelperRegistry::empty();
+    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry, &helpers);
 
     // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
     // NOT: for( j = 0;\ni = startIdx; ... )
@@ -1328,6 +1332,7 @@ fn rust_forc_emits_range_iteration_when_possible() {
     let opt_real_params: Vec<String> = vec![];
     let enums = HashMap::new();
     let registry = make_registry();
+    let helpers = HelperRegistry::empty();
 
     let rendered = render_statement(
         &stmt,
@@ -1339,6 +1344,7 @@ fn rust_forc_emits_range_iteration_when_possible() {
         &opt_real_params,
         &enums,
         &registry,
+        &helpers,
     );
 
     assert!(
@@ -1375,11 +1381,12 @@ fn swig_names_match_c_exports() {
 
         let upper = func.name.clone();
 
+        let helpers = HelperRegistry::empty();
         let c_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            backends::c::generate(&func, &enums, &registry)
+            backends::c::generate(&func, &enums, &registry, &helpers)
         }));
         let swig_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            backends::swig::generate(&func, &enums, &registry)
+            backends::swig::generate(&func, &enums, &registry, &helpers)
         }));
 
         let (c_out, swig_out) = match (c_out_result, swig_out_result) {
@@ -1510,6 +1517,7 @@ fn rust_forc_multi_init_falls_through_to_while() {
     let opt_real_params: Vec<String> = vec![];
     let enums = HashMap::new();
     let registry = make_registry();
+    let helpers = HelperRegistry::empty();
 
     let rendered = render_statement(
         &stmt,
@@ -1521,6 +1529,7 @@ fn rust_forc_multi_init_falls_through_to_while() {
         &opt_real_params,
         &enums,
         &registry,
+        &helpers,
     );
 
     assert!(
@@ -1621,10 +1630,11 @@ fn backends_render_max_min_fmax_fmin_abs() {
 
     let enums = std::collections::HashMap::new();
     let registry = make_registry();
+    let helpers = HelperRegistry::empty();
 
-    let c_out = backends::c::generate(&func, &enums, &registry);
-    let java_out = backends::java::generate(&func, &enums, &registry);
-    let rust_out = backends::rust_lang::generate(&func, &enums, &registry);
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
 
     // C: max(a,b) → fmax(a,b), min(a,b) → fmin(a,b), ABS(x) → fabs(x)
     assert!(
@@ -1688,10 +1698,11 @@ fn backends_render_max_min_fmax_fmin_abs() {
 fn backends_render_math_functions_idiomatically() {
     let (func, enums) = load_indicator("ht_trendmode");
     let registry = make_registry();
+    let helpers = HelperRegistry::empty();
 
-    let c_out = backends::c::generate(&func, &enums, &registry);
-    let java_out = backends::java::generate(&func, &enums, &registry);
-    let rust_out = backends::rust_lang::generate(&func, &enums, &registry);
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
 
     // C: plain atan() from <math.h>
     assert!(
@@ -1862,5 +1873,207 @@ fn helper_registry_loads_from_disk() {
     // Should NOT contain indicator functions
     assert!(registry.get("sma").is_none());
     assert!(registry.get("ema").is_none());
+}
+
+// ---------------------------------------------------------------------------
+// Expression inlining tests
+// ---------------------------------------------------------------------------
+
+/// Load a HelperRegistry from the real helper files on disk.
+fn make_helper_registry() -> HelperRegistry {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    HelperRegistry::from_dir(&base)
+}
+
+#[test]
+fn substitute_expr_replaces_vars() {
+    use ta_codegen_lib::helper_registry::substitute_expr;
+    use ta_codegen_lib::ir::{BinOp, Expr};
+    use std::collections::HashMap;
+
+    // Build: close - open
+    let expr = Expr::BinOp(
+        Box::new(Expr::Var("close".to_string())),
+        BinOp::Sub,
+        Box::new(Expr::Var("open".to_string())),
+    );
+
+    let mut subs = HashMap::new();
+    subs.insert("close".to_string(), Expr::Var("inClose[i]".to_string()));
+    subs.insert("open".to_string(), Expr::Var("inOpen[i]".to_string()));
+
+    let result = substitute_expr(&expr, &subs);
+    // Result should be: inClose[i] - inOpen[i]
+    if let Expr::BinOp(l, BinOp::Sub, r) = &result {
+        if let (Expr::Var(ln), Expr::Var(rn)) = (l.as_ref(), r.as_ref()) {
+            assert_eq!(ln, "inClose[i]");
+            assert_eq!(rn, "inOpen[i]");
+        } else {
+            panic!("Expected Var nodes after substitution, got: {:?}", result);
+        }
+    } else {
+        panic!("Expected BinOp after substitution, got: {:?}", result);
+    }
+}
+
+#[test]
+fn try_inline_expr_works_for_single_return() {
+    use ta_codegen_lib::helper_registry::try_inline_expr;
+    use ta_codegen_lib::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
+
+    // ta_realbody(close, open) => return fabs(close - open);
+    let helper = HelperDef {
+        name: "ta_realbody".to_string(),
+        return_type: VarType::Real,
+        params: vec![
+            HelperParam { name: "close".to_string(), var_type: VarType::Real },
+            HelperParam { name: "open".to_string(), var_type: VarType::Real },
+        ],
+        body: vec![Statement::Return {
+            value: Some(Expr::FuncCall(
+                "fabs".to_string(),
+                vec![Expr::BinOp(
+                    Box::new(Expr::Var("close".to_string())),
+                    BinOp::Sub,
+                    Box::new(Expr::Var("open".to_string())),
+                )],
+            )),
+        }],
+    };
+
+    let args = vec![
+        Expr::Var("inClose[i]".to_string()),
+        Expr::Var("inOpen[i]".to_string()),
+    ];
+
+    let result = try_inline_expr(&helper, &args);
+    assert!(result.is_some(), "Single-return helper should be inlineable");
+
+    // The inlined result should be fabs(inClose[i] - inOpen[i])
+    let inlined = result.unwrap();
+    if let Expr::FuncCall(name, inner_args) = &inlined {
+        assert_eq!(name, "fabs");
+        assert_eq!(inner_args.len(), 1);
+    } else {
+        panic!("Expected FuncCall(fabs, ...) after inlining, got: {:?}", inlined);
+    }
+}
+
+#[test]
+fn try_inline_returns_none_for_multi_statement() {
+    use ta_codegen_lib::helper_registry::try_inline_expr;
+    use ta_codegen_lib::ir::{Expr, HelperDef, HelperParam, Statement, VarType};
+
+    // A multi-statement helper: { int x = 0; return x; }
+    let helper = HelperDef {
+        name: "multi".to_string(),
+        return_type: VarType::Integer,
+        params: vec![HelperParam { name: "a".to_string(), var_type: VarType::Integer }],
+        body: vec![
+            Statement::VarDecl {
+                var_type: VarType::Integer,
+                name: "x".to_string(),
+                init: Some(Expr::IntLiteral(0)),
+            },
+            Statement::Return {
+                value: Some(Expr::Var("x".to_string())),
+            },
+        ],
+    };
+
+    let result = try_inline_expr(&helper, &[Expr::IntLiteral(42)]);
+    assert!(result.is_none(), "Multi-statement helper should NOT be inlineable");
+}
+
+#[test]
+fn c_backend_inlines_single_expr_helper() {
+    let helpers = make_helper_registry();
+    let registry = make_registry();
+
+    // Load a candlestick indicator that calls ta_realbody
+    let (func, enums) = load_indicator("cdlkicking");
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // ta_realbody(close, open) => fabs(close - open)
+    // After inlining, the output should contain fabs( (from inlined ta_realbody body)
+    // and should NOT contain "ta_realbody(" as a direct call
+    assert!(
+        output.contains("fabs("),
+        "C output should contain fabs( from inlined ta_realbody"
+    );
+    assert!(
+        !output.contains("ta_realbody("),
+        "C output should NOT contain ta_realbody( -- it should be inlined"
+    );
+
+    // ta_candlecolor is also single-expression: (close >= open) ? 1 : -1
+    // After inlining it should not appear as a function call
+    assert!(
+        !output.contains("ta_candlecolor("),
+        "C output should NOT contain ta_candlecolor( -- it should be inlined"
+    );
+}
+
+#[test]
+fn java_backend_inlines_single_expr_helper() {
+    let helpers = make_helper_registry();
+    let registry = make_registry();
+
+    let (func, enums) = load_indicator("cdlkicking");
+
+    let output = backends::java::generate(&func, &enums, &registry, &helpers);
+
+    // Java uses Math.abs instead of fabs, but inlined ta_realbody should produce Math.abs(
+    assert!(
+        output.contains("Math.abs("),
+        "Java output should contain Math.abs( from inlined ta_realbody"
+    );
+    assert!(
+        !output.contains("ta_realbody("),
+        "Java output should NOT contain ta_realbody( -- it should be inlined"
+    );
+    assert!(
+        !output.contains("ta_candlecolor("),
+        "Java output should NOT contain ta_candlecolor( -- it should be inlined"
+    );
+}
+
+#[test]
+fn rust_backend_inlines_single_expr_helper() {
+    let helpers = make_helper_registry();
+    let registry = make_registry();
+
+    let (func, enums) = load_indicator("cdlkicking");
+
+    let output = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // Rust uses .abs() for fabs, so inlined ta_realbody should produce that
+    // The Rust backend renders fabs as a function call
+    assert!(
+        !output.contains("ta_realbody("),
+        "Rust output should NOT contain ta_realbody( -- it should be inlined"
+    );
+    assert!(
+        !output.contains("ta_candlecolor("),
+        "Rust output should NOT contain ta_candlecolor( -- it should be inlined"
+    );
+}
+
+#[test]
+fn inlining_with_empty_registry_leaves_helpers_as_calls() {
+    let helpers = HelperRegistry::empty();
+    let registry = make_registry();
+
+    let (func, enums) = load_indicator("cdlkicking");
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // With an empty helper registry, helper calls should remain as-is
+    // (they'll be treated as regular function calls by the fallback path)
+    assert!(
+        output.contains("ta_realbody(") || output.contains("TA_ta_realbody("),
+        "With empty helpers, ta_realbody should remain as a function call"
+    );
 }
 

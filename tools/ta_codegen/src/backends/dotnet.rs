@@ -1,9 +1,15 @@
+use crate::helper_registry::HelperRegistry;
 use crate::ir::{EnumDef, FuncDef, LookbackExpr, ParamType};
 use crate::registry::Registry;
 use std::collections::HashMap;
 
 #[allow(clippy::implicit_hasher)]
-pub fn generate(func: &FuncDef, _enums: &HashMap<String, EnumDef>, _registry: &Registry) -> String {
+pub fn generate(
+    func: &FuncDef,
+    _enums: &HashMap<String, EnumDef>,
+    _registry: &Registry,
+    _helpers: &HelperRegistry,
+) -> String {
     let mut out = String::new();
     let pascal = to_pascal_case(&func.name);
 
@@ -313,7 +319,7 @@ mod tests {
         let func = load_sma();
         let enums = HashMap::new();
         let registry = make_registry();
-        let output = generate(&func, &enums, &registry);
+        let output = generate(&func, &enums, &registry, &HelperRegistry::empty());
 
         // Should contain logic variant declaration
         assert!(output.contains("SmaLogic("), "Missing SmaLogic declaration");

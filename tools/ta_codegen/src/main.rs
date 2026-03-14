@@ -2,6 +2,7 @@ use ta_codegen_lib::backends;
 use ta_codegen_lib::extractor::func_extractor::extract_function_source;
 use ta_codegen_lib::extractor::table_parser::{parse_shared_defs, parse_table};
 use ta_codegen_lib::extractor::TableFuncDef;
+use ta_codegen_lib::helper_registry::HelperRegistry;
 use ta_codegen_lib::ir;
 use ta_codegen_lib::parser;
 use ta_codegen_lib::registry::Registry;
@@ -72,6 +73,9 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     // Load indicator registry for cross-call resolution
     let registry = Registry::from_dir(base);
 
+    // Load helper registry for expression inlining
+    let helper_registry = HelperRegistry::from_dir(base);
+
     // Load enum definitions
     let enums_path = base.join("enums.yaml");
     let enums = if enums_path.exists() {
@@ -131,7 +135,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
 
         for backend in &backends_to_run {
-            generate_backend(&func_def, backend, &enums, &registry);
+            generate_backend(&func_def, backend, &enums, &registry, &helper_registry);
         }
     }
 }
@@ -808,12 +812,13 @@ fn generate_backend(
     backend: &str,
     enums: &HashMap<String, ir::EnumDef>,
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) {
     let out_base = Path::new("../../ta_codegen_output");
 
     match backend {
         "c" => {
-            let output = backends::c::generate(func_def, enums, registry);
+            let output = backends::c::generate(func_def, enums, registry, helpers);
             let dir = out_base.join("c");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.c", func_def.name));
@@ -821,7 +826,7 @@ fn generate_backend(
             println!("  {} -> {}", func_def.name, path.display());
         }
         "rust" => {
-            let output = backends::rust_lang::generate(func_def, enums, registry);
+            let output = backends::rust_lang::generate(func_def, enums, registry, helpers);
             let dir = out_base.join("rust");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));
@@ -829,7 +834,7 @@ fn generate_backend(
             println!("  {} -> {}", func_def.name, path.display());
         }
         "java" => {
-            let output = backends::java::generate(func_def, enums, registry);
+            let output = backends::java::generate(func_def, enums, registry, helpers);
             let dir = out_base.join("java");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.java", func_def.name));
@@ -837,7 +842,7 @@ fn generate_backend(
             println!("  {} -> {}", func_def.name, path.display());
         }
         "dotnet" => {
-            let output = backends::dotnet::generate(func_def, enums, registry);
+            let output = backends::dotnet::generate(func_def, enums, registry, helpers);
             let dir = out_base.join("dotnet");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("Core_{}.h", func_def.name));
@@ -845,7 +850,7 @@ fn generate_backend(
             println!("  {} -> {}", func_def.name, path.display());
         }
         "swig" => {
-            let output = backends::swig::generate(func_def, enums, registry);
+            let output = backends::swig::generate(func_def, enums, registry, helpers);
             let dir = out_base.join("swig");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.swg", func_def.name));

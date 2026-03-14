@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use crate::helper_registry::{try_inline_expr, HelperRegistry};
 use crate::ir::{
     BinOp, EnumDef, Expr, FuncDef, LookbackExpr, OptInput, ParamType, Statement, VarType,
 };
@@ -24,11 +25,16 @@ impl RustRenderCtx {
 }
 
 #[allow(clippy::implicit_hasher)]
-pub fn generate(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
+pub fn generate(
+    func: &FuncDef,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
     let mut out = String::new();
     out.push_str(&gen_header());
     out.push_str(&gen_imports());
-    out.push_str(&gen_impl_block(func, enums, registry));
+    out.push_str(&gen_impl_block(func, enums, registry, helpers));
     out.push_str(&gen_footer());
     out
 }
@@ -83,7 +89,7 @@ fn gen_imports() -> String {
         .to_string()
 }
 
-fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry) -> String {
+fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &Registry, helpers: &HelperRegistry) -> String {
     let mut out = String::new();
     let snake = func.name.to_lowercase();
 
@@ -97,10 +103,10 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
          impl Core {\n",
     );
 
-    out.push_str(&gen_lookback(func, &snake, enums, registry));
+    out.push_str(&gen_lookback(func, &snake, enums, registry, helpers));
 
     // Guarded: validates params, delegates to unguarded
-    out.push_str(&gen_guarded_func(func, &snake, enums, registry));
+    out.push_str(&gen_guarded_func(func, &snake, enums, registry, helpers));
 
     // Unguarded: real algorithm, bounds-checked array access
     let safe_ctx = RustRenderCtx {
@@ -108,11 +114,11 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         unchecked: false,
     };
     out.push_str(&gen_unguarded_func(
-        func, &snake, &safe_ctx, enums, registry,
+        func, &snake, &safe_ctx, enums, registry, helpers,
     ));
 
     // Unchecked: validates params, delegates to unguarded_unchecked
-    out.push_str(&gen_unchecked_func(func, &snake, enums, registry));
+    out.push_str(&gen_unchecked_func(func, &snake, enums, registry, helpers));
 
     // Unguarded unchecked: real algorithm, unchecked array access
     let unsafe_ctx = RustRenderCtx {
@@ -125,6 +131,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         &unsafe_ctx,
         enums,
         registry,
+        helpers,
     ));
 
     out.push_str("}\n");
@@ -136,6 +143,7 @@ fn gen_lookback(
     snake: &str,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
     out.push_str(&format!("    /// Lookback period for [`Core::{snake}`].\n"));
@@ -188,7 +196,7 @@ fn gen_lookback(
                 out.push_str(&format!("        return {param} - {offset};\n"));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums, registry));
+                out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -204,7 +212,7 @@ fn gen_lookback(
                 out.push_str(&format!("        return {param} - {offset};\n"));
             }
             Some(LookbackExpr::Code(stmts)) => {
-                out.push_str(&render_lookback_code(stmts, enums, registry));
+                out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
             }
             None => {
                 out.push_str("        return 0;\n");
@@ -223,6 +231,7 @@ fn gen_guarded_func(
     snake: &str,
     _enums: &HashMap<String, EnumDef>,
     _registry: &Registry,
+    _helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
 
@@ -317,6 +326,7 @@ fn gen_unguarded_func(
     ctx: &RustRenderCtx,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
     let func_name = if ctx.unchecked {
@@ -432,7 +442,7 @@ fn gen_unguarded_func(
             out.push_str(&format!(
                 "        {} = {};\n",
                 name,
-                render_expr(init, ctx, &opt_real_params, registry)
+                render_expr(init, ctx, &opt_real_params, registry, helpers)
             ));
         }
     }
@@ -452,6 +462,7 @@ fn gen_unguarded_func(
             &opt_real_params,
             enums,
             registry,
+            helpers,
         ));
     }
 
@@ -467,6 +478,7 @@ fn gen_unchecked_func(
     snake: &str,
     _enums: &HashMap<String, EnumDef>,
     _registry: &Registry,
+    _helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
 
@@ -755,6 +767,7 @@ pub fn render_statement(
     opt_real_params: &[String],
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -772,6 +785,7 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             out
@@ -785,7 +799,7 @@ pub fn render_statement(
                 "{}for {} in (1..={}).rev() {{\n",
                 pad,
                 var,
-                render_expr(count, ctx, opt_real_params, registry)
+                render_expr(count, ctx, opt_real_params, registry, helpers)
             );
             for s in for_body {
                 out.push_str(&render_statement(
@@ -798,6 +812,7 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -814,8 +829,8 @@ pub fn render_statement(
                 if let Expr::Var(iter_name) = cond_left.as_ref() {
                     if let Some(start_expr) = extract_init_value(init, iter_name) {
                         if is_simple_increment(update, iter_name) {
-                            let start_str = render_expr(start_expr, ctx, opt_real_params, registry);
-                            let end_str = render_expr(cond_right, ctx, opt_real_params, registry);
+                            let start_str = render_expr(start_expr, ctx, opt_real_params, registry, helpers);
+                            let end_str = render_expr(cond_right, ctx, opt_real_params, registry, helpers);
                             let mut out = format!(
                                 "{pad}for {iter_name} in ({start_str} as usize)..=({end_str} as usize) {{\n"
                             );
@@ -830,6 +845,7 @@ pub fn render_statement(
                                     opt_real_params,
                                     enums,
                                     registry,
+                                    helpers,
                                 ));
                             }
                             out.push_str(&format!("{pad}}}\n"));
@@ -849,6 +865,7 @@ pub fn render_statement(
                 opt_real_params,
                 enums,
                 registry,
+                helpers,
             );
             let init_trimmed = init_str.trim().trim_end_matches(';');
             let update_str = render_statement(
@@ -861,20 +878,21 @@ pub fn render_statement(
                 opt_real_params,
                 enums,
                 registry,
+                helpers,
             );
             let update_trimmed = update_str.trim().trim_end_matches(';');
             let mut out = format!(
                 "{}// for( {}; {}; {} )\n",
                 pad,
                 init_trimmed,
-                render_expr(condition, ctx, opt_real_params, registry),
+                render_expr(condition, ctx, opt_real_params, registry, helpers),
                 update_trimmed
             );
             out.push_str(&format!("{pad}{init_trimmed};\n"));
             out.push_str(&format!(
                 "{}while {} {{\n",
                 pad,
-                render_expr(condition, ctx, opt_real_params, registry)
+                render_expr(condition, ctx, opt_real_params, registry, helpers)
             ));
             for s in for_body {
                 out.push_str(&render_statement(
@@ -887,6 +905,7 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             out.push_str(&format!("{pad}    {update_trimmed};\n"));
@@ -904,7 +923,7 @@ pub fn render_statement(
                         return format!(
                             "{}{};\n",
                             pad,
-                            render_func_call(fname, args, ctx, opt_real_params, registry)
+                            render_func_call(fname, args, ctx, opt_real_params, registry, helpers)
                         );
                     }
                 }
@@ -932,21 +951,21 @@ pub fn render_statement(
                             };
                             if !op_str.is_empty() {
                                 let target_str =
-                                    render_assign_target(target, ctx, opt_real_params, registry);
+                                    render_assign_target(target, ctx, opt_real_params, registry, helpers);
                                 return format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, ctx, opt_real_params, registry)
+                                    render_expr(right, ctx, opt_real_params, registry, helpers)
                                 );
                             }
                         }
                     }
                 }
             }
-            let target_str = render_assign_target(target, ctx, opt_real_params, registry);
-            let value_str = render_expr(value, ctx, opt_real_params, registry);
+            let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
+            let value_str = render_expr(value, ctx, opt_real_params, registry, helpers);
             let needs_cast = if ctx.generic {
                 false
             } else if let Expr::ArrayAccess(name, _) = target {
@@ -968,11 +987,11 @@ pub fn render_statement(
                 if let Expr::Var(iter_name) = left.as_ref() {
                     if for_loop_vars.contains(iter_name) {
                         let start_expr = if let Some(init) = var_inits.get(iter_name) {
-                            render_expr(init, ctx, opt_real_params, registry)
+                            render_expr(init, ctx, opt_real_params, registry, helpers)
                         } else {
                             iter_name.clone()
                         };
-                        let end_expr = render_expr(right, ctx, opt_real_params, registry);
+                        let end_expr = render_expr(right, ctx, opt_real_params, registry, helpers);
                         let mut out = format!(
                             "{pad}for {iter_name} in ({start_expr} as usize)..=({end_expr} as usize) {{\n"
                         );
@@ -987,6 +1006,7 @@ pub fn render_statement(
                                 opt_real_params,
                                 enums,
                                 registry,
+                                helpers,
                             ));
                         }
                         out.push_str(&format!("{pad}}}\n"));
@@ -997,7 +1017,7 @@ pub fn render_statement(
             let mut out = format!(
                 "{}while {} {{\n",
                 pad,
-                render_expr(condition, ctx, opt_real_params, registry)
+                render_expr(condition, ctx, opt_real_params, registry, helpers)
             );
             for s in while_body {
                 out.push_str(&render_statement(
@@ -1010,6 +1030,7 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -1031,12 +1052,13 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             out.push_str(&format!(
                 "{}    if !({}) {{ break; }}\n",
                 pad,
-                render_expr(condition, ctx, opt_real_params, registry)
+                render_expr(condition, ctx, opt_real_params, registry, helpers)
             ));
             out.push_str(&format!("{pad}}}\n"));
             out
@@ -1049,7 +1071,7 @@ pub fn render_statement(
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
-                render_expr(condition, ctx, opt_real_params, registry)
+                render_expr(condition, ctx, opt_real_params, registry, helpers)
             );
             for s in then_body {
                 out.push_str(&render_statement(
@@ -1062,6 +1084,7 @@ pub fn render_statement(
                     opt_real_params,
                     enums,
                     registry,
+                    helpers,
                 ));
             }
             if else_body.is_empty() {
@@ -1080,6 +1103,7 @@ pub fn render_statement(
                             opt_real_params,
                             enums,
                             registry,
+                            helpers,
                         );
                         out.push_str(if_str.trim_start());
                         return out;
@@ -1097,6 +1121,7 @@ pub fn render_statement(
                         opt_real_params,
                         enums,
                         registry,
+                        helpers,
                     ));
                 }
                 out.push_str(&format!("{pad}}}\n"));
@@ -1105,7 +1130,7 @@ pub fn render_statement(
         }
         Statement::Return { value } => match value {
             Some(expr) => {
-                let rendered = render_return_expr(expr, ctx, opt_real_params, registry);
+                let rendered = render_return_expr(expr, ctx, opt_real_params, registry, helpers);
                 format!("{pad}return {rendered};\n")
             }
             None => format!("{pad}return;\n"),
@@ -1120,7 +1145,7 @@ pub fn render_statement(
             let mut out = format!(
                 "{}match {} {{\n",
                 pad,
-                render_expr(expr, ctx, opt_real_params, registry)
+                render_expr(expr, ctx, opt_real_params, registry, helpers)
             );
             for (label, case_body) in cases {
                 let rust_label = render_switch_label(label, enums);
@@ -1136,6 +1161,7 @@ pub fn render_statement(
                         opt_real_params,
                         enums,
                         registry,
+                        helpers,
                     ));
                 }
                 out.push_str(&format!("{pad}    }}\n"));
@@ -1153,6 +1179,7 @@ pub fn render_statement(
                         opt_real_params,
                         enums,
                         registry,
+                        helpers,
                     ));
                 }
                 out.push_str(&format!("{pad}    }}\n"));
@@ -1200,6 +1227,7 @@ fn render_assign_target(
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     match expr {
         Expr::Var(name) if name == "outBegIdx" || name == "outNBElement" => {
@@ -1207,7 +1235,7 @@ fn render_assign_target(
         }
         Expr::Var(name) => name.clone(),
         Expr::ArrayAccess(name, idx) => {
-            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry);
+            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
                 format!("*{name}.get_unchecked_mut({idx_rendered})")
             } else {
@@ -1224,7 +1252,7 @@ fn render_assign_target(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
-        | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry),
+        | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry, helpers),
     }
 }
 
@@ -1246,16 +1274,17 @@ fn render_binop_operand(
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     match expr {
-        Expr::Cast(_, _) => format!("({})", render_expr(expr, ctx, opt_real_params, registry)),
+        Expr::Cast(_, _) => format!("({})", render_expr(expr, ctx, opt_real_params, registry, helpers)),
         Expr::BinOp(_, child_op, _) => {
             let parent_prec = op_precedence(parent_op);
             let child_prec = op_precedence(child_op);
             if child_prec < parent_prec || (!is_left && child_prec == parent_prec) {
-                format!("({})", render_expr(expr, ctx, opt_real_params, registry))
+                format!("({})", render_expr(expr, ctx, opt_real_params, registry, helpers))
             } else {
-                render_expr(expr, ctx, opt_real_params, registry)
+                render_expr(expr, ctx, opt_real_params, registry, helpers)
             }
         }
         Expr::Literal(_)
@@ -1268,7 +1297,7 @@ fn render_binop_operand(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
-        | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry),
+        | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry, helpers),
     }
 }
 
@@ -1277,6 +1306,7 @@ fn render_return_expr(
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     if let Expr::Var(name) = expr {
         return match name.as_str() {
@@ -1284,10 +1314,10 @@ fn render_return_expr(
             "BadParam" => "RetCode::BadParam".to_string(),
             "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex".to_string(),
             "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex".to_string(),
-            _ => render_expr(expr, ctx, opt_real_params, registry),
+            _ => render_expr(expr, ctx, opt_real_params, registry, helpers),
         };
     }
-    render_expr(expr, ctx, opt_real_params, registry)
+    render_expr(expr, ctx, opt_real_params, registry, helpers)
 }
 
 #[allow(clippy::too_many_lines)]
@@ -1296,6 +1326,7 @@ fn render_expr(
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     match expr {
         Expr::Literal(f) => {
@@ -1330,7 +1361,7 @@ fn render_expr(
             }
         },
         Expr::ArrayAccess(name, idx) => {
-            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry);
+            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
                 format!("*{name}.get_unchecked({idx_rendered})")
             } else {
@@ -1338,7 +1369,7 @@ fn render_expr(
             }
         }
         Expr::FuncCall(fname, args) => {
-            render_func_call(fname, args, ctx, opt_real_params, registry)
+            render_func_call(fname, args, ctx, opt_real_params, registry, helpers)
         }
         Expr::BinOp(left, op, right) => {
             let op_str = match op {
@@ -1358,8 +1389,8 @@ fn render_expr(
                 BinOp::Shr => " >> ",
                 BinOp::Shl => " << ",
             };
-            let left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry);
-            let right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry);
+            let left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
+            let right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
             format!("{left_str}{op_str}{right_str}")
         }
         Expr::Cast(var_type, inner) => {
@@ -1367,12 +1398,12 @@ fn render_expr(
                 if expr_is_integer(inner) {
                     format!(
                         "T::ta_from_i32({})",
-                        render_expr(inner, ctx, opt_real_params, registry)
+                        render_expr(inner, ctx, opt_real_params, registry, helpers)
                     )
                 } else {
                     format!(
                         "T::ta_from_f64(({}).ta_to_f64())",
-                        render_expr(inner, ctx, opt_real_params, registry)
+                        render_expr(inner, ctx, opt_real_params, registry, helpers)
                     )
                 }
             } else {
@@ -1384,33 +1415,33 @@ fn render_expr(
                 };
                 format!(
                     "({}) as {}",
-                    render_expr(inner, ctx, opt_real_params, registry),
+                    render_expr(inner, ctx, opt_real_params, registry, helpers),
                     rust_type
                 )
             }
         }
         Expr::Not(inner) => {
-            format!("!({})", render_expr(inner, ctx, opt_real_params, registry))
+            format!("!({})", render_expr(inner, ctx, opt_real_params, registry, helpers))
         }
         Expr::PointerDeref(name) => format!("(*{name})"),
         Expr::AddressOf(inner) => {
             // address-of not idiomatic in Rust; render inner expression directly
-            render_expr(inner, ctx, opt_real_params, registry)
+            render_expr(inner, ctx, opt_real_params, registry, helpers)
         }
         Expr::PostIncrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry);
+            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
             format!("{{ let _v = {rendered}; {rendered} += 1; _v }}")
         }
         Expr::PostDecrement(inner) => {
-            let rendered = render_expr(inner, ctx, opt_real_params, registry);
+            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
             format!("{{ let _v = {rendered}; {rendered} -= 1; _v }}")
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
                 "if {} {{ {} }} else {{ {} }}",
-                render_expr(cond, ctx, opt_real_params, registry),
-                render_expr(then_expr, ctx, opt_real_params, registry),
-                render_expr(else_expr, ctx, opt_real_params, registry)
+                render_expr(cond, ctx, opt_real_params, registry, helpers),
+                render_expr(then_expr, ctx, opt_real_params, registry, helpers),
+                render_expr(else_expr, ctx, opt_real_params, registry, helpers)
             )
         }
     }
@@ -1429,6 +1460,7 @@ fn render_lookback_code(
     stmts: &[Statement],
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
     let empty_for_loop_vars: Vec<String> = Vec::new();
@@ -1470,6 +1502,7 @@ fn render_lookback_code(
             &empty_opt_real_params,
             enums,
             registry,
+            helpers,
         ));
     }
 
@@ -1500,7 +1533,15 @@ fn render_func_call(
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
     registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
+    // Check if this is a call to a helper function that can be inlined
+    if let Some(helper) = helpers.get(fname) {
+        if let Some(inlined_expr) = try_inline_expr(helper, args) {
+            return render_expr(&inlined_expr, ctx, opt_real_params, registry, helpers);
+        }
+        // Multi-statement helpers: Task 10 will handle
+    }
     if fname == "UNSTABLE_PERIOD" {
         if let Some(Expr::Var(func_name)) = args.first() {
             let pascal = to_pascal_case(func_name);
@@ -1511,7 +1552,7 @@ fn render_func_call(
         "self.compatibility".to_string()
     } else if fname == "IS_ZERO" {
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry);
+            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
             if ctx.generic {
                 return format!("{x}.ta_abs() < T::ta_epsilon()");
             }
@@ -1520,11 +1561,11 @@ fn render_func_call(
         "false".to_string()
     } else if fname == "ARRAY_COPY" {
         if args.len() == 5 {
-            let dst = render_expr(&args[0], ctx, opt_real_params, registry);
-            let dst_off = render_expr(&args[1], ctx, opt_real_params, registry);
-            let src = render_expr(&args[2], ctx, opt_real_params, registry);
-            let src_off = render_expr(&args[3], ctx, opt_real_params, registry);
-            let count = render_expr(&args[4], ctx, opt_real_params, registry);
+            let dst = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
+            let dst_off = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
+            let src = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+            let src_off = render_expr(&args[3], ctx, opt_real_params, registry, helpers);
+            let count = render_expr(&args[4], ctx, opt_real_params, registry, helpers);
             return format!(
                 "{{\n            let _n = ({count}) as usize;\n            let _di = ({dst_off}) as usize;\n            let _si = ({src_off}) as usize;\n            {dst}[_di.._di + _n].copy_from_slice(&{src}[_si.._si + _n]);\n        }}"
             );
@@ -1532,7 +1573,7 @@ fn render_func_call(
         "/* ARRAY_COPY: bad args */".to_string()
     } else if fname == "PER_TO_K" {
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry);
+            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
             if ctx.generic {
                 return format!("T::ta_from_f64(2.0) / (T::ta_from_i32({x}) + T::ta_one())");
             }
@@ -1547,13 +1588,13 @@ fn render_func_call(
         let rust_name = fname.to_lowercase();
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry))
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if fname.ends_with("_lookback") {
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry))
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", fname, rendered_args.join(", "))
     } else if is_math_function(fname) {
@@ -1566,22 +1607,22 @@ fn render_func_call(
         match fname {
             "max" | "fmax" => {
                 if args.len() >= 2 {
-                    let a = render_expr(&args[0], ctx, opt_real_params, registry);
-                    let b = render_expr(&args[1], ctx, opt_real_params, registry);
+                    let a = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
+                    let b = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
                     return format!("({a}).max({b})");
                 }
             }
             "min" | "fmin" => {
                 if args.len() >= 2 {
-                    let a = render_expr(&args[0], ctx, opt_real_params, registry);
-                    let b = render_expr(&args[1], ctx, opt_real_params, registry);
+                    let a = render_expr(&args[0], ctx, opt_real_params, registry, helpers);
+                    let b = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
                     return format!("({a}).min({b})");
                 }
             }
             _ => {}
         }
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, ctx, opt_real_params, registry);
+            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
             if ctx.generic {
                 let method = if fname == "fabs" || fname == "ABS" {
                     "ta_abs".to_string()
@@ -1606,20 +1647,20 @@ fn render_func_call(
         };
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry))
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if is_ta_function(fname) {
         let rust_name = fname.to_lowercase();
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry))
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else {
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry))
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("{}({})", fname, rendered_args.join(", "))
     }
