@@ -726,6 +726,8 @@ fn render_expr(
             "DEFAULT" => "Compatibility.Default".to_string(),
             "BAD_PARAM" => "RetCode.BadParam".to_string(),
             "SUCCESS" => "RetCode.Success".to_string(),
+            "ALLOC_ERR" => "RetCode.AllocErr".to_string(),
+            "INTERNAL_ERROR" => "RetCode.InternalError".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
