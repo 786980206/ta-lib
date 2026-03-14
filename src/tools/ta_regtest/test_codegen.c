@@ -25,7 +25,7 @@ typedef struct {
     const char *const *argv;    /* NULL-terminated command array */
 } CodegenLanguage;
 
-static const char *const argv_rust[]  = {"./ta_codegen", "serve", NULL};
+static const char *const argv_rust[]  = {"./ta_codegen_serve_rust", NULL};
 static const char *const argv_c[]     = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_java[]  = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
 static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};

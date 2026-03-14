@@ -16,9 +16,12 @@ readme = "../README.md"
 name = "ta_lib"
 path = "src/lib.rs"
 
+[[bin]]
+name = "ta_codegen_serve"
+path = "src/bin/ta_codegen_serve.rs"
+
 [dependencies]
-# No external dependencies for core TA-Lib functionality
-# This keeps the library lightweight and self-contained
+serde_json = "1"
 
 [dev-dependencies]
 # For testing the generated functions
