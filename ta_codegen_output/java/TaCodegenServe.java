@@ -3902,20 +3902,20 @@ class Core {
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          if( (inReal==outRealUpperBand) ) {
+          if( false ) {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealLowerBand;
-          } else if( (inReal==outRealLowerBand) ) {
+          } else if( false ) {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealUpperBand;
-          } else if( (inReal==outRealMiddleBand) ) {
+          } else if( false ) {
              tempBuffer1 = outRealLowerBand;
              tempBuffer2 = outRealUpperBand;
           } else {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealUpperBand;
           }
-          if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
+          if( (false||false) ) {
              return RetCode.BadParam ;
           }
           retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
@@ -4024,20 +4024,20 @@ class Core {
           double tempReal2;
           double[] tempBuffer1;
           double[] tempBuffer2;
-          if( (inReal==outRealUpperBand) ) {
+          if( false ) {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealLowerBand;
-          } else if( (inReal==outRealLowerBand) ) {
+          } else if( false ) {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealUpperBand;
-          } else if( (inReal==outRealMiddleBand) ) {
+          } else if( false ) {
              tempBuffer1 = outRealLowerBand;
              tempBuffer2 = outRealUpperBand;
           } else {
              tempBuffer1 = outRealMiddleBand;
              tempBuffer2 = outRealUpperBand;
           }
-          if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
+          if( (false||false) ) {
              return RetCode.BadParam ;
           }
           retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
@@ -5101,7 +5101,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -5203,7 +5203,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -5311,7 +5311,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -5413,7 +5413,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-2)]))&&(inClose[i]<inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -10593,7 +10593,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0))))) ) {
+             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -10828,7 +10828,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0))))) ) {
+             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -11069,7 +11069,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0))))) ) {
+             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -11304,7 +11304,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inLow[(i-1)]>inHigh[(i-2)])) ? (1) : (0)))&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0)))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(((inHigh[(i-1)]<inLow[(i-2)])) ? (1) : (0)))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0))))) ) {
+             if( ((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&(((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inLow[(i-1)]>inHigh[(i-2)]))&&(inHigh[i]<inLow[(i-1)]))||((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration))))&&(inHigh[(i-1)]<inLow[(i-2)]))&&(inLow[i]>inHigh[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -14170,7 +14170,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-4)], inHigh[(i-4)], inLow[(i-4)], inClose[(i-4)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
+             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -14272,7 +14272,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-4)], inHigh[(i-4)], inLow[(i-4)], inClose[(i-4)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
+             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -14380,7 +14380,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-4)], inHigh[(i-4)], inLow[(i-4)], inClose[(i-4)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
+             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -14482,7 +14482,7 @@ class Core {
              double avg_1 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-4)], inHigh[(i-4)], inLow[(i-4)], inClose[(i-4)])));
              double divisor_1 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_1 = ((BodyLong_factor*avg_1)/divisor_1);
-             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
+             if( (((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_1)&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&((((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-3)], inClose[(i-3)])<Math.min(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]<inHigh[(i-3)]))&&(inLow[(i-2)]<inLow[(i-3)]))&&(inHigh[(i-1)]<inHigh[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inClose[i]>inOpen[(i-3)]))&&(inClose[i]<inClose[(i-4)]))||(((((((((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(inHigh[(i-2)]>inHigh[(i-3)]))&&(inLow[(i-2)]>inLow[(i-3)]))&&(inHigh[(i-1)]>inHigh[(i-2)]))&&(inLow[(i-1)]>inLow[(i-2)]))&&(inClose[i]<inOpen[(i-3)]))&&(inClose[i]>inClose[(i-4)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -15360,7 +15360,7 @@ class Core {
              double avg_7 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[1]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((ShadowVeryShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
+             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -15517,7 +15517,7 @@ class Core {
              double avg_7 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[1]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((ShadowVeryShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
+             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -15680,7 +15680,7 @@ class Core {
              double avg_7 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[1]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((ShadowVeryShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
+             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -15837,7 +15837,7 @@ class Core {
              double avg_7 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[1]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((ShadowVeryShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
+             if( ((((((((((((((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(((((inClose[(i-3)]>=inOpen[(i-3)])) ? (inOpen[(i-3)]) : (inClose[(i-3)]))-inLow[(i-3)])<_candleaverage_3))&&((inHigh[(i-3)]-(((inClose[(i-3)]>=inOpen[(i-3)])) ? (inClose[(i-3)]) : (inOpen[(i-3)])))<_candleaverage_4))&&(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (inOpen[(i-2)]) : (inClose[(i-2)]))-inLow[(i-2)])<_candleaverage_5))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_6))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_7))&&(inHigh[(i-1)]>inClose[(i-2)]))&&(inHigh[i]>inHigh[(i-1)]))&&(inLow[i]<inLow[(i-1)])) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -17660,7 +17660,7 @@ class Core {
              double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
                 outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -17827,7 +17827,7 @@ class Core {
              double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
                 outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -18000,7 +18000,7 @@ class Core {
              double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
                 outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -18167,7 +18167,7 @@ class Core {
              double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+             if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
                 outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -19275,7 +19275,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -19510,7 +19510,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -19751,7 +19751,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -19986,7 +19986,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -20230,7 +20230,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -20455,7 +20455,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -20686,7 +20686,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -20911,7 +20911,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<(inClose[(i-2)]-(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -21138,8 +21138,8 @@ class Core {
              double avg_5 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (ta_candlerange(Equal_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_5 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((Equal_factor*avg_5)/divisor_5);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
-                outInteger[outIdx++] = (((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
+                outInteger[outIdx++] = (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (100) : ((0-100)));
              } else {
                 outInteger[outIdx++] = 0;
              }
@@ -21314,8 +21314,8 @@ class Core {
              double avg_5 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (ta_candlerange(Equal_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_5 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((Equal_factor*avg_5)/divisor_5);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
-                outInteger[outIdx++] = (((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
+                outInteger[outIdx++] = (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (100) : ((0-100)));
              } else {
                 outInteger[outIdx++] = 0;
              }
@@ -21496,8 +21496,8 @@ class Core {
              double avg_5 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (ta_candlerange(Equal_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_5 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((Equal_factor*avg_5)/divisor_5);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
-                outInteger[outIdx++] = (((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
+                outInteger[outIdx++] = (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (100) : ((0-100)));
              } else {
                 outInteger[outIdx++] = 0;
              }
@@ -21672,8 +21672,8 @@ class Core {
              double avg_5 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (ta_candlerange(Equal_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_5 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((Equal_factor*avg_5)/divisor_5);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
-                outInteger[outIdx++] = (((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))) ? (100) : ((0-100)));
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.abs((inClose[i]-inOpen[i]))>=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_2)))&&(Math.abs((inClose[i]-inOpen[i]))<=(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_3)))&&(inOpen[i]>=(inOpen[(i-1)]-_candleaverage_4)))&&(inOpen[i]<=(inOpen[(i-1)]+_candleaverage_5))) ) {
+                outInteger[outIdx++] = (((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (100) : ((0-100)));
              } else {
                 outInteger[outIdx++] = 0;
              }
@@ -30543,7 +30543,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -30776,7 +30776,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -31015,7 +31015,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -31248,7 +31248,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -31521,7 +31521,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -31744,7 +31744,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -31973,7 +31973,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -32196,7 +32196,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -32437,7 +32437,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))]>=inOpen[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -32660,7 +32660,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))]>=inOpen[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -32889,7 +32889,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))]>=inOpen[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -33112,7 +33112,7 @@ class Core {
              double avg_9 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal[0]/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_9 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_9 = ((ShadowVeryShort_factor*avg_9)/divisor_9);
-             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((inLow[i]>inHigh[(i-1)])) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((inHigh[i]<inLow[(i-1)])) ? (1) : (0))))) ) {
+             if( (((((((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_4))&&((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))<_candleaverage_5))&&(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (inOpen[(i-1)]) : (inClose[(i-1)]))-inLow[(i-1)])<_candleaverage_6))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_7))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))<_candleaverage_8))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_9))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(inLow[i]>inHigh[(i-1)]))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(inHigh[i]<inLow[(i-1)])))) ) {
                 outInteger[outIdx++] = ((((inClose[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))]>=inOpen[(((Math.abs((inClose[i]-inOpen[i]))>Math.abs((inClose[(i-1)]-inOpen[(i-1)])))) ? (i) : ((i-1)))])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -36344,7 +36344,7 @@ class Core {
              double avg_7 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal[1]/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((BodyShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
+             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -36560,7 +36560,7 @@ class Core {
              double avg_7 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal[1]/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((BodyShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
+             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -36782,7 +36782,7 @@ class Core {
              double avg_7 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal[1]/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((BodyShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
+             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -36998,7 +36998,7 @@ class Core {
              double avg_7 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal[1]/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_7 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_7 = ((BodyShort_factor*avg_7)/divisor_7);
-             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(((Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)]))) ? (1) : (0)))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
+             if( ((((((((((((((((Math.abs((inClose[(i-4)]-inOpen[(i-4)]))>_candleaverage_4)&&(Math.abs((inClose[(i-3)]-inOpen[(i-3)]))<_candleaverage_5))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<_candleaverage_6))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<_candleaverage_7))&&((((inClose[(i-4)]>=inOpen[(i-4)])) ? (1) : ((0-1)))==1))&&((((inClose[(i-3)]>=inOpen[(i-3)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(Math.min(inOpen[(i-3)], inClose[(i-3)])>Math.max(inOpen[(i-4)], inClose[(i-4)])))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])<inClose[(i-4)]))&&(Math.min(inOpen[(i-2)], inClose[(i-2)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>(inClose[(i-4)]-(Math.abs((inClose[(i-4)]-inOpen[(i-4)]))*optInPenetration))))&&(Math.max(inClose[(i-2)], inOpen[(i-2)])<inOpen[(i-3)]))&&(Math.max(inClose[(i-1)], inOpen[(i-1)])<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>Math.max(Math.max(inHigh[(i-3)], inHigh[(i-2)]), inHigh[(i-1)]))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -37222,7 +37222,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -37457,7 +37457,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -37698,7 +37698,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -37933,7 +37933,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -38177,7 +38177,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -38402,7 +38402,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -38633,7 +38633,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -38858,7 +38858,7 @@ class Core {
              double avg_5 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal2/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((BodyShort_factor*avg_5)/divisor_5);
-             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
+             if( (((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_3)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_4))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)])))&&(Math.abs((inClose[i]-inOpen[i]))>_candleaverage_5))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>(inClose[(i-2)]+(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))*optInPenetration)))) ) {
                 outInteger[outIdx++] = 100;
              } else {
                 outInteger[outIdx++] = 0;
@@ -43438,7 +43438,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -43671,7 +43671,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -43910,7 +43910,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -44143,7 +44143,7 @@ class Core {
              double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (ta_candlerange(ShadowVeryShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
              double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))) ) {
+             if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -48295,7 +48295,7 @@ class Core {
              double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -48401,7 +48401,7 @@ class Core {
              double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -48513,7 +48513,7 @@ class Core {
              double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -48619,7 +48619,7 @@ class Core {
              double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
-             if( (((((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
+             if( (((((((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]<inClose[(i-1)]))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inOpen[(i-1)]))&&(inClose[i]>Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_1))||((((((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]<inOpen[(i-1)]))&&(inOpen[i]>inClose[(i-1)]))&&(inClose[i]>inOpen[(i-1)]))&&(inClose[i]<Math.min(inClose[(i-2)], inOpen[(i-2)])))&&(Math.abs((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-Math.abs((inClose[i]-inOpen[i]))))<_candleaverage_2))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -49442,10 +49442,10 @@ class Core {
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
              if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
                 outInteger[outIdx] = 0;
-                if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = (0-100);
                 }
-                if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = 100;
                 }
                 outIdx += 1;
@@ -49559,10 +49559,10 @@ class Core {
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
              if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
                 outInteger[outIdx] = 0;
-                if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = (0-100);
                 }
-                if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = 100;
                 }
                 outIdx += 1;
@@ -49682,10 +49682,10 @@ class Core {
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
              if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
                 outInteger[outIdx] = 0;
-                if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = (0-100);
                 }
-                if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = 100;
                 }
                 outIdx += 1;
@@ -49799,10 +49799,10 @@ class Core {
              _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
              if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
                 outInteger[outIdx] = 0;
-                if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = (0-100);
                 }
-                if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+                if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                    outInteger[outIdx] = 100;
                 }
                 outIdx += 1;
@@ -50652,7 +50652,7 @@ class Core {
              double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -50820,7 +50820,7 @@ class Core {
              double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -50994,7 +50994,7 @@ class Core {
              double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -51162,7 +51162,7 @@ class Core {
              double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (ta_candlerange(BodyShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
              double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
              _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
+             if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_3))&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inOpen[i]>inOpen[(i-1)]))&&(inClose[i]<inClose[(i-1)]))&&(inClose[i]>inClose[(i-2)])) ) {
                 outInteger[outIdx++] = (0-100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -51278,7 +51278,7 @@ class Core {
           i = startIdx;
           outIdx = 0;
           do {
-             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))) ) {
+             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -51314,7 +51314,7 @@ class Core {
           i = startIdx;
           outIdx = 0;
           do {
-             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))) ) {
+             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -51356,7 +51356,7 @@ class Core {
           i = startIdx;
           outIdx = 0;
           do {
-             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))) ) {
+             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -51392,7 +51392,7 @@ class Core {
           i = startIdx;
           outIdx = 0;
           do {
-             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0)))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))))) ) {
+             if( ((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-(((inClose[i]>=inOpen[i])) ? (1) : ((0-1))))))&&(inOpen[i]<Math.max(inClose[(i-1)], inOpen[(i-1)])))&&(inOpen[i]>Math.min(inClose[(i-1)], inOpen[(i-1)])))&&(inClose[i]<Math.max(inClose[(i-2)], inOpen[(i-2)])))&&(inClose[i]>Math.min(inClose[(i-2)], inOpen[(i-2)])))&&((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)])))||(((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))))) ) {
                 outInteger[outIdx++] = ((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))*100);
              } else {
                 outInteger[outIdx++] = 0;
@@ -52728,7 +52728,7 @@ class Core {
           if( (startIdx>endIdx) ) {
              return RetCode.Success ;
           }
-          if( (inReal==outReal) ) {
+          if( false ) {
              firstEMA = outReal;
           } else {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
@@ -52789,7 +52789,7 @@ class Core {
           if( (startIdx>endIdx) ) {
              return RetCode.Success ;
           }
-          if( (inReal==outReal) ) {
+          if( false ) {
              firstEMA = outReal;
           } else {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
@@ -75347,7 +75347,7 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -75355,7 +75355,7 @@ class Core {
           }
           retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -75473,7 +75473,7 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -75481,7 +75481,7 @@ class Core {
           }
           retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -75550,9 +75550,9 @@ class Core {
           highest = lowest;
           diff = highest;
           bufferIsAllocated = 0;
-          if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+          if( ((false||false)||false) ) {
              tempBuffer = outSlowK;
-          } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+          } else if( ((false||false)||false) ) {
              tempBuffer = outSlowD;
           } else {
              bufferIsAllocated = 1;
@@ -75605,7 +75605,7 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -75613,7 +75613,7 @@ class Core {
           }
           retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -75676,9 +75676,9 @@ class Core {
           highest = lowest;
           diff = highest;
           bufferIsAllocated = 0;
-          if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+          if( ((false||false)||false) ) {
              tempBuffer = outSlowK;
-          } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+          } else if( ((false||false)||false) ) {
              tempBuffer = outSlowD;
           } else {
              bufferIsAllocated = 1;
@@ -75731,7 +75731,7 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -75739,7 +75739,7 @@ class Core {
           }
           retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -75868,14 +75868,14 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
           System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -75989,14 +75989,14 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
           System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -76061,9 +76061,9 @@ class Core {
           highest = lowest;
           diff = highest;
           bufferIsAllocated = 0;
-          if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
+          if( ((false||false)||false) ) {
              tempBuffer = outFastK;
-          } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) ) {
+          } else if( ((false||false)||false) ) {
              tempBuffer = outFastD;
           } else {
              bufferIsAllocated = 1;
@@ -76116,14 +76116,14 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
           System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
@@ -76182,9 +76182,9 @@ class Core {
           highest = lowest;
           diff = highest;
           bufferIsAllocated = 0;
-          if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
+          if( ((false||false)||false) ) {
              tempBuffer = outFastK;
-          } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) ) {
+          } else if( ((false||false)||false) ) {
              tempBuffer = outFastD;
           } else {
              bufferIsAllocated = 1;
@@ -76237,14 +76237,14 @@ class Core {
           }
           retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-             if( bufferIsAllocated ) {
+             if( (bufferIsAllocated) != 0 ) {
              }
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
           System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-          if( bufferIsAllocated ) {
+          if( (bufferIsAllocated) != 0 ) {
           }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;

@@ -80,10 +80,10 @@
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
          if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
             outInteger[outIdx] = 0;
-            if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = (0-100);
             }
-            if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = 100;
             }
             outIdx += 1;
@@ -197,10 +197,10 @@
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
          if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
             outInteger[outIdx] = 0;
-            if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = (0-100);
             }
-            if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = 100;
             }
             outIdx += 1;
@@ -320,10 +320,10 @@
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
          if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
             outInteger[outIdx] = 0;
-            if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = (0-100);
             }
-            if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = 100;
             }
             outIdx += 1;
@@ -437,10 +437,10 @@
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
          if( (((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))<=_candleaverage_1)&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<=_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3)) ) {
             outInteger[outIdx] = 0;
-            if( ((((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.min(inOpen[(i-1)], inClose[(i-1)])>Math.max(inOpen[(i-2)], inClose[(i-2)]))&&(Math.max(inOpen[i], inClose[i])<Math.max(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = (0-100);
             }
-            if( ((((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))) ? (1) : (0))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+            if( ((Math.max(inOpen[(i-1)], inClose[(i-1)])<Math.min(inOpen[(i-2)], inClose[(i-2)]))&&(Math.min(inOpen[i], inClose[i])>Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
                outInteger[outIdx] = 100;
             }
             outIdx += 1;

@@ -104,7 +104,7 @@
          double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
          double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
             outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -271,7 +271,7 @@
          double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
          double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
             outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -444,7 +444,7 @@
          double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
          double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
             outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -611,7 +611,7 @@
          double avg_3 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (ta_candlerange(BodyDoji_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
          double divisor_3 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyDoji_factor*avg_3)/divisor_3);
-         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(((Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0)))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ? (1) : (0))))) ) {
+         if( (((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))>_candleaverage_2)&&(Math.abs((inClose[i]-inOpen[i]))<=_candleaverage_3))&&((((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1)&&(Math.min(inOpen[i], inClose[i])>Math.max(inOpen[(i-1)], inClose[(i-1)])))||(((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))))) ) {
             outInteger[outIdx++] = ((0-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1))))*100);
          } else {
             outInteger[outIdx++] = 0;

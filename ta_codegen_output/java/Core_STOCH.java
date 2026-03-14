@@ -122,7 +122,7 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -130,7 +130,7 @@
       }
       retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -248,7 +248,7 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -256,7 +256,7 @@
       }
       retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -325,9 +325,9 @@
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+      if( ((false||false)||false) ) {
          tempBuffer = outSlowK;
-      } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+      } else if( ((false||false)||false) ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
@@ -380,7 +380,7 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -388,7 +388,7 @@
       }
       retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -451,9 +451,9 @@
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( (((outSlowK==inHigh)||(outSlowK==inLow))||(outSlowK==inClose)) ) {
+      if( ((false||false)||false) ) {
          tempBuffer = outSlowK;
-      } else if( (((outSlowD==inHigh)||(outSlowD==inLow))||(outSlowD==inClose)) ) {
+      } else if( ((false||false)||false) ) {
          tempBuffer = outSlowD;
       } else {
          bufferIsAllocated = 1;
@@ -506,7 +506,7 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -514,7 +514,7 @@
       }
       retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
       System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;

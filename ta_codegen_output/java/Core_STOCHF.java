@@ -117,14 +117,14 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -238,14 +238,14 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -310,9 +310,9 @@
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
+      if( ((false||false)||false) ) {
          tempBuffer = outFastK;
-      } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) ) {
+      } else if( ((false||false)||false) ) {
          tempBuffer = outFastD;
       } else {
          bufferIsAllocated = 1;
@@ -365,14 +365,14 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
@@ -431,9 +431,9 @@
       highest = lowest;
       diff = highest;
       bufferIsAllocated = 0;
-      if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) ) {
+      if( ((false||false)||false) ) {
          tempBuffer = outFastK;
-      } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) ) {
+      } else if( ((false||false)||false) ) {
          tempBuffer = outFastD;
       } else {
          bufferIsAllocated = 1;
@@ -486,14 +486,14 @@
       }
       retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
-         if( bufferIsAllocated ) {
+         if( (bufferIsAllocated) != 0 ) {
          }
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
       System.arraycopy(tempBuffer, lookbackFastD, outFastK, 0, (((int)outNBElement.value)*1));
-      if( bufferIsAllocated ) {
+      if( (bufferIsAllocated) != 0 ) {
       }
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;

@@ -279,20 +279,20 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      if( (inReal==outRealUpperBand) ) {
+      if( false ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealLowerBand;
-      } else if( (inReal==outRealLowerBand) ) {
+      } else if( false ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
-      } else if( (inReal==outRealMiddleBand) ) {
+      } else if( false ) {
          tempBuffer1 = outRealLowerBand;
          tempBuffer2 = outRealUpperBand;
       } else {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
       }
-      if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
+      if( (false||false) ) {
          return RetCode.BadParam ;
       }
       retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
@@ -401,20 +401,20 @@
       double tempReal2;
       double[] tempBuffer1;
       double[] tempBuffer2;
-      if( (inReal==outRealUpperBand) ) {
+      if( false ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealLowerBand;
-      } else if( (inReal==outRealLowerBand) ) {
+      } else if( false ) {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
-      } else if( (inReal==outRealMiddleBand) ) {
+      } else if( false ) {
          tempBuffer1 = outRealLowerBand;
          tempBuffer2 = outRealUpperBand;
       } else {
          tempBuffer1 = outRealMiddleBand;
          tempBuffer2 = outRealUpperBand;
       }
-      if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
+      if( (false||false) ) {
          return RetCode.BadParam ;
       }
       retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);

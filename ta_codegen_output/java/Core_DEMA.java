@@ -168,7 +168,7 @@
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
-      if( (inReal==outReal) ) {
+      if( false ) {
          firstEMA = outReal;
       } else {
          tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
@@ -229,7 +229,7 @@
       if( (startIdx>endIdx) ) {
          return RetCode.Success ;
       }
-      if( (inReal==outReal) ) {
+      if( false ) {
          firstEMA = outReal;
       } else {
          tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
