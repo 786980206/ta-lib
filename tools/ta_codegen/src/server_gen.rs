@@ -785,10 +785,38 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("    Sma, Ema, Wma, Dema, Tema, Trima, Kama, Mama, T3;\n");
     s.push_str("}\n\n");
 
+    // CandleSetting holds rangeType, avgPeriod, factor for one candle setting
+    s.push_str("class CandleSetting {\n");
+    s.push_str("    int rangeType;\n");
+    s.push_str("    int avgPeriod;\n");
+    s.push_str("    double factor;\n");
+    s.push_str("    CandleSetting(int rt, int ap, double f) { rangeType = rt; avgPeriod = ap; factor = f; }\n");
+    s.push_str("}\n\n");
+
+    // CandleSettings container with named fields for each setting.
+    // Field names are camelCase versions of PascalCase setting names,
+    // matching the access pattern in candle_settings.rs emit_java_unpacking().
+    // Defaults from TA_RestoreCandleDefaultSettings in ta_global.c.
+    // RangeType values: 0=RealBody, 1=HighLow, 2=Shadows.
+    s.push_str("class CandleSettings {\n");
+    s.push_str("    CandleSetting bodyLong = new CandleSetting(0, 10, 1.0);\n");
+    s.push_str("    CandleSetting bodyVeryLong = new CandleSetting(0, 10, 3.0);\n");
+    s.push_str("    CandleSetting bodyShort = new CandleSetting(0, 10, 1.0);\n");
+    s.push_str("    CandleSetting bodyDoji = new CandleSetting(1, 10, 0.1);\n");
+    s.push_str("    CandleSetting shadowLong = new CandleSetting(0, 0, 1.0);\n");
+    s.push_str("    CandleSetting shadowVeryLong = new CandleSetting(0, 0, 2.0);\n");
+    s.push_str("    CandleSetting shadowShort = new CandleSetting(2, 10, 1.0);\n");
+    s.push_str("    CandleSetting shadowVeryShort = new CandleSetting(1, 10, 0.1);\n");
+    s.push_str("    CandleSetting near = new CandleSetting(1, 5, 0.2);\n");
+    s.push_str("    CandleSetting far = new CandleSetting(1, 5, 0.6);\n");
+    s.push_str("    CandleSetting equal = new CandleSetting(1, 5, 0.05);\n");
+    s.push_str("}\n\n");
+
     // Core class — method bodies are inlined by the caller via inline_java_core_methods()
     s.push_str("class Core {\n");
     s.push_str("    int[] unstablePeriod = new int[FuncUnstId.values().length];\n");
-    s.push_str("    Compatibility compatibility = Compatibility.Default;\n\n");
+    s.push_str("    Compatibility compatibility = Compatibility.Default;\n");
+    s.push_str("    CandleSettings candleSettings = new CandleSettings();\n\n");
     for func in funcs {
         s.push_str(&format!("    // @@CORE_{}@@\n", func.name));
     }
