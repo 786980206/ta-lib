@@ -787,10 +787,8 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // Core class — method bodies are inlined by the caller via inline_java_core_methods()
     s.push_str("class Core {\n");
-    s.push_str("    int lookbackTotal, i, outIdx, trailingIdx;\n");
     s.push_str("    int[] unstablePeriod = new int[FuncUnstId.values().length];\n");
-    s.push_str("    Compatibility compatibility = Compatibility.Default;\n");
-    s.push_str("    int nbElement;\n\n");
+    s.push_str("    Compatibility compatibility = Compatibility.Default;\n\n");
     for func in funcs {
         s.push_str(&format!("    // @@CORE_{}@@\n", func.name));
     }
