@@ -84,9 +84,10 @@ def replace_simple_macros(content: str) -> str:
         content,
     )
 
-    # case ENUM_CASE(type, c_val, pascal_val) -> case c_val:
+    # case ENUM_CASE(type, c_val, pascal_val) [):] -> case c_val:
+    # Trailing `:?` consumes the stray colon from original `case ENUM_CASE(...) :`
     content = re.sub(
-        r'\bcase\s+ENUM_CASE\(\s*[^,]+?\s*,\s*([^,]+?)\s*,\s*[^)]+?\s*\)',
+        r'\bcase\s+ENUM_CASE\(\s*[^,]+?\s*,\s*([^,]+?)\s*,\s*[^)]+?\s*\)\s*:?',
         r'case \1:',
         content,
     )
