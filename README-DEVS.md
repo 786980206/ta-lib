@@ -61,14 +61,17 @@ Any dev with permission to merge to main branch can do a release.
 
 (7) Manually trig the "Release (step-1)" Github action on main branch. This will tag, generate a draft release and attach all assets from the dist/ directory.
 
-(8) Optionally edit the draft "Release notes" on the Github website and verify that everything looks fine.
+(8) Optionally edit the draft "Release notes" on the Github website. A good time to add thank you to contributors. You can still edit after the official release.
 
-(9) Manually trig "Release (step 2)" Github action. This will make the release public, update the website and create a PR on homebrew-core.
+(9) Manually trig "Release (step 2)" Github action. This will make the release official/public and update the website.
 
 (10) Verify that https://ta-lib.org/install reflects the new version.
 
-(11) Monitor that the PR on homebrew-core is working as expected. The following formula will eventually be updated (may take an hour):
+(11) Run "./scripts/post-release-vcpkg.py" and follow the instructions to submit a PR to microsoft/vcpkg. Monitor the PR is eventually merged by vcpkg maintainers. This may take a few days.
+
+(12) Monitor homebrew-core. The following formula will eventually be updated (may take an hour):
 https://github.com/Homebrew/homebrew-core/blob/30106807361198c58a395de65547694427adf229/Formula/t/ta-lib.rb
+
 
 ## I want to modify the code... should I care to rebuild the packages?
 No.
