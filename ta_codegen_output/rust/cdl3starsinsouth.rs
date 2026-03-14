@@ -132,7 +132,18 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyLongPeriodTotal: T;
+        let mut BodyShortPeriodTotal: T;
+        let mut ShadowLongPeriodTotal: T;
         let mut ShadowVeryShortPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let mut BodyShortTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -418,7 +429,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdl3starsinsouth_unchecked<T: TaFloat>(
         &self,
@@ -459,7 +469,18 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyLongPeriodTotal: T;
+        let mut BodyShortPeriodTotal: T;
+        let mut ShadowLongPeriodTotal: T;
         let mut ShadowVeryShortPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let mut BodyShortTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -744,7 +765,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

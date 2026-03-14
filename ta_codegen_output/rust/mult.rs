@@ -112,7 +112,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn mult_unchecked<T: TaFloat>(
         &self,
@@ -158,7 +157,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

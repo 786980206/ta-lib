@@ -104,13 +104,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
             outReal[{ let _v = outIdx; outIdx += 1; _v }] = (inHigh[i] + inLow[i] + inClose[i]) / T::ta_from_f64(3.0);
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn typprice_unchecked<T: TaFloat>(
@@ -149,13 +150,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (*inHigh.get_unchecked(i) + *inLow.get_unchecked(i) + *inClose.get_unchecked(i)) / T::ta_from_f64(3.0);
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

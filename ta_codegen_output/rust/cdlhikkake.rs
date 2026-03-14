@@ -108,6 +108,11 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut i: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
+        let mut patternIdx: i32;
+        let mut patternResult: i32;
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -147,7 +152,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn cdlhikkake_unchecked<T: TaFloat>(
@@ -189,6 +193,11 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut i: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
+        let mut patternIdx: i32;
+        let mut patternResult: i32;
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -228,7 +237,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

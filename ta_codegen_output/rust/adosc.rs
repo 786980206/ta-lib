@@ -144,7 +144,20 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let mut slowestPeriod: i32;
+        let mut high: T;
+        let mut low: T;
+        let mut close: T;
+        let mut tmp: T;
+        let mut slowEMA: T;
+        let slowk: T;
+        let one_minus_slowk: T;
+        let mut fastEMA: T;
+        let fastk: T;
+        let one_minus_fastk: T;
         let mut ad: T;
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = optInSlowPeriod;
@@ -205,7 +218,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn adosc_unchecked<T: TaFloat>(
         &self,
@@ -262,7 +274,20 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let mut slowestPeriod: i32;
+        let mut high: T;
+        let mut low: T;
+        let mut close: T;
+        let mut tmp: T;
+        let mut slowEMA: T;
+        let slowk: T;
+        let one_minus_slowk: T;
+        let mut fastEMA: T;
+        let fastk: T;
+        let one_minus_fastk: T;
         let mut ad: T;
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = optInSlowPeriod;
@@ -322,7 +347,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = fastEMA - slowEMA;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

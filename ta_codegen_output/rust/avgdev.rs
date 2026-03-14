@@ -111,6 +111,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut outIdx: i32;
+        let lookback: i32;
         lookback = optInTimePeriod - 1;
         if startIdx < lookback {
             startIdx = lookback;
@@ -143,7 +146,6 @@ impl Core {
             today += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn avgdev_unchecked<T: TaFloat>(
@@ -184,6 +186,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut outIdx: i32;
+        let lookback: i32;
         lookback = optInTimePeriod - 1;
         if startIdx < lookback {
             startIdx = lookback;
@@ -216,7 +221,6 @@ impl Core {
             today += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

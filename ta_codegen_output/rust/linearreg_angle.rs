@@ -112,6 +112,13 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let outIdx: i32;
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let SumX: T;
+        let mut SumXY: T;
+        let mut SumY: T;
+        let SumXSqr: T;
+        let Divisor: T;
         let mut m: T;
         let i: i32;
         let mut tempValue1: T;
@@ -146,7 +153,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn linearreg_angle_unchecked<T: TaFloat>(
@@ -188,6 +194,13 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let outIdx: i32;
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let SumX: T;
+        let mut SumXY: T;
+        let mut SumY: T;
+        let SumXSqr: T;
+        let Divisor: T;
         let mut m: T;
         let i: i32;
         let mut tempValue1: T;
@@ -222,7 +235,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

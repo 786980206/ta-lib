@@ -132,6 +132,17 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyPeriodTotal: T;
+        let mut ShadowLongPeriodTotal: T;
+        let mut ShadowVeryShortPeriodTotal: T;
+        let mut NearPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut BodyTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut NearTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyShort_rangeType: i32 = self.candle_settings.body_short.range_type;
         #[allow(non_snake_case)]
@@ -395,7 +406,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdlhammer_unchecked<T: TaFloat>(
         &self,
@@ -436,6 +446,17 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyPeriodTotal: T;
+        let mut ShadowLongPeriodTotal: T;
+        let mut ShadowVeryShortPeriodTotal: T;
+        let mut NearPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut BodyTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut NearTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyShort_rangeType: i32 = self.candle_settings.body_short.range_type;
         #[allow(non_snake_case)]
@@ -698,7 +719,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

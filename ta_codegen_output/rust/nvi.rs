@@ -103,7 +103,6 @@ impl Core {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn nvi_unchecked<T: TaFloat>(
         &self,
@@ -140,7 +139,6 @@ impl Core {
     ) -> RetCode {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

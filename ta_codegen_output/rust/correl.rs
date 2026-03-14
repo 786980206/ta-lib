@@ -115,7 +115,20 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut sumXY: T;
+        let mut sumX: T;
+        let mut sumY: T;
+        let mut sumX2: T;
+        let mut sumY2: T;
+        let mut x: T;
+        let mut y: T;
+        let mut trailingX: T;
+        let mut trailingY: T;
         let mut tempReal: T;
+        let lookbackTotal: i32;
+        let today: i32;
+        let trailingIdx: i32;
+        let outIdx: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -174,7 +187,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn correl_unchecked<T: TaFloat>(
         &self,
@@ -217,7 +229,20 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut sumXY: T;
+        let mut sumX: T;
+        let mut sumY: T;
+        let mut sumX2: T;
+        let mut sumY2: T;
+        let mut x: T;
+        let mut y: T;
+        let mut trailingX: T;
+        let mut trailingY: T;
         let mut tempReal: T;
+        let lookbackTotal: i32;
+        let today: i32;
+        let trailingIdx: i32;
+        let outIdx: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -275,7 +300,6 @@ impl Core {
             }
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

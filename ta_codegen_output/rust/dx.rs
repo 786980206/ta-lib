@@ -123,6 +123,21 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut prevClose: T;
+        let mut prevMinusDM: T;
+        let mut prevPlusDM: T;
+        let mut prevTR: T;
+        let mut tempReal: T;
+        let tempReal2: T;
+        let mut diffP: T;
+        let mut diffM: T;
+        let mut minusDI: T;
+        let mut plusDI: T;
         let mut i: i32;
         if optInTimePeriod > 1 {
             lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize];
@@ -259,7 +274,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn dx_unchecked<T: TaFloat>(
         &self,
@@ -305,6 +319,21 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut prevClose: T;
+        let mut prevMinusDM: T;
+        let mut prevPlusDM: T;
+        let mut prevTR: T;
+        let mut tempReal: T;
+        let tempReal2: T;
+        let mut diffP: T;
+        let mut diffM: T;
+        let mut minusDI: T;
+        let mut plusDI: T;
         let mut i: i32;
         if optInTimePeriod > 1 {
             lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize];
@@ -440,7 +469,6 @@ impl Core {
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

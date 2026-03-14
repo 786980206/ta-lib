@@ -65,31 +65,31 @@ impl Core {
             return 0;
         }
         match optInMAType {
-            TA_MAType_SMA => {
+            0 => {
                 retValue = self.sma_lookback(optInTimePeriod);
             }
-            TA_MAType_EMA => {
+            1 => {
                 retValue = self.ema_lookback(optInTimePeriod);
             }
-            TA_MAType_WMA => {
+            2 => {
                 retValue = self.wma_lookback(optInTimePeriod);
             }
-            TA_MAType_DEMA => {
+            3 => {
                 retValue = self.dema_lookback(optInTimePeriod);
             }
-            TA_MAType_TEMA => {
+            4 => {
                 retValue = self.tema_lookback(optInTimePeriod);
             }
-            TA_MAType_TRIMA => {
+            5 => {
                 retValue = self.trima_lookback(optInTimePeriod);
             }
-            TA_MAType_KAMA => {
+            6 => {
                 retValue = self.kama_lookback(optInTimePeriod);
             }
-            TA_MAType_MAMA => {
+            7 => {
                 retValue = self.mama_lookback(0.5, 0.05);
             }
-            TA_MAType_T3 => {
+            8 => {
                 retValue = self.t3_lookback(optInTimePeriod, 0.7);
             }
             _ => {
@@ -153,6 +153,8 @@ impl Core {
         let dummyBuffer: Vec<T>;
         let mut retCode: RetCode;
         let nbElement: i32;
+        let outIdx: i32;
+        let todayIdx: i32;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
@@ -170,35 +172,32 @@ todayIdx += 1;
             return RetCode::Success;
         }
         match optInMAType {
-            TA_MAType_SMA => {
+            0 => {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_EMA => {
+            1 => {
                 retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_WMA => {
+            2 => {
                 retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_DEMA => {
+            3 => {
                 retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_TEMA => {
+            4 => {
                 retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_TRIMA => {
+            5 => {
                 retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_KAMA => {
+            6 => {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_MAMA => {
+            7 => {
                 dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-                if !(dummyBuffer) {
-                    return ALLOC_ERR;
-                }
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
             }
-            TA_MAType_T3 => {
+            8 => {
                 retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {
@@ -206,7 +205,6 @@ todayIdx += 1;
             }
         }
         return retCode;
-        return RetCode::Success;
     }
     pub unsafe fn ma_unchecked<T: TaFloat>(
         &self,
@@ -252,6 +250,8 @@ todayIdx += 1;
         let dummyBuffer: Vec<T>;
         let mut retCode: RetCode;
         let nbElement: i32;
+        let outIdx: i32;
+        let todayIdx: i32;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
@@ -269,35 +269,32 @@ todayIdx += 1;
             return RetCode::Success;
         }
         match optInMAType {
-            TA_MAType_SMA => {
+            0 => {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_EMA => {
+            1 => {
                 retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_WMA => {
+            2 => {
                 retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_DEMA => {
+            3 => {
                 retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_TEMA => {
+            4 => {
                 retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_TRIMA => {
+            5 => {
                 retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_KAMA => {
+            6 => {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            TA_MAType_MAMA => {
+            7 => {
                 dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-                if !(dummyBuffer) {
-                    return ALLOC_ERR;
-                }
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
             }
-            TA_MAType_T3 => {
+            8 => {
                 retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {
@@ -305,7 +302,6 @@ todayIdx += 1;
             }
         }
         return retCode;
-        return RetCode::Success;
     }
 }
 /* Generated */

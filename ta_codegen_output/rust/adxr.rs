@@ -124,9 +124,12 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let adx: Vec<T>;
+        let adxrLookback: i32;
+        let i: i32;
+        let j: i32;
+        let outIdx: i32;
+        let nbElement: i32;
         let retCode: RetCode;
-        let adx: Vec<T>;
-        adx = vec![T::default(); ((endIdx - startIdx + optInTimePeriod) * 1) as usize];
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;
@@ -136,9 +139,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        if !(adx) {
-            return ALLOC_ERR;
-        }
+        adx = vec![T::default(); ((endIdx - startIdx + optInTimePeriod) * 1) as usize];
         retCode = self.adx_unguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
         if retCode != RetCode::Success {
             return retCode;
@@ -152,7 +153,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn adxr_unchecked<T: TaFloat>(
@@ -200,9 +200,12 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let adx: Vec<T>;
+        let adxrLookback: i32;
+        let i: i32;
+        let j: i32;
+        let outIdx: i32;
+        let nbElement: i32;
         let retCode: RetCode;
-        let adx: Vec<T>;
-        adx = vec![T::default(); ((endIdx - startIdx + optInTimePeriod) * 1) as usize];
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;
@@ -212,9 +215,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        if !(adx) {
-            return ALLOC_ERR;
-        }
+        adx = vec![T::default(); ((endIdx - startIdx + optInTimePeriod) * 1) as usize];
         retCode = self.adx_unguarded(startIdx - (optInTimePeriod - 1), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
         if retCode != RetCode::Success {
             return retCode;
@@ -228,7 +229,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

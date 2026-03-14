@@ -117,6 +117,8 @@ impl Core {
         let nbElement: i32;
         let begIdx: i32;
         let totalLookback: i32;
+        let emaLookback: i32;
+        let rocLookback: i32;
         let mut retCode: RetCode;
         let mut nbElementToOutput: i32;
         emaLookback = self.ema_lookback(optInTimePeriod);
@@ -133,11 +135,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
         tempBuffer = vec![T::default(); (nbElementToOutput * 1) as usize];
-        if !(tempBuffer) {
-            (*outNBElement) = 0;
-            (*outBegIdx) = 0;
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
@@ -166,7 +163,6 @@ impl Core {
             (*outBegIdx) = 0;
             return retCode;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn trix_unchecked<T: TaFloat>(
@@ -211,6 +207,8 @@ impl Core {
         let nbElement: i32;
         let begIdx: i32;
         let totalLookback: i32;
+        let emaLookback: i32;
+        let rocLookback: i32;
         let mut retCode: RetCode;
         let mut nbElementToOutput: i32;
         emaLookback = self.ema_lookback(optInTimePeriod);
@@ -227,11 +225,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
         tempBuffer = vec![T::default(); (nbElementToOutput * 1) as usize];
-        if !(tempBuffer) {
-            (*outNBElement) = 0;
-            (*outBegIdx) = 0;
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
@@ -260,7 +253,6 @@ impl Core {
             (*outBegIdx) = 0;
             return retCode;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

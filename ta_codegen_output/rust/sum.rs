@@ -111,6 +111,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut periodTotal: T;
+        let mut tempReal: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let lookbackTotal: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -138,7 +144,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn sum_unchecked<T: TaFloat>(
@@ -179,6 +184,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut periodTotal: T;
+        let mut tempReal: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let lookbackTotal: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -206,7 +217,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

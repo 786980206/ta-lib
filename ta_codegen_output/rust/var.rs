@@ -116,6 +116,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut periodTotal1: T;
+        let mut periodTotal2: T;
+        let mut meanValue1: T;
+        let mut meanValue2: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let nbInitialElementNeeded: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -154,7 +163,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn var_unchecked<T: TaFloat>(
@@ -198,6 +206,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut periodTotal1: T;
+        let mut periodTotal2: T;
+        let mut meanValue1: T;
+        let mut meanValue2: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let nbInitialElementNeeded: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -236,7 +253,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

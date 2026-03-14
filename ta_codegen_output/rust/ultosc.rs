@@ -151,7 +151,30 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut a1Total: T;
+        let mut a2Total: T;
+        let mut a3Total: T;
+        let mut b1Total: T;
+        let mut b2Total: T;
+        let mut b3Total: T;
+        let mut trueLow: T;
+        let mut trueRange: T;
+        let mut closeMinusTrueLow: T;
+        let mut tempDouble: T;
+        let mut output: T;
+        let mut tempHT: T;
+        let mut tempLT: T;
+        let mut tempCY: T;
         let lookbackTotal: i32;
+        let mut longestPeriod: i32;
+        let mut longestIndex: i32;
+        let i: i32;
+        let j: i32;
+        let mut today: i32;
+        let mut outIdx: i32;
+        let mut trailingIdx1: i32;
+        let mut trailingIdx2: i32;
+        let mut trailingIdx3: i32;
         let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
@@ -354,7 +377,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn ultosc_unchecked<T: TaFloat>(
         &self,
@@ -416,7 +438,30 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut a1Total: T;
+        let mut a2Total: T;
+        let mut a3Total: T;
+        let mut b1Total: T;
+        let mut b2Total: T;
+        let mut b3Total: T;
+        let mut trueLow: T;
+        let mut trueRange: T;
+        let mut closeMinusTrueLow: T;
+        let mut tempDouble: T;
+        let mut output: T;
+        let mut tempHT: T;
+        let mut tempLT: T;
+        let mut tempCY: T;
         let lookbackTotal: i32;
+        let mut longestPeriod: i32;
+        let mut longestIndex: i32;
+        let i: i32;
+        let j: i32;
+        let mut today: i32;
+        let mut outIdx: i32;
+        let mut trailingIdx1: i32;
+        let mut trailingIdx2: i32;
+        let mut trailingIdx3: i32;
         let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
@@ -618,7 +663,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

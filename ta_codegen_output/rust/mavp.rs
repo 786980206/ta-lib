@@ -133,15 +133,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let i: i32;
+        let j: i32;
+        let lookbackTotal: i32;
+        let outputSize: i32;
+        let mut tempInt: i32;
+        let mut curPeriod: i32;
         let localPeriodArray: Vec<i32>;
         let localOutputArray: Vec<T>;
         let localBegIdx: i32;
         let localNbElement: i32;
         let mut retCode: RetCode;
-        let localOutputArray: Vec<T>;
-        let localPeriodArray: Vec<i32>;
-        localOutputArray = vec![T::default(); (outputSize * 1) as usize];
-        localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -162,6 +164,8 @@ impl Core {
             return RetCode::Success;
         }
         outputSize = endIdx - tempInt + 1;
+        localOutputArray = vec![T::default(); (outputSize * 1) as usize];
+        localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
@@ -200,7 +204,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn mavp_unchecked<T: TaFloat>(
@@ -255,15 +258,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let i: i32;
+        let j: i32;
+        let lookbackTotal: i32;
+        let outputSize: i32;
+        let mut tempInt: i32;
+        let mut curPeriod: i32;
         let localPeriodArray: Vec<i32>;
         let localOutputArray: Vec<T>;
         let localBegIdx: i32;
         let localNbElement: i32;
         let mut retCode: RetCode;
-        let localOutputArray: Vec<T>;
-        let localPeriodArray: Vec<i32>;
-        localOutputArray = vec![T::default(); (outputSize * 1) as usize];
-        localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -284,6 +289,8 @@ impl Core {
             return RetCode::Success;
         }
         outputSize = endIdx - tempInt + 1;
+        localOutputArray = vec![T::default(); (outputSize * 1) as usize];
+        localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
@@ -322,7 +329,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

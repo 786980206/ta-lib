@@ -112,7 +112,16 @@ impl Core {
     ) -> RetCode {
         let retCode: RetCode;
         let mut isLong: i32;
+        let mut todayIdx: i32;
+        let outIdx: i32;
         let tempInt: i32;
+        let mut newHigh: T;
+        let mut newLow: T;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut af: T;
+        let mut ep: T;
+        let mut sar: T;
         let mut ep_temp: [T; 1 as usize] = [T::zero(); 1 as usize];
         if startIdx < 1 {
             startIdx = 1;
@@ -234,7 +243,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn sar_unchecked<T: TaFloat>(
         &self,
@@ -277,7 +285,16 @@ impl Core {
     ) -> RetCode {
         let retCode: RetCode;
         let mut isLong: i32;
+        let mut todayIdx: i32;
+        let outIdx: i32;
         let tempInt: i32;
+        let mut newHigh: T;
+        let mut newLow: T;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut af: T;
+        let mut ep: T;
+        let mut sar: T;
         let mut ep_temp: [T; 1 as usize] = [T::zero(); 1 as usize];
         if startIdx < 1 {
             startIdx = 1;
@@ -398,7 +415,6 @@ impl Core {
             }
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

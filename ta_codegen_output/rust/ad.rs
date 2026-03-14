@@ -108,6 +108,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut nbBar: i32;
+        let mut currentBar: i32;
+        let outIdx: i32;
+        let mut high: T;
+        let mut low: T;
+        let mut close: T;
+        let mut tmp: T;
         let mut ad: T;
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
@@ -127,7 +134,6 @@ impl Core {
             currentBar += 1;
             nbBar -= 1;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn ad_unchecked<T: TaFloat>(
@@ -169,6 +175,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut nbBar: i32;
+        let mut currentBar: i32;
+        let outIdx: i32;
+        let mut high: T;
+        let mut low: T;
+        let mut close: T;
+        let mut tmp: T;
         let mut ad: T;
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
@@ -188,7 +201,6 @@ impl Core {
             currentBar += 1;
             nbBar -= 1;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

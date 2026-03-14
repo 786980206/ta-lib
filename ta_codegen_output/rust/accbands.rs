@@ -132,11 +132,12 @@ impl Core {
         let tempBuffer2: Vec<T>;
         let outBegIdxDummy: i32;
         let outNbElementDummy: i32;
+        let i: i32;
+        let j: i32;
+        let outputSize: i32;
+        let bufferSize: i32;
+        let lookbackTotal: i32;
         let mut tempReal: T;
-        let tempBuffer1: Vec<T>;
-        let tempBuffer2: Vec<T>;
-        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -148,16 +149,8 @@ impl Core {
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        if !(tempBuffer1) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
-        if !(tempBuffer2) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
+        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
+        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
         // for( j = 0;
 i = startIdx - lookbackTotal; i <= endIdx; i += 1;
 j += 1 )
@@ -196,7 +189,6 @@ j += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn accbands_unchecked<T: TaFloat>(
@@ -254,11 +246,12 @@ j += 1;
         let tempBuffer2: Vec<T>;
         let outBegIdxDummy: i32;
         let outNbElementDummy: i32;
+        let i: i32;
+        let j: i32;
+        let outputSize: i32;
+        let bufferSize: i32;
+        let lookbackTotal: i32;
         let mut tempReal: T;
-        let tempBuffer1: Vec<T>;
-        let tempBuffer2: Vec<T>;
-        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -270,16 +263,8 @@ j += 1;
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        if !(tempBuffer1) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
-        if !(tempBuffer2) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
+        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
+        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
         // for( j = 0;
 i = startIdx - lookbackTotal; i <= endIdx; i += 1;
 j += 1 )
@@ -318,7 +303,6 @@ j += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

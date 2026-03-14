@@ -121,6 +121,12 @@ impl Core {
         let secondEMANbElement: i32;
         let thirdEMABegIdx: i32;
         let thirdEMANbElement: i32;
+        let tempInt: i32;
+        let mut outIdx: i32;
+        let lookbackTotal: i32;
+        let lookbackEMA: i32;
+        let firstEMAIdx: i32;
+        let secondEMAIdx: i32;
         let mut retCode: RetCode;
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
@@ -134,17 +140,11 @@ impl Core {
         }
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![T::default(); (tempInt * 1) as usize];
-        if !(firstEMA) {
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             return retCode;
         }
         secondEMA = vec![T::default(); (firstEMANbElement * 1) as usize];
-        if !(secondEMA) {
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             return retCode;
@@ -162,7 +162,6 @@ impl Core {
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn tema_unchecked<T: TaFloat>(
@@ -211,6 +210,12 @@ impl Core {
         let secondEMANbElement: i32;
         let thirdEMABegIdx: i32;
         let thirdEMANbElement: i32;
+        let tempInt: i32;
+        let mut outIdx: i32;
+        let lookbackTotal: i32;
+        let lookbackEMA: i32;
+        let firstEMAIdx: i32;
+        let secondEMAIdx: i32;
         let mut retCode: RetCode;
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
@@ -224,17 +229,11 @@ impl Core {
         }
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![T::default(); (tempInt * 1) as usize];
-        if !(firstEMA) {
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             return retCode;
         }
         secondEMA = vec![T::default(); (firstEMANbElement * 1) as usize];
-        if !(secondEMA) {
-            return ALLOC_ERR;
-        }
         retCode = self.ema_unguarded(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             return retCode;
@@ -252,7 +251,6 @@ impl Core {
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

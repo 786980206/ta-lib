@@ -119,7 +119,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut tempReal: T;
         let mut prevMinusDM: T;
+        let mut diffP: T;
+        let mut diffM: T;
         let mut i: i32;
         if optInTimePeriod > 1 {
             lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Minus_dm as usize] - 1;
@@ -209,7 +217,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn minus_dm_unchecked<T: TaFloat>(
         &self,
@@ -252,7 +259,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let mut lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut tempReal: T;
         let mut prevMinusDM: T;
+        let mut diffP: T;
+        let mut diffM: T;
         let mut i: i32;
         if optInTimePeriod > 1 {
             lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Minus_dm as usize] - 1;
@@ -341,7 +356,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevMinusDM;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

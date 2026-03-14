@@ -123,6 +123,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut posSumMF: T;
+        let mut negSumMF: T;
+        let mut prevValue: T;
+        let mut tempValue1: T;
+        let mut tempValue2: T;
+        let lookbackTotal: i32;
+        let outIdx: i32;
+        let i: i32;
+        let mut today: i32;
         let mut mflow_positive: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut mflow_negative: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut mflow_Idx: i32;
@@ -234,7 +243,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn mfi_unchecked<T: TaFloat>(
         &self,
@@ -283,6 +291,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut posSumMF: T;
+        let mut negSumMF: T;
+        let mut prevValue: T;
+        let mut tempValue1: T;
+        let mut tempValue2: T;
+        let lookbackTotal: i32;
+        let outIdx: i32;
+        let i: i32;
+        let mut today: i32;
         let mut mflow_positive: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut mflow_negative: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut mflow_Idx: i32;
@@ -393,7 +410,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

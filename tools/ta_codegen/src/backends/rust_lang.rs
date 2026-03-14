@@ -9,6 +9,11 @@ use crate::ir::{
 use crate::parser::enums::lookup_variant;
 use crate::registry::Registry;
 
+/// Check if a statement list contains a return with ALLOC_ERR value.
+fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
+    stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
+}
+
 /// Controls how the Rust renderer emits code.
 pub struct RustRenderCtx {
     /// If true, emit `T` instead of `f64`/`f32` for Real types, wrap literals in `T::ta_from_f64()`, etc.
@@ -504,7 +509,6 @@ fn gen_unguarded_func(
         ));
     }
 
-    out.push_str("        return RetCode::Success;\n");
     out.push_str("    }\n");
 
     out
@@ -1211,6 +1215,10 @@ pub fn render_statement(
             then_body,
             else_body,
         } => {
+            // Skip post-allocation null-check blocks (dead code in Rust — Vec::new() never fails)
+            if contains_alloc_err_return(then_body) {
+                return String::new();
+            }
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
@@ -1468,6 +1476,8 @@ fn render_return_expr(
             "BadParam" => "RetCode::BadParam".to_string(),
             "OutOfRangeEndIndex" => "RetCode::OutOfRangeEndIndex".to_string(),
             "OutOfRangeStartIndex" => "RetCode::OutOfRangeStartIndex".to_string(),
+            "ALLOC_ERR" => "RetCode::AllocErr".to_string(),
+            "INTERNAL_ERROR" => "RetCode::InternalError".to_string(),
             _ => render_expr(expr, ctx, opt_real_params, registry, helpers),
         };
     }
@@ -1506,6 +1516,8 @@ fn render_expr(
             "DEFAULT" => "Compatibility::Default".to_string(),
             "BAD_PARAM" => "RetCode::BadParam".to_string(),
             "SUCCESS" => "RetCode::Success".to_string(),
+            "ALLOC_ERR" => "RetCode::AllocErr".to_string(),
+            "INTERNAL_ERROR" => "RetCode::InternalError".to_string(),
             _ => {
                 if ctx.generic && opt_real_params.contains(name) {
                     format!("T::ta_from_f64({name})")

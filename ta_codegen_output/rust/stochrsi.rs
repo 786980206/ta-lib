@@ -152,11 +152,12 @@ impl Core {
     ) -> RetCode {
         let tempRSIBuffer: Vec<T>;
         let mut retCode: RetCode;
+        let lookbackTotal: i32;
+        let lookbackSTOCHF: i32;
+        let tempArraySize: i32;
         let outBegIdx1: i32;
         let outBegIdx2: i32;
         let outNbElement1: i32;
-        let tempRSIBuffer: Vec<T>;
-        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
@@ -171,6 +172,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
         retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
@@ -183,7 +185,6 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn stochrsi_unchecked<T: TaFloat>(
@@ -248,11 +249,12 @@ impl Core {
     ) -> RetCode {
         let tempRSIBuffer: Vec<T>;
         let mut retCode: RetCode;
+        let lookbackTotal: i32;
+        let lookbackSTOCHF: i32;
+        let tempArraySize: i32;
         let outBegIdx1: i32;
         let outBegIdx2: i32;
         let outNbElement1: i32;
-        let tempRSIBuffer: Vec<T>;
-        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
@@ -267,6 +269,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
         retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
@@ -279,7 +282,6 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

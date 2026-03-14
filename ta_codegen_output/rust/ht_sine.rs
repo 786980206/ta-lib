@@ -100,7 +100,18 @@ impl Core {
         outSine: &mut [T],
         outLeadSine: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
+        let lookbackTotal: i32;
+        let mut today: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut adjustedPrevPeriod: T;
+        let mut period: T;
         let trailingWMAIdx: i32;
+        let mut periodWMASum: T;
+        let mut periodWMASub: T;
+        let mut trailingWMAValue: T;
         let mut smoothedValue: T;
         let a: T;
         let b: T;
@@ -134,10 +145,29 @@ impl Core {
         let mut prev_jQ_Even: T;
         let mut prev_jQ_input_Odd: T;
         let mut prev_jQ_input_Even: T;
+        let mut Q2: T;
+        let mut I2: T;
+        let mut prevQ2: T;
+        let mut prevI2: T;
+        let mut Re: T;
+        let mut Im: T;
+        let mut I1ForOddPrev2: T;
+        let mut I1ForOddPrev3: T;
+        let mut I1ForEvenPrev2: T;
+        let mut I1ForEvenPrev3: T;
+        let rad2Deg: T;
+        let deg2Rad: T;
+        let constDeg2RadBy360: T;
+        let mut todayValue: T;
+        let mut smoothPeriod: T;
         let mut smoothPrice: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut smoothPrice_Idx: i32;
         let mut idx: i32;
         let mut DCPeriodInt: i32;
+        let mut DCPhase: T;
+        let mut DCPeriod: T;
+        let mut imagPart: T;
+        let mut realPart: T;
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
         smoothPrice_Idx = 0;
@@ -406,7 +436,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn ht_sine_unchecked<T: TaFloat>(
         &self,
@@ -441,7 +470,18 @@ impl Core {
         outSine: &mut [T],
         outLeadSine: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
+        let lookbackTotal: i32;
+        let mut today: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut adjustedPrevPeriod: T;
+        let mut period: T;
         let trailingWMAIdx: i32;
+        let mut periodWMASum: T;
+        let mut periodWMASub: T;
+        let mut trailingWMAValue: T;
         let mut smoothedValue: T;
         let a: T;
         let b: T;
@@ -475,10 +515,29 @@ impl Core {
         let mut prev_jQ_Even: T;
         let mut prev_jQ_input_Odd: T;
         let mut prev_jQ_input_Even: T;
+        let mut Q2: T;
+        let mut I2: T;
+        let mut prevQ2: T;
+        let mut prevI2: T;
+        let mut Re: T;
+        let mut Im: T;
+        let mut I1ForOddPrev2: T;
+        let mut I1ForOddPrev3: T;
+        let mut I1ForEvenPrev2: T;
+        let mut I1ForEvenPrev3: T;
+        let rad2Deg: T;
+        let deg2Rad: T;
+        let constDeg2RadBy360: T;
+        let mut todayValue: T;
+        let mut smoothPeriod: T;
         let mut smoothPrice: [T; 50 as usize] = [T::zero(); 50 as usize];
         let mut smoothPrice_Idx: i32;
         let mut idx: i32;
         let mut DCPeriodInt: i32;
+        let mut DCPhase: T;
+        let mut DCPeriod: T;
+        let mut imagPart: T;
+        let mut realPart: T;
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
         smoothPrice_Idx = 0;
@@ -746,7 +805,6 @@ impl Core {
             today += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

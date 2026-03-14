@@ -163,6 +163,8 @@ impl Core {
         let outNbElement1: i32;
         let outBegIdx2: i32;
         let outNbElement2: i32;
+        let mut lookbackTotal: i32;
+        let lookbackSignal: i32;
         let i: i32;
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = optInSlowPeriod;
@@ -188,17 +190,7 @@ impl Core {
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         fastEMABuffer = vec![T::default(); (tempInteger * 1) as usize];
-        if !(fastEMABuffer) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
         slowEMABuffer = vec![T::default(); (tempInteger * 1) as usize];
-        if !(slowEMABuffer) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
         if retCode != RetCode::Success {
@@ -243,7 +235,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn macd_unchecked<T: TaFloat>(
@@ -314,6 +305,8 @@ impl Core {
         let outNbElement1: i32;
         let outBegIdx2: i32;
         let outNbElement2: i32;
+        let mut lookbackTotal: i32;
+        let lookbackSignal: i32;
         let i: i32;
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = optInSlowPeriod;
@@ -339,17 +332,7 @@ impl Core {
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
         fastEMABuffer = vec![T::default(); (tempInteger * 1) as usize];
-        if !(fastEMABuffer) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
         slowEMABuffer = vec![T::default(); (tempInteger * 1) as usize];
-        if !(slowEMABuffer) {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return ALLOC_ERR;
-        }
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
         if retCode != RetCode::Success {
@@ -394,7 +377,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

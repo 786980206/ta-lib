@@ -117,6 +117,18 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let outIdx: i32;
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let unstablePeriod: i32;
+        let i: i32;
+        let mut prevGain: T;
+        let mut prevLoss: T;
+        let mut prevValue: T;
+        let savePrevValue: T;
+        let mut tempValue1: T;
+        let mut tempValue2: T;
+        let tempValue3: T;
+        let tempValue4: T;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);
@@ -241,7 +253,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cmo_unchecked<T: TaFloat>(
         &self,
@@ -282,6 +293,18 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let outIdx: i32;
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let unstablePeriod: i32;
+        let i: i32;
+        let mut prevGain: T;
+        let mut prevLoss: T;
+        let mut prevValue: T;
+        let savePrevValue: T;
+        let mut tempValue1: T;
+        let mut tempValue2: T;
+        let tempValue3: T;
+        let tempValue4: T;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);
@@ -405,7 +428,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

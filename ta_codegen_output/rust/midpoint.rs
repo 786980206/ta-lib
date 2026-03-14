@@ -111,6 +111,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let trailingIdx: i32;
+        let mut today: i32;
+        let i: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -139,7 +147,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn midpoint_unchecked<T: TaFloat>(
@@ -180,6 +187,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let trailingIdx: i32;
+        let mut today: i32;
+        let i: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -208,7 +223,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

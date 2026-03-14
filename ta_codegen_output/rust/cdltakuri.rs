@@ -126,6 +126,15 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyDojiPeriodTotal: T;
+        let mut ShadowVeryShortPeriodTotal: T;
+        let mut ShadowVeryLongPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut BodyDojiTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut ShadowVeryLongTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
         #[allow(non_snake_case)]
@@ -328,7 +337,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdltakuri_unchecked<T: TaFloat>(
         &self,
@@ -369,6 +377,15 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut BodyDojiPeriodTotal: T;
+        let mut ShadowVeryShortPeriodTotal: T;
+        let mut ShadowVeryLongPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut BodyDojiTrailingIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut ShadowVeryLongTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
         #[allow(non_snake_case)]
@@ -570,7 +587,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

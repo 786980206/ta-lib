@@ -111,7 +111,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut prevMA: T;
         let optInK_1: T;
+        let i: i32;
+        let mut today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
@@ -145,7 +151,6 @@ impl Core {
             outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevMA;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn ema_unchecked<T: TaFloat>(
@@ -186,7 +191,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut prevMA: T;
         let optInK_1: T;
+        let i: i32;
+        let mut today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
@@ -220,7 +231,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevMA;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

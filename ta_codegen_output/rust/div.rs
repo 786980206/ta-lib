@@ -115,7 +115,6 @@ outIdx += 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn div_unchecked<T: TaFloat>(
         &self,
@@ -164,7 +163,6 @@ outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

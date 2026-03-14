@@ -143,6 +143,15 @@ impl Core {
         let mut NearPeriodTotal: [T; 3 as usize] = [T::zero(); 3 as usize];
         let mut FarPeriodTotal: [T; 3 as usize] = [T::zero(); 3 as usize];
         let mut BodyLongPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let mut ShadowShortTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut NearTrailingIdx: i32;
+        let mut FarTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -568,7 +577,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdladvanceblock_unchecked<T: TaFloat>(
         &self,
@@ -614,6 +622,15 @@ impl Core {
         let mut NearPeriodTotal: [T; 3 as usize] = [T::zero(); 3 as usize];
         let mut FarPeriodTotal: [T; 3 as usize] = [T::zero(); 3 as usize];
         let mut BodyLongPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let mut ShadowShortTrailingIdx: i32;
+        let mut ShadowLongTrailingIdx: i32;
+        let mut NearTrailingIdx: i32;
+        let mut FarTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -1038,7 +1055,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

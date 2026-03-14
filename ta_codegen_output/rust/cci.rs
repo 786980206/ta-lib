@@ -119,6 +119,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut theAverage: T;
+        let mut lastValue: T;
+        let mut i: i32;
+        let j: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let mut circBuffer: [T; 30 as usize] = [T::zero(); 30 as usize];
         let mut circBuffer_Idx: i32;
         lookbackTotal = optInTimePeriod - 1;
@@ -176,7 +184,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cci_unchecked<T: TaFloat>(
         &self,
@@ -222,6 +229,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut theAverage: T;
+        let mut lastValue: T;
+        let mut i: i32;
+        let j: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let mut circBuffer: [T; 30 as usize] = [T::zero(); 30 as usize];
         let mut circBuffer_Idx: i32;
         lookbackTotal = optInTimePeriod - 1;
@@ -278,7 +293,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

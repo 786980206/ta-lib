@@ -149,7 +149,6 @@ impl Core {
             }
         }
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn stddev_unchecked<T: TaFloat>(
         &self,
@@ -224,7 +223,6 @@ impl Core {
                 i += 1;
             }
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

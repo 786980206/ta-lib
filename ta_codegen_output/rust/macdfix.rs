@@ -120,7 +120,6 @@ impl Core {
         outMACDHist: &mut [T],
     ) -> RetCode {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
-        return RetCode::Success;
     }
     pub unsafe fn macdfix_unchecked<T: TaFloat>(
         &self,
@@ -167,7 +166,6 @@ impl Core {
         outMACDHist: &mut [T],
     ) -> RetCode {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
-        return RetCode::Success;
     }
 }
 /* Generated */

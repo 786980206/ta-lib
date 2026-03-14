@@ -119,6 +119,23 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut prevClose: T;
+        let mut prevMinusDM: T;
+        let mut prevPlusDM: T;
+        let mut prevTR: T;
+        let mut tempReal: T;
+        let tempReal2: T;
+        let mut diffP: T;
+        let mut diffM: T;
+        let mut minusDI: T;
+        let mut plusDI: T;
+        let mut sumDX: T;
+        let mut prevADX: T;
         let mut i: i32;
         lookbackTotal = 2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1;
         if startIdx < lookbackTotal {
@@ -285,7 +302,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn adx_unchecked<T: TaFloat>(
         &self,
@@ -331,6 +347,23 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let lookbackTotal: i32;
+        let mut outIdx: i32;
+        let mut prevHigh: T;
+        let mut prevLow: T;
+        let mut prevClose: T;
+        let mut prevMinusDM: T;
+        let mut prevPlusDM: T;
+        let mut prevTR: T;
+        let mut tempReal: T;
+        let tempReal2: T;
+        let mut diffP: T;
+        let mut diffM: T;
+        let mut minusDI: T;
+        let mut plusDI: T;
+        let mut sumDX: T;
+        let mut prevADX: T;
         let mut i: i32;
         lookbackTotal = 2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1;
         if startIdx < lookbackTotal {
@@ -496,7 +529,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevADX;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

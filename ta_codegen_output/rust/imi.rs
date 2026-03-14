@@ -115,6 +115,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let lookback: i32;
+        let mut outIdx: i32;
+        outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {
             startIdx = lookback;
@@ -138,7 +141,6 @@ impl Core {
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn imi_unchecked<T: TaFloat>(
@@ -182,6 +184,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let lookback: i32;
+        let mut outIdx: i32;
+        outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {
             startIdx = lookback;
@@ -205,7 +210,6 @@ impl Core {
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

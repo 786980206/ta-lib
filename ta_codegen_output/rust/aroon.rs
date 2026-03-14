@@ -119,7 +119,16 @@ impl Core {
         outAroonDown: &mut [T],
         outAroonUp: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let factor: T;
         let mut outIdx: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -178,7 +187,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn aroon_unchecked<T: TaFloat>(
         &self,
@@ -224,7 +232,16 @@ impl Core {
         outAroonDown: &mut [T],
         outAroonUp: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let factor: T;
         let mut outIdx: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -282,7 +299,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

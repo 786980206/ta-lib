@@ -164,7 +164,21 @@ impl Core {
         outSlowD: &mut [T],
     ) -> RetCode {
         let mut retCode: RetCode;
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let mut diff: T;
         let mut tempBuffer: Vec<T>;
+        let outIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let lookbackTotal: i32;
+        let lookbackK: i32;
+        let lookbackKSlow: i32;
+        let lookbackDSlow: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         let mut bufferIsAllocated: i32;
         lookbackK = optInFastK_Period - 1;
         lookbackKSlow = self.ma_lookback(optInSlowK_Period, optInSlowK_MAType);
@@ -264,7 +278,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn stoch_unchecked<T: TaFloat>(
         &self,
@@ -336,7 +349,21 @@ impl Core {
         outSlowD: &mut [T],
     ) -> RetCode {
         let mut retCode: RetCode;
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let mut diff: T;
         let mut tempBuffer: Vec<T>;
+        let outIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let lookbackTotal: i32;
+        let lookbackK: i32;
+        let lookbackKSlow: i32;
+        let lookbackDSlow: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         let mut bufferIsAllocated: i32;
         lookbackK = optInFastK_Period - 1;
         lookbackKSlow = self.ma_lookback(optInSlowK_Period, optInSlowK_MAType);
@@ -435,7 +462,6 @@ impl Core {
             return retCode;
         }
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

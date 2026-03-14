@@ -120,9 +120,14 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let mut retCode: RetCode;
+        let mut outIdx: i32;
+        let today: i32;
+        let lookbackTotal: i32;
         let nbATR: i32;
         let outBegIdx1: i32;
         let outNbElement1: i32;
+        let mut prevATR: T;
+        let mut tempValue: T;
         let tempBuffer: Vec<T>;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
@@ -176,7 +181,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return retCode;
-        return RetCode::Success;
     }
     pub unsafe fn natr_unchecked<T: TaFloat>(
         &self,
@@ -223,9 +227,14 @@ impl Core {
         outReal: &mut [T],
     ) -> RetCode {
         let mut retCode: RetCode;
+        let mut outIdx: i32;
+        let today: i32;
+        let lookbackTotal: i32;
         let nbATR: i32;
         let outBegIdx1: i32;
         let outNbElement1: i32;
+        let mut prevATR: T;
+        let mut tempValue: T;
         let tempBuffer: Vec<T>;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
@@ -279,7 +288,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return retCode;
-        return RetCode::Success;
     }
 }
 /* Generated */

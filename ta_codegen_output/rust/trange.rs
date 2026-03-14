@@ -104,6 +104,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let outIdx: i32;
+        let mut val2: T;
+        let mut val3: T;
+        let mut greatest: T;
+        let mut tempCY: T;
+        let mut tempLT: T;
+        let mut tempHT: T;
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -132,7 +140,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn trange_unchecked<T: TaFloat>(
@@ -171,6 +178,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut today: i32;
+        let outIdx: i32;
+        let mut val2: T;
+        let mut val3: T;
+        let mut greatest: T;
+        let mut tempCY: T;
+        let mut tempLT: T;
+        let mut tempHT: T;
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -199,7 +214,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

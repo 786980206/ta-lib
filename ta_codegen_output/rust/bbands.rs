@@ -134,6 +134,8 @@ impl Core {
     ) -> RetCode {
         let mut retCode: RetCode;
         let i: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
         let mut tempBuffer1: Vec<T>;
         let mut tempBuffer2: Vec<T>;
         if inReal == outRealUpperBand {
@@ -262,7 +264,6 @@ _endSum += 1;
             }
         }
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn bbands_unchecked<T: TaFloat>(
         &self,
@@ -319,6 +320,8 @@ _endSum += 1;
     ) -> RetCode {
         let mut retCode: RetCode;
         let i: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
         let mut tempBuffer1: Vec<T>;
         let mut tempBuffer2: Vec<T>;
         if inReal == outRealUpperBand {
@@ -446,7 +449,6 @@ _endSum += 1;
                 i += 1;
             }
         }
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

@@ -110,7 +110,18 @@ impl Core {
         outMAMA: &mut [T],
         outFAMA: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
+        let lookbackTotal: i32;
+        let mut today: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut adjustedPrevPeriod: T;
+        let mut period: T;
         let trailingWMAIdx: i32;
+        let mut periodWMASum: T;
+        let mut periodWMASub: T;
+        let mut trailingWMAValue: T;
         let mut smoothedValue: T;
         let a: T;
         let b: T;
@@ -144,31 +155,21 @@ impl Core {
         let mut prev_jQ_Even: T;
         let mut prev_jQ_input_Odd: T;
         let mut prev_jQ_input_Even: T;
+        let mut Q2: T;
+        let mut I2: T;
+        let mut prevQ2: T;
+        let mut prevI2: T;
+        let mut Re: T;
+        let mut Im: T;
+        let mut I1ForOddPrev2: T;
+        let mut I1ForOddPrev3: T;
+        let mut I1ForEvenPrev2: T;
+        let mut I1ForEvenPrev3: T;
         let rad2Deg: T;
-        let mut detrender_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender: T;
-        let mut prev_detrender_Odd: T;
-        let mut prev_detrender_Even: T;
-        let mut prev_detrender_input_Odd: T;
-        let mut prev_detrender_input_Even: T;
-        let mut Q1_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1: T;
-        let mut prev_Q1_Odd: T;
-        let mut prev_Q1_Even: T;
-        let mut prev_Q1_input_Odd: T;
-        let mut prev_Q1_input_Even: T;
-        let mut jI_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI: T;
-        let mut prev_jI_Odd: T;
-        let mut prev_jI_Even: T;
-        let mut prev_jI_input_Odd: T;
-        let mut prev_jI_input_Even: T;
-        let mut jQ_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ: T;
-        let mut prev_jQ_Odd: T;
-        let mut prev_jQ_Even: T;
-        let mut prev_jQ_input_Odd: T;
-        let mut prev_jQ_input_Even: T;
+        let mut mama: T;
+        let mut fama: T;
+        let mut todayValue: T;
+        let mut prevPhase: T;
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
         rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * 1.ta_atan());
@@ -370,7 +371,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn mama_unchecked<T: TaFloat>(
         &self,
@@ -411,7 +411,18 @@ impl Core {
         outMAMA: &mut [T],
         outFAMA: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
+        let lookbackTotal: i32;
+        let mut today: i32;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut adjustedPrevPeriod: T;
+        let mut period: T;
         let trailingWMAIdx: i32;
+        let mut periodWMASum: T;
+        let mut periodWMASub: T;
+        let mut trailingWMAValue: T;
         let mut smoothedValue: T;
         let a: T;
         let b: T;
@@ -445,31 +456,21 @@ impl Core {
         let mut prev_jQ_Even: T;
         let mut prev_jQ_input_Odd: T;
         let mut prev_jQ_input_Even: T;
+        let mut Q2: T;
+        let mut I2: T;
+        let mut prevQ2: T;
+        let mut prevI2: T;
+        let mut Re: T;
+        let mut Im: T;
+        let mut I1ForOddPrev2: T;
+        let mut I1ForOddPrev3: T;
+        let mut I1ForEvenPrev2: T;
+        let mut I1ForEvenPrev3: T;
         let rad2Deg: T;
-        let mut detrender_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender: T;
-        let mut prev_detrender_Odd: T;
-        let mut prev_detrender_Even: T;
-        let mut prev_detrender_input_Odd: T;
-        let mut prev_detrender_input_Even: T;
-        let mut Q1_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1: T;
-        let mut prev_Q1_Odd: T;
-        let mut prev_Q1_Even: T;
-        let mut prev_Q1_input_Odd: T;
-        let mut prev_Q1_input_Even: T;
-        let mut jI_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI: T;
-        let mut prev_jI_Odd: T;
-        let mut prev_jI_Even: T;
-        let mut prev_jI_input_Odd: T;
-        let mut prev_jI_input_Even: T;
-        let mut jQ_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ: T;
-        let mut prev_jQ_Odd: T;
-        let mut prev_jQ_Even: T;
-        let mut prev_jQ_input_Odd: T;
-        let mut prev_jQ_input_Even: T;
+        let mut mama: T;
+        let mut fama: T;
+        let mut todayValue: T;
+        let mut prevPhase: T;
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
         rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * 1.ta_atan());
@@ -670,7 +671,6 @@ impl Core {
             today += 1;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

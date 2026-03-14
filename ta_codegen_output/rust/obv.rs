@@ -102,6 +102,9 @@ impl Core {
     ) -> RetCode {
         let i: i32;
         let outIdx: i32;
+        let mut prevReal: T;
+        let mut tempReal: T;
+        let mut prevOBV: T;
         prevOBV = inVolume[startIdx];
         prevReal = inReal[startIdx];
         outIdx = 0;
@@ -117,7 +120,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn obv_unchecked<T: TaFloat>(
@@ -155,6 +157,9 @@ impl Core {
     ) -> RetCode {
         let i: i32;
         let outIdx: i32;
+        let mut prevReal: T;
+        let mut tempReal: T;
+        let mut prevOBV: T;
         prevOBV = *inVolume.get_unchecked(startIdx);
         prevReal = *inReal.get_unchecked(startIdx);
         outIdx = 0;
@@ -170,7 +175,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

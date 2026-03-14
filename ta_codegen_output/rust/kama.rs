@@ -113,6 +113,15 @@ impl Core {
     ) -> RetCode {
         let constMax: T;
         let constDiff: T;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut sumROC1: T;
+        let mut periodROC: T;
+        let mut prevKAMA: T;
+        let i: i32;
+        let today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let trailingIdx: i32;
         let mut trailingValue: T;
         constMax = T::ta_from_f64(2.0) / (T::ta_from_f64(30.0) + T::ta_from_f64(1.0));
@@ -188,7 +197,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn kama_unchecked<T: TaFloat>(
         &self,
@@ -230,6 +238,15 @@ impl Core {
     ) -> RetCode {
         let constMax: T;
         let constDiff: T;
+        let mut tempReal: T;
+        let mut tempReal2: T;
+        let mut sumROC1: T;
+        let mut periodROC: T;
+        let mut prevKAMA: T;
+        let i: i32;
+        let today: i32;
+        let outIdx: i32;
+        let lookbackTotal: i32;
         let trailingIdx: i32;
         let mut trailingValue: T;
         constMax = T::ta_from_f64(2.0) / (T::ta_from_f64(30.0) + T::ta_from_f64(1.0));
@@ -304,7 +321,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevKAMA;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

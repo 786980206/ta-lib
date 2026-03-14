@@ -115,6 +115,13 @@ impl Core {
         let mut numerator: T;
         let mut numeratorSub: T;
         let mut numeratorAdd: T;
+        let mut i: i32;
+        let mut outIdx: i32;
+        let mut todayIdx: i32;
+        let mut trailingIdx: i32;
+        let mut middleIdx: i32;
+        let mut factor: T;
+        let mut tempReal: T;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -210,7 +217,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn trima_unchecked<T: TaFloat>(
@@ -255,6 +261,13 @@ impl Core {
         let mut numerator: T;
         let mut numeratorSub: T;
         let mut numeratorAdd: T;
+        let mut i: i32;
+        let mut outIdx: i32;
+        let mut todayIdx: i32;
+        let mut trailingIdx: i32;
+        let mut middleIdx: i32;
+        let mut factor: T;
+        let mut tempReal: T;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -350,7 +363,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

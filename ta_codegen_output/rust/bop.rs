@@ -108,6 +108,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
         let mut tempReal: T;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
@@ -120,7 +122,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn bop_unchecked<T: TaFloat>(
@@ -162,6 +163,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let i: i32;
         let mut tempReal: T;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
@@ -174,7 +177,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

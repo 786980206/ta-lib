@@ -115,6 +115,17 @@ impl Core {
         outMinIdx: &mut [i32],
         outMaxIdx: &mut [i32],
     ) -> RetCode {
+        let mut highest: T;
+        let mut lowest: T;
+        let mut tmpHigh: T;
+        let mut tmpLow: T;
+        let mut outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
+        let mut highestIdx: i32;
+        let mut lowestIdx: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -173,7 +184,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn minmaxindex_unchecked<T: TaFloat>(
         &self,
@@ -216,6 +226,17 @@ impl Core {
         outMinIdx: &mut [i32],
         outMaxIdx: &mut [i32],
     ) -> RetCode {
+        let mut highest: T;
+        let mut lowest: T;
+        let mut tmpHigh: T;
+        let mut tmpLow: T;
+        let mut outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
+        let mut highestIdx: i32;
+        let mut lowestIdx: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -273,7 +294,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

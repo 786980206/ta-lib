@@ -127,6 +127,10 @@ impl Core {
         let mut x: T;
         let mut y: T;
         let mut n: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let nbInitialElementNeeded: i32;
         S_xx = T::ta_from_f64(0.0);
         S_xy = T::ta_from_f64(0.0);
         S_x = T::ta_from_f64(0.0);
@@ -221,7 +225,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn beta_unchecked<T: TaFloat>(
         &self,
@@ -276,6 +279,10 @@ impl Core {
         let mut x: T;
         let mut y: T;
         let mut n: T;
+        let i: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
+        let nbInitialElementNeeded: i32;
         S_xx = T::ta_from_f64(0.0);
         S_xy = T::ta_from_f64(0.0);
         S_x = T::ta_from_f64(0.0);
@@ -369,7 +376,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

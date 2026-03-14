@@ -111,6 +111,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut inIdx: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
         let mut tempReal: T;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
@@ -134,7 +137,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn rocp_unchecked<T: TaFloat>(
@@ -175,6 +177,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut inIdx: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
         let mut tempReal: T;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
@@ -198,7 +203,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

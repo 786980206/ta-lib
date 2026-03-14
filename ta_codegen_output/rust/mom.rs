@@ -111,6 +111,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let inIdx: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -127,7 +130,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn mom_unchecked<T: TaFloat>(
@@ -168,6 +170,9 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let inIdx: i32;
+        let outIdx: i32;
+        let trailingIdx: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -184,7 +189,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

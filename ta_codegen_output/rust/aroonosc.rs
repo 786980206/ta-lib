@@ -115,7 +115,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let factor: T;
+        let mut aroon: T;
         let mut outIdx: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -174,7 +184,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn aroonosc_unchecked<T: TaFloat>(
         &self,
@@ -217,7 +226,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let factor: T;
+        let mut aroon: T;
         let mut outIdx: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         if startIdx < optInTimePeriod {
             startIdx = optInTimePeriod;
         }
@@ -275,7 +294,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

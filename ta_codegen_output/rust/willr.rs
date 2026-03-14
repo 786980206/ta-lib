@@ -119,6 +119,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let mut diff: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -185,7 +196,6 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn willr_unchecked<T: TaFloat>(
         &self,
@@ -231,6 +241,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let mut lowest: T;
+        let mut highest: T;
+        let mut tmp: T;
+        let mut diff: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut lowestIdx: i32;
+        let mut highestIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -296,7 +317,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

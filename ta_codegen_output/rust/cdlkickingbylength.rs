@@ -122,6 +122,12 @@ impl Core {
     ) -> RetCode {
         let mut ShadowVeryShortPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
         let mut BodyLongPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -304,7 +310,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdlkickingbylength_unchecked<T: TaFloat>(
         &self,
@@ -347,6 +352,12 @@ impl Core {
     ) -> RetCode {
         let mut ShadowVeryShortPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
         let mut BodyLongPeriodTotal: [T; 2 as usize] = [T::zero(); 2 as usize];
+        let mut i: i32;
+        let outIdx: i32;
+        let totIdx: i32;
+        let mut ShadowVeryShortTrailingIdx: i32;
+        let mut BodyLongTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
         #[allow(non_snake_case)]
@@ -528,7 +539,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

@@ -116,6 +116,22 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let lookbackTotal: i32;
+        let today: i32;
+        let i: i32;
+        let k: T;
+        let one_minus_k: T;
+        let mut e1: T;
+        let mut e2: T;
+        let mut e3: T;
+        let mut e4: T;
+        let mut e5: T;
+        let mut e6: T;
+        let c1: T;
+        let c2: T;
+        let c3: T;
+        let c4: T;
         let mut tempReal: T;
         lookbackTotal = 6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize];
         if startIdx <= lookbackTotal {
@@ -219,7 +235,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn t3_unchecked<T: TaFloat>(
         &self,
@@ -262,6 +277,22 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let outIdx: i32;
+        let lookbackTotal: i32;
+        let today: i32;
+        let i: i32;
+        let k: T;
+        let one_minus_k: T;
+        let mut e1: T;
+        let mut e2: T;
+        let mut e3: T;
+        let mut e4: T;
+        let mut e5: T;
+        let mut e6: T;
+        let c1: T;
+        let c2: T;
+        let c3: T;
+        let c4: T;
         let mut tempReal: T;
         lookbackTotal = 6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize];
         if startIdx <= lookbackTotal {
@@ -364,7 +395,6 @@ impl Core {
             *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         }
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

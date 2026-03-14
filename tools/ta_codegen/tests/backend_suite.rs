@@ -1067,13 +1067,16 @@ fn test_all_indicators_contain_success_returns() {
                 "C {}: missing TA_SUCCESS return",
                 name
             );
+            // Delegation functions (e.g. MACDFIX) return a RetCode from a
+            // callee without ever mentioning RetCode.Success literally.
+            // Accept: literal RetCode::Success OR a return of a RetCode from a cross-indicator call.
+            let rust_has_success = out.rust.contains("RetCode::Success")
+                || (out.rust.contains("return self.") && out.rust.contains("_unguarded"));
             assert!(
-                out.rust.contains("RetCode::Success"),
+                rust_has_success,
                 "Rust {}: missing RetCode::Success return",
                 name
             );
-            // Delegation functions (e.g. MACDFIX) return a RetCode from a
-            // callee without ever mentioning RetCode.Success literally.
             // Accept: literal RetCode.Success OR a return of a RetCode variable/call.
             let java_has_success = out.java.contains("RetCode.Success")
                 || out.java.contains("return retCode ;")

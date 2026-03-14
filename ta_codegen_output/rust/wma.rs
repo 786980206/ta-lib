@@ -111,6 +111,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let inIdx: i32;
+        let outIdx: i32;
+        let mut i: i32;
+        let trailingIdx: i32;
+        let divider: i32;
+        let mut periodSum: T;
+        let mut periodSub: T;
+        let mut tempReal: T;
+        let mut trailingValue: T;
         let lookbackTotal: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
@@ -158,7 +167,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn wma_unchecked<T: TaFloat>(
         &self,
@@ -198,6 +206,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let inIdx: i32;
+        let outIdx: i32;
+        let mut i: i32;
+        let trailingIdx: i32;
+        let divider: i32;
+        let mut periodSum: T;
+        let mut periodSub: T;
+        let mut tempReal: T;
+        let mut trailingValue: T;
         let lookbackTotal: i32;
         lookbackTotal = optInTimePeriod - 1;
         if startIdx < lookbackTotal {
@@ -244,7 +261,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

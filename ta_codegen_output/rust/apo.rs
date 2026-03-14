@@ -132,10 +132,13 @@ impl Core {
         let tempBuffer: Vec<T>;
         let mut retCode: RetCode;
         let mut tempInteger: i32;
+        let outBegIdx1: i32;
+        let outNbElement1: i32;
+        let outBegIdx2: i32;
+        let outNbElement2: i32;
+        let i: i32;
+        let j: i32;
         tempBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-        if !(tempBuffer) {
-            return ALLOC_ERR;
-        }
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = optInSlowPeriod;
             optInSlowPeriod = optInFastPeriod;
@@ -161,7 +164,6 @@ j += 1;
             }
         }
         return retCode;
-        return RetCode::Success;
     }
     pub unsafe fn apo_unchecked<T: TaFloat>(
         &self,
@@ -215,10 +217,13 @@ j += 1;
         let tempBuffer: Vec<T>;
         let mut retCode: RetCode;
         let mut tempInteger: i32;
+        let outBegIdx1: i32;
+        let outNbElement1: i32;
+        let outBegIdx2: i32;
+        let outNbElement2: i32;
+        let i: i32;
+        let j: i32;
         tempBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-        if !(tempBuffer) {
-            return ALLOC_ERR;
-        }
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = optInSlowPeriod;
             optInSlowPeriod = optInFastPeriod;
@@ -244,7 +249,6 @@ j += 1;
             }
         }
         return retCode;
-        return RetCode::Success;
     }
 }
 /* Generated */

@@ -111,6 +111,14 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut highest: T;
+        let mut tmp: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
+        let mut highestIdx: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -148,7 +156,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
     pub unsafe fn maxindex_unchecked<T: TaFloat>(
@@ -189,6 +196,14 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
+        let mut highest: T;
+        let mut tmp: T;
+        let outIdx: i32;
+        let nbInitialElementNeeded: i32;
+        let mut trailingIdx: i32;
+        let mut today: i32;
+        let mut i: i32;
+        let mut highestIdx: i32;
         nbInitialElementNeeded = optInTimePeriod - 1;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -226,7 +241,6 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }

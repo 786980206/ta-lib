@@ -115,6 +115,10 @@ impl Core {
         outInteger: &mut [i32],
     ) -> RetCode {
         let mut EqualPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut EqualTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let Equal_rangeType: i32 = self.candle_settings.equal.range_type;
         #[allow(non_snake_case)]
@@ -198,7 +202,6 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-        return RetCode::Success;
     }
     pub unsafe fn cdlmatchinglow_unchecked<T: TaFloat>(
         &self,
@@ -240,6 +243,10 @@ impl Core {
         outInteger: &mut [i32],
     ) -> RetCode {
         let mut EqualPeriodTotal: T;
+        let mut i: i32;
+        let outIdx: i32;
+        let mut EqualTrailingIdx: i32;
+        let lookbackTotal: i32;
         #[allow(non_snake_case)]
         let Equal_rangeType: i32 = self.candle_settings.equal.range_type;
         #[allow(non_snake_case)]
@@ -322,7 +329,6 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
-        return RetCode::Success;
         return RetCode::Success;
     }
 }
