@@ -103,6 +103,25 @@ fn to_pascal(name: &str) -> String {
     }
 }
 
+/// Convert snake_case to Java camelCase: "linearreg_angle" -> "linearregAngle"
+fn to_camel(name: &str) -> String {
+    let lower = name.to_lowercase();
+    let parts: Vec<&str> = lower.split('_').collect();
+    let mut result = String::new();
+    for (i, part) in parts.iter().enumerate() {
+        if i == 0 {
+            result.push_str(part);
+        } else {
+            let mut chars = part.chars();
+            if let Some(c) = chars.next() {
+                result.extend(c.to_uppercase());
+                result.push_str(chars.as_str());
+            }
+        }
+    }
+    result
+}
+
 /// Check that all C variants exist for a given indicator.
 fn check_c_variants(c: &str, upper: &str, name: &str) {
     assert!(
@@ -364,11 +383,12 @@ fn test_all_indicators_all_backends() {
         let upper = func.name.clone();
         let snake = name.clone();
         let pascal = to_pascal(name);
+        let camel = to_camel(name);
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             check_c_variants(&out.c, &upper, &snake);
             check_rust_generic_variants(&out.rust, &snake, &snake);
-            check_java_variants(&out.java, &snake, &snake);
+            check_java_variants(&out.java, &camel, &snake);
             check_dotnet_variants(&out.dotnet, &pascal, &upper, &snake);
             check_swig_variants(&out.swig, &upper, &snake);
             check_c_int_alias(&out.c, &upper, &snake);

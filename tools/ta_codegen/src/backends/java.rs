@@ -265,7 +265,7 @@ fn gen_lookback(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let name = func.name.to_lowercase();
+    let name = to_java_method_name(&func.name);
 
     // Build parameter list for signature
     let param_str = if func.optional_inputs.is_empty() {
@@ -314,7 +314,7 @@ fn gen_func(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    let base_name = func.name.to_lowercase();
+    let base_name = to_java_method_name(&func.name);
     let name = if logic {
         format!("{base_name}Logic")
     } else {
@@ -1403,6 +1403,28 @@ fn to_pascal_case(s: &str) -> String {
             }
         })
         .collect()
+}
+
+/// Convert a function name to Java `camelCase`.
+/// Keeps the first segment lowercase, capitalizes subsequent segments.
+/// e.g., "linearreg_angle" -> "linearregAngle", "ht_dcperiod" -> "htDcperiod"
+/// Names without underscores pass through unchanged: "sma" -> "sma"
+fn to_java_method_name(s: &str) -> String {
+    let lower = s.to_lowercase();
+    let parts: Vec<&str> = lower.split('_').collect();
+    let mut result = String::new();
+    for (i, part) in parts.iter().enumerate() {
+        if i == 0 {
+            result.push_str(part);
+        } else {
+            let mut chars = part.chars();
+            if let Some(c) = chars.next() {
+                result.extend(c.to_uppercase());
+                result.push_str(chars.as_str());
+            }
+        }
+    }
+    result
 }
 
 /// Render a `FuncCall` expression to Java code.

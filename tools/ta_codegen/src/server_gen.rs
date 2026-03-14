@@ -7,6 +7,26 @@
 use crate::ir::{FuncDef, Input, OptInput, Output, ParamType};
 use std::path::Path;
 
+/// Convert a function name to Java `camelCase` for method names.
+/// e.g., "LINEARREG_ANGLE" -> "linearregAngle", "HT_DCPERIOD" -> "htDcperiod"
+fn to_java_camel_case(name: &str) -> String {
+    let lower = name.to_lowercase();
+    let parts: Vec<&str> = lower.split('_').collect();
+    let mut result = String::new();
+    for (i, part) in parts.iter().enumerate() {
+        if i == 0 {
+            result.push_str(part);
+        } else {
+            let mut chars = part.chars();
+            if let Some(c) = chars.next() {
+                result.extend(c.to_uppercase());
+                result.push_str(chars.as_str());
+            }
+        }
+    }
+    result
+}
+
 /// Generate the JSON response key for an output at position `idx` among all outputs.
 ///
 /// Naming convention (matches ta_regtest expectations):
@@ -887,7 +907,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     for (i, func) in funcs.iter().enumerate() {
         let method_name = format!("TA_{}", func.name);
         let cond = if i == 0 { "if" } else { "else if" };
-        let func_lower = func.name.to_lowercase();
+        let func_lower = to_java_camel_case(&func.name);
 
         s.push_str(&format!(
             "        {cond} (json.contains(\"\\\"{method_name}\\\"\")) {{\n"
