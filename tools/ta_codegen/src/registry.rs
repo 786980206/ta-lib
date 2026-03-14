@@ -65,7 +65,10 @@ impl Registry {
             return match lang {
                 Lang::Rust => func_name.to_string(),
                 Lang::C | Lang::Swig => format!("TA_INT_{}", func_name.to_uppercase()),
-                Lang::Java => format!("{func_name}Logic"),
+                Lang::Java => {
+                    let camel = self.to_camel_case(func_name);
+                    format!("{camel}Logic")
+                }
                 Lang::DotNet => {
                     let pascal = capitalize(func_name);
                     format!("{pascal}Logic")

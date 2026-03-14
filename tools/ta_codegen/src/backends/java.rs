@@ -422,8 +422,8 @@ fn gen_func(
                 format!("double[] {name} = new double[1]")
             } else {
                 match var_type {
-                    VarType::Real => format!("double {name}"),
-                    VarType::Integer | VarType::Index => format!("int {name}"),
+                    VarType::Real => format!("double {name} = 0"),
+                    VarType::Integer | VarType::Index => format!("int {name} = 0"),
                     VarType::RetCodeType => format!("RetCode {name}"),
                     VarType::RealPointer => format!("double[] {name}"),
                     VarType::IntPointer => format!("int[] {name}"),
@@ -604,8 +604,21 @@ fn render_hoisted_blocks(
                     }
                 };
                 if let Some(init_expr) = init {
+                    // Hoist any multi-statement helpers in the init expression
+                    // (e.g. ta_candlerange inside ta_candleaverage's VarDecl init)
+                    let mut inner_hoisted = Vec::new();
+                    let mut cnt = inline_counter.get();
+                    let hoisted_init = hoist_block_helpers(
+                        init_expr, helpers, &mut inner_hoisted, &mut cnt,
+                    );
+                    inline_counter.set(cnt);
+                    out.push_str(&render_hoisted_blocks(
+                        &inner_hoisted, indent, single_precision, enums, registry,
+                        helpers, inline_counter, address_of_vars,
+                        double_address_of_vars, float_input_params,
+                    ));
                     let init_str = render_expr(
-                        init_expr,
+                        &hoisted_init,
                         single_precision,
                         registry,
                         helpers,
@@ -620,6 +633,10 @@ fn render_hoisted_blocks(
             }
         }
         for stmt in body {
+            // Skip VarDecls — already emitted in the declaration loop above
+            if matches!(stmt, Statement::VarDecl { .. }) {
+                continue;
+            }
             out.push_str(&render_statement(
                 stmt,
                 indent,
@@ -652,7 +669,51 @@ pub fn render_statement(
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
-        Statement::VarDecl { .. } => String::new(),
+        Statement::VarDecl {
+            var_type,
+            name,
+            init,
+        } => {
+            // Top-level VarDecls are emitted by the function renderer and skipped
+            // before calling render_statement. This arm handles block-scoped VarDecls
+            // (inside while/for/if bodies) that need local declarations.
+            let type_str = match var_type {
+                VarType::Real => "double",
+                VarType::Integer | VarType::Index => "int",
+                VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => "double[]",
+                VarType::IntPointer => "int[]",
+                VarType::RealArray(size) => {
+                    return format!(
+                        "{pad}double[] {name} = new double[{size}];\n"
+                    );
+                }
+                VarType::IntArray(size) => {
+                    return format!("{pad}int[] {name} = new int[{size}];\n");
+                }
+            };
+            if let Some(init_expr) = init {
+                let mut hoisted_vec = Vec::new();
+                let mut cnt = inline_counter.get();
+                let new_init = hoist_block_helpers(
+                    init_expr, helpers, &mut hoisted_vec, &mut cnt,
+                );
+                inline_counter.set(cnt);
+                let mut out = render_hoisted_blocks(
+                    &hoisted_vec, indent, single_precision, enums, registry,
+                    helpers, inline_counter, address_of_vars,
+                    double_address_of_vars, float_input_params,
+                );
+                let init_str = render_expr(
+                    &new_init, single_precision, registry, helpers,
+                    address_of_vars, double_address_of_vars, float_input_params,
+                );
+                out.push_str(&format!("{pad}{type_str} {name} = {init_str};\n"));
+                out
+            } else {
+                format!("{pad}{type_str} {name};\n")
+            }
+        }
         Statement::Assign {
             target,
             value,
@@ -1044,6 +1105,10 @@ pub fn render_statement(
                 }
             }
             for s in body {
+                // Skip VarDecls — already emitted in the declaration loop above
+                if matches!(s, Statement::VarDecl { .. }) {
+                    continue;
+                }
                 out.push_str(&render_statement(
                     s,
                     indent,
