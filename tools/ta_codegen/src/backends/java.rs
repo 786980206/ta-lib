@@ -152,6 +152,96 @@ fn scan_expr_for_address_of(expr: &Expr, vars: &mut HashSet<String>) {
     }
 }
 
+/// Collect local int variables that are assigned from MAType enum parameters.
+/// These variables must be declared as `MAType` instead of `int` in Java.
+///
+/// Scans the function body for `Assign { target: Var(local), value: Var(param) }`
+/// where `param` is a known MAType parameter name.
+fn collect_matype_vars(stmts: &[Statement], matype_params: &HashSet<String>) -> HashSet<String> {
+    let mut vars = HashSet::new();
+    if matype_params.is_empty() {
+        return vars;
+    }
+    collect_matype_vars_stmts(stmts, matype_params, &mut vars);
+    vars
+}
+
+fn collect_matype_vars_stmts(
+    stmts: &[Statement],
+    matype_params: &HashSet<String>,
+    vars: &mut HashSet<String>,
+) {
+    for stmt in stmts {
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(tname),
+                value: Expr::Var(vname),
+                ..
+            } => {
+                // If value is a known MAType param, target must be MAType
+                if matype_params.contains(vname) {
+                    vars.insert(tname.clone());
+                }
+                // If value is a known MAType local var, target must be too
+                if vars.contains(vname) {
+                    vars.insert(tname.clone());
+                }
+            }
+            Statement::If {
+                then_body,
+                else_body,
+                ..
+            } => {
+                collect_matype_vars_stmts(then_body, matype_params, vars);
+                collect_matype_vars_stmts(else_body, matype_params, vars);
+            }
+            Statement::While { body, .. }
+            | Statement::DoWhile { body, .. }
+            | Statement::For { body, .. } => {
+                collect_matype_vars_stmts(body, matype_params, vars);
+            }
+            Statement::ForC { init, body, .. } => {
+                collect_matype_vars_stmts(&[*init.clone()], matype_params, vars);
+                collect_matype_vars_stmts(body, matype_params, vars);
+            }
+            Statement::Block { body } => {
+                collect_matype_vars_stmts(body, matype_params, vars);
+            }
+            Statement::Switch {
+                cases, default, ..
+            } => {
+                for (_, case_body) in cases {
+                    collect_matype_vars_stmts(case_body, matype_params, vars);
+                }
+                collect_matype_vars_stmts(default, matype_params, vars);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Collect Real-typed variables that appear in AddressOf contexts.
+/// These need `double[]` wrapping instead of MInteger wrapping in Java.
+fn collect_double_address_of_vars(
+    stmts: &[Statement],
+    address_of_vars: &HashSet<String>,
+) -> HashSet<String> {
+    let mut double_vars = HashSet::new();
+    for stmt in stmts {
+        if let Statement::VarDecl {
+            var_type: VarType::Real,
+            name,
+            ..
+        } = stmt
+        {
+            if address_of_vars.contains(name) {
+                double_vars.insert(name.clone());
+            }
+        }
+    }
+    double_vars
+}
+
 #[allow(clippy::implicit_hasher)]
 pub fn generate(
     func: &FuncDef,
@@ -288,7 +378,7 @@ fn gen_func(
     out.push_str("   {\n");
 
     // Pre-scan for variables used in AddressOf contexts (need MInteger wrapping)
-    let address_of_vars = collect_address_of_vars(&func.body);
+    let mut address_of_vars = collect_address_of_vars(&func.body);
 
     // In single-precision variants, input params are float[] while outputs are double[].
     // Collect input param names so render_expr can replace float[]==double[] with false.
@@ -298,13 +388,38 @@ fn gen_func(
         HashSet::new()
     };
 
+    // Pre-scan for local int variables that are assigned from MAType enum params.
+    // In C, `ENUM_DECLARATION(MAType) tempMAType` is parsed as VarType::Integer,
+    // but in Java the variable must be declared as `MAType` to allow enum assignment.
+    let matype_params: HashSet<String> = func
+        .optional_inputs
+        .iter()
+        .filter(|o| matches!(&o.param_type, ParamType::Enum(n) if n == "MAType"))
+        .map(|o| o.name.clone())
+        .collect();
+    let matype_vars = collect_matype_vars(&func.body, &matype_params);
+
+    // Collect Real-typed variables used in AddressOf contexts.
+    // These need `double[]` wrapping (not MInteger) — e.g. `double prevATR`
+    // becomes `double[] prevATR = new double[1]` and uses `[0]` instead of `.value`.
+    let double_address_of_vars = collect_double_address_of_vars(&func.body, &address_of_vars);
+
+    // Remove double address-of vars from the integer set so they don't get `.value`
+    for name in &double_address_of_vars {
+        address_of_vars.remove(name);
+    }
+
     // Declare local variables
     for stmt in &func.body {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let java_decl = if address_of_vars.contains(name)
+            let java_decl = if matype_vars.contains(name) {
+                format!("MAType {name}")
+            } else if address_of_vars.contains(name)
                 && matches!(var_type, VarType::Integer | VarType::Index)
             {
                 format!("MInteger {name} = new MInteger()")
+            } else if double_address_of_vars.contains(name) {
+                format!("double[] {name} = new double[1]")
             } else {
                 match var_type {
                     VarType::Real => format!("double {name}"),
@@ -364,12 +479,15 @@ fn gen_func(
                 helpers,
                 &inline_counter,
                 &address_of_vars,
+                &double_address_of_vars,
                 &float_input_params,
             ));
             let init_str =
-                render_expr(&new_init, single_precision, registry, helpers, &address_of_vars, &float_input_params);
+                render_expr(&new_init, single_precision, registry, helpers, &address_of_vars, &double_address_of_vars, &float_input_params);
             if address_of_vars.contains(name) {
                 out.push_str(&format!("      {name}.value = {init_str};\n"));
+            } else if double_address_of_vars.contains(name) {
+                out.push_str(&format!("      {name}[0] = {init_str};\n"));
             } else {
                 out.push_str(&format!("      {name} = {init_str};\n"));
             }
@@ -390,6 +508,7 @@ fn gen_func(
             helpers,
             &inline_counter,
             &address_of_vars,
+            &double_address_of_vars,
             &float_input_params,
         ));
     }
@@ -410,6 +529,7 @@ fn render_forc_part(
     helpers: &HelperRegistry,
     inline_counter: &Cell<usize>,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     match stmt {
@@ -418,7 +538,7 @@ fn render_forc_part(
             .map(|s| {
                 render_statement(
                     s, 0, single_precision, enums, registry, helpers, inline_counter,
-                    address_of_vars, float_input_params,
+                    address_of_vars, double_address_of_vars, float_input_params,
                 )
                 .trim()
                 .trim_end_matches(';')
@@ -428,7 +548,7 @@ fn render_forc_part(
             .join(", "),
         _ => render_statement(
             stmt, 0, single_precision, enums, registry, helpers, inline_counter,
-            address_of_vars, float_input_params,
+            address_of_vars, double_address_of_vars, float_input_params,
         )
         .trim()
         .trim_end_matches(';')
@@ -446,6 +566,7 @@ fn render_hoisted_blocks(
     helpers: &HelperRegistry,
     inline_counter: &Cell<usize>,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     let pad = " ".repeat(indent);
@@ -489,6 +610,7 @@ fn render_hoisted_blocks(
                         registry,
                         helpers,
                         address_of_vars,
+                        double_address_of_vars,
                         float_input_params,
                     );
                     out.push_str(&format!("{pad}{type_part} {name} = {init_str};\n"));
@@ -507,6 +629,7 @@ fn render_hoisted_blocks(
                 helpers,
                 inline_counter,
                 address_of_vars,
+                double_address_of_vars,
                 float_input_params,
             ));
         }
@@ -524,6 +647,7 @@ pub fn render_statement(
     helpers: &HelperRegistry,
     inline_counter: &Cell<usize>,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     let pad = " ".repeat(indent);
@@ -552,7 +676,7 @@ pub fn render_statement(
                         }
                         let rendered = render_func_call(
                             fname, args, single_precision, registry, helpers,
-                            address_of_vars, float_input_params,
+                            address_of_vars, double_address_of_vars, float_input_params,
                         );
                         // Skip empty renders (e.g. free() returns "")
                         if rendered.is_empty() {
@@ -570,7 +694,7 @@ pub fn render_statement(
                         pad,
                         name,
                         render_expr(value, single_precision, registry, helpers,
-                            address_of_vars, float_input_params)
+                            address_of_vars, double_address_of_vars, float_input_params)
                     );
                 }
             }
@@ -584,7 +708,7 @@ pub fn render_statement(
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             );
 
             // Only fold compound assignments if the original source used +=/-=/etc.
@@ -612,7 +736,7 @@ pub fn render_statement(
                             if !op_str.is_empty() {
                                 let target_str = render_assign_target(
                                     target, single_precision, registry, helpers,
-                                    address_of_vars, float_input_params,
+                                    address_of_vars, double_address_of_vars, float_input_params,
                                 );
                                 out.push_str(&format!(
                                     "{}{} {} {};\n",
@@ -620,7 +744,7 @@ pub fn render_statement(
                                     target_str,
                                     op_str,
                                     render_expr(right, single_precision, registry, helpers,
-                                        address_of_vars, float_input_params)
+                                        address_of_vars, double_address_of_vars, float_input_params)
                                 ));
                                 return out;
                             }
@@ -630,10 +754,10 @@ pub fn render_statement(
             }
 
             let target_str = render_assign_target(
-                target, single_precision, registry, helpers, address_of_vars, float_input_params,
+                target, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
             );
             let value_str = render_expr(
-                &new_value, single_precision, registry, helpers, address_of_vars, float_input_params,
+                &new_value, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
             );
             out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
             out
@@ -648,10 +772,10 @@ pub fn render_statement(
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             );
             let cond_str =
-                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let cond_java = if is_boolean_expr(&new_condition) {
                 cond_str
             } else {
@@ -668,6 +792,7 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
@@ -695,15 +820,16 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
             out.push_str(&render_hoisted_blocks(
                 &hoisted, indent + 3, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             ));
             let cond_str =
-                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let cond_java = if is_boolean_expr(&new_condition) {
                 cond_str
             } else {
@@ -730,10 +856,10 @@ pub fn render_statement(
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             );
             let cond_str =
-                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&new_condition, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let cond_java = if is_boolean_expr(&new_condition) {
                 cond_str
             } else {
@@ -750,6 +876,7 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
@@ -768,6 +895,7 @@ pub fn render_statement(
                             helpers,
                             inline_counter,
                             address_of_vars,
+                            double_address_of_vars,
                             float_input_params,
                         );
                         out.push_str(if_str.trim_start());
@@ -785,6 +913,7 @@ pub fn render_statement(
                         helpers,
                         inline_counter,
                         address_of_vars,
+                        double_address_of_vars,
                         float_input_params,
                     ));
                 }
@@ -795,7 +924,7 @@ pub fn render_statement(
         Statement::Return { value } => match value {
             Some(expr) => {
                 let rendered = render_return_expr(
-                    expr, single_precision, registry, helpers, address_of_vars, float_input_params,
+                    expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
                 format!("{pad}return {rendered} ;\n")
             }
@@ -807,7 +936,7 @@ pub fn render_statement(
                 pad,
                 var,
                 render_expr(count, single_precision, registry, helpers,
-                    address_of_vars, float_input_params),
+                    address_of_vars, double_address_of_vars, float_input_params),
                 var,
                 var,
             );
@@ -821,6 +950,7 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
@@ -835,11 +965,11 @@ pub fn render_statement(
         } => {
             let init_str = render_forc_part(
                 init, single_precision, enums, registry, helpers, inline_counter,
-                address_of_vars, float_input_params,
+                address_of_vars, double_address_of_vars, float_input_params,
             );
             let update_str = render_forc_part(
                 update, single_precision, enums, registry, helpers, inline_counter,
-                address_of_vars, float_input_params,
+                address_of_vars, double_address_of_vars, float_input_params,
             );
             // Hoist multi-statement helpers from the condition expression
             let mut hoisted = Vec::new();
@@ -850,14 +980,14 @@ pub fn render_statement(
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             );
             out.push_str(&format!(
                 "{}for( {}; {}; {} ) {{\n",
                 pad,
                 init_str.trim(),
                 render_expr(&new_condition, single_precision, registry, helpers,
-                    address_of_vars, float_input_params),
+                    address_of_vars, double_address_of_vars, float_input_params),
                 update_str.trim()
             ));
             for s in body {
@@ -870,6 +1000,7 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
@@ -903,6 +1034,7 @@ pub fn render_statement(
                             registry,
                             helpers,
                             address_of_vars,
+                            double_address_of_vars,
                             float_input_params,
                         );
                         out.push_str(&format!("{pad}{type_part} {name} = {init_str};\n"));
@@ -921,6 +1053,7 @@ pub fn render_statement(
                     helpers,
                     inline_counter,
                     address_of_vars,
+                    double_address_of_vars,
                     float_input_params,
                 ));
             }
@@ -942,13 +1075,13 @@ pub fn render_statement(
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry,
-                helpers, inline_counter, address_of_vars, float_input_params,
+                helpers, inline_counter, address_of_vars, double_address_of_vars, float_input_params,
             );
             out.push_str(&format!(
                 "{}switch( {} )\n{}{{\n",
                 pad,
                 render_expr(&new_expr, single_precision, registry, helpers,
-                    address_of_vars, float_input_params),
+                    address_of_vars, double_address_of_vars, float_input_params),
                 pad
             ));
             for (label, case_body) in cases {
@@ -964,6 +1097,7 @@ pub fn render_statement(
                         helpers,
                         inline_counter,
                         address_of_vars,
+                        double_address_of_vars,
                         float_input_params,
                     ));
                 }
@@ -981,6 +1115,7 @@ pub fn render_statement(
                         helpers,
                         inline_counter,
                         address_of_vars,
+                        double_address_of_vars,
                         float_input_params,
                     ));
                 }
@@ -1006,12 +1141,15 @@ fn render_assign_target(
     registry: &Registry,
     helpers: &HelperRegistry,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     match expr {
         Expr::Var(name) => {
             if address_of_vars.contains(name) {
                 format!("{name}.value")
+            } else if double_address_of_vars.contains(name) {
+                format!("{name}[0]")
             } else {
                 name.clone()
             }
@@ -1021,7 +1159,7 @@ fn render_assign_target(
                 "{}[{}]",
                 name,
                 render_expr(idx, single_precision, registry, helpers,
-                    address_of_vars, float_input_params)
+                    address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::Literal(_)
@@ -1037,7 +1175,7 @@ fn render_assign_target(
         | Expr::PreIncrement(_)
         | Expr::PreDecrement(_)
         | Expr::Ternary(_, _, _) => {
-            render_expr(expr, single_precision, registry, helpers, address_of_vars, float_input_params)
+            render_expr(expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
         }
     }
 }
@@ -1049,6 +1187,7 @@ fn render_return_expr(
     registry: &Registry,
     helpers: &HelperRegistry,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     if let Expr::Var(name) = expr {
@@ -1057,10 +1196,10 @@ fn render_return_expr(
             "BadParam" => "RetCode.BadParam".to_string(),
             "OutOfRangeEndIndex" => "RetCode.OutOfRangeEndIndex".to_string(),
             "OutOfRangeStartIndex" => "RetCode.OutOfRangeStartIndex".to_string(),
-            _ => render_expr(expr, single_precision, registry, helpers, address_of_vars, float_input_params),
+            _ => render_expr(expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params),
         };
     }
-    render_expr(expr, single_precision, registry, helpers, address_of_vars, float_input_params)
+    render_expr(expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
 }
 
 #[allow(clippy::too_many_lines)]
@@ -1070,6 +1209,7 @@ fn render_expr(
     registry: &Registry,
     helpers: &HelperRegistry,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     match expr {
@@ -1107,6 +1247,8 @@ fn render_expr(
             };
             if address_of_vars.contains(name) {
                 format!("{mapped}.value")
+            } else if double_address_of_vars.contains(name) {
+                format!("{mapped}[0]")
             } else {
                 mapped
             }
@@ -1115,7 +1257,7 @@ fn render_expr(
             format!(
                 "{}[{}]",
                 name,
-                render_expr(idx, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(idx, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::BinOp(left, op, right) => {
@@ -1155,9 +1297,9 @@ fn render_expr(
             };
             format!(
                 "({}{}{})",
-                render_expr(left, single_precision, registry, helpers, address_of_vars, float_input_params),
+                render_expr(left, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params),
                 op_str,
-                render_expr(right, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(right, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::Cast(var_type, inner) => {
@@ -1172,70 +1314,77 @@ fn render_expr(
             format!(
                 "(({}){})",
                 java_type,
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::Not(inner) => {
             format!(
                 "!({})",
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::FuncCall(name, args) => {
-            render_func_call(name, args, single_precision, registry, helpers, address_of_vars, float_input_params)
+            render_func_call(name, args, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
         }
         Expr::PointerDeref(name) => {
             // Java has no pointer dereference; output params are MInteger .value
-            format!("{name}.value")
+            // For double address-of vars, use [0] instead
+            if double_address_of_vars.contains(name) {
+                format!("{name}[0]")
+            } else {
+                format!("{name}.value")
+            }
         }
         Expr::AddressOf(inner) => {
             // Java has no address-of; render the inner expression directly.
-            // Pass an empty set so that MInteger vars render as object refs (no .value).
+            // Pass empty sets so MInteger vars render as object refs (no .value)
+            // and double[] vars render as array refs (no [0]).
             let empty = HashSet::new();
-            render_expr(inner, single_precision, registry, helpers, &empty, float_input_params)
+            let empty2 = HashSet::new();
+            render_expr(inner, single_precision, registry, helpers, &empty, &empty2, float_input_params)
         }
         Expr::PostIncrement(inner) => {
             format!(
                 "{}++",
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::PostDecrement(inner) => {
             format!(
                 "{}--",
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::PreIncrement(inner) => {
             format!(
                 "++{}",
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::PreDecrement(inner) => {
             format!(
                 "--{}",
-                render_expr(inner, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(inner, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
             // (cond) ? (1) : (0) → just the condition (boolean in Java)
             if is_int_literal(then_expr, 1) && is_int_literal(else_expr, 0) {
-                return render_expr(cond, single_precision, registry, helpers, address_of_vars, float_input_params);
+                return render_expr(cond, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             }
             // (cond) ? (0) : (1) → !condition
             if is_int_literal(then_expr, 0) && is_int_literal(else_expr, 1) {
                 return format!(
                     "!({})",
-                    render_expr(cond, single_precision, registry, helpers, address_of_vars, float_input_params)
+                    render_expr(cond, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
                 );
             }
             // Default: render as Java ternary
             format!(
                 "(({}) ? ({}) : ({}))",
-                render_expr(cond, single_precision, registry, helpers, address_of_vars, float_input_params),
-                render_expr(then_expr, single_precision, registry, helpers, address_of_vars, float_input_params),
-                render_expr(else_expr, single_precision, registry, helpers, address_of_vars, float_input_params)
+                render_expr(cond, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params),
+                render_expr(then_expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params),
+                render_expr(else_expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params)
             )
         }
     }
@@ -1265,13 +1414,14 @@ fn render_func_call(
     registry: &Registry,
     helpers: &HelperRegistry,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> String {
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
             return render_expr(
-                &inlined_expr, single_precision, registry, helpers, address_of_vars, float_input_params,
+                &inlined_expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
             );
         }
         // Multi-statement helpers: Task 10 will handle
@@ -1307,7 +1457,7 @@ fn render_func_call(
     } else if fname == "IS_ZERO" {
         // IS_ZERO(x) -> inline epsilon check
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, float_input_params);
+            let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             return format!("((-0.00000000000001 < {x}) && ({x} < 0.00000000000001))");
         }
         "false".to_string()
@@ -1315,21 +1465,21 @@ fn render_func_call(
         // ARRAY_COPY(dst, dstOff, src, srcOff, count)
         // -> System.arraycopy(src, srcOff, dst, dstOff, count) (note arg reordering)
         if args.len() == 5 {
-            let dst = render_expr(&args[0], single_precision, registry, helpers, address_of_vars, float_input_params);
+            let dst = render_expr(&args[0], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let dst_off =
-                render_expr(&args[1], single_precision, registry, helpers, address_of_vars, float_input_params);
-            let src = render_expr(&args[2], single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&args[1], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
+            let src = render_expr(&args[2], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let src_off =
-                render_expr(&args[3], single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&args[3], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let count =
-                render_expr(&args[4], single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&args[4], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             return format!("System.arraycopy({src},{src_off},{dst},{dst_off},{count})");
         }
         "/* ARRAY_COPY: bad args */".to_string()
     } else if fname == "PER_TO_K" {
         // PER_TO_K(period) -> (2.0 / ((double)(period) + 1.0))
         if let Some(arg) = args.first() {
-            let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, float_input_params);
+            let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             return format!("(2.0 / ((double)({x}) + 1.0))");
         }
         "0.0".to_string()
@@ -1344,7 +1494,7 @@ fn render_func_call(
         };
         let rendered: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers, address_of_vars, float_input_params))
+            .map(|a| render_expr(a, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params))
             .collect();
         format!("Math.{}({})", java_name, rendered.join(", "))
     } else if fname == "sizeof" {
@@ -1359,7 +1509,7 @@ fn render_func_call(
                 Some("float") => "float",
                 _ => "double",
             };
-            let size = render_expr(arg, single_precision, registry, helpers, address_of_vars, float_input_params);
+            let size = render_expr(arg, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             format!("new {java_type}[(int)({size})]")
         } else {
             "new double[0]".to_string()
@@ -1372,14 +1522,14 @@ fn render_func_call(
         if args.len() >= 3 {
             let (dst_arr, dst_off) =
                 decompose_java_array_ref(
-                    &args[0], single_precision, registry, helpers, address_of_vars, float_input_params,
+                    &args[0], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
             let (src_arr, src_off) =
                 decompose_java_array_ref(
-                    &args[1], single_precision, registry, helpers, address_of_vars, float_input_params,
+                    &args[1], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
             let count =
-                render_expr(&args[2], single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&args[2], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             format!("System.arraycopy({src_arr}, {src_off}, {dst_arr}, {dst_off}, {count})")
         } else {
             format!("/* {fname}: bad args */")
@@ -1389,10 +1539,10 @@ fn render_func_call(
         if args.len() >= 3 {
             let (arr, off) =
                 decompose_java_array_ref(
-                    &args[0], single_precision, registry, helpers, address_of_vars, float_input_params,
+                    &args[0], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
             let count =
-                render_expr(&args[2], single_precision, registry, helpers, address_of_vars, float_input_params);
+                render_expr(&args[2], single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             let fill_val = match find_sizeof_type(&args[2]).as_deref() {
                 Some("int") => "0",
                 _ => "0.0",
@@ -1412,7 +1562,7 @@ fn render_func_call(
         let java_name = registry.resolve_call(fname, Lang::Java);
         let rendered: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers, address_of_vars, float_input_params))
+            .map(|a| render_expr(a, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params))
             .collect();
         format!("{}({})", java_name, rendered.join(", "))
     }
@@ -1451,18 +1601,19 @@ fn decompose_java_array_ref(
     registry: &Registry,
     helpers: &HelperRegistry,
     address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
     float_input_params: &HashSet<String>,
 ) -> (String, String) {
     match expr {
         Expr::AddressOf(inner) => {
             if let Expr::ArrayAccess(name, offset) = inner.as_ref() {
                 let off = render_expr(
-                    offset, single_precision, registry, helpers, address_of_vars, float_input_params,
+                    offset, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
                 (name.clone(), off)
             } else {
                 let s = render_expr(
-                    expr, single_precision, registry, helpers, address_of_vars, float_input_params,
+                    expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
                 );
                 (s, "0".to_string())
             }
@@ -1470,7 +1621,7 @@ fn decompose_java_array_ref(
         Expr::Var(name) => (name.clone(), "0".to_string()),
         _ => {
             let s = render_expr(
-                expr, single_precision, registry, helpers, address_of_vars, float_input_params,
+                expr, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params,
             );
             (s, "0".to_string())
         }
@@ -1488,6 +1639,7 @@ fn render_lookback_code(
     let inline_counter = Cell::new(0);
     // Lookback bodies don't have cross-indicator calls, so no address-of vars
     let address_of_vars = HashSet::new();
+    let double_address_of_vars = HashSet::new();
     // Lookback bodies are always double-precision; no float input params needed
     let float_input_params: HashSet<String> = HashSet::new();
 
@@ -1524,7 +1676,7 @@ fn render_lookback_code(
             out.push_str(&format!(
                 "      {} = {};\n",
                 name,
-                render_expr(init, false, registry, helpers, &address_of_vars, &float_input_params)
+                render_expr(init, false, registry, helpers, &address_of_vars, &double_address_of_vars, &float_input_params)
             ));
         }
     }
@@ -1536,7 +1688,7 @@ fn render_lookback_code(
         }
         out.push_str(&render_statement(
             stmt, 6, false, enums, registry, helpers, &inline_counter,
-            &address_of_vars, &float_input_params,
+            &address_of_vars, &double_address_of_vars, &float_input_params,
         ));
     }
 

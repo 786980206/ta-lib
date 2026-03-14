@@ -1286,8 +1286,9 @@ fn java_for_loop_multi_init_comma_separated() {
     let helpers = HelperRegistry::empty();
     let inline_counter = std::cell::Cell::new(0);
     let address_of_vars = std::collections::HashSet::new();
+    let double_address_of_vars = std::collections::HashSet::new();
     let float_input_params = std::collections::HashSet::new();
-    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry, &helpers, &inline_counter, &address_of_vars, &float_input_params);
+    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry, &helpers, &inline_counter, &address_of_vars, &double_address_of_vars, &float_input_params);
 
     // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
     // NOT: for( j = 0;\ni = startIdx; ... )
