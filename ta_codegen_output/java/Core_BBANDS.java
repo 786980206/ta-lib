@@ -51,6 +51,12 @@
          return retCode ;
       }
       if( (optInMAType==TA_MAType_SMA) ) {
+         double _tempReal;
+         double _periodTotal2;
+         double _meanValue2;
+         int _outIdx;
+         int _startSum;
+         int _endSum;
          _startSum = ((1+((int)outBegIdx.value))-optInTimePeriod);
          _endSum = ((int)outBegIdx.value);
          _periodTotal2 = 0;
@@ -167,6 +173,12 @@
          return retCode ;
       }
       if( (optInMAType==TA_MAType_SMA) ) {
+         double _tempReal;
+         double _periodTotal2;
+         double _meanValue2;
+         int _outIdx;
+         int _startSum;
+         int _endSum;
          _startSum = ((1+((int)outBegIdx.value))-optInTimePeriod);
          _endSum = ((int)outBegIdx.value);
          _periodTotal2 = 0;
@@ -289,6 +301,12 @@
          return retCode ;
       }
       if( (optInMAType==TA_MAType_SMA) ) {
+         double _tempReal;
+         double _periodTotal2;
+         double _meanValue2;
+         int _outIdx;
+         int _startSum;
+         int _endSum;
          _startSum = ((1+((int)outBegIdx.value))-optInTimePeriod);
          _endSum = ((int)outBegIdx.value);
          _periodTotal2 = 0;
@@ -405,6 +423,12 @@
          return retCode ;
       }
       if( (optInMAType==TA_MAType_SMA) ) {
+         double _tempReal;
+         double _periodTotal2;
+         double _meanValue2;
+         int _outIdx;
+         int _startSum;
+         int _endSum;
          _startSum = ((1+((int)outBegIdx.value))-optInTimePeriod);
          _endSum = ((int)outBegIdx.value);
          _periodTotal2 = 0;

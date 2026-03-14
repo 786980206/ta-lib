@@ -424,6 +424,41 @@ fn render_hoisted_blocks(
             VarType::IntArray(size) => format!("int[] {temp_name} = new int[{size}]"),
         };
         out.push_str(&format!("{pad}{java_decl};\n"));
+        // Declare local variables from the hoisted helper body.
+        // render_statement skips VarDecl, so we emit them explicitly here.
+        // For VarDecls with an initializer, emit `type name = <init>;` directly.
+        for stmt in body {
+            if let Statement::VarDecl { var_type: vt, name, init } = stmt {
+                let type_part = match vt {
+                    VarType::Real => "double".to_string(),
+                    VarType::Integer | VarType::Index => "int".to_string(),
+                    VarType::RetCodeType => "RetCode".to_string(),
+                    VarType::RealPointer => "double[]".to_string(),
+                    VarType::IntPointer => "int[]".to_string(),
+                    VarType::RealArray(size) => {
+                        // Arrays with size are initialized inline; emit and continue
+                        out.push_str(&format!("{pad}double[] {name} = new double[{size}];\n"));
+                        continue;
+                    }
+                    VarType::IntArray(size) => {
+                        out.push_str(&format!("{pad}int[] {name} = new int[{size}];\n"));
+                        continue;
+                    }
+                };
+                if let Some(init_expr) = init {
+                    let init_str = render_expr(
+                        init_expr,
+                        single_precision,
+                        registry,
+                        helpers,
+                        address_of_vars,
+                    );
+                    out.push_str(&format!("{pad}{type_part} {name} = {init_str};\n"));
+                } else {
+                    out.push_str(&format!("{pad}{type_part} {name};\n"));
+                }
+            }
+        }
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -744,6 +779,38 @@ pub fn render_statement(
         }
         Statement::Block { body } => {
             let mut out = String::new();
+            // Emit VarDecl declarations first (render_statement skips VarDecl)
+            for s in body {
+                if let Statement::VarDecl { var_type: vt, name, init } = s {
+                    let type_part = match vt {
+                        VarType::Real => "double".to_string(),
+                        VarType::Integer | VarType::Index => "int".to_string(),
+                        VarType::RetCodeType => "RetCode".to_string(),
+                        VarType::RealPointer => "double[]".to_string(),
+                        VarType::IntPointer => "int[]".to_string(),
+                        VarType::RealArray(size) => {
+                            out.push_str(&format!("{pad}double[] {name} = new double[{size}];\n"));
+                            continue;
+                        }
+                        VarType::IntArray(size) => {
+                            out.push_str(&format!("{pad}int[] {name} = new int[{size}];\n"));
+                            continue;
+                        }
+                    };
+                    if let Some(init_expr) = init {
+                        let init_str = render_expr(
+                            init_expr,
+                            single_precision,
+                            registry,
+                            helpers,
+                            address_of_vars,
+                        );
+                        out.push_str(&format!("{pad}{type_part} {name} = {init_str};\n"));
+                    } else {
+                        out.push_str(&format!("{pad}{type_part} {name};\n"));
+                    }
+                }
+            }
             for s in body {
                 out.push_str(&render_statement(
                     s,

@@ -2560,3 +2560,31 @@ fn non_candlestick_indicator_has_no_candle_unpacking() {
     );
 }
 
+
+#[test]
+fn java_backend_hoisted_helper_declares_local_vars() {
+    // Regression test: hoisted block helpers must declare their local variables.
+    // ta_true_range has `double range = th - tl; double tmp = fabs(...);` which
+    // become `double range_0 = ...;` and `double tmp_0 = ...;` after inlining.
+    let func = make_func_with_helper_call(
+        "ta_true_range",
+        vec![
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("prev".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::java::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        output.contains("double range_0"),
+        "Should declare 'double range_0' for hoisted local: {output}"
+    );
+    assert!(
+        output.contains("double tmp_0"),
+        "Should declare 'double tmp_0' for hoisted local: {output}"
+    );
+}

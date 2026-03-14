@@ -7,31 +7,31 @@
       }
       switch( optInMAType )
       {
-      case TA_MAType_SMA:
+      case MAType.Sma:
          retValue = smaLookback(optInTimePeriod);
          break;
-      case TA_MAType_EMA:
+      case MAType.Ema:
          retValue = emaLookback(optInTimePeriod);
          break;
-      case TA_MAType_WMA:
+      case MAType.Wma:
          retValue = wmaLookback(optInTimePeriod);
          break;
-      case TA_MAType_DEMA:
+      case MAType.Dema:
          retValue = demaLookback(optInTimePeriod);
          break;
-      case TA_MAType_TEMA:
+      case MAType.Tema:
          retValue = temaLookback(optInTimePeriod);
          break;
-      case TA_MAType_TRIMA:
+      case MAType.Trima:
          retValue = trimaLookback(optInTimePeriod);
          break;
-      case TA_MAType_KAMA:
+      case MAType.Kama:
          retValue = kamaLookback(optInTimePeriod);
          break;
-      case TA_MAType_MAMA:
+      case MAType.Mama:
          retValue = mamaLookback(0.5, 0.05);
          break;
-      case TA_MAType_T3:
+      case MAType.T3:
          retValue = t3Lookback(optInTimePeriod, 0.7);
          break;
       default:
@@ -72,32 +72,32 @@
       }
       switch( optInMAType )
       {
-      case TA_MAType_SMA:
+      case MAType.Sma:
          retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_EMA:
+      case MAType.Ema:
          retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_WMA:
+      case MAType.Wma:
          retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_DEMA:
+      case MAType.Dema:
          retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TEMA:
+      case MAType.Tema:
          retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TRIMA:
+      case MAType.Trima:
          retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_KAMA:
+      case MAType.Kama:
          retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_MAMA:
+      case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
-      case TA_MAType_T3:
+      case MAType.T3:
          retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
@@ -131,32 +131,32 @@
       }
       switch( optInMAType )
       {
-      case TA_MAType_SMA:
+      case MAType.Sma:
          retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_EMA:
+      case MAType.Ema:
          retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_WMA:
+      case MAType.Wma:
          retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_DEMA:
+      case MAType.Dema:
          retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TEMA:
+      case MAType.Tema:
          retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TRIMA:
+      case MAType.Trima:
          retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_KAMA:
+      case MAType.Kama:
          retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_MAMA:
+      case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
-      case TA_MAType_T3:
+      case MAType.T3:
          retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
@@ -196,32 +196,32 @@
       }
       switch( optInMAType )
       {
-      case TA_MAType_SMA:
+      case MAType.Sma:
          retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_EMA:
+      case MAType.Ema:
          retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_WMA:
+      case MAType.Wma:
          retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_DEMA:
+      case MAType.Dema:
          retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TEMA:
+      case MAType.Tema:
          retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TRIMA:
+      case MAType.Trima:
          retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_KAMA:
+      case MAType.Kama:
          retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_MAMA:
+      case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
-      case TA_MAType_T3:
+      case MAType.T3:
          retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:
@@ -255,32 +255,32 @@
       }
       switch( optInMAType )
       {
-      case TA_MAType_SMA:
+      case MAType.Sma:
          retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_EMA:
+      case MAType.Ema:
          retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_WMA:
+      case MAType.Wma:
          retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_DEMA:
+      case MAType.Dema:
          retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TEMA:
+      case MAType.Tema:
          retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_TRIMA:
+      case MAType.Trima:
          retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_KAMA:
+      case MAType.Kama:
          retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
-      case TA_MAType_MAMA:
+      case MAType.Mama:
          dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
          retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
          break;
-      case TA_MAType_T3:
+      case MAType.T3:
          retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
          break;
       default:

@@ -78,6 +78,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_0;
+         double range_0 = (prevHigh-prevLow);
+         double tmp_0 = Math.abs((prevHigh-prevClose));
          if( (tmp_0>range_0) ) {
             range_0 = tmp_0;
          }
@@ -107,6 +109,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_1;
+         double range_1 = (prevHigh-prevLow);
+         double tmp_1 = Math.abs((prevHigh-prevClose));
          if( (tmp_1>range_1) ) {
             range_1 = tmp_1;
          }
@@ -148,6 +152,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_2;
+         double range_2 = (prevHigh-prevLow);
+         double tmp_2 = Math.abs((prevHigh-prevClose));
          if( (tmp_2>range_2) ) {
             range_2 = tmp_2;
          }
@@ -240,6 +246,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_0;
+         double range_0 = (prevHigh-prevLow);
+         double tmp_0 = Math.abs((prevHigh-prevClose));
          if( (tmp_0>range_0) ) {
             range_0 = tmp_0;
          }
@@ -269,6 +277,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_1;
+         double range_1 = (prevHigh-prevLow);
+         double tmp_1 = Math.abs((prevHigh-prevClose));
          if( (tmp_1>range_1) ) {
             range_1 = tmp_1;
          }
@@ -310,6 +320,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_2;
+         double range_2 = (prevHigh-prevLow);
+         double tmp_2 = Math.abs((prevHigh-prevClose));
          if( (tmp_2>range_2) ) {
             range_2 = tmp_2;
          }
@@ -408,6 +420,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_0;
+         double range_0 = (prevHigh-prevLow);
+         double tmp_0 = Math.abs((prevHigh-prevClose));
          if( (tmp_0>range_0) ) {
             range_0 = tmp_0;
          }
@@ -437,6 +451,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_1;
+         double range_1 = (prevHigh-prevLow);
+         double tmp_1 = Math.abs((prevHigh-prevClose));
          if( (tmp_1>range_1) ) {
             range_1 = tmp_1;
          }
@@ -478,6 +494,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_2;
+         double range_2 = (prevHigh-prevLow);
+         double tmp_2 = Math.abs((prevHigh-prevClose));
          if( (tmp_2>range_2) ) {
             range_2 = tmp_2;
          }
@@ -570,6 +588,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_0;
+         double range_0 = (prevHigh-prevLow);
+         double tmp_0 = Math.abs((prevHigh-prevClose));
          if( (tmp_0>range_0) ) {
             range_0 = tmp_0;
          }
@@ -599,6 +619,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_1;
+         double range_1 = (prevHigh-prevLow);
+         double tmp_1 = Math.abs((prevHigh-prevClose));
          if( (tmp_1>range_1) ) {
             range_1 = tmp_1;
          }
@@ -640,6 +662,8 @@
             prevPlusDM += diffP;
          }
          double _true_range_2;
+         double range_2 = (prevHigh-prevLow);
+         double tmp_2 = Math.abs((prevHigh-prevClose));
          if( (tmp_2>range_2) ) {
             range_2 = tmp_2;
          }
