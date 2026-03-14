@@ -2,7 +2,7 @@
    public int plus_dmLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
-         return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1) ;
+         return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1) ;
       } else {
          return 1 ;
       }
@@ -34,7 +34,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
@@ -87,7 +87,7 @@
             prevPlusDM += diffP;
          }
       }
-      i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+      i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -142,7 +142,7 @@
       double diffM;
       int i;
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
@@ -195,7 +195,7 @@
             prevPlusDM += diffP;
          }
       }
-      i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+      i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -256,7 +256,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
@@ -309,7 +309,7 @@
             prevPlusDM += diffP;
          }
       }
-      i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+      i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -364,7 +364,7 @@
       double diffM;
       int i;
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+         lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
          lookbackTotal = 1;
       }
@@ -417,7 +417,7 @@
             prevPlusDM += diffP;
          }
       }
-      i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+      i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];

@@ -1,7 +1,7 @@
 /* Generated */
    public int ht_sineLookback( )
    {
-      return (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]) ;
+      return (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]) ;
 
    }
    public RetCode ht_sine( int startIdx,
@@ -93,7 +93,7 @@
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -431,7 +431,7 @@
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -775,7 +775,7 @@
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -1113,7 +1113,7 @@
       rad2Deg = (45.0/tempReal);
       deg2Rad = (1.0/rad2Deg);
       constDeg2RadBy360 = (tempReal*8.0);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

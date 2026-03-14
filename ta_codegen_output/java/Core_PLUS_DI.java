@@ -2,7 +2,7 @@
    public int plus_diLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
-         return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]) ;
+         return (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]) ;
       } else {
          return 1 ;
       }
@@ -38,7 +38,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
@@ -126,7 +126,7 @@
          prevTR += tempReal;
          prevClose = inClose[today];
       }
-      i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+      i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -221,7 +221,7 @@
       double diffM;
       int i;
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
@@ -309,7 +309,7 @@
          prevTR += tempReal;
          prevClose = inClose[today];
       }
-      i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+      i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -410,7 +410,7 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
@@ -498,7 +498,7 @@
          prevTR += tempReal;
          prevClose = inClose[today];
       }
-      i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+      i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];
@@ -593,7 +593,7 @@
       double diffM;
       int i;
       if( (optInTimePeriod>1) ) {
-         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+         lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
       } else {
          lookbackTotal = 1;
       }
@@ -681,7 +681,7 @@
          prevTR += tempReal;
          prevClose = inClose[today];
       }
-      i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+      i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
       while( (i--!=0) ) {
          today += 1;
          tempReal = inHigh[today];

@@ -50,7 +50,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      if( (optInMAType==TA_MAType_SMA) ) {
+      if( (optInMAType==MAType.Sma) ) {
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;
@@ -172,7 +172,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      if( (optInMAType==TA_MAType_SMA) ) {
+      if( (optInMAType==MAType.Sma) ) {
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;
@@ -300,7 +300,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      if( (optInMAType==TA_MAType_SMA) ) {
+      if( (optInMAType==MAType.Sma) ) {
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;
@@ -422,7 +422,7 @@
          outNBElement.value = 0;
          return retCode ;
       }
-      if( (optInMAType==TA_MAType_SMA) ) {
+      if( (optInMAType==MAType.Sma) ) {
          double _tempReal;
          double _periodTotal2;
          double _meanValue2;

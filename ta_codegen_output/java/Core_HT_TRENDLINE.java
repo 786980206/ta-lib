@@ -1,7 +1,7 @@
 /* Generated */
    public int ht_trendlineLookback( )
    {
-      return (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]) ;
+      return (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]) ;
 
    }
    public RetCode ht_trendline( int startIdx,
@@ -91,7 +91,7 @@
       iTrend1 = iTrend2;
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -405,7 +405,7 @@
       iTrend1 = iTrend2;
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -725,7 +725,7 @@
       iTrend1 = iTrend2;
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -1039,7 +1039,7 @@
       iTrend1 = iTrend2;
       tempReal = Math.atan(1);
       rad2Deg = (45.0/tempReal);
-      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+      lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

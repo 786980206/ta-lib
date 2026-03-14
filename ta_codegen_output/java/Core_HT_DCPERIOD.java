@@ -1,7 +1,7 @@
 /* Generated */
    public int ht_dcperiodLookback( )
    {
-      return (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]) ;
+      return (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]) ;
 
    }
    public RetCode ht_dcperiod( int startIdx,
@@ -78,7 +78,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -360,7 +360,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -648,7 +648,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -930,7 +930,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }

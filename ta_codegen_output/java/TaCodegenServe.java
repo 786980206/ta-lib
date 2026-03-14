@@ -3673,7 +3673,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          if( (optInMAType==TA_MAType_SMA) ) {
+          if( (optInMAType==MAType.Sma) ) {
              double _tempReal;
              double _periodTotal2;
              double _meanValue2;
@@ -3795,7 +3795,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          if( (optInMAType==TA_MAType_SMA) ) {
+          if( (optInMAType==MAType.Sma) ) {
              double _tempReal;
              double _periodTotal2;
              double _meanValue2;
@@ -3923,7 +3923,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          if( (optInMAType==TA_MAType_SMA) ) {
+          if( (optInMAType==MAType.Sma) ) {
              double _tempReal;
              double _periodTotal2;
              double _meanValue2;
@@ -4045,7 +4045,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          if( (optInMAType==TA_MAType_SMA) ) {
+          if( (optInMAType==MAType.Sma) ) {
              double _tempReal;
              double _periodTotal2;
              double _meanValue2;
@@ -53985,7 +53985,7 @@ class Core {
 
        public int ht_dcperiodLookback( )
        {
-          return (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]) ;
+          return (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]) ;
 
        }
        public RetCode ht_dcperiod( int startIdx,
@@ -54062,7 +54062,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -54344,7 +54344,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -54632,7 +54632,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -54914,7 +54914,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_dcperiod.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtDcPeriod.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -55131,7 +55131,7 @@ class Core {
 
        public int ht_dcphaseLookback( )
        {
-          return (63+this.unstablePeriod[FuncUnstId.Ht_dcphase.ordinal()]) ;
+          return (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]) ;
 
        }
        public RetCode ht_dcphase( int startIdx,
@@ -55220,7 +55220,7 @@ class Core {
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_dcphase.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -55554,7 +55554,7 @@ class Core {
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_dcphase.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -55894,7 +55894,7 @@ class Core {
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_dcphase.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -56228,7 +56228,7 @@ class Core {
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_dcphase.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtDcPhase.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -56485,7 +56485,7 @@ class Core {
 
        public int ht_phasorLookback( )
        {
-          return (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]) ;
+          return (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]) ;
 
        }
        public RetCode ht_phasor( int startIdx,
@@ -56562,7 +56562,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -56847,7 +56847,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -57138,7 +57138,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -57423,7 +57423,7 @@ class Core {
           a = 0.0962;
           b = 0.5769;
           rad2Deg = (180.0/(4.0*Math.atan(1)));
-          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+          lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -57643,7 +57643,7 @@ class Core {
 
        public int ht_sineLookback( )
        {
-          return (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]) ;
+          return (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]) ;
 
        }
        public RetCode ht_sine( int startIdx,
@@ -57735,7 +57735,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -58073,7 +58073,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -58417,7 +58417,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -58755,7 +58755,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_sine.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtSine.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -59013,7 +59013,7 @@ class Core {
 
        public int ht_trendlineLookback( )
        {
-          return (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]) ;
+          return (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]) ;
 
        }
        public RetCode ht_trendline( int startIdx,
@@ -59103,7 +59103,7 @@ class Core {
           iTrend1 = iTrend2;
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -59417,7 +59417,7 @@ class Core {
           iTrend1 = iTrend2;
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -59737,7 +59737,7 @@ class Core {
           iTrend1 = iTrend2;
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -60051,7 +60051,7 @@ class Core {
           iTrend1 = iTrend2;
           tempReal = Math.atan(1);
           rad2Deg = (45.0/tempReal);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendline.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -60287,7 +60287,7 @@ class Core {
 
        public int ht_trendmodeLookback( )
        {
-          return (63+this.unstablePeriod[FuncUnstId.Ht_trendmode.ordinal()]) ;
+          return (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]) ;
 
        }
        public RetCode ht_trendmode( int startIdx,
@@ -60399,7 +60399,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendmode.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -60792,7 +60792,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendmode.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -61191,7 +61191,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendmode.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -61584,7 +61584,7 @@ class Core {
           rad2Deg = (45.0/tempReal);
           deg2Rad = (1.0/rad2Deg);
           constDeg2RadBy360 = (tempReal*8.0);
-          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.Ht_trendmode.ordinal()]);
+          lookbackTotal = (63+this.unstablePeriod[FuncUnstId.HtTrendMode.ordinal()]);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
           }
@@ -68608,7 +68608,7 @@ class Core {
        public int minus_diLookback( int optInTimePeriod )
        {
           if( (optInTimePeriod>1) ) {
-             return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]) ;
+             return (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]) ;
           } else {
              return 1 ;
           }
@@ -68644,7 +68644,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -68732,7 +68732,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -68827,7 +68827,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -68915,7 +68915,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69016,7 +69016,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -69104,7 +69104,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69199,7 +69199,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -69287,7 +69287,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Minus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69362,7 +69362,7 @@ class Core {
        public int minus_dmLookback( int optInTimePeriod )
        {
           if( (optInTimePeriod>1) ) {
-             return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()])-1) ;
+             return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1) ;
           } else {
              return 1 ;
           }
@@ -69394,7 +69394,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -69447,7 +69447,7 @@ class Core {
                 prevMinusDM += diffM;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.MinusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69502,7 +69502,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -69555,7 +69555,7 @@ class Core {
                 prevMinusDM += diffM;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.MinusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69616,7 +69616,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -69669,7 +69669,7 @@ class Core {
                 prevMinusDM += diffM;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.MinusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -69724,7 +69724,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -69777,7 +69777,7 @@ class Core {
                 prevMinusDM += diffM;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Minus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.MinusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -70566,7 +70566,7 @@ class Core {
        public int plus_diLookback( int optInTimePeriod )
        {
           if( (optInTimePeriod>1) ) {
-             return (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]) ;
+             return (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]) ;
           } else {
              return 1 ;
           }
@@ -70602,7 +70602,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -70690,7 +70690,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -70785,7 +70785,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -70873,7 +70873,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -70974,7 +70974,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -71062,7 +71062,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -71157,7 +71157,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]);
+             lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]);
           } else {
              lookbackTotal = 1;
           }
@@ -71245,7 +71245,7 @@ class Core {
              prevTR += tempReal;
              prevClose = inClose[today];
           }
-          i = (this.unstablePeriod[FuncUnstId.Plus_di.ordinal()]+1);
+          i = (this.unstablePeriod[FuncUnstId.PlusDI.ordinal()]+1);
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -71320,7 +71320,7 @@ class Core {
        public int plus_dmLookback( int optInTimePeriod )
        {
           if( (optInTimePeriod>1) ) {
-             return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1) ;
+             return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1) ;
           } else {
              return 1 ;
           }
@@ -71352,7 +71352,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -71405,7 +71405,7 @@ class Core {
                 prevPlusDM += diffP;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -71460,7 +71460,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -71513,7 +71513,7 @@ class Core {
                 prevPlusDM += diffP;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -71574,7 +71574,7 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -71627,7 +71627,7 @@ class Core {
                 prevPlusDM += diffP;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];
@@ -71682,7 +71682,7 @@ class Core {
           double diffM;
           int i;
           if( (optInTimePeriod>1) ) {
-             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()])-1);
+             lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
           } else {
              lookbackTotal = 1;
           }
@@ -71735,7 +71735,7 @@ class Core {
                 prevPlusDM += diffP;
              }
           }
-          i = this.unstablePeriod[FuncUnstId.Plus_dm.ordinal()];
+          i = this.unstablePeriod[FuncUnstId.PlusDM.ordinal()];
           while( (i--!=0) ) {
              today += 1;
              tempReal = inHigh[today];

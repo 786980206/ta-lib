@@ -1034,6 +1034,15 @@ fn render_expr(
                 "SUCCESS" => "RetCode.Success".to_string(),
                 "ALLOC_ERR" => "RetCode.AllocErr".to_string(),
                 "INTERNAL_ERROR" => "RetCode.InternalError".to_string(),
+                "TA_MAType_SMA" => "MAType.Sma".to_string(),
+                "TA_MAType_EMA" => "MAType.Ema".to_string(),
+                "TA_MAType_WMA" => "MAType.Wma".to_string(),
+                "TA_MAType_DEMA" => "MAType.Dema".to_string(),
+                "TA_MAType_TEMA" => "MAType.Tema".to_string(),
+                "TA_MAType_TRIMA" => "MAType.Trima".to_string(),
+                "TA_MAType_KAMA" => "MAType.Kama".to_string(),
+                "TA_MAType_MAMA" => "MAType.Mama".to_string(),
+                "TA_MAType_T3" => "MAType.T3".to_string(),
                 _ => name.clone(),
             };
             if address_of_vars.contains(name) {
@@ -1144,14 +1153,18 @@ fn render_expr(
 }
 
 /// Convert a function identifier to `PascalCase`.
-/// e.g., "RSI" -> "Rsi", "SMA" -> "Sma"
+/// e.g., "RSI" -> "Rsi", "ADX" -> "Adx", "HT_DCPERIOD" -> "HtDcperiod"
 fn to_pascal_case(s: &str) -> String {
-    let lower = s.to_lowercase();
-    let mut chars = lower.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
-    }
+    s.to_lowercase()
+        .split('_')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect()
 }
 
 /// Render a `FuncCall` expression to Java code.
@@ -1181,7 +1194,20 @@ fn render_func_call(
             let base = func_name
                 .strip_prefix("FUNC_UNST_")
                 .unwrap_or(func_name);
-            let pascal = to_pascal_case(base);
+            let pascal = match base {
+                "HT_DCPERIOD" => "HtDcPeriod".to_string(),
+                "HT_DCPHASE" => "HtDcPhase".to_string(),
+                "HT_PHASOR" => "HtPhasor".to_string(),
+                "HT_SINE" => "HtSine".to_string(),
+                "HT_TRENDLINE" => "HtTrendline".to_string(),
+                "HT_TRENDMODE" => "HtTrendMode".to_string(),
+                "MINUS_DI" => "MinusDI".to_string(),
+                "MINUS_DM" => "MinusDM".to_string(),
+                "PLUS_DI" => "PlusDI".to_string(),
+                "PLUS_DM" => "PlusDM".to_string(),
+                "STOCH_RSI" => "StochRsi".to_string(),
+                _ => to_pascal_case(base),
+            };
             return format!("this.unstablePeriod[FuncUnstId.{pascal}.ordinal()]");
         }
         "this.unstablePeriod[0]".to_string()

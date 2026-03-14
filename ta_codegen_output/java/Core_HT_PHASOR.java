@@ -1,7 +1,7 @@
 /* Generated */
    public int ht_phasorLookback( )
    {
-      return (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]) ;
+      return (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]) ;
 
    }
    public RetCode ht_phasor( int startIdx,
@@ -78,7 +78,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -363,7 +363,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -654,7 +654,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -939,7 +939,7 @@
       a = 0.0962;
       b = 0.5769;
       rad2Deg = (180.0/(4.0*Math.atan(1)));
-      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.Ht_phasor.ordinal()]);
+      lookbackTotal = (32+this.unstablePeriod[FuncUnstId.HtPhasor.ordinal()]);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
