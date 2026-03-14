@@ -65,31 +65,31 @@ impl Core {
             return 0;
         }
         match optInMAType {
-            0 => {
+            TA_MAType_SMA => {
                 retValue = self.sma_lookback(optInTimePeriod);
             }
-            1 => {
+            TA_MAType_EMA => {
                 retValue = self.ema_lookback(optInTimePeriod);
             }
-            2 => {
+            TA_MAType_WMA => {
                 retValue = self.wma_lookback(optInTimePeriod);
             }
-            3 => {
+            TA_MAType_DEMA => {
                 retValue = self.dema_lookback(optInTimePeriod);
             }
-            4 => {
+            TA_MAType_TEMA => {
                 retValue = self.tema_lookback(optInTimePeriod);
             }
-            5 => {
+            TA_MAType_TRIMA => {
                 retValue = self.trima_lookback(optInTimePeriod);
             }
-            6 => {
+            TA_MAType_KAMA => {
                 retValue = self.kama_lookback(optInTimePeriod);
             }
-            7 => {
+            TA_MAType_MAMA => {
                 retValue = self.mama_lookback(0.5, 0.05);
             }
-            8 => {
+            TA_MAType_T3 => {
                 retValue = self.t3_lookback(optInTimePeriod, 0.7);
             }
             _ => {
@@ -150,7 +150,7 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let dummyBuffer: T;
+        let dummyBuffer: Vec<T>;
         let mut retCode: RetCode;
         let nbElement: i32;
         if optInTimePeriod == 1 {
@@ -170,36 +170,35 @@ todayIdx += 1;
             return RetCode::Success;
         }
         match optInMAType {
-            0 => {
+            TA_MAType_SMA => {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            1 => {
+            TA_MAType_EMA => {
                 retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            2 => {
+            TA_MAType_WMA => {
                 retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            3 => {
+            TA_MAType_DEMA => {
                 retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            4 => {
+            TA_MAType_TEMA => {
                 retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            5 => {
+            TA_MAType_TRIMA => {
                 retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            6 => {
+            TA_MAType_KAMA => {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            7 => {
-                self.array_alloc();
+            TA_MAType_MAMA => {
+                dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
                 if !(dummyBuffer) {
                     return ALLOC_ERR;
                 }
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
-                self.array_free();
             }
-            8 => {
+            TA_MAType_T3 => {
                 retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {
@@ -250,7 +249,7 @@ todayIdx += 1;
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let dummyBuffer: T;
+        let dummyBuffer: Vec<T>;
         let mut retCode: RetCode;
         let nbElement: i32;
         if optInTimePeriod == 1 {
@@ -270,36 +269,35 @@ todayIdx += 1;
             return RetCode::Success;
         }
         match optInMAType {
-            0 => {
+            TA_MAType_SMA => {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            1 => {
+            TA_MAType_EMA => {
                 retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            2 => {
+            TA_MAType_WMA => {
                 retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            3 => {
+            TA_MAType_DEMA => {
                 retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            4 => {
+            TA_MAType_TEMA => {
                 retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            5 => {
+            TA_MAType_TRIMA => {
                 retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            6 => {
+            TA_MAType_KAMA => {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
-            7 => {
-                self.array_alloc();
+            TA_MAType_MAMA => {
+                dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
                 if !(dummyBuffer) {
                     return ALLOC_ERR;
                 }
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
-                self.array_free();
             }
-            8 => {
+            TA_MAType_T3 => {
                 retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
             }
             _ => {

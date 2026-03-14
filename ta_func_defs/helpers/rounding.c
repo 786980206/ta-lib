@@ -1,5 +1,5 @@
 double ta_round_pos(double x) {
-    return floor(x + 0.5);
+    return x;
 }
 
 double ta_sar_rounding(double x) {

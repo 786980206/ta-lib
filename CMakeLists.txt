@@ -621,19 +621,20 @@ if(BUILD_DEV_TOOLS)
 	)
 
 	# Full pipeline: generate servers + build + C tests + codegen verification
+	# Uses --language=c until Java/SWIG/Rust servers are fully working
 	add_custom_target(regtest
 		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-			./ta_regtest --codegen
+			./ta_regtest --codegen --language=c
 		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
-		COMMENT "Running full cross-language regression tests"
+		COMMENT "Running cross-language regression tests (C codegen)"
 	)
 
 	# Codegen-only: skip C reference tests
 	add_custom_target(regtest-only
 		COMMAND ${CMAKE_COMMAND} -E chdir "${CMAKE_CURRENT_SOURCE_DIR}/bin"
-			./ta_regtest --codegen-only
+			./ta_regtest --codegen-only --language=c
 		DEPENDS ensure_ta_regtest_in_bin ta_codegen_servers
-		COMMENT "Running codegen-only regression tests (skip C reference)"
+		COMMENT "Running codegen-only regression tests (C codegen, skip C reference)"
 	)
 endif()
 

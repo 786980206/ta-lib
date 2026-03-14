@@ -8,7 +8,6 @@ int trix_lookback(int           optInTimePeriod)
 
 TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[])
 {
-    double k;
     double *tempBuffer;
     int nbElement;
     int begIdx;
@@ -42,7 +41,7 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     /* Allocate a temporary buffer for performing
     * the calculation.
     */
-    double *tempBuffer = malloc((nbElementToOutput) * sizeof(double));
+    tempBuffer = malloc((nbElementToOutput) * sizeof(double));
 
     if( !tempBuffer )
     {
@@ -52,9 +51,8 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     /* Calculate the first EMA */
-    k = (2.0 / ((double)(optInTimePeriod) + 1.0));
     retCode = ema( (startIdx-totalLookback), endIdx, inReal,
-    optInTimePeriod, k,
+    optInTimePeriod,
     &begIdx, &nbElement,
     tempBuffer );
 
@@ -74,7 +72,7 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     /* Calculate the second EMA */
     nbElementToOutput -= emaLookback;
     retCode = ema( 0, nbElementToOutput, tempBuffer,
-    optInTimePeriod, k,
+    optInTimePeriod,
     &begIdx, &nbElement,
     tempBuffer );
 
@@ -92,7 +90,7 @@ TA_RetCode trix(int startIdx, int endIdx, const double inReal[], int optInTimePe
     /* Calculate the third EMA */
     nbElementToOutput -= emaLookback;
     retCode = ema( 0, nbElementToOutput, tempBuffer,
-    optInTimePeriod, k,
+    optInTimePeriod,
     &begIdx, &nbElement,
     tempBuffer );
 

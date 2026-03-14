@@ -48,25 +48,23 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
                               int          *outNBElement,
                               double        outReal[] )
 {
+   int inIdx;
+   int outIdx;
+   int i;
+   int trailingIdx;
    int divider;
    double periodSum;
    double periodSub;
    double tempReal;
    double trailingValue;
-   int inIdx;
-   int outIdx;
-   int trailingIdx;
    int lookbackTotal;
-   int i;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   periodSum = 0;
-   periodSub = 0;
-   lookbackTotal = ((int)(optInTimePeriod-1));
+   lookbackTotal = (optInTimePeriod-1);
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
@@ -79,37 +77,34 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
    }
    if( (optInTimePeriod==1) )
    {
-      int nbElement = ((endIdx-startIdx)+1);
-      *outNBElement= nbElement;
       *outBegIdx= startIdx;
-      ARRAY_MEMMOVE(outReal,0,inReal,startIdx,nbElement);
+      *outNBElement= ((endIdx-startIdx)+1);
+      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
       return TA_SUCCESS;
    }
-   divider = ((optInTimePeriod*(optInTimePeriod+1))/2);
+   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
    outIdx = 0;
    trailingIdx = (startIdx-lookbackTotal);
+   periodSub = ((double)0.0);
+   periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
    while( (inIdx<startIdx) )
    {
-      tempReal = ((double)inReal[inIdx]);
+      tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*((double)i));
+      periodSum += (tempReal*i);
       i += 1;
-      inIdx += 1;
    }
-   trailingValue = 0;
+   trailingValue = 0.0;
    while( (inIdx<=endIdx) )
    {
-      tempReal = ((double)inReal[inIdx]);
-      inIdx += 1;
+      tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*((double)optInTimePeriod));
-      trailingValue = ((double)inReal[trailingIdx]);
-      trailingIdx += 1;
-      outReal[outIdx] = (periodSum/((double)divider));
-      outIdx += 1;
+      periodSum += (tempReal*optInTimePeriod);
+      trailingValue = inReal[trailingIdx++];
+      outReal[outIdx++] = (periodSum/divider);
       periodSum -= periodSub;
    }
    *outNBElement= outIdx;
@@ -119,33 +114,26 @@ TA_LIB_API TA_RetCode TA_WMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_WMA( int    startIdx,
-                     int    endIdx,
-                     const float inReal[],
-                     int optInTimePeriod,
-                     int          *outBegIdx,
-                     int          *outNBElement,
-                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_WMA_Logic( int    startIdx,
+                                    int    endIdx,
+                                    const double inReal[],
+                                    int optInTimePeriod,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outReal[] )
 {
+   int inIdx;
+   int outIdx;
+   int i;
+   int trailingIdx;
    int divider;
    double periodSum;
    double periodSub;
    double tempReal;
    double trailingValue;
-   int inIdx;
-   int outIdx;
-   int trailingIdx;
    int lookbackTotal;
-   int i;
 
-   if( startIdx < 0 )
-      return TA_OUT_OF_RANGE_START_INDEX;
-   if( (endIdx < 0) || (endIdx < startIdx) )
-      return TA_OUT_OF_RANGE_END_INDEX;
-
-   periodSum = 0;
-   periodSub = 0;
-   lookbackTotal = ((int)(optInTimePeriod-1));
+   lookbackTotal = (optInTimePeriod-1);
    if( (startIdx<lookbackTotal) )
    {
       startIdx = lookbackTotal;
@@ -158,37 +146,179 @@ TA_RetCode TA_S_WMA( int    startIdx,
    }
    if( (optInTimePeriod==1) )
    {
-      int nbElement = ((endIdx-startIdx)+1);
-      *outNBElement= nbElement;
       *outBegIdx= startIdx;
-      ARRAY_MEMMOVEMIX(outReal,0,inReal,startIdx,nbElement);
+      *outNBElement= ((endIdx-startIdx)+1);
+      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
       return TA_SUCCESS;
    }
-   divider = ((optInTimePeriod*(optInTimePeriod+1))/2);
+   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
    outIdx = 0;
    trailingIdx = (startIdx-lookbackTotal);
+   periodSub = ((double)0.0);
+   periodSum = periodSub;
    inIdx = trailingIdx;
    i = 1;
    while( (inIdx<startIdx) )
    {
-      tempReal = ((double)inReal[inIdx]);
+      tempReal = inReal[inIdx++];
       periodSub += tempReal;
-      periodSum += (tempReal*((double)i));
+      periodSum += (tempReal*i);
       i += 1;
-      inIdx += 1;
    }
-   trailingValue = 0;
+   trailingValue = 0.0;
    while( (inIdx<=endIdx) )
    {
-      tempReal = ((double)inReal[inIdx]);
-      inIdx += 1;
+      tempReal = inReal[inIdx++];
       periodSub += tempReal;
       periodSub -= trailingValue;
-      periodSum += (tempReal*((double)optInTimePeriod));
-      trailingValue = ((double)inReal[trailingIdx]);
-      trailingIdx += 1;
-      outReal[outIdx] = (periodSum/((double)divider));
-      outIdx += 1;
+      periodSum += (tempReal*optInTimePeriod);
+      trailingValue = inReal[trailingIdx++];
+      outReal[outIdx++] = (periodSum/divider);
+      periodSum -= periodSub;
+   }
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+#define TA_INT_WMA TA_WMA_Logic
+
+TA_RetCode TA_S_WMA( int    startIdx,
+                     int    endIdx,
+                     const float inReal[],
+                     int optInTimePeriod,
+                     int          *outBegIdx,
+                     int          *outNBElement,
+                     double        outReal[] )
+{
+   int inIdx;
+   int outIdx;
+   int i;
+   int trailingIdx;
+   int divider;
+   double periodSum;
+   double periodSub;
+   double tempReal;
+   double trailingValue;
+   int lookbackTotal;
+
+   if( startIdx < 0 )
+      return TA_OUT_OF_RANGE_START_INDEX;
+   if( (endIdx < 0) || (endIdx < startIdx) )
+      return TA_OUT_OF_RANGE_END_INDEX;
+
+   lookbackTotal = (optInTimePeriod-1);
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_SUCCESS;
+   }
+   if( (optInTimePeriod==1) )
+   {
+      *outBegIdx= startIdx;
+      *outNBElement= ((endIdx-startIdx)+1);
+      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      return TA_SUCCESS;
+   }
+   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   outIdx = 0;
+   trailingIdx = (startIdx-lookbackTotal);
+   periodSub = ((double)0.0);
+   periodSum = periodSub;
+   inIdx = trailingIdx;
+   i = 1;
+   while( (inIdx<startIdx) )
+   {
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSum += (tempReal*i);
+      i += 1;
+   }
+   trailingValue = 0.0;
+   while( (inIdx<=endIdx) )
+   {
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSub -= trailingValue;
+      periodSum += (tempReal*optInTimePeriod);
+      trailingValue = inReal[trailingIdx++];
+      outReal[outIdx++] = (periodSum/divider);
+      periodSum -= periodSub;
+   }
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+TA_RetCode TA_S_WMA_Logic( int    startIdx,
+                           int    endIdx,
+                           const float inReal[],
+                           int optInTimePeriod,
+                           int          *outBegIdx,
+                           int          *outNBElement,
+                           double        outReal[] )
+{
+   int inIdx;
+   int outIdx;
+   int i;
+   int trailingIdx;
+   int divider;
+   double periodSum;
+   double periodSub;
+   double tempReal;
+   double trailingValue;
+   int lookbackTotal;
+
+   lookbackTotal = (optInTimePeriod-1);
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_SUCCESS;
+   }
+   if( (optInTimePeriod==1) )
+   {
+      *outBegIdx= startIdx;
+      *outNBElement= ((endIdx-startIdx)+1);
+      memmove(outReal,&inReal[startIdx],(((int)*outNBElement)*sizeof(double)));
+      return TA_SUCCESS;
+   }
+   divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+   outIdx = 0;
+   trailingIdx = (startIdx-lookbackTotal);
+   periodSub = ((double)0.0);
+   periodSum = periodSub;
+   inIdx = trailingIdx;
+   i = 1;
+   while( (inIdx<startIdx) )
+   {
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSum += (tempReal*i);
+      i += 1;
+   }
+   trailingValue = 0.0;
+   while( (inIdx<=endIdx) )
+   {
+      tempReal = inReal[inIdx++];
+      periodSub += tempReal;
+      periodSub -= trailingValue;
+      periodSum += (tempReal*optInTimePeriod);
+      trailingValue = inReal[trailingIdx++];
+      outReal[outIdx++] = (periodSum/divider);
       periodSum -= periodSub;
    }
    *outNBElement= outIdx;

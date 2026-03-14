@@ -9,11 +9,13 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     double tempValue1, tempValue2;
     int lookbackTotal, outIdx, i, today;
 
-    MoneyFlow mflow[50]; int mflow_Idx = 0; /* Id, Type, Static Size */
+    double mflow_positive[50];
+    double mflow_negative[50];
+    int mflow_Idx;
 
-
-
-    memset(mflow, 0, (optInTimePeriod) * sizeof(MoneyFlow)); mflow_Idx = 0;
+    mflow_Idx = 0;
+    memset(mflow_positive, 0, (optInTimePeriod) * sizeof(double));
+    memset(mflow_negative, 0, (optInTimePeriod) * sizeof(double));
 
     *outBegIdx = 0;
     *outNBElement = 0;
@@ -50,20 +52,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    mflow[mflow_Idx].negative = tempValue1;
+    mflow_negative[mflow_Idx] = tempValue1;
     negSumMF += tempValue1;
-    mflow[mflow_Idx].positive = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    mflow[mflow_Idx].positive = tempValue1;
+    mflow_positive[mflow_Idx] = tempValue1;
     posSumMF += tempValue1;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
     else
     {
-    mflow[mflow_Idx].positive = 0.0;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
 
     mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
@@ -89,8 +91,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     */
     while( today < startIdx )
     {
-    posSumMF -= mflow[mflow_Idx].positive;
-    negSumMF -= mflow[mflow_Idx].negative;
+    posSumMF -= mflow_positive[mflow_Idx];
+    negSumMF -= mflow_negative[mflow_Idx];
 
     tempValue1 = (inHigh[today]+inLow[today]+inClose[today])/3.0;
     tempValue2 = tempValue1 - prevValue;
@@ -98,20 +100,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    mflow[mflow_Idx].negative = tempValue1;
+    mflow_negative[mflow_Idx] = tempValue1;
     negSumMF += tempValue1;
-    mflow[mflow_Idx].positive = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    mflow[mflow_Idx].positive = tempValue1;
+    mflow_positive[mflow_Idx] = tempValue1;
     posSumMF += tempValue1;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
     else
     {
-    mflow[mflow_Idx].positive = 0.0;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
 
     mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
@@ -123,8 +125,8 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     */
     while( today <= endIdx )
     {
-    posSumMF -= mflow[mflow_Idx].positive;
-    negSumMF -= mflow[mflow_Idx].negative;
+    posSumMF -= mflow_positive[mflow_Idx];
+    negSumMF -= mflow_negative[mflow_Idx];
 
     tempValue1 = (inHigh[today]+inLow[today]+inClose[today])/3.0;
     tempValue2 = tempValue1 - prevValue;
@@ -132,20 +134,20 @@ TA_RetCode mfi(int startIdx, int endIdx, const double inHigh[], const double inL
     tempValue1 *= inVolume[today++];
     if( tempValue2 < 0 )
     {
-    mflow[mflow_Idx].negative = tempValue1;
+    mflow_negative[mflow_Idx] = tempValue1;
     negSumMF += tempValue1;
-    mflow[mflow_Idx].positive = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
     }
     else if( tempValue2 > 0 )
     {
-    mflow[mflow_Idx].positive = tempValue1;
+    mflow_positive[mflow_Idx] = tempValue1;
     posSumMF += tempValue1;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
     else
     {
-    mflow[mflow_Idx].positive = 0.0;
-    mflow[mflow_Idx].negative = 0.0;
+    mflow_positive[mflow_Idx] = 0.0;
+    mflow_negative[mflow_Idx] = 0.0;
     }
 
     tempValue1 = posSumMF+negSumMF;

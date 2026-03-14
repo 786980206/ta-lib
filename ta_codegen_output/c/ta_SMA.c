@@ -50,17 +50,16 @@ TA_LIB_API TA_RetCode TA_SMA( int    startIdx,
 {
    double periodTotal;
    double tempReal;
+   int i;
+   int outIdx;
+   int trailingIdx;
+   int lookbackTotal;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   periodTotal = 0;
-   int i;
-   int outIdx;
-   int trailingIdx;
-   int lookbackTotal;
    lookbackTotal = ((int)(optInTimePeriod-1));
    if( (startIdx<lookbackTotal) )
    {
@@ -72,7 +71,7 @@ TA_LIB_API TA_RetCode TA_SMA( int    startIdx,
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   periodTotal = 0;
+   periodTotal = 0.0;
    trailingIdx = (startIdx-lookbackTotal);
    i = trailingIdx;
    if( (optInTimePeriod>1) )
@@ -80,19 +79,19 @@ TA_LIB_API TA_RetCode TA_SMA( int    startIdx,
       while( (i<startIdx) )
       {
          periodTotal += ((double)inReal[i]);
-         i += 1;
+         i = (i+1);
       }
    }
    outIdx = 0;
    while( (i<=endIdx) )
    {
       periodTotal += ((double)inReal[i]);
-      i += 1;
+      i = (i+1);
       tempReal = periodTotal;
       periodTotal -= ((double)inReal[trailingIdx]);
-      trailingIdx += 1;
+      trailingIdx = (trailingIdx+1);
       outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-      outIdx += 1;
+      outIdx = (outIdx+1);
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;
@@ -100,6 +99,63 @@ TA_LIB_API TA_RetCode TA_SMA( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+TA_LIB_API TA_RetCode TA_SMA_Logic( int    startIdx,
+                                    int    endIdx,
+                                    const double inReal[],
+                                    int optInTimePeriod,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outReal[] )
+{
+   double periodTotal;
+   double tempReal;
+   int i;
+   int outIdx;
+   int trailingIdx;
+   int lookbackTotal;
+
+   lookbackTotal = ((int)(optInTimePeriod-1));
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_SUCCESS;
+   }
+   periodTotal = 0.0;
+   trailingIdx = (startIdx-lookbackTotal);
+   i = trailingIdx;
+   if( (optInTimePeriod>1) )
+   {
+      while( (i<startIdx) )
+      {
+         periodTotal += ((double)inReal[i]);
+         i = (i+1);
+      }
+   }
+   outIdx = 0;
+   while( (i<=endIdx) )
+   {
+      periodTotal += ((double)inReal[i]);
+      i = (i+1);
+      tempReal = periodTotal;
+      periodTotal -= ((double)inReal[trailingIdx]);
+      trailingIdx = (trailingIdx+1);
+      outReal[outIdx] = (tempReal/((double)optInTimePeriod));
+      outIdx = (outIdx+1);
+   }
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+#define TA_INT_SMA TA_SMA_Logic
 
 TA_RetCode TA_S_SMA( int    startIdx,
                      int    endIdx,
@@ -111,17 +167,16 @@ TA_RetCode TA_S_SMA( int    startIdx,
 {
    double periodTotal;
    double tempReal;
+   int i;
+   int outIdx;
+   int trailingIdx;
+   int lookbackTotal;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   periodTotal = 0;
-   int i;
-   int outIdx;
-   int trailingIdx;
-   int lookbackTotal;
    lookbackTotal = ((int)(optInTimePeriod-1));
    if( (startIdx<lookbackTotal) )
    {
@@ -133,7 +188,7 @@ TA_RetCode TA_S_SMA( int    startIdx,
       *outNBElement= 0;
       return TA_SUCCESS;
    }
-   periodTotal = 0;
+   periodTotal = 0.0;
    trailingIdx = (startIdx-lookbackTotal);
    i = trailingIdx;
    if( (optInTimePeriod>1) )
@@ -141,19 +196,74 @@ TA_RetCode TA_S_SMA( int    startIdx,
       while( (i<startIdx) )
       {
          periodTotal += ((double)inReal[i]);
-         i += 1;
+         i = (i+1);
       }
    }
    outIdx = 0;
    while( (i<=endIdx) )
    {
       periodTotal += ((double)inReal[i]);
-      i += 1;
+      i = (i+1);
       tempReal = periodTotal;
       periodTotal -= ((double)inReal[trailingIdx]);
-      trailingIdx += 1;
+      trailingIdx = (trailingIdx+1);
       outReal[outIdx] = (tempReal/((double)optInTimePeriod));
-      outIdx += 1;
+      outIdx = (outIdx+1);
+   }
+   *outNBElement= outIdx;
+   *outBegIdx= startIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+TA_RetCode TA_S_SMA_Logic( int    startIdx,
+                           int    endIdx,
+                           const float inReal[],
+                           int optInTimePeriod,
+                           int          *outBegIdx,
+                           int          *outNBElement,
+                           double        outReal[] )
+{
+   double periodTotal;
+   double tempReal;
+   int i;
+   int outIdx;
+   int trailingIdx;
+   int lookbackTotal;
+
+   lookbackTotal = ((int)(optInTimePeriod-1));
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_SUCCESS;
+   }
+   periodTotal = 0.0;
+   trailingIdx = (startIdx-lookbackTotal);
+   i = trailingIdx;
+   if( (optInTimePeriod>1) )
+   {
+      while( (i<startIdx) )
+      {
+         periodTotal += ((double)inReal[i]);
+         i = (i+1);
+      }
+   }
+   outIdx = 0;
+   while( (i<=endIdx) )
+   {
+      periodTotal += ((double)inReal[i]);
+      i = (i+1);
+      tempReal = periodTotal;
+      periodTotal -= ((double)inReal[trailingIdx]);
+      trailingIdx = (trailingIdx+1);
+      outReal[outIdx] = (tempReal/((double)optInTimePeriod));
+      outIdx = (outIdx+1);
    }
    *outNBElement= outIdx;
    *outBegIdx= startIdx;

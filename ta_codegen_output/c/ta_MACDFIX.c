@@ -1,0 +1,118 @@
+/* TA-LIB Copyright (c) 1999-2025, Mario Fortier
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or
+* without modification, are permitted provided that the following
+* conditions are met:
+*
+* - Redistributions of source code must retain the above copyright
+*   notice, this list of conditions and the following disclaimer.
+*
+* - Redistributions in binary form must reproduce the above copyright
+*   notice, this list of conditions and the following disclaimer in
+*   the documentation and/or other materials provided with the
+*   distribution.
+*
+* - Neither name of author nor the names of its contributors
+*   may be used to endorse or promote products derived from this
+*   software without specific prior written permission.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+* ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+* LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+* FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+* REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+* INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+* (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+* OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+* WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+* OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+* EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include <string.h>
+#include <math.h>
+#include "ta_func.h"
+
+TA_LIB_API int TA_MACDFIX_Lookback( int optInSignalPeriod )
+{
+   return (TA_EMA_Lookback(26)+TA_EMA_Lookback(optInSignalPeriod));
+}
+
+TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,
+                                  int    endIdx,
+                                  const double inReal[],
+                                  int optInSignalPeriod,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outMACD[],
+                                  double        outMACDSignal[],
+                                  double        outMACDHist[] )
+{
+
+   if( startIdx < 0 )
+      return TA_OUT_OF_RANGE_START_INDEX;
+   if( (endIdx < 0) || (endIdx < startIdx) )
+      return TA_OUT_OF_RANGE_END_INDEX;
+
+   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+
+   return TA_SUCCESS;
+}
+
+TA_LIB_API TA_RetCode TA_MACDFIX_Logic( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInSignalPeriod,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outMACD[],
+                                        double        outMACDSignal[],
+                                        double        outMACDHist[] )
+{
+
+   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+
+   return TA_SUCCESS;
+}
+
+#define TA_INT_MACDFIX TA_MACDFIX_Logic
+
+TA_RetCode TA_S_MACDFIX( int    startIdx,
+                         int    endIdx,
+                         const float inReal[],
+                         int optInSignalPeriod,
+                         int          *outBegIdx,
+                         int          *outNBElement,
+                         double        outMACD[],
+                         double        outMACDSignal[],
+                         double        outMACDHist[] )
+{
+
+   if( startIdx < 0 )
+      return TA_OUT_OF_RANGE_START_INDEX;
+   if( (endIdx < 0) || (endIdx < startIdx) )
+      return TA_OUT_OF_RANGE_END_INDEX;
+
+   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+
+   return TA_SUCCESS;
+}
+
+TA_RetCode TA_S_MACDFIX_Logic( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInSignalPeriod,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outMACD[],
+                               double        outMACDSignal[],
+                               double        outMACDHist[] )
+{
+
+   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+
+   return TA_SUCCESS;
+}
+

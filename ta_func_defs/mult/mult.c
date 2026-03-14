@@ -5,17 +5,15 @@ int mult_lookback(void)
 
 TA_RetCode mult(int startIdx, int endIdx, const double inReal0[], const double inReal1[], int *outBegIdx, int *outNBElement, double outReal[])
 {
-    size_t outIdx;
-
-
-
+    int outIdx;
+    int i;
 
     outIdx = 0;
-    i = (size_t)startIdx;
-    while( i <= (size_t)endIdx ) {
+    i = startIdx;
+    while( i <= endIdx ) {
     outReal[outIdx] = (double)(inReal0[i]*inReal1[i]);
     outIdx += 1;
-        i += 1;
+    i += 1;
     }
 
     *outNBElement = outIdx;

@@ -1,0 +1,5 @@
+/Users/chadfurman/projects/ta-lib/bin/ta_codegen_dotnet/TaCodegenServe
+/Users/chadfurman/projects/ta-lib/bin/ta_codegen_dotnet/TaCodegenServe.dll
+/Users/chadfurman/projects/ta-lib/bin/ta_codegen_dotnet/TaCodegenServe.deps.json
+/Users/chadfurman/projects/ta-lib/bin/ta_codegen_dotnet/TaCodegenServe.runtimeconfig.json
+/Users/chadfurman/projects/ta-lib/bin/ta_codegen_dotnet/TaCodegenServe.pdb

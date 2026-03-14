@@ -3,15 +3,13 @@ int ema_lookback(int           optInTimePeriod)
     return optInTimePeriod - 1 + TA_GetUnstablePeriod(TA_FUNC_UNST_EMA);
 }
 
-TA_RetCode ema(int startIdx, int endIdx, const double *inReal, int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double *outReal)
+TA_RetCode ema(int startIdx, int endIdx, const double *inReal, int optInTimePeriod, int *outBegIdx, int *outNBElement, double *outReal)
 {
     double tempReal, prevMA;
+    double optInK_1;
     int i, today, outIdx, lookbackTotal;
 
-    /* Ususally, optInK_1 = 2 / (optInTimePeriod + 1),
-    * but sometime there is exception. This
-    * is why both value are parameters.
-    */
+    optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
 
     /* Identify the minimum number of price bar needed
     * to calculate at least one output.

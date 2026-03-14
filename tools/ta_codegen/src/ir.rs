@@ -151,6 +151,10 @@ pub enum VarType {
     RealPointer,
     /// Pointer to int: `int *ptr`
     IntPointer,
+    /// Fixed-size array of doubles: `double buf[30]`
+    RealArray(String),
+    /// Fixed-size array of ints: `int buf[3]`
+    IntArray(String),
 }
 
 #[derive(Debug, Clone)]
@@ -173,6 +177,10 @@ pub enum Expr {
     PostIncrement(Box<Expr>),
     /// Post-decrement: var-- (evaluates to var, then decrements)
     PostDecrement(Box<Expr>),
+    /// Pre-increment: ++var (increments, then evaluates to new value)
+    PreIncrement(Box<Expr>),
+    /// Pre-decrement: --var (decrements, then evaluates to new value)
+    PreDecrement(Box<Expr>),
     /// Ternary: condition ? `then_expr` : `else_expr`
     Ternary(Box<Expr>, Box<Expr>, Box<Expr>),
 }

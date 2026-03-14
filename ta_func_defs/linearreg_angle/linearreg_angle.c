@@ -66,7 +66,7 @@ TA_RetCode linearreg_angle(int startIdx, int endIdx, const double inReal[], int 
     SumXY += (double)i * tempValue1;
     }
     m = ( optInTimePeriod * SumXY - SumX * SumY) / Divisor;
-    outReal[outIdx++] = atan(m) * ( 180.0 / PI );
+    outReal[outIdx++] = atan(m) * ( 180.0 / 3.14159265358979323846 );
     today++;
     }
 

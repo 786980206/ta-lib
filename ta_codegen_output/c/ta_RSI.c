@@ -71,7 +71,6 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   outIdx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
@@ -89,7 +88,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       *outBegIdx= startIdx;
       i = ((int)((endIdx-startIdx)+1));
       *outNBElement= ((int)i);
-      ARRAY_MEMMOVE(outReal,0,inReal,startIdx,i);
+      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
       return TA_SUCCESS;
    }
    today = (startIdx-lookbackTotal);
@@ -98,15 +97,15 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
    {
       savePrevValue = prevValue;
-      prevGain = 0;
-      prevLoss = 0;
+      prevGain = 0.0;
+      prevLoss = 0.0;
       for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
          tempValue2 = (tempValue1-prevValue);
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( (tempValue2<0.0) )
          {
             prevLoss -= tempValue2;
          } else 
@@ -117,13 +116,13 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(tempValue2/tempValue1));
+         outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
       if( (today>endIdx) )
@@ -135,8 +134,8 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       today = (today-((int)optInTimePeriod));
       prevValue = savePrevValue;
    }
-   prevGain = 0;
-   prevLoss = 0;
+   prevGain = 0.0;
+   prevLoss = 0.0;
    today = (today+1);
    for( i = optInTimePeriod; (i>0); i -= 1 )
    {
@@ -144,7 +143,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       today = (today+1);
       tempValue2 = (tempValue1-prevValue);
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( (tempValue2<0.0) )
       {
          prevLoss -= tempValue2;
       } else 
@@ -157,13 +156,13 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(prevGain/tempValue1));
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
    } else 
@@ -175,7 +174,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
          prevValue = tempValue1;
          prevLoss *= ((double)(optInTimePeriod-1));
          prevGain *= ((double)(optInTimePeriod-1));
-         if( (tempValue2<0) )
+         if( (tempValue2<0.0) )
          {
             prevLoss -= tempValue2;
          } else 
@@ -195,7 +194,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       prevValue = tempValue1;
       prevLoss *= ((double)(optInTimePeriod-1));
       prevGain *= ((double)(optInTimePeriod-1));
-      if( (tempValue2<0) )
+      if( (tempValue2<0.0) )
       {
          prevLoss -= tempValue2;
       } else 
@@ -205,13 +204,13 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(prevGain/tempValue1));
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
    }
@@ -221,6 +220,178 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+TA_LIB_API TA_RetCode TA_RSI_Logic( int    startIdx,
+                                    int    endIdx,
+                                    const double inReal[],
+                                    int optInTimePeriod,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outReal[] )
+{
+   int outIdx;
+   int today;
+   int lookbackTotal;
+   int unstablePeriod;
+   int i;
+   double prevGain;
+   double prevLoss;
+   double prevValue;
+   double savePrevValue;
+   double tempValue1;
+   double tempValue2;
+
+   *outBegIdx= 0;
+   *outNBElement= 0;
+   lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      return TA_SUCCESS;
+   }
+   outIdx = 0;
+   if( (optInTimePeriod==1) )
+   {
+      *outBegIdx= startIdx;
+      i = ((int)((endIdx-startIdx)+1));
+      *outNBElement= ((int)i);
+      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      return TA_SUCCESS;
+   }
+   today = (startIdx-lookbackTotal);
+   prevValue = ((double)inReal[today]);
+   unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
+   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   {
+      savePrevValue = prevValue;
+      prevGain = 0.0;
+      prevLoss = 0.0;
+      for( i = optInTimePeriod; (i>0); i -= 1 )
+      {
+         tempValue1 = ((double)inReal[today]);
+         today = (today+1);
+         tempValue2 = (tempValue1-prevValue);
+         prevValue = tempValue1;
+         if( (tempValue2<0.0) )
+         {
+            prevLoss -= tempValue2;
+         } else 
+         {
+            prevGain += tempValue2;
+         }
+      }
+      tempValue1 = (prevLoss/((double)optInTimePeriod));
+      tempValue2 = (prevGain/((double)optInTimePeriod));
+      tempValue1 = (tempValue2+tempValue1);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(tempValue2/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+      if( (today>endIdx) )
+      {
+         *outBegIdx= startIdx;
+         *outNBElement= outIdx;
+         return TA_SUCCESS;
+      }
+      today = (today-((int)optInTimePeriod));
+      prevValue = savePrevValue;
+   }
+   prevGain = 0.0;
+   prevLoss = 0.0;
+   today = (today+1);
+   for( i = optInTimePeriod; (i>0); i -= 1 )
+   {
+      tempValue1 = ((double)inReal[today]);
+      today = (today+1);
+      tempValue2 = (tempValue1-prevValue);
+      prevValue = tempValue1;
+      if( (tempValue2<0.0) )
+      {
+         prevLoss -= tempValue2;
+      } else 
+      {
+         prevGain += tempValue2;
+      }
+   }
+   prevLoss /= ((double)optInTimePeriod);
+   prevGain /= ((double)optInTimePeriod);
+   if( (today>startIdx) )
+   {
+      tempValue1 = (prevGain+prevLoss);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+   } else 
+   {
+      while( (today<startIdx) )
+      {
+         tempValue1 = ((double)inReal[today]);
+         tempValue2 = (tempValue1-prevValue);
+         prevValue = tempValue1;
+         prevLoss *= ((double)(optInTimePeriod-1));
+         prevGain *= ((double)(optInTimePeriod-1));
+         if( (tempValue2<0.0) )
+         {
+            prevLoss -= tempValue2;
+         } else 
+         {
+            prevGain += tempValue2;
+         }
+         prevLoss /= ((double)optInTimePeriod);
+         prevGain /= ((double)optInTimePeriod);
+         today = (today+1);
+      }
+   }
+   while( (today<=endIdx) )
+   {
+      tempValue1 = ((double)inReal[today]);
+      today = (today+1);
+      tempValue2 = (tempValue1-prevValue);
+      prevValue = tempValue1;
+      prevLoss *= ((double)(optInTimePeriod-1));
+      prevGain *= ((double)(optInTimePeriod-1));
+      if( (tempValue2<0.0) )
+      {
+         prevLoss -= tempValue2;
+      } else 
+      {
+         prevGain += tempValue2;
+      }
+      prevLoss /= ((double)optInTimePeriod);
+      prevGain /= ((double)optInTimePeriod);
+      tempValue1 = (prevGain+prevLoss);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+   }
+   *outBegIdx= startIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+#define TA_INT_RSI TA_RSI_Logic
 
 TA_RetCode TA_S_RSI( int    startIdx,
                      int    endIdx,
@@ -247,7 +418,6 @@ TA_RetCode TA_S_RSI( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   outIdx = 0;
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
@@ -265,7 +435,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       *outBegIdx= startIdx;
       i = ((int)((endIdx-startIdx)+1));
       *outNBElement= ((int)i);
-      ARRAY_MEMMOVEMIX(outReal,0,inReal,startIdx,i);
+      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
       return TA_SUCCESS;
    }
    today = (startIdx-lookbackTotal);
@@ -274,15 +444,15 @@ TA_RetCode TA_S_RSI( int    startIdx,
    if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
    {
       savePrevValue = prevValue;
-      prevGain = 0;
-      prevLoss = 0;
+      prevGain = 0.0;
+      prevLoss = 0.0;
       for( i = optInTimePeriod; (i>0); i -= 1 )
       {
          tempValue1 = ((double)inReal[today]);
          today = (today+1);
          tempValue2 = (tempValue1-prevValue);
          prevValue = tempValue1;
-         if( (tempValue2<0) )
+         if( (tempValue2<0.0) )
          {
             prevLoss -= tempValue2;
          } else 
@@ -293,13 +463,13 @@ TA_RetCode TA_S_RSI( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(tempValue2/tempValue1));
+         outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
       if( (today>endIdx) )
@@ -311,8 +481,8 @@ TA_RetCode TA_S_RSI( int    startIdx,
       today = (today-((int)optInTimePeriod));
       prevValue = savePrevValue;
    }
-   prevGain = 0;
-   prevLoss = 0;
+   prevGain = 0.0;
+   prevLoss = 0.0;
    today = (today+1);
    for( i = optInTimePeriod; (i>0); i -= 1 )
    {
@@ -320,7 +490,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       today = (today+1);
       tempValue2 = (tempValue1-prevValue);
       prevValue = tempValue1;
-      if( (tempValue2<0) )
+      if( (tempValue2<0.0) )
       {
          prevLoss -= tempValue2;
       } else 
@@ -333,13 +503,13 @@ TA_RetCode TA_S_RSI( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(prevGain/tempValue1));
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
    } else 
@@ -351,7 +521,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
          prevValue = tempValue1;
          prevLoss *= ((double)(optInTimePeriod-1));
          prevGain *= ((double)(optInTimePeriod-1));
-         if( (tempValue2<0) )
+         if( (tempValue2<0.0) )
          {
             prevLoss -= tempValue2;
          } else 
@@ -371,7 +541,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       prevValue = tempValue1;
       prevLoss *= ((double)(optInTimePeriod-1));
       prevGain *= ((double)(optInTimePeriod-1));
-      if( (tempValue2<0) )
+      if( (tempValue2<0.0) )
       {
          prevLoss -= tempValue2;
       } else 
@@ -381,13 +551,183 @@ TA_RetCode TA_S_RSI( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !(TA_IS_ZERO(tempValue1)) )
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
       {
-         outReal[outIdx] = (100*(prevGain/tempValue1));
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
       } else 
       {
-         outReal[outIdx] = 0;
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+   }
+   *outBegIdx= startIdx;
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+TA_RetCode TA_S_RSI_Logic( int    startIdx,
+                           int    endIdx,
+                           const float inReal[],
+                           int optInTimePeriod,
+                           int          *outBegIdx,
+                           int          *outNBElement,
+                           double        outReal[] )
+{
+   int outIdx;
+   int today;
+   int lookbackTotal;
+   int unstablePeriod;
+   int i;
+   double prevGain;
+   double prevLoss;
+   double prevValue;
+   double savePrevValue;
+   double tempValue1;
+   double tempValue2;
+
+   *outBegIdx= 0;
+   *outNBElement= 0;
+   lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      return TA_SUCCESS;
+   }
+   outIdx = 0;
+   if( (optInTimePeriod==1) )
+   {
+      *outBegIdx= startIdx;
+      i = ((int)((endIdx-startIdx)+1));
+      *outNBElement= ((int)i);
+      memcpy(&outReal[0],&inReal[startIdx],(i*sizeof(double)));
+      return TA_SUCCESS;
+   }
+   today = (startIdx-lookbackTotal);
+   prevValue = ((double)inReal[today]);
+   unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
+   if( ((unstablePeriod==0)&&(TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock))) )
+   {
+      savePrevValue = prevValue;
+      prevGain = 0.0;
+      prevLoss = 0.0;
+      for( i = optInTimePeriod; (i>0); i -= 1 )
+      {
+         tempValue1 = ((double)inReal[today]);
+         today = (today+1);
+         tempValue2 = (tempValue1-prevValue);
+         prevValue = tempValue1;
+         if( (tempValue2<0.0) )
+         {
+            prevLoss -= tempValue2;
+         } else 
+         {
+            prevGain += tempValue2;
+         }
+      }
+      tempValue1 = (prevLoss/((double)optInTimePeriod));
+      tempValue2 = (prevGain/((double)optInTimePeriod));
+      tempValue1 = (tempValue2+tempValue1);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(tempValue2/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+      if( (today>endIdx) )
+      {
+         *outBegIdx= startIdx;
+         *outNBElement= outIdx;
+         return TA_SUCCESS;
+      }
+      today = (today-((int)optInTimePeriod));
+      prevValue = savePrevValue;
+   }
+   prevGain = 0.0;
+   prevLoss = 0.0;
+   today = (today+1);
+   for( i = optInTimePeriod; (i>0); i -= 1 )
+   {
+      tempValue1 = ((double)inReal[today]);
+      today = (today+1);
+      tempValue2 = (tempValue1-prevValue);
+      prevValue = tempValue1;
+      if( (tempValue2<0.0) )
+      {
+         prevLoss -= tempValue2;
+      } else 
+      {
+         prevGain += tempValue2;
+      }
+   }
+   prevLoss /= ((double)optInTimePeriod);
+   prevGain /= ((double)optInTimePeriod);
+   if( (today>startIdx) )
+   {
+      tempValue1 = (prevGain+prevLoss);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
+         outIdx = (outIdx+1);
+      }
+   } else 
+   {
+      while( (today<startIdx) )
+      {
+         tempValue1 = ((double)inReal[today]);
+         tempValue2 = (tempValue1-prevValue);
+         prevValue = tempValue1;
+         prevLoss *= ((double)(optInTimePeriod-1));
+         prevGain *= ((double)(optInTimePeriod-1));
+         if( (tempValue2<0.0) )
+         {
+            prevLoss -= tempValue2;
+         } else 
+         {
+            prevGain += tempValue2;
+         }
+         prevLoss /= ((double)optInTimePeriod);
+         prevGain /= ((double)optInTimePeriod);
+         today = (today+1);
+      }
+   }
+   while( (today<=endIdx) )
+   {
+      tempValue1 = ((double)inReal[today]);
+      today = (today+1);
+      tempValue2 = (tempValue1-prevValue);
+      prevValue = tempValue1;
+      prevLoss *= ((double)(optInTimePeriod-1));
+      prevGain *= ((double)(optInTimePeriod-1));
+      if( (tempValue2<0.0) )
+      {
+         prevLoss -= tempValue2;
+      } else 
+      {
+         prevGain += tempValue2;
+      }
+      prevLoss /= ((double)optInTimePeriod);
+      prevGain /= ((double)optInTimePeriod);
+      tempValue1 = (prevGain+prevLoss);
+      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      {
+         outReal[outIdx] = (100.0*(prevGain/tempValue1));
+         outIdx = (outIdx+1);
+      } else 
+      {
+         outReal[outIdx] = 0.0;
          outIdx = (outIdx+1);
       }
    }

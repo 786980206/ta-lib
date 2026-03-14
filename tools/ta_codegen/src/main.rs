@@ -418,6 +418,7 @@ fn build_servers(backend_filter: Option<&str>) {
 
                 // Build a unity source that includes the wrapper + all C functions
                 let mut unity = String::new();
+                unity.push_str("#include <stdlib.h>\n");
                 unity.push_str("#include \"ta_func.h\"\n");
                 let mut c_names: Vec<String> = Vec::new();
                 if let Ok(entries) = std::fs::read_dir(&c_dir) {

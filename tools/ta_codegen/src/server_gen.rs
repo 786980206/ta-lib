@@ -260,6 +260,51 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     s.push_str("#define TA_COMPATIBILITY_METASTOCK 1\n");
     s.push_str("#define ENUM_VALUE(type, c_val, rust_val) (c_val)\n\n");
 
+    // Candle settings infrastructure
+    s.push_str("/* Candle settings types */\n");
+    s.push_str("typedef int TA_RangeType;\n");
+    s.push_str("#define TA_RangeType_RealBody 0\n");
+    s.push_str("#define TA_RangeType_HighLow  1\n");
+    s.push_str("#define TA_RangeType_Shadows  2\n\n");
+    s.push_str("typedef int TA_CandleSettingType;\n");
+    s.push_str("#define TA_BodyLong         0\n");
+    s.push_str("#define TA_BodyVeryLong     1\n");
+    s.push_str("#define TA_BodyShort        2\n");
+    s.push_str("#define TA_BodyDoji         3\n");
+    s.push_str("#define TA_ShadowLong       4\n");
+    s.push_str("#define TA_ShadowVeryLong   5\n");
+    s.push_str("#define TA_ShadowShort      6\n");
+    s.push_str("#define TA_ShadowVeryShort  7\n");
+    s.push_str("#define TA_Near             8\n");
+    s.push_str("#define TA_Far              9\n");
+    s.push_str("#define TA_Equal           10\n");
+    s.push_str("#define TA_AllCandleSettings 11\n\n");
+    s.push_str("typedef struct {\n");
+    s.push_str("    TA_CandleSettingType settingType;\n");
+    s.push_str("    TA_RangeType rangeType;\n");
+    s.push_str("    int avgPeriod;\n");
+    s.push_str("    double factor;\n");
+    s.push_str("} TA_CandleSetting;\n\n");
+    s.push_str("typedef struct {\n");
+    s.push_str("    TA_CandleSetting candleSettings[TA_AllCandleSettings];\n");
+    s.push_str("} TA_GlobalsType;\n\n");
+    s.push_str("static TA_GlobalsType ta_globals_data = {\n");
+    s.push_str("    .candleSettings = {\n");
+    s.push_str("        { TA_BodyLong,        TA_RangeType_RealBody, 10, 1.0 },\n");
+    s.push_str("        { TA_BodyVeryLong,    TA_RangeType_RealBody, 10, 3.0 },\n");
+    s.push_str("        { TA_BodyShort,       TA_RangeType_RealBody, 10, 1.0 },\n");
+    s.push_str("        { TA_BodyDoji,        TA_RangeType_HighLow,  10, 0.1 },\n");
+    s.push_str("        { TA_ShadowLong,      TA_RangeType_RealBody,  0, 1.0 },\n");
+    s.push_str("        { TA_ShadowVeryLong,  TA_RangeType_RealBody,  0, 2.0 },\n");
+    s.push_str("        { TA_ShadowShort,     TA_RangeType_Shadows,  10, 1.0 },\n");
+    s.push_str("        { TA_ShadowVeryShort, TA_RangeType_HighLow,  10, 0.1 },\n");
+    s.push_str("        { TA_Near,            TA_RangeType_HighLow,   5, 0.2 },\n");
+    s.push_str("        { TA_Far,             TA_RangeType_HighLow,   5, 0.6 },\n");
+    s.push_str("        { TA_Equal,           TA_RangeType_HighLow,   5, 0.05 },\n");
+    s.push_str("    }\n");
+    s.push_str("};\n");
+    s.push_str("static TA_GlobalsType *TA_Globals = &ta_globals_data;\n\n");
+
     // Epsilon comparison
     s.push_str("#define TA_IS_ZERO(v) ((-(0.00000001)) < (v) && (v) < (0.00000001))\n");
     s.push_str("#define TA_IS_ZERO_OR_NEG(v) ((v) < (0.00000001))\n\n");
@@ -1236,6 +1281,28 @@ pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
         let input_names = expand_input_names(&func.inputs);
 
         s.push_str(&format!("extern TA_RetCode TA_{}(int, int", func.name));
+        for _ in &input_names {
+            s.push_str(", const double*");
+        }
+        for opt in &func.optional_inputs {
+            if opt.param_type == ParamType::Real {
+                s.push_str(", double");
+            } else {
+                s.push_str(", int");
+            }
+        }
+        s.push_str(", int*, int*");
+        for out in &func.outputs {
+            if out.param_type == ParamType::Integer {
+                s.push_str(", int*");
+            } else {
+                s.push_str(", double*");
+            }
+        }
+        s.push_str(");\n");
+
+        // _Logic variant (same signature)
+        s.push_str(&format!("extern TA_RetCode TA_{}_Logic(int, int", func.name));
         for _ in &input_names {
             s.push_str(", const double*");
         }

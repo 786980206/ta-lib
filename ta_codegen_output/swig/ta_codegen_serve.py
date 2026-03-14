@@ -355,7 +355,7 @@ def handle_accbands(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 20))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ACCBANDS(
             start_idx, end_idx,
             inHigh,
@@ -363,8 +363,8 @@ def handle_accbands(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -387,13 +387,13 @@ def handle_acos(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ACOS(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -415,7 +415,7 @@ def handle_ad(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     inVolume = [float(x) for x in params.get('inVolume', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_AD(
             start_idx, end_idx,
             inHigh,
@@ -423,8 +423,8 @@ def handle_ad(params):
             inClose,
             inVolume,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -444,14 +444,14 @@ def handle_add(params):
     inReal0 = [float(x) for x in params.get('inReal0', [])]
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ADD(
             start_idx, end_idx,
             inReal0,
             inReal1,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -475,7 +475,7 @@ def handle_adosc(params):
     optInFastPeriod = int(params.get('optInFastPeriod', 3))
     optInSlowPeriod = int(params.get('optInSlowPeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ADOSC(
             start_idx, end_idx,
             inHigh,
@@ -485,8 +485,8 @@ def handle_adosc(params):
             optInFastPeriod,
             optInSlowPeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -509,7 +509,7 @@ def handle_adx(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(0, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ADX(
             start_idx, end_idx,
             inHigh,
@@ -517,8 +517,8 @@ def handle_adx(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -541,7 +541,7 @@ def handle_adxr(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(1, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ADXR(
             start_idx, end_idx,
             inHigh,
@@ -549,8 +549,8 @@ def handle_adxr(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -572,7 +572,7 @@ def handle_apo(params):
     optInSlowPeriod = int(params.get('optInSlowPeriod', 26))
     optInMAType = int(params.get('optInMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_APO(
             start_idx, end_idx,
             inReal,
@@ -580,8 +580,8 @@ def handle_apo(params):
             optInSlowPeriod,
             optInMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -602,15 +602,15 @@ def handle_aroon(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_AROON(
             start_idx, end_idx,
             inHigh,
             inLow,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -633,15 +633,15 @@ def handle_aroonosc(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_AROONOSC(
             start_idx, end_idx,
             inHigh,
             inLow,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -660,13 +660,13 @@ def handle_asin(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ASIN(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -685,13 +685,13 @@ def handle_atan(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ATAN(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -714,7 +714,7 @@ def handle_atr(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(2, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ATR(
             start_idx, end_idx,
             inHigh,
@@ -722,8 +722,8 @@ def handle_atr(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -743,14 +743,14 @@ def handle_avgdev(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_AVGDEV(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -772,7 +772,7 @@ def handle_avgprice(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_AVGPRICE(
             start_idx, end_idx,
             inOpen,
@@ -780,8 +780,8 @@ def handle_avgprice(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -804,7 +804,7 @@ def handle_bbands(params):
     optInNbDevDn = float(params.get('optInNbDevDn', 2))
     optInMAType = int(params.get('optInMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_BBANDS(
             start_idx, end_idx,
             inReal,
@@ -813,8 +813,8 @@ def handle_bbands(params):
             optInNbDevDn,
             optInMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -839,15 +839,15 @@ def handle_beta(params):
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 5))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_BETA(
             start_idx, end_idx,
             inReal0,
             inReal1,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -869,7 +869,7 @@ def handle_bop(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_BOP(
             start_idx, end_idx,
             inOpen,
@@ -877,8 +877,8 @@ def handle_bop(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -900,7 +900,7 @@ def handle_cci(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CCI(
             start_idx, end_idx,
             inHigh,
@@ -908,8 +908,8 @@ def handle_cci(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -931,7 +931,7 @@ def handle_cdl2crows(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL2CROWS(
             start_idx, end_idx,
             inOpen,
@@ -939,8 +939,8 @@ def handle_cdl2crows(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -962,7 +962,7 @@ def handle_cdl3blackcrows(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3BLACKCROWS(
             start_idx, end_idx,
             inOpen,
@@ -970,8 +970,8 @@ def handle_cdl3blackcrows(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -993,7 +993,7 @@ def handle_cdl3inside(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3INSIDE(
             start_idx, end_idx,
             inOpen,
@@ -1001,8 +1001,8 @@ def handle_cdl3inside(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1024,7 +1024,7 @@ def handle_cdl3linestrike(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3LINESTRIKE(
             start_idx, end_idx,
             inOpen,
@@ -1032,8 +1032,8 @@ def handle_cdl3linestrike(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1055,7 +1055,7 @@ def handle_cdl3outside(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3OUTSIDE(
             start_idx, end_idx,
             inOpen,
@@ -1063,8 +1063,8 @@ def handle_cdl3outside(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1086,7 +1086,7 @@ def handle_cdl3starsinsouth(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3STARSINSOUTH(
             start_idx, end_idx,
             inOpen,
@@ -1094,8 +1094,8 @@ def handle_cdl3starsinsouth(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1117,7 +1117,7 @@ def handle_cdl3whitesoldiers(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDL3WHITESOLDIERS(
             start_idx, end_idx,
             inOpen,
@@ -1125,8 +1125,8 @@ def handle_cdl3whitesoldiers(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1149,7 +1149,7 @@ def handle_cdlabandonedbaby(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.3))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLABANDONEDBABY(
             start_idx, end_idx,
             inOpen,
@@ -1158,8 +1158,8 @@ def handle_cdlabandonedbaby(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1181,7 +1181,7 @@ def handle_cdladvanceblock(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLADVANCEBLOCK(
             start_idx, end_idx,
             inOpen,
@@ -1189,8 +1189,8 @@ def handle_cdladvanceblock(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1212,7 +1212,7 @@ def handle_cdlbelthold(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLBELTHOLD(
             start_idx, end_idx,
             inOpen,
@@ -1220,8 +1220,8 @@ def handle_cdlbelthold(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1243,7 +1243,7 @@ def handle_cdlbreakaway(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLBREAKAWAY(
             start_idx, end_idx,
             inOpen,
@@ -1251,8 +1251,8 @@ def handle_cdlbreakaway(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1274,7 +1274,7 @@ def handle_cdlclosingmarubozu(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLCLOSINGMARUBOZU(
             start_idx, end_idx,
             inOpen,
@@ -1282,8 +1282,8 @@ def handle_cdlclosingmarubozu(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1305,7 +1305,7 @@ def handle_cdlconcealbabyswall(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLCONCEALBABYSWALL(
             start_idx, end_idx,
             inOpen,
@@ -1313,8 +1313,8 @@ def handle_cdlconcealbabyswall(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1336,7 +1336,7 @@ def handle_cdlcounterattack(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLCOUNTERATTACK(
             start_idx, end_idx,
             inOpen,
@@ -1344,8 +1344,8 @@ def handle_cdlcounterattack(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1368,7 +1368,7 @@ def handle_cdldarkcloudcover(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.5))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLDARKCLOUDCOVER(
             start_idx, end_idx,
             inOpen,
@@ -1377,8 +1377,8 @@ def handle_cdldarkcloudcover(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1400,7 +1400,7 @@ def handle_cdldoji(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLDOJI(
             start_idx, end_idx,
             inOpen,
@@ -1408,8 +1408,8 @@ def handle_cdldoji(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1431,7 +1431,7 @@ def handle_cdldojistar(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLDOJISTAR(
             start_idx, end_idx,
             inOpen,
@@ -1439,8 +1439,8 @@ def handle_cdldojistar(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1462,7 +1462,7 @@ def handle_cdldragonflydoji(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLDRAGONFLYDOJI(
             start_idx, end_idx,
             inOpen,
@@ -1470,8 +1470,8 @@ def handle_cdldragonflydoji(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1493,7 +1493,7 @@ def handle_cdlengulfing(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLENGULFING(
             start_idx, end_idx,
             inOpen,
@@ -1501,8 +1501,8 @@ def handle_cdlengulfing(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1525,7 +1525,7 @@ def handle_cdleveningdojistar(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.3))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLEVENINGDOJISTAR(
             start_idx, end_idx,
             inOpen,
@@ -1534,8 +1534,8 @@ def handle_cdleveningdojistar(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1558,7 +1558,7 @@ def handle_cdleveningstar(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.3))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLEVENINGSTAR(
             start_idx, end_idx,
             inOpen,
@@ -1567,8 +1567,8 @@ def handle_cdleveningstar(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1590,7 +1590,7 @@ def handle_cdlgapsidesidewhite(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLGAPSIDESIDEWHITE(
             start_idx, end_idx,
             inOpen,
@@ -1598,8 +1598,8 @@ def handle_cdlgapsidesidewhite(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1621,7 +1621,7 @@ def handle_cdlgravestonedoji(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLGRAVESTONEDOJI(
             start_idx, end_idx,
             inOpen,
@@ -1629,8 +1629,8 @@ def handle_cdlgravestonedoji(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1652,7 +1652,7 @@ def handle_cdlhammer(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHAMMER(
             start_idx, end_idx,
             inOpen,
@@ -1660,8 +1660,8 @@ def handle_cdlhammer(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1683,7 +1683,7 @@ def handle_cdlhangingman(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHANGINGMAN(
             start_idx, end_idx,
             inOpen,
@@ -1691,8 +1691,8 @@ def handle_cdlhangingman(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1714,7 +1714,7 @@ def handle_cdlharami(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHARAMI(
             start_idx, end_idx,
             inOpen,
@@ -1722,8 +1722,8 @@ def handle_cdlharami(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1745,7 +1745,7 @@ def handle_cdlharamicross(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHARAMICROSS(
             start_idx, end_idx,
             inOpen,
@@ -1753,8 +1753,8 @@ def handle_cdlharamicross(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1776,7 +1776,7 @@ def handle_cdlhighwave(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHIGHWAVE(
             start_idx, end_idx,
             inOpen,
@@ -1784,8 +1784,8 @@ def handle_cdlhighwave(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1807,7 +1807,7 @@ def handle_cdlhikkake(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHIKKAKE(
             start_idx, end_idx,
             inOpen,
@@ -1815,8 +1815,8 @@ def handle_cdlhikkake(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1838,7 +1838,7 @@ def handle_cdlhikkakemod(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHIKKAKEMOD(
             start_idx, end_idx,
             inOpen,
@@ -1846,8 +1846,8 @@ def handle_cdlhikkakemod(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1869,7 +1869,7 @@ def handle_cdlhomingpigeon(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLHOMINGPIGEON(
             start_idx, end_idx,
             inOpen,
@@ -1877,8 +1877,8 @@ def handle_cdlhomingpigeon(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1900,7 +1900,7 @@ def handle_cdlidentical3crows(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLIDENTICAL3CROWS(
             start_idx, end_idx,
             inOpen,
@@ -1908,8 +1908,8 @@ def handle_cdlidentical3crows(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1931,7 +1931,7 @@ def handle_cdlinneck(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLINNECK(
             start_idx, end_idx,
             inOpen,
@@ -1939,8 +1939,8 @@ def handle_cdlinneck(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1962,7 +1962,7 @@ def handle_cdlinvertedhammer(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLINVERTEDHAMMER(
             start_idx, end_idx,
             inOpen,
@@ -1970,8 +1970,8 @@ def handle_cdlinvertedhammer(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -1993,7 +1993,7 @@ def handle_cdlkicking(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLKICKING(
             start_idx, end_idx,
             inOpen,
@@ -2001,8 +2001,8 @@ def handle_cdlkicking(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2024,7 +2024,7 @@ def handle_cdlkickingbylength(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLKICKINGBYLENGTH(
             start_idx, end_idx,
             inOpen,
@@ -2032,8 +2032,8 @@ def handle_cdlkickingbylength(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2055,7 +2055,7 @@ def handle_cdlladderbottom(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLLADDERBOTTOM(
             start_idx, end_idx,
             inOpen,
@@ -2063,8 +2063,8 @@ def handle_cdlladderbottom(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2086,7 +2086,7 @@ def handle_cdllongleggeddoji(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLLONGLEGGEDDOJI(
             start_idx, end_idx,
             inOpen,
@@ -2094,8 +2094,8 @@ def handle_cdllongleggeddoji(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2117,7 +2117,7 @@ def handle_cdllongline(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLLONGLINE(
             start_idx, end_idx,
             inOpen,
@@ -2125,8 +2125,8 @@ def handle_cdllongline(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2148,7 +2148,7 @@ def handle_cdlmarubozu(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLMARUBOZU(
             start_idx, end_idx,
             inOpen,
@@ -2156,8 +2156,8 @@ def handle_cdlmarubozu(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2179,7 +2179,7 @@ def handle_cdlmatchinglow(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLMATCHINGLOW(
             start_idx, end_idx,
             inOpen,
@@ -2187,8 +2187,8 @@ def handle_cdlmatchinglow(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2211,7 +2211,7 @@ def handle_cdlmathold(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.5))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLMATHOLD(
             start_idx, end_idx,
             inOpen,
@@ -2220,8 +2220,8 @@ def handle_cdlmathold(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2244,7 +2244,7 @@ def handle_cdlmorningdojistar(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.3))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLMORNINGDOJISTAR(
             start_idx, end_idx,
             inOpen,
@@ -2253,8 +2253,8 @@ def handle_cdlmorningdojistar(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2277,7 +2277,7 @@ def handle_cdlmorningstar(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInPenetration = float(params.get('optInPenetration', 0.3))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLMORNINGSTAR(
             start_idx, end_idx,
             inOpen,
@@ -2286,8 +2286,8 @@ def handle_cdlmorningstar(params):
             inClose,
             optInPenetration,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2309,7 +2309,7 @@ def handle_cdlonneck(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLONNECK(
             start_idx, end_idx,
             inOpen,
@@ -2317,8 +2317,8 @@ def handle_cdlonneck(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2340,7 +2340,7 @@ def handle_cdlpiercing(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLPIERCING(
             start_idx, end_idx,
             inOpen,
@@ -2348,8 +2348,8 @@ def handle_cdlpiercing(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2371,7 +2371,7 @@ def handle_cdlrickshawman(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLRICKSHAWMAN(
             start_idx, end_idx,
             inOpen,
@@ -2379,8 +2379,8 @@ def handle_cdlrickshawman(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2402,7 +2402,7 @@ def handle_cdlrisefall3methods(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLRISEFALL3METHODS(
             start_idx, end_idx,
             inOpen,
@@ -2410,8 +2410,8 @@ def handle_cdlrisefall3methods(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2433,7 +2433,7 @@ def handle_cdlseparatinglines(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSEPARATINGLINES(
             start_idx, end_idx,
             inOpen,
@@ -2441,8 +2441,8 @@ def handle_cdlseparatinglines(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2464,7 +2464,7 @@ def handle_cdlshootingstar(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSHOOTINGSTAR(
             start_idx, end_idx,
             inOpen,
@@ -2472,8 +2472,8 @@ def handle_cdlshootingstar(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2495,7 +2495,7 @@ def handle_cdlshortline(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSHORTLINE(
             start_idx, end_idx,
             inOpen,
@@ -2503,8 +2503,8 @@ def handle_cdlshortline(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2526,7 +2526,7 @@ def handle_cdlspinningtop(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSPINNINGTOP(
             start_idx, end_idx,
             inOpen,
@@ -2534,8 +2534,8 @@ def handle_cdlspinningtop(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2557,7 +2557,7 @@ def handle_cdlstalledpattern(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSTALLEDPATTERN(
             start_idx, end_idx,
             inOpen,
@@ -2565,8 +2565,8 @@ def handle_cdlstalledpattern(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2588,7 +2588,7 @@ def handle_cdlsticksandwich(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLSTICKSANDWICH(
             start_idx, end_idx,
             inOpen,
@@ -2596,8 +2596,8 @@ def handle_cdlsticksandwich(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2619,7 +2619,7 @@ def handle_cdltakuri(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLTAKURI(
             start_idx, end_idx,
             inOpen,
@@ -2627,8 +2627,8 @@ def handle_cdltakuri(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2650,7 +2650,7 @@ def handle_cdltasukigap(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLTASUKIGAP(
             start_idx, end_idx,
             inOpen,
@@ -2658,8 +2658,8 @@ def handle_cdltasukigap(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2681,7 +2681,7 @@ def handle_cdlthrusting(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLTHRUSTING(
             start_idx, end_idx,
             inOpen,
@@ -2689,8 +2689,8 @@ def handle_cdlthrusting(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2712,7 +2712,7 @@ def handle_cdltristar(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLTRISTAR(
             start_idx, end_idx,
             inOpen,
@@ -2720,8 +2720,8 @@ def handle_cdltristar(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2743,7 +2743,7 @@ def handle_cdlunique3river(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLUNIQUE3RIVER(
             start_idx, end_idx,
             inOpen,
@@ -2751,8 +2751,8 @@ def handle_cdlunique3river(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2774,7 +2774,7 @@ def handle_cdlupsidegap2crows(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLUPSIDEGAP2CROWS(
             start_idx, end_idx,
             inOpen,
@@ -2782,8 +2782,8 @@ def handle_cdlupsidegap2crows(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2805,7 +2805,7 @@ def handle_cdlxsidegap3methods(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CDLXSIDEGAP3METHODS(
             start_idx, end_idx,
             inOpen,
@@ -2813,8 +2813,8 @@ def handle_cdlxsidegap3methods(params):
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2833,13 +2833,13 @@ def handle_ceil(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CEIL(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2860,14 +2860,14 @@ def handle_cmo(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(3, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CMO(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2888,15 +2888,15 @@ def handle_correl(params):
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_CORREL(
             start_idx, end_idx,
             inReal0,
             inReal1,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2915,13 +2915,13 @@ def handle_cos(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_COS(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2940,13 +2940,13 @@ def handle_cosh(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_COSH(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2966,14 +2966,14 @@ def handle_dema(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_DEMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -2993,14 +2993,14 @@ def handle_div(params):
     inReal0 = [float(x) for x in params.get('inReal0', [])]
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_DIV(
             start_idx, end_idx,
             inReal0,
             inReal1,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3023,7 +3023,7 @@ def handle_dx(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(4, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_DX(
             start_idx, end_idx,
             inHigh,
@@ -3031,8 +3031,8 @@ def handle_dx(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3053,14 +3053,14 @@ def handle_ema(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     ta_lib.TA_SetUnstablePeriod(5, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_EMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3079,13 +3079,13 @@ def handle_exp(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_EXP(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3104,13 +3104,13 @@ def handle_floor(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_FLOOR(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3130,13 +3130,13 @@ def handle_ht_dcperiod(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(6, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_DCPERIOD(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3156,13 +3156,13 @@ def handle_ht_dcphase(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(7, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_DCPHASE(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3182,13 +3182,13 @@ def handle_ht_phasor(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(8, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_PHASOR(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3210,13 +3210,13 @@ def handle_ht_sine(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(9, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_SINE(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3238,13 +3238,13 @@ def handle_ht_trendline(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(10, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_TRENDLINE(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3264,13 +3264,13 @@ def handle_ht_trendmode(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     ta_lib.TA_SetUnstablePeriod(11, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_HT_TRENDMODE(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3292,15 +3292,15 @@ def handle_imi(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(12, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_IMI(
             start_idx, end_idx,
             inOpen,
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3321,14 +3321,14 @@ def handle_kama(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     ta_lib.TA_SetUnstablePeriod(13, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_KAMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3348,14 +3348,14 @@ def handle_linearreg(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LINEARREG(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3375,14 +3375,14 @@ def handle_linearreg_angle(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LINEARREG_ANGLE(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3402,14 +3402,14 @@ def handle_linearreg_intercept(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LINEARREG_INTERCEPT(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3429,14 +3429,14 @@ def handle_linearreg_slope(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LINEARREG_SLOPE(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3455,13 +3455,13 @@ def handle_ln(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LN(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3480,13 +3480,13 @@ def handle_log10(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_LOG10(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3507,15 +3507,15 @@ def handle_ma(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     optInMAType = int(params.get('optInMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
             optInMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3537,7 +3537,7 @@ def handle_macd(params):
     optInSlowPeriod = int(params.get('optInSlowPeriod', 26))
     optInSignalPeriod = int(params.get('optInSignalPeriod', 9))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MACD(
             start_idx, end_idx,
             inReal,
@@ -3545,8 +3545,8 @@ def handle_macd(params):
             optInSlowPeriod,
             optInSignalPeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3575,7 +3575,7 @@ def handle_macdext(params):
     optInSignalPeriod = int(params.get('optInSignalPeriod', 9))
     optInSignalMAType = int(params.get('optInSignalMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MACDEXT(
             start_idx, end_idx,
             inReal,
@@ -3586,8 +3586,8 @@ def handle_macdext(params):
             optInSignalPeriod,
             optInSignalMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3611,14 +3611,14 @@ def handle_macdfix(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInSignalPeriod = int(params.get('optInSignalPeriod', 9))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MACDFIX(
             start_idx, end_idx,
             inReal,
             optInSignalPeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3644,15 +3644,15 @@ def handle_mama(params):
     optInSlowLimit = float(params.get('optInSlowLimit', 0.05))
     ta_lib.TA_SetUnstablePeriod(14, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MAMA(
             start_idx, end_idx,
             inReal,
             optInFastLimit,
             optInSlowLimit,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3677,7 +3677,7 @@ def handle_mavp(params):
     optInMaxPeriod = int(params.get('optInMaxPeriod', 30))
     optInMAType = int(params.get('optInMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MAVP(
             start_idx, end_idx,
             inReal,
@@ -3686,8 +3686,8 @@ def handle_mavp(params):
             optInMaxPeriod,
             optInMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3707,14 +3707,14 @@ def handle_max(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MAX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3734,14 +3734,14 @@ def handle_maxindex(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MAXINDEX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3761,14 +3761,14 @@ def handle_medprice(params):
     inHigh = [float(x) for x in params.get('inHigh', [])]
     inLow = [float(x) for x in params.get('inLow', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MEDPRICE(
             start_idx, end_idx,
             inHigh,
             inLow,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3792,7 +3792,7 @@ def handle_mfi(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(15, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MFI(
             start_idx, end_idx,
             inHigh,
@@ -3801,8 +3801,8 @@ def handle_mfi(params):
             inVolume,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3822,14 +3822,14 @@ def handle_midpoint(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MIDPOINT(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3850,15 +3850,15 @@ def handle_midprice(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MIDPRICE(
             start_idx, end_idx,
             inHigh,
             inLow,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3878,14 +3878,14 @@ def handle_min(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MIN(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3905,14 +3905,14 @@ def handle_minindex(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MININDEX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -3932,14 +3932,14 @@ def handle_minmax(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MINMAX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3961,14 +3961,14 @@ def handle_minmaxindex(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MINMAXINDEX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -3993,7 +3993,7 @@ def handle_minus_di(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(16, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MINUS_DI(
             start_idx, end_idx,
             inHigh,
@@ -4001,8 +4001,8 @@ def handle_minus_di(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4024,15 +4024,15 @@ def handle_minus_dm(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(17, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MINUS_DM(
             start_idx, end_idx,
             inHigh,
             inLow,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4052,14 +4052,14 @@ def handle_mom(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MOM(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4079,14 +4079,14 @@ def handle_mult(params):
     inReal0 = [float(x) for x in params.get('inReal0', [])]
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MULT(
             start_idx, end_idx,
             inReal0,
             inReal1,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4109,7 +4109,7 @@ def handle_natr(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(18, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_NATR(
             start_idx, end_idx,
             inHigh,
@@ -4117,8 +4117,8 @@ def handle_natr(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4138,14 +4138,14 @@ def handle_nvi(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     inVolume = [float(x) for x in params.get('inVolume', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_NVI(
             start_idx, end_idx,
             inClose,
             inVolume,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4165,14 +4165,14 @@ def handle_obv(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     inVolume = [float(x) for x in params.get('inVolume', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_OBV(
             start_idx, end_idx,
             inReal,
             inVolume,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4195,7 +4195,7 @@ def handle_plus_di(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(19, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_PLUS_DI(
             start_idx, end_idx,
             inHigh,
@@ -4203,8 +4203,8 @@ def handle_plus_di(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4226,15 +4226,15 @@ def handle_plus_dm(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(20, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_PLUS_DM(
             start_idx, end_idx,
             inHigh,
             inLow,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4256,7 +4256,7 @@ def handle_ppo(params):
     optInSlowPeriod = int(params.get('optInSlowPeriod', 26))
     optInMAType = int(params.get('optInMAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_PPO(
             start_idx, end_idx,
             inReal,
@@ -4264,8 +4264,8 @@ def handle_ppo(params):
             optInSlowPeriod,
             optInMAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4285,14 +4285,14 @@ def handle_pvi(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     inVolume = [float(x) for x in params.get('inVolume', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_PVI(
             start_idx, end_idx,
             inClose,
             inVolume,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4312,14 +4312,14 @@ def handle_roc(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ROC(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4339,14 +4339,14 @@ def handle_rocp(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ROCP(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4366,14 +4366,14 @@ def handle_rocr(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ROCR(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4393,14 +4393,14 @@ def handle_rocr100(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 10))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ROCR100(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4421,14 +4421,14 @@ def handle_rsi(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     ta_lib.TA_SetUnstablePeriod(21, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_RSI(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4450,7 +4450,7 @@ def handle_sar(params):
     optInAcceleration = float(params.get('optInAcceleration', 0.02))
     optInMaximum = float(params.get('optInMaximum', 0.2))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SAR(
             start_idx, end_idx,
             inHigh,
@@ -4458,8 +4458,8 @@ def handle_sar(params):
             optInAcceleration,
             optInMaximum,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4487,7 +4487,7 @@ def handle_sarext(params):
     optInAccelerationShort = float(params.get('optInAccelerationShort', 0.02))
     optInAccelerationMaxShort = float(params.get('optInAccelerationMaxShort', 0.2))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SAREXT(
             start_idx, end_idx,
             inHigh,
@@ -4501,8 +4501,8 @@ def handle_sarext(params):
             optInAccelerationShort,
             optInAccelerationMaxShort,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4521,13 +4521,13 @@ def handle_sin(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SIN(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4546,13 +4546,13 @@ def handle_sinh(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SINH(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4572,14 +4572,14 @@ def handle_sma(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4598,13 +4598,13 @@ def handle_sqrt(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SQRT(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4625,15 +4625,15 @@ def handle_stddev(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 5))
     optInNbDev = float(params.get('optInNbDev', 1))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_STDDEV(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
             optInNbDev,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4659,7 +4659,7 @@ def handle_stoch(params):
     optInSlowD_Period = int(params.get('optInSlowD_Period', 3))
     optInSlowD_MAType = int(params.get('optInSlowD_MAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_STOCH(
             start_idx, end_idx,
             inHigh,
@@ -4671,8 +4671,8 @@ def handle_stoch(params):
             optInSlowD_Period,
             optInSlowD_MAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -4698,7 +4698,7 @@ def handle_stochf(params):
     optInFastD_Period = int(params.get('optInFastD_Period', 3))
     optInFastD_MAType = int(params.get('optInFastD_MAType', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_STOCHF(
             start_idx, end_idx,
             inHigh,
@@ -4708,8 +4708,8 @@ def handle_stochf(params):
             optInFastD_Period,
             optInFastD_MAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -4735,7 +4735,7 @@ def handle_stochrsi(params):
     optInFastD_MAType = int(params.get('optInFastD_MAType', 0))
     ta_lib.TA_SetUnstablePeriod(22, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_STOCHRSI(
             start_idx, end_idx,
             inReal,
@@ -4744,8 +4744,8 @@ def handle_stochrsi(params):
             optInFastD_Period,
             optInFastD_MAType,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         out_arr1 = list(result[3])
@@ -4767,14 +4767,14 @@ def handle_sub(params):
     inReal0 = [float(x) for x in params.get('inReal0', [])]
     inReal1 = [float(x) for x in params.get('inReal1', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SUB(
             start_idx, end_idx,
             inReal0,
             inReal1,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4794,14 +4794,14 @@ def handle_sum(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_SUM(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4823,15 +4823,15 @@ def handle_t3(params):
     optInVFactor = float(params.get('optInVFactor', 0.7))
     ta_lib.TA_SetUnstablePeriod(23, params.get('unstablePeriod', 0))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_T3(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
             optInVFactor,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4850,13 +4850,13 @@ def handle_tan(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TAN(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4875,13 +4875,13 @@ def handle_tanh(params):
     end_idx = params.get('endIdx', 0)
     inReal = [float(x) for x in params.get('inReal', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TANH(
             start_idx, end_idx,
             inReal,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4901,14 +4901,14 @@ def handle_tema(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TEMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4929,15 +4929,15 @@ def handle_trange(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TRANGE(
             start_idx, end_idx,
             inHigh,
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4957,14 +4957,14 @@ def handle_trima(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TRIMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -4984,14 +4984,14 @@ def handle_trix(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TRIX(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5011,14 +5011,14 @@ def handle_tsf(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TSF(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5039,15 +5039,15 @@ def handle_typprice(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_TYPPRICE(
             start_idx, end_idx,
             inHigh,
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5071,7 +5071,7 @@ def handle_ultosc(params):
     optInTimePeriod2 = int(params.get('optInTimePeriod2', 14))
     optInTimePeriod3 = int(params.get('optInTimePeriod3', 28))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_ULTOSC(
             start_idx, end_idx,
             inHigh,
@@ -5081,8 +5081,8 @@ def handle_ultosc(params):
             optInTimePeriod2,
             optInTimePeriod3,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5103,15 +5103,15 @@ def handle_var(params):
     optInTimePeriod = int(params.get('optInTimePeriod', 5))
     optInNbDev = float(params.get('optInNbDev', 1))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_VAR(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
             optInNbDev,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5132,15 +5132,15 @@ def handle_wclprice(params):
     inLow = [float(x) for x in params.get('inLow', [])]
     inClose = [float(x) for x in params.get('inClose', [])]
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_WCLPRICE(
             start_idx, end_idx,
             inHigh,
             inLow,
             inClose,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5162,7 +5162,7 @@ def handle_willr(params):
     inClose = [float(x) for x in params.get('inClose', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 14))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_WILLR(
             start_idx, end_idx,
             inHigh,
@@ -5170,8 +5170,8 @@ def handle_willr(params):
             inClose,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5191,14 +5191,14 @@ def handle_wma(params):
     inReal = [float(x) for x in params.get('inReal', [])]
     optInTimePeriod = int(params.get('optInTimePeriod', 30))
     try:
-        start_time = time.perf_counter()
+        start_ns = time.perf_counter_ns()
         result = ta_lib.TA_WMA(
             start_idx, end_idx,
             inReal,
             optInTimePeriod,
         )
-        end_time = time.perf_counter()
-        elapsed_ns = int((end_time - start_time) * 1_000_000_000)
+        end_ns = time.perf_counter_ns()
+        elapsed_ns = end_ns - start_ns
         out_beg = result[1]
         out_arr0 = list(result[2])
         resp = {
@@ -5381,10 +5381,10 @@ def handle_list_functions():
     return {'functions': functions}
 
 def handle_set_unstable_period(params):
-    func_id = params.get('id', 0)
+    id = params.get('id', 0)
     period = params.get('period', 0)
-    ta_lib.TA_SetUnstablePeriod(func_id, period)
-    return {'retCode': 0}
+    ta_lib.TA_SetUnstablePeriod(id, period)
+    return {'status': 'ok'}
 
 if __name__ == '__main__':
     for line in sys.stdin:

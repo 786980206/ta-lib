@@ -1,9 +1,8 @@
 int macdext_lookback(int           optInFastPeriod,                                                TA_MAType     optInFastMAType,                                               int           optInSlowPeriod,                                                TA_MAType     optInSlowMAType,                                               int           optInSignalPeriod,                                                TA_MAType     optInSignalMAType)
 {
-    int tempInteger, lookbackLargest;
-    
-    
-    
+    int tempInteger;
+    int lookbackLargest;
+
     /* Find the MA with the largest lookback */
     lookbackLargest = ma_lookback( optInFastPeriod, optInFastMAType );
     tempInteger     = ma_lookback( optInSlowPeriod, optInSlowMAType );
@@ -71,7 +70,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
 
     /* Allocate intermediate buffer for fast/slow MA. */
     tempInteger = (endIdx-startIdx)+1+lookbackSignal;
-    double *fastMABuffer = malloc((tempInteger) * sizeof(double));
+    fastMABuffer = malloc((tempInteger) * sizeof(double));
     if( !fastMABuffer )
     {
     *outBegIdx = 0;
@@ -79,7 +78,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     return TA_ALLOC_ERR;
     }
 
-    double *slowMABuffer = malloc((tempInteger) * sizeof(double));
+    slowMABuffer = malloc((tempInteger) * sizeof(double));
     if( !slowMABuffer )
     {
     *outBegIdx = 0;
@@ -135,7 +134,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     *outNBElement = 0;
     free(fastMABuffer);
     free(slowMABuffer);
-    return TA_INTERNAL_ERROR;
+    return TA_BAD_PARAM;
     }
 
     /* Calculate (fast MA) - (slow MA). */
@@ -143,7 +142,7 @@ TA_RetCode macdext(int startIdx, int endIdx, const double inReal[], int optInFas
     fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
 
     /* Copy the result into the output for the caller. */
-    TA_ARRAY_COPY( outMACD, 0, fastMABuffer, lookbackSignal, (endIdx-startIdx)+1 );
+    memcpy(outMACD, &fastMABuffer[lookbackSignal], ((endIdx-startIdx)+1) * sizeof(double));
 
     /* Calculate the signal/trigger line. */
     retCode = ma( 0, outNbElement1-1,

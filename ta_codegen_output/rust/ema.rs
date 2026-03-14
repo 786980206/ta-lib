@@ -111,6 +111,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let optInK_1: T;
+        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -184,6 +186,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
+        let optInK_1: T;
+        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

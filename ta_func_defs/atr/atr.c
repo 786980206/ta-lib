@@ -20,7 +20,6 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
 
     double prevATR;
     double *tempBuffer;
-    double prevATRTemp[1];
 
 
     /* Average True Range is the greatest of the following:
@@ -56,7 +55,7 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     }
 
     /* Allocate an intermediate buffer for TRANGE. */
-    ARRAY_ALLOC(tempBuffer, lookbackTotal+(endIdx-startIdx)+1 );
+    tempBuffer = malloc((lookbackTotal+(endIdx-startIdx)+1) * sizeof(double));
 
     /* Do TRANGE in the intermediate buffer. */
     retCode = trange( (startIdx-lookbackTotal+1), endIdx,
@@ -77,14 +76,13 @@ TA_RetCode atr(int startIdx, int endIdx, const double inHigh[], const double inL
     optInTimePeriod-1,
     tempBuffer, optInTimePeriod,
     &outBegIdx1, &outNbElement1,
-    prevATRTemp );
+    &prevATR );
 
     if( retCode != TA_SUCCESS )
     {
     free(tempBuffer);
     return retCode;
     }
-    prevATR = prevATRTemp[0];
 
     /* Subsequent value are smoothed using the
     * previous ATR value (Wilder's approach).

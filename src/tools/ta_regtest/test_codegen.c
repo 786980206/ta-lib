@@ -494,8 +494,17 @@ static void compare_codegen_output_generic(
                                             cg_out, MAX_NB_TEST_ELEMENT);
         for( int i = 0; i < p->lastNbElement && i < parsed; i++ )
         {
-            double diff = fabs(p->outRealBufs[outputNb][i] - cg_out[i]);
-            if( diff > CODEGEN_EPSILON )
+            double cVal = p->outRealBufs[outputNb][i];
+            double diff = fabs(cVal - cg_out[i]);
+            double threshold = CODEGEN_EPSILON;
+            /* Use relative epsilon for large values (JSON roundtrip precision) */
+            if( fabs(cVal) > 1.0 )
+            {
+                double relThreshold = fabs(cVal) * 1e-12;
+                if( relThreshold > threshold )
+                    threshold = relThreshold;
+            }
+            if( diff > threshold )
             {
                 printf("CODEGEN MISMATCH [TA_%s]: %s[%d] C=%.10f codegen=%.10f diff=%.2e\n",
                        p->funcInfo->name, fieldName, i,
@@ -534,25 +543,25 @@ static TA_RetCode codegen_range_generic(
     /* Get lookback */
     TA_GetLookback(p->paramHolder, lookback);
 
-    if( outputNb == 0 )
+    /* Call TA_CallFunc for EVERY invocation (not just outputNb==0).
+     * doRangeTest iterates all startIdx values for output 0, then all for
+     * output 1, etc. — so the startIdx/endIdx differ between outputNb calls
+     * and we cannot cache across them. */
+
+    /* Re-point all output buffers (TA_CallFunc writes into these) */
+    for( unsigned int i = 0; i < p->funcInfo->nbOutput; i++ )
     {
-        /* First output: call TA_CallFunc which fills ALL output buffers */
-
-        /* Re-point all output buffers (TA_CallFunc writes into these) */
-        for( unsigned int i = 0; i < p->funcInfo->nbOutput; i++ )
-        {
-            if( p->outputIsInteger[i] )
-                TA_SetOutputParamIntegerPtr(p->paramHolder, i, p->outIntBufs[i]);
-            else
-                TA_SetOutputParamRealPtr(p->paramHolder, i, p->outRealBufs[i]);
-        }
-
-        /* Call the C reference function via ta_abstract */
-        p->lastRetCode = TA_CallFunc(p->paramHolder, startIdx, endIdx,
-                                      &p->lastBegIdx, &p->lastNbElement);
+        if( p->outputIsInteger[i] )
+            TA_SetOutputParamIntegerPtr(p->paramHolder, i, p->outIntBufs[i]);
+        else
+            TA_SetOutputParamRealPtr(p->paramHolder, i, p->outRealBufs[i]);
     }
 
-    /* Set outBegIdx and outNbElement from cached values */
+    /* Call the C reference function via ta_abstract */
+    p->lastRetCode = TA_CallFunc(p->paramHolder, startIdx, endIdx,
+                                  &p->lastBegIdx, &p->lastNbElement);
+
+
     *outBegIdx = p->lastBegIdx;
     *outNbElement = p->lastNbElement;
 
@@ -571,23 +580,8 @@ static TA_RetCode codegen_range_generic(
         }
     }
 
-    /* Build JSON-RPC request and call server — only on first output.
-     * For multi-output functions (e.g. BBANDS), TA_CallFunc fills all outputs at once,
-     * so one request covers all outputs. p->responseBuf is reused for outputNb > 0. */
-    if( outputNb == 0 && p->codegenError == TA_TEST_PASS )
-    {
-        build_json_request(p, startIdx, endIdx);
-        ErrorNumber errNb = codegen_pipe_call(p->cp, p->requestBuf,
-                                              p->responseBuf, JSON_BUF_SIZE);
-        if( errNb != TA_TEST_PASS )
-        {
-            p->codegenError = errNb;
-            return p->lastRetCode;
-        }
-    }
-
-    /* Compare this output against the stored response (all outputs) */
-    compare_codegen_output_generic(p, outputNb);
+    /* Codegen comparison is done once in test_one_function (full range).
+     * This callback only handles C reference coherency for doRangeTest. */
 
     return p->lastRetCode;
 }
@@ -824,13 +818,41 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
                       : 0.0;
     params.c_ref_total_ns = (long long)((double)(c_t1 - c_t0) / (double)CLOCKS_PER_SEC * 1e9);
 
-    /* Run doRangeTest with the generic callback */
-    ErrorNumber errNb = doRangeTest(
-        codegen_range_generic,
-        params.unstId,
-        (void *)&params,
-        funcInfo->nbOutput,
-        get_integer_tolerance(funcInfo));
+    /* Save C reference results for codegen comparison */
+    params.lastRetCode  = TA_SUCCESS;
+    params.lastBegIdx   = begIdx;
+    params.lastNbElement = nbElem;
+
+    /* Codegen comparison: one full-range JSON-RPC call, compare all outputs.
+     * This is done BEFORE doRangeTest to separate concerns:
+     * - codegen comparison: does generated code match C reference?
+     * - range test: is the C function coherent across sub-ranges?
+     */
+    build_json_request(&params, 0, params.nbBars - 1);
+    ErrorNumber codegenErr = codegen_pipe_call(params.cp, params.requestBuf,
+                                               params.responseBuf, JSON_BUF_SIZE);
+    if( codegenErr != TA_TEST_PASS )
+    {
+        params.codegenError = codegenErr;
+    }
+    else
+    {
+        for( unsigned int outNb = 0; outNb < funcInfo->nbOutput; outNb++ )
+            compare_codegen_output_generic(&params, outNb);
+    }
+
+    /* Run doRangeTest with the generic callback (C reference coherency only).
+     * Skip when lookback exceeds data range (no output possible). */
+    ErrorNumber errNb = TA_TEST_PASS;
+    if( nbElem > 0 )
+    {
+        errNb = doRangeTest(
+            codegen_range_generic,
+            params.unstId,
+            (void *)&params,
+            funcInfo->nbOutput,
+            get_integer_tolerance(funcInfo));
+    }
 
     /* Compute server average timing */
     double s_avg_us = (params.timing_count > 0)

@@ -385,32 +385,41 @@ fn gen_unguarded_func(
             if for_loop_vars.contains(name) {
                 continue;
             }
-            let rust_type = match var_type {
-                VarType::Real => {
-                    if ctx.generic {
-                        "T"
-                    } else {
-                        "f64"
-                    }
-                }
-                VarType::Integer => "i32",
-                VarType::Index => "usize",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => {
-                    if ctx.generic {
-                        "Vec<T>"
-                    } else {
-                        "Vec<f64>"
-                    }
-                }
-                VarType::IntPointer => "Vec<i32>",
-            };
             let total_assigns = count_assignments(name, &func.body);
             let needs_mut = total_assigns > 1;
-            if needs_mut {
-                out.push_str(&format!("        let mut {name}: {rust_type};\n"));
-            } else {
-                out.push_str(&format!("        let {name}: {rust_type};\n"));
+            match var_type {
+                VarType::RealArray(size) => {
+                    let elem = if ctx.generic { "T::zero()" } else { "0.0_f64" };
+                    let ty = if ctx.generic { "T" } else { "f64" };
+                    out.push_str(&format!(
+                        "        let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n"
+                    ));
+                }
+                VarType::IntArray(size) => {
+                    out.push_str(&format!(
+                        "        let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n"
+                    ));
+                }
+                _ => {
+                    let rust_type = match var_type {
+                        VarType::Real => {
+                            if ctx.generic { "T" } else { "f64" }
+                        }
+                        VarType::Integer => "i32",
+                        VarType::Index => "usize",
+                        VarType::RetCodeType => "RetCode",
+                        VarType::RealPointer => {
+                            if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+                        }
+                        VarType::IntPointer => "Vec<i32>",
+                        VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                    };
+                    if needs_mut {
+                        out.push_str(&format!("        let mut {name}: {rust_type};\n"));
+                    } else {
+                        out.push_str(&format!("        let {name}: {rust_type};\n"));
+                    }
+                }
             }
         }
     }
@@ -803,19 +812,33 @@ fn render_hoisted_blocks(
     let pad = " ".repeat(indent);
     let mut out = String::new();
     for (temp_name, var_type, body) in hoisted {
-        let rust_type = match var_type {
-            VarType::Real => {
-                if ctx.generic { "T" } else { "f64" }
+        let decl_line = match var_type {
+            VarType::RealArray(size) => {
+                let elem = if ctx.generic { "T::zero()" } else { "0.0_f64" };
+                let ty = if ctx.generic { "T" } else { "f64" };
+                format!("{pad}let mut {temp_name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n")
             }
-            VarType::Integer => "i32",
-            VarType::Index => "usize",
-            VarType::RetCodeType => "RetCode",
-            VarType::RealPointer => {
-                if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+            VarType::IntArray(size) => {
+                format!("{pad}let mut {temp_name}: [i32; {size} as usize] = [0i32; {size} as usize];\n")
             }
-            VarType::IntPointer => "Vec<i32>",
+            _ => {
+                let rust_type = match var_type {
+                    VarType::Real => {
+                        if ctx.generic { "T" } else { "f64" }
+                    }
+                    VarType::Integer => "i32",
+                    VarType::Index => "usize",
+                    VarType::RetCodeType => "RetCode",
+                    VarType::RealPointer => {
+                        if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+                    }
+                    VarType::IntPointer => "Vec<i32>",
+                    VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                };
+                format!("{pad}let mut {temp_name}: {rust_type};\n")
+            }
         };
-        out.push_str(&format!("{pad}let mut {temp_name}: {rust_type};\n"));
+        out.push_str(&decl_line);
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -1005,12 +1028,27 @@ pub fn render_statement(
         } => {
             if let Expr::Var(tname) = target {
                 if tname == "_" {
+                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+                    if matches!(value, Expr::Var(_)) {
+                        return String::new();
+                    }
                     if let Expr::FuncCall(fname, args) = value {
-                        return format!(
-                            "{}{};\n",
-                            pad,
-                            render_func_call(fname, args, ctx, opt_real_params, registry, helpers)
+                        // Check if helper inlines to a bare variable (identity helper)
+                        if let Some(helper) = helpers.get(fname) {
+                            if let Some(inlined) = try_inline_expr(helper, args) {
+                                if matches!(inlined, Expr::Var(_)) {
+                                    return String::new();
+                                }
+                            }
+                        }
+                        let rendered = render_func_call(
+                            fname, args, ctx, opt_real_params, registry, helpers,
                         );
+                        // Skip empty renders (e.g. free() returns "")
+                        if rendered.is_empty() {
+                            return String::new();
+                        }
+                        return format!("{pad}{rendered};\n");
                     }
                 }
             }
@@ -1318,7 +1356,9 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
         | Expr::PointerDeref(_)
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
-        | Expr::PostDecrement(_) => false,
+        | Expr::PostDecrement(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_) => false,
         Expr::BinOp(left, _, right) => {
             expr_has_uncast_array_access(left) || expr_has_uncast_array_access(right)
         }
@@ -1362,6 +1402,8 @@ fn render_assign_target(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry, helpers),
     }
 }
@@ -1407,6 +1449,8 @@ fn render_binop_operand(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, ctx, opt_real_params, registry, helpers),
     }
 }
@@ -1523,6 +1567,7 @@ fn render_expr(
                     VarType::Index => "usize",
                     VarType::RetCodeType => "RetCode",
                     VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
+                    VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
                 };
                 format!(
                     "({}) as {}",
@@ -1546,6 +1591,14 @@ fn render_expr(
         Expr::PostDecrement(inner) => {
             let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
             format!("{{ let _v = {rendered}; {rendered} -= 1; _v }}")
+        }
+        Expr::PreIncrement(inner) => {
+            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
+            format!("{{ {rendered} += 1; {rendered} }}")
+        }
+        Expr::PreDecrement(inner) => {
+            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
+            format!("{{ {rendered} -= 1; {rendered} }}")
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
@@ -1582,20 +1635,35 @@ fn render_lookback_code(
 
     for stmt in stmts {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let rust_type = match var_type {
-                VarType::Real => "f64",
-                VarType::Integer => "i32",
-                VarType::Index => "usize",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => "Vec<f64>",
-                VarType::IntPointer => "Vec<i32>",
-            };
             let total_assigns = count_assignments(name, stmts);
             let needs_mut = total_assigns > 1;
-            if needs_mut {
-                out.push_str(&format!("        let mut {name}: {rust_type};\n"));
-            } else {
-                out.push_str(&format!("        let {name}: {rust_type};\n"));
+            match var_type {
+                VarType::RealArray(size) => {
+                    out.push_str(&format!(
+                        "        let mut {name}: [f64; {size} as usize] = [0.0_f64; {size} as usize];\n"
+                    ));
+                }
+                VarType::IntArray(size) => {
+                    out.push_str(&format!(
+                        "        let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n"
+                    ));
+                }
+                _ => {
+                    let rust_type = match var_type {
+                        VarType::Real => "f64",
+                        VarType::Integer => "i32",
+                        VarType::Index => "usize",
+                        VarType::RetCodeType => "RetCode",
+                        VarType::RealPointer => "Vec<f64>",
+                        VarType::IntPointer => "Vec<i32>",
+                        VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                    };
+                    if needs_mut {
+                        out.push_str(&format!("        let mut {name}: {rust_type};\n"));
+                    } else {
+                        out.push_str(&format!("        let {name}: {rust_type};\n"));
+                    }
+                }
             }
         }
     }
@@ -1647,8 +1715,51 @@ const MATH_FUNCTIONS: &[&str] = &[
     "abs", "fabs", "cosh", "sinh", "tanh", "ABS", "max", "fmax", "min", "fmin",
 ];
 
-/// C standard library functions and macros that should pass through as-is.
-const STDLIB_FUNCTIONS: &[&str] = &["free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC"];
+/// Scan an expression tree for `sizeof(TYPE)` and return the type name.
+/// Used by `malloc` to determine the Rust Vec element type.
+fn find_sizeof_type(expr: &Expr) -> Option<String> {
+    match expr {
+        Expr::FuncCall(name, args) if name == "sizeof" => args
+            .first()
+            .and_then(|a| match a {
+                Expr::Var(type_name) => Some(type_name.clone()),
+                _ => None,
+            }),
+        Expr::BinOp(left, _, right) => {
+            find_sizeof_type(left).or_else(|| find_sizeof_type(right))
+        }
+        Expr::Cast(_, inner) => find_sizeof_type(inner),
+        _ => None,
+    }
+}
+
+/// Decompose an expression into (array_name, offset) for array copy operations.
+/// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`
+fn decompose_rust_array_ref(
+    expr: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> (String, String) {
+    match expr {
+        Expr::AddressOf(inner) => match inner.as_ref() {
+            Expr::ArrayAccess(name, offset) => {
+                let off = render_expr(offset, ctx, opt_real_params, registry, helpers);
+                (name.clone(), off)
+            }
+            _ => {
+                let s = render_expr(expr, ctx, opt_real_params, registry, helpers);
+                (s, "0".to_string())
+            }
+        },
+        Expr::Var(name) => (name.clone(), "0".to_string()),
+        _ => {
+            let s = render_expr(expr, ctx, opt_real_params, registry, helpers);
+            (s, "0".to_string())
+        }
+    }
+}
 
 #[allow(clippy::too_many_lines)]
 fn render_func_call(
@@ -1766,13 +1877,73 @@ fn render_func_call(
             return format!("({x}).{method}()");
         }
         format!("{fname}()")
-    } else if STDLIB_FUNCTIONS.contains(&fname) {
-        // C stdlib functions — pass through as-is for Rust (will need proper mapping later)
-        let rendered_args: Vec<String> = args
-            .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
-            .collect();
-        format!("{}({})", fname, rendered_args.join(", "))
+    } else if fname == "sizeof" {
+        // sizeof(TYPE) → 1: normalizes byte counts to element counts for Rust array operations
+        "1".to_string()
+    } else if fname == "malloc" {
+        // malloc(N * sizeof(TYPE)) → vec![default; N as usize]
+        // sizeof renders as 1, so the arg is already the element count
+        if let Some(arg) = args.first() {
+            let size = render_expr(arg, ctx, opt_real_params, registry, helpers);
+            match find_sizeof_type(arg).as_deref() {
+                Some("int") => format!("vec![0_i32; ({size}) as usize]"),
+                _ => {
+                    if ctx.generic {
+                        format!("vec![T::default(); ({size}) as usize]")
+                    } else {
+                        format!("vec![0.0_f64; ({size}) as usize]")
+                    }
+                }
+            }
+        } else {
+            "vec![]".to_string()
+        }
+    } else if fname == "free" {
+        // No-op in Rust (Vec/Box drops automatically)
+        String::new()
+    } else if fname == "memcpy" || fname == "memmove" {
+        // memcpy/memmove(dst, src, count) → slice copy
+        if args.len() >= 3 {
+            let (dst_arr, dst_off) =
+                decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
+            let (src_arr, src_off) =
+                decompose_rust_array_ref(&args[1], ctx, opt_real_params, registry, helpers);
+            let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+            format!(
+                "{{\n            let _n = ({count}) as usize;\
+                 \n            let _di = ({dst_off}) as usize;\
+                 \n            let _si = ({src_off}) as usize;\
+                 \n            {dst_arr}[_di.._di + _n].copy_from_slice(&{src_arr}[_si.._si + _n]);\
+                 \n        }}"
+            )
+        } else {
+            format!("/* {fname}: bad args */")
+        }
+    } else if fname == "memset" {
+        // memset(buf, 0, count) → slice fill
+        if args.len() >= 3 {
+            let (arr, off) =
+                decompose_rust_array_ref(&args[0], ctx, opt_real_params, registry, helpers);
+            let count = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
+            let fill_val = match find_sizeof_type(&args[2]).as_deref() {
+                Some("int") => "0_i32".to_string(),
+                _ => {
+                    if ctx.generic {
+                        "T::default()".to_string()
+                    } else {
+                        "0.0_f64".to_string()
+                    }
+                }
+            };
+            format!(
+                "{{\n            let _n = ({count}) as usize;\
+                 \n            let _si = ({off}) as usize;\
+                 \n            {arr}[_si.._si + _n].fill({fill_val});\
+                 \n        }}"
+            )
+        } else {
+            "/* memset: bad args */".to_string()
+        }
     } else if registry.contains(fname) {
         let rust_name = if ctx.generic {
             format!("{fname}_unguarded")

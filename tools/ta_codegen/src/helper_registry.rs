@@ -78,6 +78,12 @@ pub fn substitute_expr(expr: &Expr, subs: &HashMap<String, Expr>) -> Expr {
         Expr::PostDecrement(inner) => {
             Expr::PostDecrement(Box::new(substitute_expr(inner, subs)))
         }
+        Expr::PreIncrement(inner) => {
+            Expr::PreIncrement(Box::new(substitute_expr(inner, subs)))
+        }
+        Expr::PreDecrement(inner) => {
+            Expr::PreDecrement(Box::new(substitute_expr(inner, subs)))
+        }
     }
 }
 
@@ -446,6 +452,12 @@ pub fn hoist_block_helpers(
             hoist_block_helpers(inner, helpers, hoisted, counter),
         )),
         Expr::PostDecrement(inner) => Expr::PostDecrement(Box::new(
+            hoist_block_helpers(inner, helpers, hoisted, counter),
+        )),
+        Expr::PreIncrement(inner) => Expr::PreIncrement(Box::new(
+            hoist_block_helpers(inner, helpers, hoisted, counter),
+        )),
+        Expr::PreDecrement(inner) => Expr::PreDecrement(Box::new(
             hoist_block_helpers(inner, helpers, hoisted, counter),
         )),
         Expr::ArrayAccess(name, idx) => Expr::ArrayAccess(

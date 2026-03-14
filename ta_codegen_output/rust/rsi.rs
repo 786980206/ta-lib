@@ -129,7 +129,7 @@ impl Core {
         let mut tempValue2: T;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = self.cast_to_index(self.rsi_lookback(optInTimePeriod));
+        lookbackTotal = (self.rsi_lookback(optInTimePeriod)) as i32;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -139,9 +139,14 @@ impl Core {
         outIdx = 0;
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
-            i = CAST_TO_I32(endIdx - startIdx + 1);
+            i = (endIdx - startIdx + 1) as i32;
             (*outNBElement) = (i) as usize;
-            self.ta_array_copy(outReal, 0, inReal, startIdx, i);
+            {
+            let _n = (i * 1) as usize;
+            let _di = (0) as usize;
+            let _si = (startIdx) as usize;
+            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
+        };
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
@@ -168,7 +173,7 @@ impl Core {
             tempValue1 = prevLoss / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
             tempValue2 = prevGain / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
             tempValue1 = tempValue2 + tempValue1;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 outReal[outIdx] = T::ta_from_f64(100.0) * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -204,7 +209,7 @@ impl Core {
         prevGain /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 outReal[outIdx] = T::ta_from_f64(100.0) * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -243,7 +248,7 @@ impl Core {
             prevLoss /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
             prevGain /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
             tempValue1 = prevGain + prevLoss;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 outReal[outIdx] = T::ta_from_f64(100.0) * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -307,7 +312,7 @@ impl Core {
         let mut tempValue2: T;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = self.cast_to_index(self.rsi_lookback(optInTimePeriod));
+        lookbackTotal = (self.rsi_lookback(optInTimePeriod)) as i32;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -317,9 +322,14 @@ impl Core {
         outIdx = 0;
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
-            i = CAST_TO_I32(endIdx - startIdx + 1);
+            i = (endIdx - startIdx + 1) as i32;
             (*outNBElement) = (i) as usize;
-            self.ta_array_copy(outReal, 0, inReal, startIdx, i);
+            {
+            let _n = (i * 1) as usize;
+            let _di = (0) as usize;
+            let _si = (startIdx) as usize;
+            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
+        };
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
@@ -346,7 +356,7 @@ impl Core {
             tempValue1 = prevLoss / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
             tempValue2 = prevGain / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
             tempValue1 = tempValue2 + tempValue1;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -382,7 +392,7 @@ impl Core {
         prevGain /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -421,7 +431,7 @@ impl Core {
             prevLoss /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
             prevGain /= T::ta_from_f64((optInTimePeriod).ta_to_f64());
             tempValue1 = prevGain + prevLoss;
-            if !(tempValue1.ta_abs() < T::ta_epsilon()) {
+            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
                 *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {

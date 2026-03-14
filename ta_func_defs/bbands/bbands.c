@@ -72,9 +72,38 @@ TA_RetCode bbands(int startIdx, int endIdx, const double inReal[], int optInTime
     /* A small speed optimization by re-using the
     * already calculated SMA.
     */
-    stddev_using_precalc_ma( inReal, tempBuffer1,
-    (int)*outBegIdx, (int)*outNBElement,
-    optInTimePeriod, tempBuffer2 );
+    /* Inline stddev_using_precalc_ma */
+    {
+    double _tempReal, _periodTotal2, _meanValue2;
+    int _outIdx;
+    int _startSum, _endSum;
+    _startSum = 1 + (int)*outBegIdx - optInTimePeriod;
+    _endSum = (int)*outBegIdx;
+    _periodTotal2 = 0;
+    for( _outIdx = _startSum; _outIdx < _endSum; _outIdx++ )
+    {
+    _tempReal = inReal[_outIdx];
+    _tempReal *= _tempReal;
+    _periodTotal2 += _tempReal;
+    }
+    for( _outIdx = 0; _outIdx < (int)*outNBElement; _outIdx++, _startSum++, _endSum++ )
+    {
+    _tempReal = inReal[_endSum];
+    _tempReal *= _tempReal;
+    _periodTotal2 += _tempReal;
+    _meanValue2 = _periodTotal2 / optInTimePeriod;
+    _tempReal = inReal[_startSum];
+    _tempReal *= _tempReal;
+    _periodTotal2 -= _tempReal;
+    _tempReal = tempBuffer1[_outIdx];
+    _tempReal *= _tempReal;
+    _meanValue2 -= _tempReal;
+    if( !((_meanValue2) < 0.00000001) )
+    tempBuffer2[_outIdx] = sqrt(_meanValue2);
+    else
+    tempBuffer2[_outIdx] = 0.0;
+    }
+    }
     }
     else
     {

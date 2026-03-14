@@ -10,7 +10,6 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
 {
     double *firstEMA;
     double *secondEMA;
-    double k;
     int firstEMABegIdx;
     int firstEMANbElement;
     int secondEMABegIdx;
@@ -69,15 +68,14 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     else
     {
     tempInt = lookbackTotal+(endIdx-startIdx)+1;
-    double *firstEMA = malloc((tempInt) * sizeof(double));
+    firstEMA = malloc((tempInt) * sizeof(double));
     if( !firstEMA )
     return TA_ALLOC_ERR;
     }
 
     /* Calculate the first EMA */
-    k = (2.0 / ((double)(optInTimePeriod) + 1.0));
     retCode = ema( startIdx-lookbackEMA, endIdx, inReal,
-    optInTimePeriod, k,
+    optInTimePeriod,
     &firstEMABegIdx, &firstEMANbElement,
     firstEMA );
 
@@ -91,7 +89,7 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     /* Allocate a temporary buffer for storing the EMA of the EMA. */
-    double *secondEMA = malloc((firstEMANbElement) * sizeof(double));
+    secondEMA = malloc((firstEMANbElement) * sizeof(double));
 
     if( !secondEMA )
     {
@@ -100,7 +98,7 @@ TA_RetCode dema(int startIdx, int endIdx, const double inReal[], int optInTimePe
     }
 
     retCode = ema( 0, firstEMANbElement-1, firstEMA,
-    optInTimePeriod, k,
+    optInTimePeriod,
     &secondEMABegIdx, &secondEMANbElement,
     secondEMA );
 

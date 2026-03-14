@@ -303,11 +303,24 @@ fn gen_func(
             }
             Statement::Block { body } => {
                 // Track VarDecl names inside Blocks (multi-var declarations)
+                // and render non-VarDecl statements (e.g., chained assignments
+                // like `*outBegIdx = today = startIdx;` which parse into a Block
+                // containing [Assign(today=startIdx), Assign(*outBegIdx=today)]).
                 for s in body {
                     if let Statement::VarDecl { name, .. } = s {
                         if !body_seen.contains(name) {
                             body_seen.push(name.clone());
                         }
+                    } else {
+                        out.push_str(&render_statement(
+                            s,
+                            3,
+                            single_precision,
+                            enums,
+                            registry,
+                            helpers,
+                            &inline_counter,
+                        ));
                     }
                 }
             }
@@ -378,6 +391,8 @@ fn render_hoisted_blocks(
             VarType::RetCodeType => format!("TA_RetCode {temp_name}"),
             VarType::RealPointer => format!("double *{temp_name}"),
             VarType::IntPointer => format!("int *{temp_name}"),
+            VarType::RealArray(size) => format!("double {temp_name}[{size}]"),
+            VarType::IntArray(size) => format!("int {temp_name}[{size}]"),
         };
         out.push_str(&format!("{pad}{c_decl};\n"));
         for stmt in body {
@@ -418,6 +433,8 @@ pub fn render_statement(
                 VarType::RetCodeType => format!("TA_RetCode {name}"),
                 VarType::RealPointer => format!("double *{name}"),
                 VarType::IntPointer => format!("int *{name}"),
+                VarType::RealArray(size) => format!("double {name}[{size}]"),
+                VarType::IntArray(size) => format!("int {name}[{size}]"),
             };
             match init {
                 Some(init_expr) => {
@@ -446,10 +463,22 @@ pub fn render_statement(
             value,
             compound,
         } => {
-            // Statement-level FuncCall: when target is Var("_"), render just the expansion
+            // Statement-level expression: when target is Var("_"), render as standalone
             if let Expr::Var(tname) = target {
                 if tname == "_" {
+                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+                    if matches!(value, Expr::Var(_)) {
+                        return String::new();
+                    }
                     if let Expr::FuncCall(fname, args) = value {
+                        // Check if helper inlines to a bare variable (identity helper)
+                        if let Some(helper) = helpers.get(fname) {
+                            if let Some(inlined) = try_inline_expr(helper, args) {
+                                if matches!(inlined, Expr::Var(_)) {
+                                    return String::new();
+                                }
+                            }
+                        }
                         return format!(
                             "{}{};\n",
                             pad,
@@ -515,12 +544,20 @@ pub fn render_statement(
             out
         }
         Statement::While { condition, body } => {
-            let mut out = format!(
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            inline_counter.set(cnt);
+            let mut out = String::new();
+            out.push_str(&render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+            ));
+            out.push_str(&format!(
                 "{}while( {} )\n{}{{\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers),
+                render_expr(&new_cond, single_precision, registry, helpers),
                 pad
-            );
+            ));
             for s in body {
                 out.push_str(&render_statement(
                     s,
@@ -548,10 +585,17 @@ pub fn render_statement(
                     inline_counter,
                 ));
             }
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            inline_counter.set(cnt);
+            out.push_str(&render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+            ));
             out.push_str(&format!(
                 "{}}} while( {} );\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers)
+                render_expr(&new_cond, single_precision, registry, helpers)
             ));
             out
         }
@@ -560,12 +604,20 @@ pub fn render_statement(
             then_body,
             else_body,
         } => {
-            let mut out = format!(
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            inline_counter.set(cnt);
+            let mut out = String::new();
+            out.push_str(&render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
+            ));
+            out.push_str(&format!(
                 "{}if( {} )\n{}{{\n",
                 pad,
-                render_expr(condition, single_precision, registry, helpers),
+                render_expr(&new_cond, single_precision, registry, helpers),
                 pad
-            );
+            ));
             for s in then_body {
                 out.push_str(&render_statement(
                     s,
@@ -785,6 +837,8 @@ fn render_assign_target(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, single_precision, registry, helpers),
     }
 }
@@ -824,7 +878,7 @@ fn render_expr(
             if is_whole {
                 #[allow(clippy::cast_possible_truncation)]
                 let i = *f as i64;
-                format!("{i}")
+                format!("{i}.0")
             } else {
                 format!("{f}")
             }
@@ -881,6 +935,7 @@ fn render_expr(
                 VarType::RetCodeType => "TA_RetCode",
                 VarType::RealPointer => "double *",
                 VarType::IntPointer => "int *",
+                VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
             };
             format!(
                 "(({}){})",
@@ -916,9 +971,21 @@ fn render_expr(
                 render_expr(inner, single_precision, registry, helpers)
             )
         }
+        Expr::PreIncrement(inner) => {
+            format!(
+                "++{}",
+                render_expr(inner, single_precision, registry, helpers)
+            )
+        }
+        Expr::PreDecrement(inner) => {
+            format!(
+                "--{}",
+                render_expr(inner, single_precision, registry, helpers)
+            )
+        }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
-                "({}) ? ({}) : ({})",
+                "(({}) ? ({}) : ({}))",
                 render_expr(cond, single_precision, registry, helpers),
                 render_expr(then_expr, single_precision, registry, helpers),
                 render_expr(else_expr, single_precision, registry, helpers)
@@ -1065,26 +1132,38 @@ fn render_lookback_code(
         out.push_str(&emit_c_unpacking(&candle_used, 3));
     }
 
-    // Emit VarDecl initializations
+    // Emit VarDecl initializations (including those inside Block multi-var declarations)
     for stmt in stmts {
-        if let Statement::VarDecl {
-            name,
-            init: Some(init),
-            ..
-        } = stmt
-        {
-            out.push_str(&format!(
-                "   {} = {};\n",
+        let var_decls: Vec<&Statement> = match stmt {
+            Statement::VarDecl { .. } => vec![stmt],
+            Statement::Block { body } => body.iter().collect(),
+            _ => vec![],
+        };
+        for s in var_decls {
+            if let Statement::VarDecl {
                 name,
-                render_expr(init, false, registry, helpers)
-            ));
+                init: Some(init),
+                ..
+            } = s
+            {
+                out.push_str(&format!(
+                    "   {} = {};\n",
+                    name,
+                    render_expr(init, false, registry, helpers)
+                ));
+            }
         }
     }
 
-    // Render non-VarDecl statements
+    // Render non-VarDecl statements (skip Blocks that only contain VarDecls)
     for stmt in stmts {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
+        }
+        if let Statement::Block { body } = stmt {
+            if body.iter().all(|s| matches!(s, Statement::VarDecl { .. })) {
+                continue;
+            }
         }
         out.push_str(&render_statement(
             stmt, 3, false, enums, registry, helpers, &inline_counter,
@@ -1153,6 +1232,8 @@ fn emit_c_var_decls(stmt: &Statement, out: &mut String, declared: &mut Vec<Strin
                 VarType::RetCodeType => format!("TA_RetCode {name}"),
                 VarType::RealPointer => format!("double *{name}"),
                 VarType::IntPointer => format!("int *{name}"),
+                VarType::RealArray(size) => format!("double {name}[{size}]"),
+                VarType::IntArray(size) => format!("int {name}[{size}]"),
             };
             out.push_str(&format!("   {c_decl};\n"));
         }

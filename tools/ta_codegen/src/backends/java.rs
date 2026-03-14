@@ -359,8 +359,7 @@ fn gen_func(
         ));
     }
 
-    // Assign output scalars and return
-    out.push_str("      return RetCode.Success ;\n");
+    // Closing brace — return statement comes from IR body
     out.push_str("   }\n");
 
     out

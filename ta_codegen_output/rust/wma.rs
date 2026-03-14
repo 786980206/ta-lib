@@ -124,7 +124,12 @@ impl Core {
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
             (*outNBElement) = endIdx - startIdx + 1;
-            self.array_memmove(outReal, 0, inReal, startIdx, ((*outNBElement)) as i32);
+            {
+            let _n = ((((*outNBElement)) as i32) * 1) as usize;
+            let _di = (0) as usize;
+            let _si = (startIdx) as usize;
+            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
+        };
             return RetCode::Success;
         }
         divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;
@@ -206,7 +211,12 @@ impl Core {
         if optInTimePeriod == 1 {
             (*outBegIdx) = startIdx;
             (*outNBElement) = endIdx - startIdx + 1;
-            self.array_memmove(outReal, 0, inReal, startIdx, ((*outNBElement)) as i32);
+            {
+            let _n = ((((*outNBElement)) as i32) * 1) as usize;
+            let _di = (0) as usize;
+            let _si = (startIdx) as usize;
+            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
+        };
             return RetCode::Success;
         }
         divider = optInTimePeriod * (optInTimePeriod + 1) >> 1;

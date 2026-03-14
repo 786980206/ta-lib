@@ -12,25 +12,23 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
+      int inIdx;
+      int outIdx;
+      int i;
+      int trailingIdx;
       int divider;
       double periodSum;
       double periodSub;
       double tempReal;
       double trailingValue;
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
       int lookbackTotal;
-      int i;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      periodSum = 0;
-      periodSub = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1));
+      lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -40,39 +38,96 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod==1) ) {
-         outNBElement.value = nbElement;
          outBegIdx.value = startIdx;
-         System.arraycopy(inReal,startIdx,outReal,0,nbElement);
+         outNBElement.value = ((endIdx-startIdx)+1);
+         System.arraycopy(inReal, startIdx, outReal, 0, (((int)outNBElement.value)*1));
          return RetCode.Success ;
       }
-      divider = ((optInTimePeriod*(optInTimePeriod+1))/2);
+      divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
       outIdx = 0;
       trailingIdx = (startIdx-lookbackTotal);
+      periodSub = ((double)0.0);
+      periodSum = periodSub;
       inIdx = trailingIdx;
       i = 1;
       while( (inIdx<startIdx) ) {
-         tempReal = ((double)inReal[inIdx]);
+         tempReal = inReal[inIdx++];
          periodSub += tempReal;
-         periodSum += (tempReal*((double)i));
+         periodSum += (tempReal*i);
          i += 1;
-         inIdx += 1;
       }
-      trailingValue = 0;
+      trailingValue = 0.0;
       while( (inIdx<=endIdx) ) {
-         tempReal = ((double)inReal[inIdx]);
-         inIdx += 1;
+         tempReal = inReal[inIdx++];
          periodSub += tempReal;
          periodSub -= trailingValue;
-         periodSum += (tempReal*((double)optInTimePeriod));
-         trailingValue = ((double)inReal[trailingIdx]);
-         trailingIdx += 1;
-         outReal[outIdx] = (periodSum/((double)divider));
-         outIdx += 1;
+         periodSum += (tempReal*optInTimePeriod);
+         trailingValue = inReal[trailingIdx++];
+         outReal[outIdx++] = (periodSum/divider);
          periodSum -= periodSub;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
+   }
+   public RetCode wmaLogic( int startIdx,
+                            int endIdx,
+                            double inReal[],
+                            int optInTimePeriod,
+                            MInteger outBegIdx,
+                            MInteger outNBElement,
+                            double outReal[] )
+   {
+      int inIdx;
+      int outIdx;
+      int i;
+      int trailingIdx;
+      int divider;
+      double periodSum;
+      double periodSub;
+      double tempReal;
+      double trailingValue;
+      int lookbackTotal;
+      lookbackTotal = (optInTimePeriod-1);
+      if( (startIdx<lookbackTotal) ) {
+         startIdx = lookbackTotal;
+      }
+      if( (startIdx>endIdx) ) {
+         outBegIdx.value = 0;
+         outNBElement.value = 0;
+         return RetCode.Success ;
+      }
+      if( (optInTimePeriod==1) ) {
+         outBegIdx.value = startIdx;
+         outNBElement.value = ((endIdx-startIdx)+1);
+         System.arraycopy(inReal, startIdx, outReal, 0, (((int)outNBElement.value)*1));
+         return RetCode.Success ;
+      }
+      divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+      outIdx = 0;
+      trailingIdx = (startIdx-lookbackTotal);
+      periodSub = ((double)0.0);
+      periodSum = periodSub;
+      inIdx = trailingIdx;
+      i = 1;
+      while( (inIdx<startIdx) ) {
+         tempReal = inReal[inIdx++];
+         periodSub += tempReal;
+         periodSum += (tempReal*i);
+         i += 1;
+      }
+      trailingValue = 0.0;
+      while( (inIdx<=endIdx) ) {
+         tempReal = inReal[inIdx++];
+         periodSub += tempReal;
+         periodSub -= trailingValue;
+         periodSum += (tempReal*optInTimePeriod);
+         trailingValue = inReal[trailingIdx++];
+         outReal[outIdx++] = (periodSum/divider);
+         periodSum -= periodSub;
+      }
+      outNBElement.value = outIdx;
+      outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
    public RetCode wma( int startIdx,
@@ -83,25 +138,23 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
+      int inIdx;
+      int outIdx;
+      int i;
+      int trailingIdx;
       int divider;
       double periodSum;
       double periodSub;
       double tempReal;
       double trailingValue;
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
       int lookbackTotal;
-      int i;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      periodSum = 0;
-      periodSub = 0;
-      lookbackTotal = ((int)(optInTimePeriod-1));
+      lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
       }
@@ -111,38 +164,95 @@
          return RetCode.Success ;
       }
       if( (optInTimePeriod==1) ) {
-         outNBElement.value = nbElement;
          outBegIdx.value = startIdx;
-         System.arraycopy(inReal,startIdx,outReal,0,nbElement);
+         outNBElement.value = ((endIdx-startIdx)+1);
+         System.arraycopy(inReal, startIdx, outReal, 0, (((int)outNBElement.value)*1));
          return RetCode.Success ;
       }
-      divider = ((optInTimePeriod*(optInTimePeriod+1))/2);
+      divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
       outIdx = 0;
       trailingIdx = (startIdx-lookbackTotal);
+      periodSub = ((double)0.0);
+      periodSum = periodSub;
       inIdx = trailingIdx;
       i = 1;
       while( (inIdx<startIdx) ) {
-         tempReal = ((double)inReal[inIdx]);
+         tempReal = inReal[inIdx++];
          periodSub += tempReal;
-         periodSum += (tempReal*((double)i));
+         periodSum += (tempReal*i);
          i += 1;
-         inIdx += 1;
       }
-      trailingValue = 0;
+      trailingValue = 0.0;
       while( (inIdx<=endIdx) ) {
-         tempReal = ((double)inReal[inIdx]);
-         inIdx += 1;
+         tempReal = inReal[inIdx++];
          periodSub += tempReal;
          periodSub -= trailingValue;
-         periodSum += (tempReal*((double)optInTimePeriod));
-         trailingValue = ((double)inReal[trailingIdx]);
-         trailingIdx += 1;
-         outReal[outIdx] = (periodSum/((double)divider));
-         outIdx += 1;
+         periodSum += (tempReal*optInTimePeriod);
+         trailingValue = inReal[trailingIdx++];
+         outReal[outIdx++] = (periodSum/divider);
          periodSum -= periodSub;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
+   }
+   public RetCode wmaLogic( int startIdx,
+                            int endIdx,
+                            float inReal[],
+                            int optInTimePeriod,
+                            MInteger outBegIdx,
+                            MInteger outNBElement,
+                            double outReal[] )
+   {
+      int inIdx;
+      int outIdx;
+      int i;
+      int trailingIdx;
+      int divider;
+      double periodSum;
+      double periodSub;
+      double tempReal;
+      double trailingValue;
+      int lookbackTotal;
+      lookbackTotal = (optInTimePeriod-1);
+      if( (startIdx<lookbackTotal) ) {
+         startIdx = lookbackTotal;
+      }
+      if( (startIdx>endIdx) ) {
+         outBegIdx.value = 0;
+         outNBElement.value = 0;
+         return RetCode.Success ;
+      }
+      if( (optInTimePeriod==1) ) {
+         outBegIdx.value = startIdx;
+         outNBElement.value = ((endIdx-startIdx)+1);
+         System.arraycopy(inReal, startIdx, outReal, 0, (((int)outNBElement.value)*1));
+         return RetCode.Success ;
+      }
+      divider = ((optInTimePeriod*(optInTimePeriod+1))>>1);
+      outIdx = 0;
+      trailingIdx = (startIdx-lookbackTotal);
+      periodSub = ((double)0.0);
+      periodSum = periodSub;
+      inIdx = trailingIdx;
+      i = 1;
+      while( (inIdx<startIdx) ) {
+         tempReal = inReal[inIdx++];
+         periodSub += tempReal;
+         periodSum += (tempReal*i);
+         i += 1;
+      }
+      trailingValue = 0.0;
+      while( (inIdx<=endIdx) ) {
+         tempReal = inReal[inIdx++];
+         periodSub += tempReal;
+         periodSub -= trailingValue;
+         periodSum += (tempReal*optInTimePeriod);
+         trailingValue = inReal[trailingIdx++];
+         outReal[outIdx++] = (periodSum/divider);
+         periodSum -= periodSub;
+      }
+      outNBElement.value = outIdx;
+      outBegIdx.value = startIdx;
       return RetCode.Success ;
    }

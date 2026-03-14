@@ -8,23 +8,65 @@ TA_RetCode ppo(int startIdx, int endIdx, const double inReal[], int optInFastPer
 {
     double *tempBuffer;
     TA_RetCode retCode;
+    double tempReal;
+    int tempInteger;
+    int outBegIdx1, outNbElement1;
+    int outBegIdx2, outNbElement2;
+    int i, j;
 
 
 
     /* Allocate an intermediate buffer. */
-    double *tempBuffer = malloc((endIdx-startIdx+1) * sizeof(double));
+    tempBuffer = malloc((endIdx-startIdx+1) * sizeof(double));
     if( !tempBuffer )
     return TA_ALLOC_ERR;
 
-    retCode = po( startIdx, endIdx, inReal,
+    /* Make sure slow is really slower than
+    * the fast period! if not, swap...
+    */
+    if( optInSlowPeriod < optInFastPeriod )
+    {
+    /* swap */
+    tempInteger     = optInSlowPeriod;
+    optInSlowPeriod = optInFastPeriod;
+    optInFastPeriod = tempInteger;
+    }
+
+    /* Calculate the fast MA into the tempBuffer. */
+    retCode = ma( startIdx, endIdx,
+    inReal,
     optInFastPeriod,
+    optInMAType,
+    &outBegIdx2, &outNbElement2,
+    tempBuffer );
+
+    if( retCode == TA_SUCCESS )
+    {
+    /* Calculate the slow MA into the output. */
+    retCode = ma( startIdx, endIdx,
+    inReal,
     optInSlowPeriod,
     optInMAType,
-    outBegIdx,
-    outNBElement,
-    outReal,
-    tempBuffer,
-    1 /* Do percentage processing. */ );
+    &outBegIdx1, &outNbElement1,
+    outReal );
+
+    if( retCode == TA_SUCCESS )
+    {
+    tempInteger = outBegIdx1 - outBegIdx2;
+    /* Calculate ((fast MA)-(slow MA))/(slow MA) in the output. */
+    for( i=0,j=tempInteger; i < outNbElement1; i++, j++ )
+    {
+    tempReal = outReal[i];
+    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    outReal[i] = ((tempBuffer[j]-tempReal)/tempReal)*100.0;
+    else
+    outReal[i] = 0.0;
+    }
+
+    *outBegIdx    = outBegIdx1;
+    *outNBElement = outNbElement1;
+    }
+    }
 
     free(tempBuffer);
 

@@ -14,7 +14,7 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
 
     /* Calculate the variance. */
     retCode = var( startIdx, endIdx,
-    inReal, optInTimePeriod,
+    inReal, optInTimePeriod, 1.0,
     outBegIdx, outNBElement, outReal );
 
     if( retCode != TA_SUCCESS )

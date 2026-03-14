@@ -37,7 +37,7 @@ TA_RetCode wma(int startIdx, int endIdx, const double inReal[], int optInTimePer
     *outBegIdx    = startIdx;
     *outNBElement = endIdx-startIdx+1;
 
-    ARRAY_MEMMOVE   ( outReal, 0, inReal, startIdx, (int)*outNBElement );
+    memmove(outReal, &inReal[startIdx], ((int)*outNBElement) * sizeof(double));
 
     return TA_SUCCESS;
     }

@@ -134,7 +134,9 @@ fn scan_expr(expr: &Expr, found: &mut BTreeSet<String>) {
         | Expr::Not(inner)
         | Expr::AddressOf(inner)
         | Expr::PostIncrement(inner)
-        | Expr::PostDecrement(inner) => {
+        | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner)
+        | Expr::PreDecrement(inner) => {
             scan_expr(inner, found);
         }
         Expr::FuncCall(_, args) => {

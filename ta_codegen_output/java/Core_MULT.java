@@ -21,15 +21,35 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       outIdx = 0;
-      i = ((int)startIdx);
-      while( (i<=((int)endIdx)) ) {
-         outReal[outIdx] = (inReal0[i]*inReal1[i]);
+      i = startIdx;
+      while( (i<=endIdx) ) {
+         outReal[outIdx] = ((double)(inReal0[i]*inReal1[i]));
          outIdx += 1;
          i += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
+   }
+   public RetCode multLogic( int startIdx,
+                             int endIdx,
+                             double inReal0[],
+                             double inReal1[],
+                             MInteger outBegIdx,
+                             MInteger outNBElement,
+                             double outReal[] )
+   {
+      int outIdx;
+      int i;
+      outIdx = 0;
+      i = startIdx;
+      while( (i<=endIdx) ) {
+         outReal[outIdx] = ((double)(inReal0[i]*inReal1[i]));
+         outIdx += 1;
+         i += 1;
+      }
+      outNBElement.value = outIdx;
+      outBegIdx.value = startIdx;
       return RetCode.Success ;
    }
    public RetCode mult( int startIdx,
@@ -49,14 +69,34 @@
          return RetCode.OutOfRangeEndIndex ;
       }
       outIdx = 0;
-      i = ((int)startIdx);
-      while( (i<=((int)endIdx)) ) {
-         outReal[outIdx] = (inReal0[i]*inReal1[i]);
+      i = startIdx;
+      while( (i<=endIdx) ) {
+         outReal[outIdx] = ((double)(inReal0[i]*inReal1[i]));
          outIdx += 1;
          i += 1;
       }
       outNBElement.value = outIdx;
       outBegIdx.value = startIdx;
       return RetCode.Success ;
+   }
+   public RetCode multLogic( int startIdx,
+                             int endIdx,
+                             float inReal0[],
+                             float inReal1[],
+                             MInteger outBegIdx,
+                             MInteger outNBElement,
+                             double outReal[] )
+   {
+      int outIdx;
+      int i;
+      outIdx = 0;
+      i = startIdx;
+      while( (i<=endIdx) ) {
+         outReal[outIdx] = ((double)(inReal0[i]*inReal1[i]));
+         outIdx += 1;
+         i += 1;
+      }
+      outNBElement.value = outIdx;
+      outBegIdx.value = startIdx;
       return RetCode.Success ;
    }

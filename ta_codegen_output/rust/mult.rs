@@ -100,10 +100,11 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut outIdx: usize;
+        let mut outIdx: i32;
+        let mut i: i32;
         outIdx = 0;
-        i = (startIdx) as usize;
-        while i <= ((endIdx) as usize) {
+        i = startIdx;
+        while i <= endIdx {
             outReal[outIdx] = T::ta_from_f64((inReal0[i] * inReal1[i]).ta_to_f64());
             outIdx += 1;
             i += 1;
@@ -146,10 +147,11 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut outIdx: usize;
+        let mut outIdx: i32;
+        let mut i: i32;
         outIdx = 0;
-        i = (startIdx) as usize;
-        while i <= ((endIdx) as usize) {
+        i = startIdx;
+        while i <= endIdx {
             *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64((*inReal0.get_unchecked(i) * *inReal1.get_unchecked(i)).ta_to_f64());
             outIdx += 1;
             i += 1;

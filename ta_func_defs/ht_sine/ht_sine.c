@@ -30,10 +30,34 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     double hilbertTempReal;
     int hilbertIdx;
 
-    HILBERT_VARIABLES( detrender );
-    HILBERT_VARIABLES( Q1 );
-    HILBERT_VARIABLES( jI );
-    HILBERT_VARIABLES( jQ );
+    double detrender_Odd[3];
+    double detrender_Even[3];
+    double detrender;
+    double prev_detrender_Odd;
+    double prev_detrender_Even;
+    double prev_detrender_input_Odd;
+    double prev_detrender_input_Even;
+    double Q1_Odd[3];
+    double Q1_Even[3];
+    double Q1;
+    double prev_Q1_Odd;
+    double prev_Q1_Even;
+    double prev_Q1_input_Odd;
+    double prev_Q1_input_Even;
+    double jI_Odd[3];
+    double jI_Even[3];
+    double jI;
+    double prev_jI_Odd;
+    double prev_jI_Even;
+    double prev_jI_input_Odd;
+    double prev_jI_input_Even;
+    double jQ_Odd[3];
+    double jQ_Even[3];
+    double jQ;
+    double prev_jQ_Odd;
+    double prev_jQ_Even;
+    double prev_jQ_input_Odd;
+    double prev_jQ_input_Even;
 
     double Q2, I2, prevQ2, prevI2, Re, Im;
 
@@ -48,8 +72,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     * smooth price. In the case of this algorithm,
     * we will never need more than 50 values.
     */
-    const int SMOOTH_PRICE_SIZE = 50;
-    double smoothPrice[SMOOTH_PRICE_SIZE]; int smoothPrice_Idx = 0;
+    double smoothPrice[50]; int smoothPrice_Idx = 0;
     int idx;
 
     /* Variable used to calculate the dominant cycle phase */
@@ -113,20 +136,17 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     /* Subsequent WMA value are evaluated by using
     * the DO_PRICE_WMA macro.
     */
-    #define DO_PRICE_WMA(varNewPrice,varToStoreSmoothedValue) { \
-    periodWMASub     += varNewPrice; \
-    periodWMASub     -= trailingWMAValue; \
-    periodWMASum     += varNewPrice*4.0; \
-    trailingWMAValue  = inReal[trailingWMAIdx++]; \
-    varToStoreSmoothedValue = periodWMASum*0.1; \
-    periodWMASum -= periodWMASub; \
-    }
 
     i = 34;
     do
     {
     tempReal = inReal[today++];
-    DO_PRICE_WMA(tempReal,smoothedValue);
+    periodWMASub += tempReal;
+    periodWMASub -= trailingWMAValue;
+    periodWMASum += tempReal*4.0;
+    trailingWMAValue = inReal[trailingWMAIdx++];
+    smoothedValue = periodWMASum*0.1;
+    periodWMASum -= periodWMASub;
     } while( --i != 0);
 
     /* Initialize the circular buffers used by the hilbert
@@ -139,10 +159,26 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     */
     hilbertIdx = 0;
 
-    INIT_HILBERT_VARIABLES(detrender);
-    INIT_HILBERT_VARIABLES(Q1);
-    INIT_HILBERT_VARIABLES(jI);
-    INIT_HILBERT_VARIABLES(jQ);
+    detrender_Odd[0] = 0.0; detrender_Odd[1] = 0.0; detrender_Odd[2] = 0.0;
+    detrender_Even[0] = 0.0; detrender_Even[1] = 0.0; detrender_Even[2] = 0.0;
+    detrender = 0.0;
+    prev_detrender_Odd = 0.0; prev_detrender_Even = 0.0;
+    prev_detrender_input_Odd = 0.0; prev_detrender_input_Even = 0.0;
+    Q1_Odd[0] = 0.0; Q1_Odd[1] = 0.0; Q1_Odd[2] = 0.0;
+    Q1_Even[0] = 0.0; Q1_Even[1] = 0.0; Q1_Even[2] = 0.0;
+    Q1 = 0.0;
+    prev_Q1_Odd = 0.0; prev_Q1_Even = 0.0;
+    prev_Q1_input_Odd = 0.0; prev_Q1_input_Even = 0.0;
+    jI_Odd[0] = 0.0; jI_Odd[1] = 0.0; jI_Odd[2] = 0.0;
+    jI_Even[0] = 0.0; jI_Even[1] = 0.0; jI_Even[2] = 0.0;
+    jI = 0.0;
+    prev_jI_Odd = 0.0; prev_jI_Even = 0.0;
+    prev_jI_input_Odd = 0.0; prev_jI_input_Even = 0.0;
+    jQ_Odd[0] = 0.0; jQ_Odd[1] = 0.0; jQ_Odd[2] = 0.0;
+    jQ_Even[0] = 0.0; jQ_Even[1] = 0.0; jQ_Even[2] = 0.0;
+    jQ = 0.0;
+    prev_jQ_Odd = 0.0; prev_jQ_Even = 0.0;
+    prev_jQ_input_Odd = 0.0; prev_jQ_input_Even = 0.0;
 
     period = 0.0;
     outIdx = 0;
@@ -153,7 +189,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     I1ForOddPrev2 = I1ForEvenPrev2 = 0.0;
     smoothPeriod  = 0.0;
 
-    for( i=0; i < SMOOTH_PRICE_SIZE; i++ )
+    for( i=0; i < 50; i++ )
     smoothPrice[i] = 0.0;
 
     /* The code is speed optimized and is most likely very
@@ -169,7 +205,12 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     adjustedPrevPeriod = (0.075*period)+0.54;
 
     todayValue = inReal[today];
-    DO_PRICE_WMA(todayValue,smoothedValue);
+    periodWMASub += todayValue;
+    periodWMASub -= trailingWMAValue;
+    periodWMASum += todayValue*4.0;
+    trailingWMAValue = inReal[trailingWMAIdx++];
+    smoothedValue = periodWMASum*0.1;
+    periodWMASum -= periodWMASub;
 
     /* Remember the smoothedValue into the smoothPrice
     * circular buffer.
@@ -179,10 +220,42 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     if( (today%2) == 0 )
     {
     /* Do the Hilbert Transforms for even price bar */
-    DO_HILBERT_EVEN(detrender,smoothedValue);
-    DO_HILBERT_EVEN(Q1,detrender);
-    DO_HILBERT_EVEN(jI,I1ForEvenPrev3);
-    DO_HILBERT_EVEN(jQ,Q1);
+    hilbertTempReal = a * smoothedValue;
+    detrender = -detrender_Even[hilbertIdx];
+    detrender_Even[hilbertIdx] = hilbertTempReal;
+    detrender += hilbertTempReal;
+    detrender -= prev_detrender_Even;
+    prev_detrender_Even = b * prev_detrender_input_Even;
+    detrender += prev_detrender_Even;
+    prev_detrender_input_Even = smoothedValue;
+    detrender *= adjustedPrevPeriod;
+    hilbertTempReal = a * detrender;
+    Q1 = -Q1_Even[hilbertIdx];
+    Q1_Even[hilbertIdx] = hilbertTempReal;
+    Q1 += hilbertTempReal;
+    Q1 -= prev_Q1_Even;
+    prev_Q1_Even = b * prev_Q1_input_Even;
+    Q1 += prev_Q1_Even;
+    prev_Q1_input_Even = detrender;
+    Q1 *= adjustedPrevPeriod;
+    hilbertTempReal = a * I1ForEvenPrev3;
+    jI = -jI_Even[hilbertIdx];
+    jI_Even[hilbertIdx] = hilbertTempReal;
+    jI += hilbertTempReal;
+    jI -= prev_jI_Even;
+    prev_jI_Even = b * prev_jI_input_Even;
+    jI += prev_jI_Even;
+    prev_jI_input_Even = I1ForEvenPrev3;
+    jI *= adjustedPrevPeriod;
+    hilbertTempReal = a * Q1;
+    jQ = -jQ_Even[hilbertIdx];
+    jQ_Even[hilbertIdx] = hilbertTempReal;
+    jQ += hilbertTempReal;
+    jQ -= prev_jQ_Even;
+    prev_jQ_Even = b * prev_jQ_input_Even;
+    jQ += prev_jQ_Even;
+    prev_jQ_input_Even = Q1;
+    jQ *= adjustedPrevPeriod;
     if( ++hilbertIdx == 3 )
     hilbertIdx = 0;
 
@@ -201,10 +274,42 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     else
     {
     /* Do the Hilbert Transforms for odd price bar */
-    DO_HILBERT_ODD(detrender,smoothedValue);
-    DO_HILBERT_ODD(Q1,detrender);
-    DO_HILBERT_ODD(jI,I1ForOddPrev3);
-    DO_HILBERT_ODD(jQ,Q1);
+    hilbertTempReal = a * smoothedValue;
+    detrender = -detrender_Odd[hilbertIdx];
+    detrender_Odd[hilbertIdx] = hilbertTempReal;
+    detrender += hilbertTempReal;
+    detrender -= prev_detrender_Odd;
+    prev_detrender_Odd = b * prev_detrender_input_Odd;
+    detrender += prev_detrender_Odd;
+    prev_detrender_input_Odd = smoothedValue;
+    detrender *= adjustedPrevPeriod;
+    hilbertTempReal = a * detrender;
+    Q1 = -Q1_Odd[hilbertIdx];
+    Q1_Odd[hilbertIdx] = hilbertTempReal;
+    Q1 += hilbertTempReal;
+    Q1 -= prev_Q1_Odd;
+    prev_Q1_Odd = b * prev_Q1_input_Odd;
+    Q1 += prev_Q1_Odd;
+    prev_Q1_input_Odd = detrender;
+    Q1 *= adjustedPrevPeriod;
+    hilbertTempReal = a * I1ForOddPrev3;
+    jI = -jI_Odd[hilbertIdx];
+    jI_Odd[hilbertIdx] = hilbertTempReal;
+    jI += hilbertTempReal;
+    jI -= prev_jI_Odd;
+    prev_jI_Odd = b * prev_jI_input_Odd;
+    jI += prev_jI_Odd;
+    prev_jI_input_Odd = I1ForOddPrev3;
+    jI *= adjustedPrevPeriod;
+    hilbertTempReal = a * Q1;
+    jQ = -jQ_Odd[hilbertIdx];
+    jQ_Odd[hilbertIdx] = hilbertTempReal;
+    jQ += hilbertTempReal;
+    jQ -= prev_jQ_Odd;
+    prev_jQ_Odd = b * prev_jQ_input_Odd;
+    jQ += prev_jQ_Odd;
+    prev_jQ_input_Odd = Q1;
+    jQ *= adjustedPrevPeriod;
 
     Q2 = (0.2*(Q1 + jI)) + (0.8*prevQ2);
     I2 = (0.2*(I1ForOddPrev3 - jQ)) + (0.8*prevI2);
@@ -258,7 +363,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     realPart += sin(tempReal)*tempReal2;
     imagPart += cos(tempReal)*tempReal2;
     if( idx == 0 )
-    idx = SMOOTH_PRICE_SIZE-1;
+    idx = 50-1;
     else
     idx--;
     }
@@ -289,7 +394,7 @@ TA_RetCode ht_sine(int startIdx, int endIdx, const double inReal[], int *outBegI
     }
 
     /* Ooof... let's do the next price bar now! */
-    smoothPrice_Idx = (smoothPrice_Idx + 1) % SMOOTH_PRICE_SIZE;
+    smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
     today++;
     }
 

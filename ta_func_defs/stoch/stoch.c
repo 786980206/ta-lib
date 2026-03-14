@@ -128,7 +128,7 @@ TA_RetCode stoch(int startIdx, int endIdx, const double inHigh[], const double i
     else
     {
     bufferIsAllocated = 1;
-    double *tempBuffer = malloc((endIdx-today+1) * sizeof(double));
+    tempBuffer = malloc((endIdx-today+1) * sizeof(double));
     }
 
     /* Do the K calculation */
@@ -227,7 +227,7 @@ TA_RetCode stoch(int startIdx, int endIdx, const double inHigh[], const double i
     *  caller buffer because more input data then the
     *  requested range was needed for doing %D).
     */
-    TA_ARRAY_COPY( outSlowK, 0, tempBuffer,lookbackDSlow,(int)*outNBElement);
+    memcpy(outSlowK, &tempBuffer[lookbackDSlow], ((int)*outNBElement) * sizeof(double));
 
     /* Don't need K anymore, free it if it was allocated here. */
     if (bufferIsAllocated) { free(tempBuffer); }
