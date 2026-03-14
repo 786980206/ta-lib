@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 use std::path::Path;
 
 use crate::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
@@ -615,6 +616,7 @@ impl Parser {
 
     fn parse_statements(&mut self) -> Vec<Statement> {
         let mut stmts = Vec::new();
+        let mut declared_vars: HashSet<String> = HashSet::new();
         while self.pos < self.tokens.len() {
             if self.peek() == Some(&Token::RBrace) {
                 break;
@@ -624,9 +626,51 @@ impl Parser {
                 self.advance();
                 continue;
             }
-            stmts.push(self.parse_statement());
+            match self.peek().cloned() {
+                Some(Token::Ident(ref s)) if Self::is_type_keyword(s) => {
+                    let decls = self.parse_var_decl();
+                    Self::dedup_var_decls(decls, &mut declared_vars, &mut stmts);
+                }
+                Some(Token::Ident(ref s)) if s == "const" => {
+                    self.advance(); // consume `const`
+                    let decls = self.parse_var_decl();
+                    Self::dedup_var_decls(decls, &mut declared_vars, &mut stmts);
+                }
+                _ => {
+                    stmts.push(self.parse_statement());
+                }
+            }
         }
         stmts
+    }
+
+    /// Deduplicate variable declarations: if a name was already declared, convert
+    /// re-declarations with an initializer into assignments, and drop bare re-declarations.
+    fn dedup_var_decls(
+        decls: Vec<Statement>,
+        declared_vars: &mut HashSet<String>,
+        stmts: &mut Vec<Statement>,
+    ) {
+        for decl in decls {
+            match decl {
+                Statement::VarDecl { ref name, ref init, .. } => {
+                    if declared_vars.contains(name) {
+                        if let Some(init_expr) = init.clone() {
+                            stmts.push(Statement::Assign {
+                                target: Expr::Var(name.clone()),
+                                value: init_expr,
+                                compound: false,
+                            });
+                        }
+                        // If no initializer and already declared, skip entirely
+                    } else {
+                        declared_vars.insert(name.clone());
+                        stmts.push(decl);
+                    }
+                }
+                other => stmts.push(other),
+            }
+        }
     }
 
     fn parse_statement(&mut self) -> Statement {
@@ -647,16 +691,53 @@ impl Parser {
                 self.consume_semicolon();
                 Statement::Continue
             }
-            Some(Token::Ident(ref s)) if Self::is_type_keyword(s) => self.parse_var_decl(),
-            // `const double name = val;` or `const int name = val;`
-            Some(Token::Ident(ref s)) if s == "const" => {
-                self.advance(); // consume `const`
-                self.parse_var_decl()
-            }
             Some(Token::Ident(ref s)) if Self::is_macro_decl(s) => self.parse_macro_decl(),
             Some(Token::Star) => self.parse_pointer_deref_assign(),
             // (void)identifier; — suppress-unused-variable cast, treat as no-op
             Some(Token::LParen) => self.parse_void_cast_or_expr(),
+            // Anonymous block: { ... } — used for scoped variable declarations
+            Some(Token::LBrace) => {
+                self.advance(); // consume {
+                let body = self.parse_statements();
+                self.expect(&Token::RBrace);
+                Statement::Block { body }
+            }
+            // Pre-increment as statement: ++x;
+            Some(Token::PlusPlus) => {
+                self.advance();
+                let name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected identifier after ++, got {other:?}"),
+                };
+                self.consume_semicolon();
+                Statement::Assign {
+                    target: Expr::Var(name.clone()),
+                    value: Expr::BinOp(
+                        Box::new(Expr::Var(name)),
+                        BinOp::Add,
+                        Box::new(Expr::IntLiteral(1)),
+                    ),
+                    compound: true,
+                }
+            }
+            // Pre-decrement as statement: --x;
+            Some(Token::MinusMinus) => {
+                self.advance();
+                let name = match self.advance() {
+                    Token::Ident(s) => s,
+                    other => panic!("Expected identifier after --, got {other:?}"),
+                };
+                self.consume_semicolon();
+                Statement::Assign {
+                    target: Expr::Var(name.clone()),
+                    value: Expr::BinOp(
+                        Box::new(Expr::Var(name)),
+                        BinOp::Sub,
+                        Box::new(Expr::IntLiteral(1)),
+                    ),
+                    compound: true,
+                }
+            }
             _ => self.parse_assignment_or_expr_stmt(),
         }
     }
@@ -873,7 +954,7 @@ impl Parser {
         }
     }
 
-    fn parse_var_decl(&mut self) -> Statement {
+    fn parse_var_decl(&mut self) -> Vec<Statement> {
         let type_tok = self.advance();
         let var_type = match type_tok {
             Token::Ident(ref s) => Self::type_from_keyword(s),
@@ -902,11 +983,10 @@ impl Parser {
                 stmts.push(self.parse_single_var_decl(var_type.clone()));
             }
             self.consume_semicolon();
-            // Return as a Block containing multiple VarDecl statements
-            Statement::Block { body: stmts }
+            stmts
         } else {
             self.consume_semicolon();
-            first
+            vec![first]
         }
     }
 
@@ -916,19 +996,47 @@ impl Parser {
             other => panic!("Expected identifier in var decl, got {other:?}"),
         };
 
-        // Consume optional array size: `double buf[SIZE]` — discard size expression
-        if self.peek() == Some(&Token::LBracket) {
+        // Detect fixed-size array declarations: `double buf[SIZE]`
+        let var_type = if self.peek() == Some(&Token::LBracket) {
             self.advance(); // consume [
-            // Skip tokens until matching ]
+            // Collect tokens between [ and ] as the size string
+            let mut size_tokens = Vec::new();
             let mut depth = 1;
             while depth > 0 {
-                match self.advance() {
+                let tok = self.advance();
+                match &tok {
                     Token::LBracket => depth += 1,
                     Token::RBracket => depth -= 1,
                     _ => {}
                 }
+                if depth > 0 {
+                    size_tokens.push(tok);
+                }
             }
-        }
+            let size_str = size_tokens
+                .iter()
+                .map(|t| match t {
+                    Token::Ident(s) => s.clone(),
+                    Token::Number(n) => n.to_string(),
+                    Token::IntNumber(n) => n.to_string(),
+                    Token::Op(op) => op.clone(),
+                    Token::LParen => "(".to_string(),
+                    Token::RParen => ")".to_string(),
+                    Token::Star => "*".to_string(),
+                    Token::PlusPlus => "++".to_string(),
+                    Token::MinusMinus => "--".to_string(),
+                    other => format!("{other:?}"),
+                })
+                .collect::<Vec<_>>()
+                .join("");
+            match var_type {
+                VarType::Real => VarType::RealArray(size_str),
+                VarType::Integer => VarType::IntArray(size_str),
+                other => other,
+            }
+        } else {
+            var_type
+        };
 
         // Check for init
         if let Some(Token::Op(ref op)) = self.peek() {
@@ -1864,15 +1972,13 @@ impl Parser {
         if self.peek() == Some(&Token::PlusPlus) {
             self.advance();
             let operand = self.parse_unary();
-            // Pre-increment evaluates to the incremented value
-            // For simplicity, treat as (expr + 1) — backends handle appropriately
-            return Expr::BinOp(Box::new(operand), BinOp::Add, Box::new(Expr::IntLiteral(1)));
+            return Expr::PreIncrement(Box::new(operand));
         }
         // Pre-decrement: --expr
         if self.peek() == Some(&Token::MinusMinus) {
             self.advance();
             let operand = self.parse_unary();
-            return Expr::BinOp(Box::new(operand), BinOp::Sub, Box::new(Expr::IntLiteral(1)));
+            return Expr::PreDecrement(Box::new(operand));
         }
         // Unary minus or unary plus
         if let Some(Token::Op(ref op)) = self.peek() {
@@ -2319,20 +2425,15 @@ TA_RetCode TA_TEST(void)
     fn test_multi_var_decl() {
         let tokens = tokenize("size_t i, j, k;");
         let mut parser = Parser::new(tokens);
-        let stmt = parser.parse_statement();
-        match stmt {
-            Statement::Block { body } => {
-                assert_eq!(body.len(), 3);
-                for s in &body {
-                    match s {
-                        Statement::VarDecl { var_type, .. } => {
-                            assert_eq!(*var_type, VarType::Index);
-                        }
-                        other => panic!("Expected VarDecl, got {other:?}"),
-                    }
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 3);
+        for s in &stmts {
+            match s {
+                Statement::VarDecl { var_type, .. } => {
+                    assert_eq!(*var_type, VarType::Index);
                 }
+                other => panic!("Expected VarDecl, got {other:?}"),
             }
-            other => panic!("Expected Block for multi-var decl, got {other:?}"),
         }
     }
 
@@ -2340,14 +2441,15 @@ TA_RetCode TA_TEST(void)
     fn test_single_var_decl() {
         let tokens = tokenize("double x = 0.0;");
         let mut parser = Parser::new(tokens);
-        let stmt = parser.parse_statement();
-        match stmt {
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
             Statement::VarDecl {
                 var_type,
                 name,
                 init,
             } => {
-                assert_eq!(var_type, VarType::Real);
+                assert_eq!(*var_type, VarType::Real);
                 assert_eq!(name, "x");
                 assert!(init.is_some());
             }
@@ -2600,6 +2702,35 @@ TA_RetCode sma(int startIdx, int endIdx,
         assert_eq!(parsed.functions.len(), 1);
         assert_eq!(parsed.functions[0].name, "sma");
         assert!(!parsed.functions[0].is_internal);
+    }
+
+    #[test]
+    fn test_vardecl_dedup_converts_redecl_to_assign() {
+        let source = r"
+TA_RetCode test_func(int startIdx, int endIdx, int *outBegIdx, int *outNBElement)
+{
+    double *buf;
+    double *buf = malloc(10 * sizeof(double));
+    *outBegIdx = startIdx;
+    *outNBElement = 0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // Should have 1 VarDecl (the first bare declaration) + Assign + other stmts
+        let var_decls: Vec<_> = body
+            .iter()
+            .filter(|s| matches!(s, Statement::VarDecl { name, .. } if name == "buf"))
+            .collect();
+        let assigns: Vec<_> = body
+            .iter()
+            .filter(|s| {
+                matches!(s, Statement::Assign { target: Expr::Var(n), .. } if n == "buf")
+            })
+            .collect();
+        assert_eq!(var_decls.len(), 1, "Expected exactly 1 VarDecl for 'buf', got {}", var_decls.len());
+        assert_eq!(assigns.len(), 1, "Expected exactly 1 Assign for 'buf', got {}", assigns.len());
     }
 
     #[test]
