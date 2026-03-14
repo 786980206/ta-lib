@@ -912,6 +912,12 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
                     "            double {} = jsonDouble(json, \"{}\");\n",
                     opt.name, opt.name
                 ));
+            } else if let ParamType::Enum(ref enum_name) = opt.param_type {
+                // Enum params: read as int, convert to enum type
+                s.push_str(&format!(
+                    "            {} {} = {}.values()[jsonInt(json, \"{}\")];\n",
+                    enum_name, opt.name, enum_name, opt.name
+                ));
             } else {
                 s.push_str(&format!(
                     "            int {} = jsonInt(json, \"{}\");\n",
