@@ -1,6 +1,7 @@
+use std::cell::Cell;
 use std::collections::HashMap;
 
-use crate::helper_registry::{try_inline_expr, HelperRegistry};
+use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
 use crate::ir::{
     BinOp, EnumDef, Expr, FuncDef, LookbackExpr, OptInput, ParamType, Statement, VarType,
 };
@@ -425,6 +426,8 @@ fn gen_unguarded_func(
         })
         .collect();
 
+    let inline_counter = Cell::new(0);
+
     // Emit VarDecl initializations only when there's no body assignment for the same var
     for stmt in &func.body {
         if let Statement::VarDecl {
@@ -439,10 +442,20 @@ fn gen_unguarded_func(
             if body_assigned.contains(name) {
                 continue;
             }
+            // Hoist multi-statement helpers from init expressions
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt);
+            inline_counter.set(cnt);
+            out.push_str(&render_hoisted_blocks(
+                &hoisted, 8, ctx, &for_loop_vars, &var_inits,
+                &output_names, &opt_real_params, enums, registry,
+                helpers, &inline_counter,
+            ));
             out.push_str(&format!(
                 "        {} = {};\n",
                 name,
-                render_expr(init, ctx, &opt_real_params, registry, helpers)
+                render_expr(&new_init, ctx, &opt_real_params, registry, helpers)
             ));
         }
     }
@@ -463,6 +476,7 @@ fn gen_unguarded_func(
             enums,
             registry,
             helpers,
+            &inline_counter,
         ));
     }
 
@@ -756,7 +770,53 @@ fn is_simple_increment(stmt: &Statement, var_name: &str) -> bool {
     false
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+/// Render hoisted block-inline helpers as Rust code (temp var decl + body).
+#[allow(clippy::too_many_arguments)]
+fn render_hoisted_blocks(
+    hoisted: &[(String, VarType, Vec<Statement>)],
+    indent: usize,
+    ctx: &RustRenderCtx,
+    for_loop_vars: &[String],
+    var_inits: &std::collections::HashMap<String, &Expr>,
+    output_names: &[String],
+    opt_real_params: &[String],
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+    inline_counter: &Cell<usize>,
+) -> String {
+    let pad = " ".repeat(indent);
+    let mut out = String::new();
+    for (temp_name, var_type, body) in hoisted {
+        let rust_type = match var_type {
+            VarType::Real => {
+                if ctx.generic { "T" } else { "f64" }
+            }
+            VarType::Integer => "i32",
+            VarType::Index => "usize",
+            VarType::RetCodeType => "RetCode",
+        };
+        out.push_str(&format!("{pad}let mut {temp_name}: {rust_type};\n"));
+        for stmt in body {
+            out.push_str(&render_statement(
+                stmt,
+                indent,
+                ctx,
+                for_loop_vars,
+                var_inits,
+                output_names,
+                opt_real_params,
+                enums,
+                registry,
+                helpers,
+                inline_counter,
+            ));
+        }
+    }
+    out
+}
+
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::too_many_arguments)]
 pub fn render_statement(
     stmt: &Statement,
     indent: usize,
@@ -768,6 +828,7 @@ pub fn render_statement(
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
+    inline_counter: &Cell<usize>,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -786,6 +847,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             out
@@ -813,6 +875,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -846,6 +909,7 @@ pub fn render_statement(
                                     enums,
                                     registry,
                                     helpers,
+                                inline_counter,
                                 ));
                             }
                             out.push_str(&format!("{pad}}}\n"));
@@ -866,6 +930,7 @@ pub fn render_statement(
                 enums,
                 registry,
                 helpers,
+            inline_counter,
             );
             let init_trimmed = init_str.trim().trim_end_matches(';');
             let update_str = render_statement(
@@ -879,6 +944,7 @@ pub fn render_statement(
                 enums,
                 registry,
                 helpers,
+            inline_counter,
             );
             let update_trimmed = update_str.trim().trim_end_matches(';');
             let mut out = format!(
@@ -906,6 +972,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}    {update_trimmed};\n"));
@@ -928,8 +995,22 @@ pub fn render_statement(
                     }
                 }
             }
+
+            // Hoist multi-statement helpers from the value expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_value = hoist_block_helpers(
+                value, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, ctx, for_loop_vars, var_inits,
+                output_names, opt_real_params, enums, registry,
+                helpers, inline_counter,
+            );
+
             if *compound {
-                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
+                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
                     if let Expr::Var(lname) = left.as_ref() {
                         if lname == tname {
                             let op_str = match op {
@@ -952,32 +1033,34 @@ pub fn render_statement(
                             if !op_str.is_empty() {
                                 let target_str =
                                     render_assign_target(target, ctx, opt_real_params, registry, helpers);
-                                return format!(
+                                out.push_str(&format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
                                     render_expr(right, ctx, opt_real_params, registry, helpers)
-                                );
+                                ));
+                                return out;
                             }
                         }
                     }
                 }
             }
             let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
-            let value_str = render_expr(value, ctx, opt_real_params, registry, helpers);
+            let value_str = render_expr(&new_value, ctx, opt_real_params, registry, helpers);
             let needs_cast = if ctx.generic {
                 false
             } else if let Expr::ArrayAccess(name, _) = target {
-                output_names.contains(name) && expr_has_uncast_array_access(value)
+                output_names.contains(name) && expr_has_uncast_array_access(&new_value)
             } else {
                 false
             };
             if needs_cast {
-                format!("{pad}{target_str} = ({value_str}) as f64;\n")
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as f64;\n"));
             } else {
-                format!("{pad}{target_str} = {value_str};\n")
+                out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
             }
+            out
         }
         Statement::While {
             condition,
@@ -1007,6 +1090,7 @@ pub fn render_statement(
                                 enums,
                                 registry,
                                 helpers,
+                            inline_counter,
                             ));
                         }
                         out.push_str(&format!("{pad}}}\n"));
@@ -1031,6 +1115,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -1053,6 +1138,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             out.push_str(&format!(
@@ -1085,6 +1171,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                inline_counter,
                 ));
             }
             if else_body.is_empty() {
@@ -1104,6 +1191,7 @@ pub fn render_statement(
                             enums,
                             registry,
                             helpers,
+                        inline_counter,
                         );
                         out.push_str(if_str.trim_start());
                         return out;
@@ -1122,6 +1210,7 @@ pub fn render_statement(
                         enums,
                         registry,
                         helpers,
+                    inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}}}\n"));
@@ -1162,6 +1251,7 @@ pub fn render_statement(
                         enums,
                         registry,
                         helpers,
+                    inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}    }}\n"));
@@ -1180,6 +1270,7 @@ pub fn render_statement(
                         enums,
                         registry,
                         helpers,
+                    inline_counter,
                     ));
                 }
                 out.push_str(&format!("{pad}    }}\n"));
@@ -1488,6 +1579,7 @@ fn render_lookback_code(
     }
 
     let lookback_ctx = RustRenderCtx::concrete();
+    let inline_counter = Cell::new(0);
     for stmt in stmts {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
@@ -1503,6 +1595,7 @@ fn render_lookback_code(
             enums,
             registry,
             helpers,
+            &inline_counter,
         ));
     }
 

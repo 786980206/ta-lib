@@ -1204,7 +1204,8 @@ fn c_for_loop_multi_init_comma_separated() {
     let enums = HashMap::new();
     let registry = make_registry();
     let helpers = HelperRegistry::empty();
-    let rendered = backends::c::render_statement(&stmt, 0, false, &enums, &registry, &helpers);
+    let inline_counter = std::cell::Cell::new(0);
+    let rendered = backends::c::render_statement(&stmt, 0, false, &enums, &registry, &helpers, &inline_counter);
 
     // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
     // NOT: for( j = 0;\ni = startIdx; ... )
@@ -1274,7 +1275,8 @@ fn java_for_loop_multi_init_comma_separated() {
     let enums = HashMap::new();
     let registry = make_registry();
     let helpers = HelperRegistry::empty();
-    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry, &helpers);
+    let inline_counter = std::cell::Cell::new(0);
+    let rendered = backends::java::render_statement(&stmt, 0, false, &enums, &registry, &helpers, &inline_counter);
 
     // Should produce: for( j = 0, i = startIdx; ... ; i = i + 1, j = j + 1 )
     // NOT: for( j = 0;\ni = startIdx; ... )
@@ -1333,6 +1335,7 @@ fn rust_forc_emits_range_iteration_when_possible() {
     let enums = HashMap::new();
     let registry = make_registry();
     let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
 
     let rendered = render_statement(
         &stmt,
@@ -1345,6 +1348,7 @@ fn rust_forc_emits_range_iteration_when_possible() {
         &enums,
         &registry,
         &helpers,
+        &inline_counter,
     );
 
     assert!(
@@ -1518,6 +1522,7 @@ fn rust_forc_multi_init_falls_through_to_while() {
     let enums = HashMap::new();
     let registry = make_registry();
     let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
 
     let rendered = render_statement(
         &stmt,
@@ -1530,6 +1535,7 @@ fn rust_forc_multi_init_falls_through_to_while() {
         &enums,
         &registry,
         &helpers,
+        &inline_counter,
     );
 
     assert!(
@@ -2074,6 +2080,295 @@ fn inlining_with_empty_registry_leaves_helpers_as_calls() {
     assert!(
         output.contains("ta_realbody(") || output.contains("TA_ta_realbody("),
         "With empty helpers, ta_realbody should remain as a function call"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Block inlining tests (Task 10)
+// ---------------------------------------------------------------------------
+
+fn make_helpers() -> HelperRegistry {
+    let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+    HelperRegistry::from_dir(&base)
+}
+
+/// Build a minimal FuncDef whose body contains an assignment
+/// calling a given helper function.
+fn make_func_with_helper_call(
+    call_name: &str,
+    args: Vec<ir::Expr>,
+) -> ir::FuncDef {
+    ir::FuncDef {
+        name: "TEST".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![ir::Input {
+            name: "inReal".to_string(),
+            param_type: ir::ParamType::Real,
+        }],
+        optional_inputs: vec![],
+        outputs: vec![ir::Output {
+            name: "outReal".to_string(),
+            param_type: ir::ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: Some(ir::LookbackExpr::Literal(0)),
+        body: vec![
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::Real,
+                name: "result".to_string(),
+                init: None,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("result".to_string()),
+                value: ir::Expr::FuncCall(call_name.to_string(), args),
+                compound: false,
+            },
+        ],
+    }
+}
+
+#[test]
+fn c_backend_inlines_multi_statement_helper_with_temp_var() {
+    // ta_true_range has 3 VarDecls + 2 Ifs + Return => multi-statement
+    let func = make_func_with_helper_call(
+        "ta_true_range",
+        vec![
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("prev".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // Should NOT contain ta_true_range as a function call
+    assert!(
+        !output.contains("ta_true_range("),
+        "ta_true_range should be inlined, not called: {output}"
+    );
+    // Should contain a temp var declaration
+    assert!(
+        output.contains("_true_range_"),
+        "Should have a temp var like _true_range_0: {output}"
+    );
+    // Should contain the inlined body pattern (the if-statements)
+    assert!(
+        output.contains("if("),
+        "Inlined body should contain if-statements: {output}"
+    );
+}
+
+#[test]
+fn c_backend_inlines_candlerange_switch() {
+    // ta_candlerange has a switch statement => multi-statement
+    let func = make_func_with_helper_call(
+        "ta_candlerange",
+        vec![
+            ir::Expr::Var("rangeType".to_string()),
+            ir::Expr::Var("open".to_string()),
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("close".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    assert!(
+        !output.contains("ta_candlerange("),
+        "ta_candlerange should be inlined: {output}"
+    );
+    assert!(
+        output.contains("switch("),
+        "Inlined candlerange should contain switch: {output}"
+    );
+    assert!(
+        output.contains("_candlerange_"),
+        "Should have a temp var like _candlerange_0: {output}"
+    );
+}
+
+#[test]
+fn inlining_counter_avoids_name_collisions() {
+    // Call ta_candlerange twice in a FuncDef body
+    let func = ir::FuncDef {
+        name: "TEST".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![ir::Input {
+            name: "inReal".to_string(),
+            param_type: ir::ParamType::Real,
+        }],
+        optional_inputs: vec![],
+        outputs: vec![ir::Output {
+            name: "outReal".to_string(),
+            param_type: ir::ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: Some(ir::LookbackExpr::Literal(0)),
+        body: vec![
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::Real,
+                name: "a".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::Real,
+                name: "b".to_string(),
+                init: None,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("a".to_string()),
+                value: ir::Expr::FuncCall(
+                    "ta_candlerange".to_string(),
+                    vec![
+                        ir::Expr::IntLiteral(0),
+                        ir::Expr::Var("o".to_string()),
+                        ir::Expr::Var("h".to_string()),
+                        ir::Expr::Var("l".to_string()),
+                        ir::Expr::Var("c".to_string()),
+                    ],
+                ),
+                compound: false,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("b".to_string()),
+                value: ir::Expr::FuncCall(
+                    "ta_candlerange".to_string(),
+                    vec![
+                        ir::Expr::IntLiteral(1),
+                        ir::Expr::Var("o2".to_string()),
+                        ir::Expr::Var("h2".to_string()),
+                        ir::Expr::Var("l2".to_string()),
+                        ir::Expr::Var("c2".to_string()),
+                    ],
+                ),
+                compound: false,
+            },
+        ],
+    };
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // Should have two different temp vars
+    assert!(
+        output.contains("_candlerange_0"),
+        "First call should use suffix _0: {output}"
+    );
+    assert!(
+        output.contains("_candlerange_1"),
+        "Second call should use suffix _1: {output}"
+    );
+}
+
+#[test]
+fn java_backend_inlines_multi_statement_helper() {
+    let func = make_func_with_helper_call(
+        "ta_true_range",
+        vec![
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("prev".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::java::generate(&func, &enums, &registry, &helpers);
+
+    assert!(
+        !output.contains("ta_true_range("),
+        "Java: ta_true_range should be inlined: {output}"
+    );
+    assert!(
+        output.contains("_true_range_"),
+        "Java: should have a temp var: {output}"
+    );
+}
+
+#[test]
+fn rust_backend_inlines_multi_statement_helper() {
+    let func = make_func_with_helper_call(
+        "ta_true_range",
+        vec![
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("prev".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    assert!(
+        !output.contains("ta_true_range("),
+        "Rust: ta_true_range should be inlined: {output}"
+    );
+    assert!(
+        output.contains("_true_range_"),
+        "Rust: should have a temp var: {output}"
+    );
+}
+
+#[test]
+fn nested_block_inlining_candleaverage_calls_candlerange() {
+    // ta_candleaverage calls ta_candlerange in its body.
+    // Both should be inlined, with the inner one hoisted first.
+    let func = make_func_with_helper_call(
+        "ta_candleaverage",
+        vec![
+            ir::Expr::IntLiteral(0),
+            ir::Expr::IntLiteral(10),
+            ir::Expr::Literal(1.0),
+            ir::Expr::Var("sum".to_string()),
+            ir::Expr::Var("open".to_string()),
+            ir::Expr::Var("high".to_string()),
+            ir::Expr::Var("low".to_string()),
+            ir::Expr::Var("close".to_string()),
+        ],
+    );
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let output = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // Neither helper should appear as a function call
+    assert!(
+        !output.contains("ta_candleaverage("),
+        "ta_candleaverage should be inlined: {output}"
+    );
+    assert!(
+        !output.contains("ta_candlerange("),
+        "ta_candlerange (nested) should also be inlined: {output}"
+    );
+    // Both temp vars should be present
+    assert!(
+        output.contains("_candlerange_"),
+        "Should have _candlerange_ temp var: {output}"
+    );
+    assert!(
+        output.contains("_candleaverage_"),
+        "Should have _candleaverage_ temp var: {output}"
     );
 }
 

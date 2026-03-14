@@ -1,8 +1,10 @@
-use crate::helper_registry::{try_inline_expr, HelperRegistry};
+use std::cell::Cell;
+use std::collections::HashMap;
+
+use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
 use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
-use std::collections::HashMap;
 
 #[allow(clippy::implicit_hasher)]
 pub fn generate(
@@ -161,6 +163,8 @@ fn gen_func(
         out.push_str("      }\n");
     }
 
+    let inline_counter = Cell::new(0);
+
     // Emit VarDecl initializations
     for stmt in &func.body {
         if let Statement::VarDecl {
@@ -169,10 +173,26 @@ fn gen_func(
             ..
         } = stmt
         {
+            // Hoist multi-statement helpers from init expressions
+            let mut hoisted_vec = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_init = hoist_block_helpers(
+                init, helpers, &mut hoisted_vec, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            out.push_str(&render_hoisted_blocks(
+                &hoisted_vec,
+                6,
+                single_precision,
+                enums,
+                registry,
+                helpers,
+                &inline_counter,
+            ));
             out.push_str(&format!(
                 "      {} = {};\n",
                 name,
-                render_expr(init, single_precision, registry, helpers)
+                render_expr(&new_init, single_precision, registry, helpers)
             ));
         }
     }
@@ -189,6 +209,7 @@ fn gen_func(
             enums,
             registry,
             helpers,
+            &inline_counter,
         ));
     }
 
@@ -207,23 +228,62 @@ fn render_forc_part(
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
+    inline_counter: &Cell<usize>,
 ) -> String {
     match stmt {
         Statement::Block { body } => body
             .iter()
             .map(|s| {
-                render_statement(s, 0, single_precision, enums, registry, helpers)
-                    .trim()
-                    .trim_end_matches(';')
-                    .to_string()
+                render_statement(
+                    s, 0, single_precision, enums, registry, helpers, inline_counter,
+                )
+                .trim()
+                .trim_end_matches(';')
+                .to_string()
             })
             .collect::<Vec<_>>()
             .join(", "),
-        _ => render_statement(stmt, 0, single_precision, enums, registry, helpers)
-            .trim()
-            .trim_end_matches(';')
-            .to_string(),
+        _ => render_statement(
+            stmt, 0, single_precision, enums, registry, helpers, inline_counter,
+        )
+        .trim()
+        .trim_end_matches(';')
+        .to_string(),
     }
+}
+
+/// Render hoisted block-inline helpers as Java code (temp var decl + body).
+fn render_hoisted_blocks(
+    hoisted: &[(String, VarType, Vec<Statement>)],
+    indent: usize,
+    single_precision: bool,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+    inline_counter: &Cell<usize>,
+) -> String {
+    let pad = " ".repeat(indent);
+    let mut out = String::new();
+    for (temp_name, var_type, body) in hoisted {
+        let java_type = match var_type {
+            VarType::Real => "double",
+            VarType::Integer | VarType::Index => "int",
+            VarType::RetCodeType => "RetCode",
+        };
+        out.push_str(&format!("{pad}{java_type} {temp_name};\n"));
+        for stmt in body {
+            out.push_str(&render_statement(
+                stmt,
+                indent,
+                single_precision,
+                enums,
+                registry,
+                helpers,
+                inline_counter,
+            ));
+        }
+    }
+    out
 }
 
 #[allow(clippy::too_many_lines)]
@@ -234,6 +294,7 @@ pub fn render_statement(
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
+    inline_counter: &Cell<usize>,
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
@@ -267,9 +328,21 @@ pub fn render_statement(
                 }
             }
 
+            // Hoist multi-statement helpers from the value expression
+            let mut hoisted = Vec::new();
+            let mut cnt = inline_counter.get();
+            let new_value = hoist_block_helpers(
+                value, helpers, &mut hoisted, &mut cnt,
+            );
+            inline_counter.set(cnt);
+            let mut out = render_hoisted_blocks(
+                &hoisted, indent, single_precision, enums, registry,
+                helpers, inline_counter,
+            );
+
             // Only fold compound assignments if the original source used +=/-=/etc.
             if *compound {
-                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, value) {
+                if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
                     if let Expr::Var(lname) = left.as_ref() {
                         if lname == tname {
                             let op_str = match op {
@@ -292,13 +365,14 @@ pub fn render_statement(
                             if !op_str.is_empty() {
                                 let target_str =
                                     render_assign_target(target, single_precision, registry, helpers);
-                                return format!(
+                                out.push_str(&format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
                                     render_expr(right, single_precision, registry, helpers)
-                                );
+                                ));
+                                return out;
                             }
                         }
                     }
@@ -306,8 +380,9 @@ pub fn render_statement(
             }
 
             let target_str = render_assign_target(target, single_precision, registry, helpers);
-            let value_str = render_expr(value, single_precision, registry, helpers);
-            format!("{pad}{target_str} = {value_str};\n")
+            let value_str = render_expr(&new_value, single_precision, registry, helpers);
+            out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
+            out
         }
         Statement::While { condition, body } => {
             let mut out = format!(
@@ -323,6 +398,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -338,6 +414,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             out.push_str(&format!(
@@ -365,6 +442,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             if else_body.is_empty() {
@@ -380,6 +458,7 @@ pub fn render_statement(
                             enums,
                             registry,
                             helpers,
+                            inline_counter,
                         );
                         out.push_str(if_str.trim_start());
                         return out;
@@ -388,13 +467,14 @@ pub fn render_statement(
                 out.push_str("{\n");
                 for s in else_body {
                     out.push_str(&render_statement(
-                    s,
-                    indent + 3,
-                    single_precision,
-                    enums,
-                    registry,
-                    helpers,
-                ));
+                        s,
+                        indent + 3,
+                        single_precision,
+                        enums,
+                        registry,
+                        helpers,
+                        inline_counter,
+                    ));
                 }
                 out.push_str(&format!("{pad}}}\n"));
             }
@@ -424,6 +504,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -435,8 +516,12 @@ pub fn render_statement(
             update,
             body,
         } => {
-            let init_str = render_forc_part(init, single_precision, enums, registry, helpers);
-            let update_str = render_forc_part(update, single_precision, enums, registry, helpers);
+            let init_str = render_forc_part(
+                init, single_precision, enums, registry, helpers, inline_counter,
+            );
+            let update_str = render_forc_part(
+                update, single_precision, enums, registry, helpers, inline_counter,
+            );
             let mut out = format!(
                 "{}for( {}; {}; {} ) {{\n",
                 pad,
@@ -452,6 +537,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             out.push_str(&format!("{pad}}}\n"));
@@ -467,6 +553,7 @@ pub fn render_statement(
                     enums,
                     registry,
                     helpers,
+                    inline_counter,
                 ));
             }
             out
@@ -489,13 +576,14 @@ pub fn render_statement(
                 out.push_str(&format!("{pad}case {java_label}:\n"));
                 for s in case_body {
                     out.push_str(&render_statement(
-                    s,
-                    indent + 3,
-                    single_precision,
-                    enums,
-                    registry,
-                    helpers,
-                ));
+                        s,
+                        indent + 3,
+                        single_precision,
+                        enums,
+                        registry,
+                        helpers,
+                        inline_counter,
+                    ));
                 }
                 out.push_str(&format!("{pad}   break;\n"));
             }
@@ -503,13 +591,14 @@ pub fn render_statement(
                 out.push_str(&format!("{pad}default:\n"));
                 for s in default {
                     out.push_str(&render_statement(
-                    s,
-                    indent + 3,
-                    single_precision,
-                    enums,
-                    registry,
-                    helpers,
-                ));
+                        s,
+                        indent + 3,
+                        single_precision,
+                        enums,
+                        registry,
+                        helpers,
+                        inline_counter,
+                    ));
                 }
                 out.push_str(&format!("{pad}   break;\n"));
             }
@@ -770,6 +859,7 @@ fn render_lookback_code(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
+    let inline_counter = Cell::new(0);
 
     // Declare local variables
     for stmt in stmts {
@@ -804,7 +894,9 @@ fn render_lookback_code(
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }
-        out.push_str(&render_statement(stmt, 6, false, enums, registry, helpers));
+        out.push_str(&render_statement(
+            stmt, 6, false, enums, registry, helpers, &inline_counter,
+        ));
     }
 
     out
