@@ -7,6 +7,11 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 
+/// Check if a statement list contains a return with ALLOC_ERR value.
+fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
+    stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
+}
+
 #[allow(clippy::implicit_hasher)]
 pub fn generate(
     func: &FuncDef,
@@ -145,14 +150,16 @@ fn gen_func(
     // Declare local variables
     for stmt in &func.body {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let java_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => "double[]",
-                VarType::IntPointer => "int[]",
+            let java_decl = match var_type {
+                VarType::Real => format!("double {name}"),
+                VarType::Integer | VarType::Index => format!("int {name}"),
+                VarType::RetCodeType => format!("RetCode {name}"),
+                VarType::RealPointer => format!("double[] {name}"),
+                VarType::IntPointer => format!("int[] {name}"),
+                VarType::RealArray(size) => format!("double[] {name} = new double[{size}]"),
+                VarType::IntArray(size) => format!("int[] {name} = new int[{size}]"),
             };
-            out.push_str(&format!("      {java_type} {name};\n"));
+            out.push_str(&format!("      {java_decl};\n"));
         }
     }
 
@@ -274,14 +281,16 @@ fn render_hoisted_blocks(
     let pad = " ".repeat(indent);
     let mut out = String::new();
     for (temp_name, var_type, body) in hoisted {
-        let java_type = match var_type {
-            VarType::Real => "double",
-            VarType::Integer | VarType::Index => "int",
-            VarType::RetCodeType => "RetCode",
-            VarType::RealPointer => "double[]",
-            VarType::IntPointer => "int[]",
+        let java_decl = match var_type {
+            VarType::Real => format!("double {temp_name}"),
+            VarType::Integer | VarType::Index => format!("int {temp_name}"),
+            VarType::RetCodeType => format!("RetCode {temp_name}"),
+            VarType::RealPointer => format!("double[] {temp_name}"),
+            VarType::IntPointer => format!("int[] {temp_name}"),
+            VarType::RealArray(size) => format!("double[] {temp_name} = new double[{size}]"),
+            VarType::IntArray(size) => format!("int[] {temp_name} = new int[{size}]"),
         };
-        out.push_str(&format!("{pad}{java_type} {temp_name};\n"));
+        out.push_str(&format!("{pad}{java_decl};\n"));
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -315,15 +324,30 @@ pub fn render_statement(
             value,
             compound,
         } => {
-            // Statement-level FuncCall: when target is Var("_"), render just the expansion
+            // Statement-level expression: when target is Var("_"), render as standalone
             if let Expr::Var(tname) = target {
                 if tname == "_" {
+                    // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
+                    if matches!(value, Expr::Var(_)) {
+                        return String::new();
+                    }
                     if let Expr::FuncCall(fname, args) = value {
-                        return format!(
-                            "{}{};\n",
-                            pad,
-                            render_func_call(fname, args, single_precision, registry, helpers)
+                        // Check if helper inlines to a bare variable (identity helper)
+                        if let Some(helper) = helpers.get(fname) {
+                            if let Some(inlined) = try_inline_expr(helper, args) {
+                                if matches!(inlined, Expr::Var(_)) {
+                                    return String::new();
+                                }
+                            }
+                        }
+                        let rendered = render_func_call(
+                            fname, args, single_precision, registry, helpers,
                         );
+                        // Skip empty renders (e.g. free() returns "")
+                        if rendered.is_empty() {
+                            return String::new();
+                        }
+                        return format!("{pad}{rendered};\n");
                     }
                 }
             }
@@ -440,6 +464,10 @@ pub fn render_statement(
             then_body,
             else_body,
         } => {
+            // Skip post-allocation null-check blocks (dead code in Java — `new` never returns null)
+            if contains_alloc_err_return(then_body) {
+                return String::new();
+            }
             let mut out = format!(
                 "{}if( {} ) {{\n",
                 pad,
@@ -648,6 +676,8 @@ fn render_assign_target(
         | Expr::AddressOf(_)
         | Expr::PostIncrement(_)
         | Expr::PostDecrement(_)
+        | Expr::PreIncrement(_)
+        | Expr::PreDecrement(_)
         | Expr::Ternary(_, _, _) => render_expr(expr, single_precision, registry, helpers),
     }
 }
@@ -684,7 +714,7 @@ fn render_expr(
             if is_whole {
                 #[allow(clippy::cast_possible_truncation)]
                 let i = *f as i64;
-                format!("{i}")
+                format!("{i}.0")
             } else {
                 format!("{f}")
             }
@@ -733,6 +763,7 @@ fn render_expr(
                 VarType::RetCodeType => "RetCode",
                 VarType::RealPointer => "double[]",
                 VarType::IntPointer => "int[]",
+                VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
             };
             format!(
                 "(({}){})",
@@ -758,9 +789,15 @@ fn render_expr(
         Expr::PostDecrement(inner) => {
             format!("{}--", render_expr(inner, single_precision, registry, helpers))
         }
+        Expr::PreIncrement(inner) => {
+            format!("++{}", render_expr(inner, single_precision, registry, helpers))
+        }
+        Expr::PreDecrement(inner) => {
+            format!("--{}", render_expr(inner, single_precision, registry, helpers))
+        }
         Expr::Ternary(cond, then_expr, else_expr) => {
             format!(
-                "({}) ? ({}) : ({})",
+                "(({}) ? ({}) : ({}))",
                 render_expr(cond, single_precision, registry, helpers),
                 render_expr(then_expr, single_precision, registry, helpers),
                 render_expr(else_expr, single_precision, registry, helpers)
@@ -850,13 +887,58 @@ fn render_func_call(
             .map(|a| render_expr(a, single_precision, registry, helpers))
             .collect();
         format!("Math.{}({})", java_name, rendered.join(", "))
-    } else if STDLIB_FUNCTIONS.contains(&fname) {
-        // C stdlib functions — pass through as-is for Java (will need proper mapping later)
-        let rendered: Vec<String> = args
-            .iter()
-            .map(|a| render_expr(a, single_precision, registry, helpers))
-            .collect();
-        format!("{}({})", fname, rendered.join(", "))
+    } else if fname == "sizeof" {
+        // sizeof(TYPE) → 1: normalizes byte counts to element counts for Java array operations
+        "1".to_string()
+    } else if fname == "malloc" {
+        // malloc(N * sizeof(TYPE)) → new TYPE_JAVA[(int)(N)]
+        // sizeof renders as 1, so the arg is already the element count
+        if let Some(arg) = args.first() {
+            let java_type = match find_sizeof_type(arg).as_deref() {
+                Some("int") => "int",
+                Some("float") => "float",
+                _ => "double",
+            };
+            let size = render_expr(arg, single_precision, registry, helpers);
+            format!("new {java_type}[(int)({size})]")
+        } else {
+            "new double[0]".to_string()
+        }
+    } else if fname == "free" {
+        // No-op in Java (garbage collector handles deallocation)
+        String::new()
+    } else if fname == "memcpy" || fname == "memmove" {
+        // memcpy/memmove(dst, src, count) → System.arraycopy(src, srcOff, dst, dstOff, count)
+        if args.len() >= 3 {
+            let (dst_arr, dst_off) =
+                decompose_java_array_ref(&args[0], single_precision, registry, helpers);
+            let (src_arr, src_off) =
+                decompose_java_array_ref(&args[1], single_precision, registry, helpers);
+            let count = render_expr(&args[2], single_precision, registry, helpers);
+            format!("System.arraycopy({src_arr}, {src_off}, {dst_arr}, {dst_off}, {count})")
+        } else {
+            format!("/* {fname}: bad args */")
+        }
+    } else if fname == "memset" {
+        // memset(buf, 0, count) → java.util.Arrays.fill(buf, off, off+count, fillVal)
+        if args.len() >= 3 {
+            let (arr, off) =
+                decompose_java_array_ref(&args[0], single_precision, registry, helpers);
+            let count = render_expr(&args[2], single_precision, registry, helpers);
+            let fill_val = match find_sizeof_type(&args[2]).as_deref() {
+                Some("int") => "0",
+                _ => "0.0",
+            };
+            if off == "0" {
+                format!("java.util.Arrays.fill({arr}, 0, (int)({count}), {fill_val})")
+            } else {
+                format!(
+                    "java.util.Arrays.fill({arr}, {off}, ({off}) + (int)({count}), {fill_val})"
+                )
+            }
+        } else {
+            "/* memset: bad args */".to_string()
+        }
     } else {
         // Use registry for cross-call resolution
         let java_name = registry.resolve_call(fname, Lang::Java);
@@ -875,8 +957,50 @@ const MATH_FUNCTIONS: &[&str] = &[
     "cosh", "sinh", "tanh", "log10", "ABS", "max", "min", "fmax", "fmin",
 ];
 
-/// C standard library functions and macros that should pass through as-is.
-const STDLIB_FUNCTIONS: &[&str] = &["free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC"];
+/// Scan an expression tree for `sizeof(TYPE)` and return the type name.
+/// Used by `malloc` to determine the Java array element type.
+fn find_sizeof_type(expr: &Expr) -> Option<String> {
+    match expr {
+        Expr::FuncCall(name, args) if name == "sizeof" => args
+            .first()
+            .and_then(|a| match a {
+                Expr::Var(type_name) => Some(type_name.clone()),
+                _ => None,
+            }),
+        Expr::BinOp(left, _, right) => {
+            find_sizeof_type(left).or_else(|| find_sizeof_type(right))
+        }
+        Expr::Cast(_, inner) => find_sizeof_type(inner),
+        _ => None,
+    }
+}
+
+/// Decompose an expression into (array_name, offset) for array copy operations.
+/// `Var("arr")` → `("arr", "0")`; `AddressOf(ArrayAccess("arr", idx))` → `("arr", rendered_idx)`
+fn decompose_java_array_ref(
+    expr: &Expr,
+    single_precision: bool,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> (String, String) {
+    match expr {
+        Expr::AddressOf(inner) => match inner.as_ref() {
+            Expr::ArrayAccess(name, offset) => {
+                let off = render_expr(offset, single_precision, registry, helpers);
+                (name.clone(), off)
+            }
+            _ => {
+                let s = render_expr(expr, single_precision, registry, helpers);
+                (s, "0".to_string())
+            }
+        },
+        Expr::Var(name) => (name.clone(), "0".to_string()),
+        _ => {
+            let s = render_expr(expr, single_precision, registry, helpers);
+            (s, "0".to_string())
+        }
+    }
+}
 
 /// Render a complex lookback body (`LookbackExpr::Code`) into Java code.
 fn render_lookback_code(
@@ -891,14 +1015,16 @@ fn render_lookback_code(
     // Declare local variables
     for stmt in stmts {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let java_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "RetCode",
-                VarType::RealPointer => "double[]",
-                VarType::IntPointer => "int[]",
+            let java_decl = match var_type {
+                VarType::Real => format!("double {name}"),
+                VarType::Integer | VarType::Index => format!("int {name}"),
+                VarType::RetCodeType => format!("RetCode {name}"),
+                VarType::RealPointer => format!("double[] {name}"),
+                VarType::IntPointer => format!("int[] {name}"),
+                VarType::RealArray(size) => format!("double[] {name} = new double[{size}]"),
+                VarType::IntArray(size) => format!("int[] {name} = new int[{size}]"),
             };
-            out.push_str(&format!("      {java_type} {name};\n"));
+            out.push_str(&format!("      {java_decl};\n"));
         }
     }
 
