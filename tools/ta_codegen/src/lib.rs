@@ -15,6 +15,7 @@
 #![allow(clippy::doc_markdown)]
 
 pub mod backends;
+pub mod candle_settings;
 pub mod extractor;
 pub mod helper_registry;
 pub mod ir;

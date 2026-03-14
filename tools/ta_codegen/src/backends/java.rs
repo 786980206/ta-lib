@@ -1,6 +1,7 @@
 use std::cell::Cell;
 use std::collections::HashMap;
 
+use crate::candle_settings::{detect_candle_settings, emit_java_unpacking};
 use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
 use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
 use crate::parser::enums::lookup_variant;
@@ -151,6 +152,12 @@ fn gen_func(
             };
             out.push_str(&format!("      {java_type} {name};\n"));
         }
+    }
+
+    // Emit candle settings unpacking (only for referenced settings)
+    let candle_used = detect_candle_settings(&func.body);
+    if !candle_used.is_empty() {
+        out.push_str(&emit_java_unpacking(&candle_used, 6));
     }
 
     // Validation (omitted for Logic/unguarded variant)
@@ -871,6 +878,12 @@ fn render_lookback_code(
             };
             out.push_str(&format!("      {java_type} {name};\n"));
         }
+    }
+
+    // Emit candle settings unpacking for lookback body
+    let candle_used = detect_candle_settings(stmts);
+    if !candle_used.is_empty() {
+        out.push_str(&emit_java_unpacking(&candle_used, 6));
     }
 
     // Emit VarDecl initializations

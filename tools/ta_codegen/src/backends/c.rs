@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use std::cell::Cell;
 
+use crate::candle_settings::{detect_candle_settings, emit_c_unpacking};
 use crate::helper_registry::{hoist_block_helpers, try_inline_expr, HelperRegistry};
 use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statement, VarType};
 use crate::parser::enums::lookup_variant;
@@ -213,6 +214,12 @@ fn gen_func(
         }
     }
     // Return statements are handled by body rendering; skip has no standalone decls.
+
+    // Emit candle settings unpacking (only for referenced settings)
+    let candle_used = detect_candle_settings(&func.body);
+    if !candle_used.is_empty() {
+        out.push_str(&emit_c_unpacking(&candle_used, 3));
+    }
 
     out.push('\n');
 
@@ -993,6 +1000,12 @@ fn render_lookback_code(
             };
             out.push_str(&format!("   {c_type} {name};\n"));
         }
+    }
+
+    // Emit candle settings unpacking for lookback body
+    let candle_used = detect_candle_settings(stmts);
+    if !candle_used.is_empty() {
+        out.push_str(&emit_c_unpacking(&candle_used, 3));
     }
 
     // Emit VarDecl initializations

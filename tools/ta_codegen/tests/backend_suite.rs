@@ -2372,3 +2372,181 @@ fn nested_block_inlining_candleaverage_calls_candlerange() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Candle settings unpacking tests (Task 11)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_backend_emits_candle_settings_unpacking() {
+    let (func, enums) = load_indicator("cdl2crows");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+
+    // Assert C output contains unpacking lines for BodyLong
+    assert!(
+        c_out.contains("BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType"),
+        "C output should unpack BodyLong_rangeType: {c_out}"
+    );
+    assert!(
+        c_out.contains("BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod"),
+        "C output should unpack BodyLong_avgPeriod"
+    );
+    assert!(
+        c_out.contains("BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor"),
+        "C output should unpack BodyLong_factor"
+    );
+
+    // Should NOT contain settings that aren't referenced
+    assert!(
+        !c_out.contains("ShadowLong_rangeType"),
+        "C output should not unpack unreferenced ShadowLong"
+    );
+}
+
+#[test]
+fn rust_backend_emits_candle_settings_from_core() {
+    let (func, enums) = load_indicator("cdl2crows");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // Assert Rust output contains unpacking lines
+    assert!(
+        rust_out.contains("self.candle_settings.body_long.range_type"),
+        "Rust output should unpack body_long.range_type: {rust_out}"
+    );
+    assert!(
+        rust_out.contains("self.candle_settings.body_long.avg_period"),
+        "Rust output should unpack body_long.avg_period"
+    );
+    assert!(
+        rust_out.contains("self.candle_settings.body_long.factor"),
+        "Rust output should unpack body_long.factor"
+    );
+    assert!(
+        rust_out.contains("#[allow(non_snake_case)]"),
+        "Rust output should have non_snake_case allow attribute"
+    );
+}
+
+#[test]
+fn java_backend_emits_candle_settings() {
+    let (func, enums) = load_indicator("cdl2crows");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+
+    // Assert Java output contains unpacking lines
+    assert!(
+        java_out.contains("this.candleSettings.bodyLong.rangeType"),
+        "Java output should unpack bodyLong.rangeType: {java_out}"
+    );
+    assert!(
+        java_out.contains("this.candleSettings.bodyLong.avgPeriod"),
+        "Java output should unpack bodyLong.avgPeriod"
+    );
+    assert!(
+        java_out.contains("this.candleSettings.bodyLong.factor"),
+        "Java output should unpack bodyLong.factor"
+    );
+}
+
+#[test]
+fn candle_settings_unpacking_in_lookback() {
+    // cdl2crows lookback references BodyLong_avgPeriod
+    let (func, enums) = load_indicator("cdl2crows");
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+
+    // The lookback body references BodyLong_avgPeriod, so unpacking should appear
+    // in the lookback function output
+    let c_lookback_end = c_out.find("TA_LIB_API TA_RetCode TA_CDL2CROWS(").unwrap();
+    let c_lookback = &c_out[..c_lookback_end];
+    assert!(
+        c_lookback.contains("TA_Globals->candleSettings[TA_BodyLong]"),
+        "C lookback should contain candle settings unpacking"
+    );
+
+    let rust_lookback_end = rust_out.find("pub fn cdl2crows<").unwrap();
+    let rust_lookback = &rust_out[..rust_lookback_end];
+    assert!(
+        rust_lookback.contains("self.candle_settings.body_long"),
+        "Rust lookback should contain candle settings unpacking"
+    );
+
+    let java_lookback_end = java_out.find("public RetCode cdl2crows(").unwrap();
+    let java_lookback = &java_out[..java_lookback_end];
+    assert!(
+        java_lookback.contains("this.candleSettings.bodyLong"),
+        "Java lookback should contain candle settings unpacking"
+    );
+}
+
+#[test]
+fn candle_settings_multiple_settings_in_kicking() {
+    // cdlkicking uses both BodyLong and ShadowVeryShort
+    let (func, enums) = load_indicator("cdlkicking");
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        c_out.contains("TA_Globals->candleSettings[TA_BodyLong]"),
+        "C output should unpack BodyLong"
+    );
+    assert!(
+        c_out.contains("TA_Globals->candleSettings[TA_ShadowVeryShort]"),
+        "C output should unpack ShadowVeryShort"
+    );
+
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        rust_out.contains("self.candle_settings.body_long"),
+        "Rust output should unpack body_long"
+    );
+    assert!(
+        rust_out.contains("self.candle_settings.shadow_very_short"),
+        "Rust output should unpack shadow_very_short"
+    );
+
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        java_out.contains("this.candleSettings.bodyLong"),
+        "Java output should unpack bodyLong"
+    );
+    assert!(
+        java_out.contains("this.candleSettings.shadowVeryShort"),
+        "Java output should unpack shadowVeryShort"
+    );
+}
+
+#[test]
+fn non_candlestick_indicator_has_no_candle_unpacking() {
+    let (func, enums) = load_indicator("sma");
+    let registry = make_registry();
+    let helpers = make_helpers();
+
+    let c_out = backends::c::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        !c_out.contains("candleSettings"),
+        "SMA should not have candle settings unpacking"
+    );
+
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        !rust_out.contains("candle_settings"),
+        "SMA should not have candle settings unpacking in Rust"
+    );
+
+    let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
+    assert!(
+        !java_out.contains("candleSettings"),
+        "SMA should not have candle settings unpacking in Java"
+    );
+}
+
