@@ -1415,7 +1415,10 @@ impl Parser {
                                 let short = c_name.strip_prefix(&prefix).unwrap_or(&c_name);
                                 format!("{enum_type}_{short}")
                             } else {
-                                s
+                                // Strip TA_ prefix from raw enum labels like
+                                // TA_MAType_SMA → MAType_SMA so lookup_variant
+                                // can match them against the enum registry.
+                                s.strip_prefix("TA_").unwrap_or(&s).to_string()
                             }
                         }
                         Token::IntNumber(n) => format!("{n}"),

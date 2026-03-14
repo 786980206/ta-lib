@@ -781,6 +781,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("    Default, Metastock;\n");
     s.push_str("}\n\n");
 
+    s.push_str("enum MAType {\n");
+    s.push_str("    Sma, Ema, Wma, Dema, Tema, Trima, Kama, Mama, T3;\n");
+    s.push_str("}\n\n");
+
     // Core class — method bodies are inlined by the caller via inline_java_core_methods()
     s.push_str("class Core {\n");
     s.push_str("    int lookbackTotal, i, outIdx, trailingIdx;\n");
