@@ -202,16 +202,10 @@ fn gen_func(
     // Function body
     out.push_str("{\n");
 
-    // Declare local variables from body
+    // Declare local variables from body (deduplicated)
+    let mut declared_vars: Vec<String> = Vec::new();
     for stmt in &func.body {
-        if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let c_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "TA_RetCode",
-            };
-            out.push_str(&format!("   {c_type} {name};\n"));
-        }
+        emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
     // Return statements are handled by body rendering; skip has no standalone decls.
 
@@ -234,7 +228,13 @@ fn gen_func(
 
     let inline_counter = Cell::new(0);
 
-    // Emit VarDecl initializations (the declarations were already emitted above)
+    // Determine which VarDecl names are first-occurrence (eligible for hoisted init).
+    // A VarDecl with init is only hoisted if it's the first occurrence of that name.
+    // Duplicate VarDecls (same name, second or later occurrence) are rendered inline.
+    let mut first_seen_names: Vec<String> = Vec::new();
+    collect_first_seen_var_names(&func.body, &mut first_seen_names);
+
+    // Emit hoisted VarDecl initializations (first-occurrence only)
     for stmt in &func.body {
         if let Statement::VarDecl {
             name,
@@ -242,42 +242,87 @@ fn gen_func(
             ..
         } = stmt
         {
-            // Hoist multi-statement helpers from init expressions
-            let mut hoisted = Vec::new();
-            let mut cnt = inline_counter.get();
-            let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt);
-            inline_counter.set(cnt);
-            out.push_str(&render_hoisted_blocks(
-                &hoisted,
-                3,
-                single_precision,
-                enums,
-                registry,
-                helpers,
-                &inline_counter,
-            ));
-            out.push_str(&format!(
-                "   {} = {};\n",
-                name,
-                render_expr(&new_init, single_precision, registry, helpers)
-            ));
+            if first_seen_names.contains(name) {
+                // This is the first occurrence with init — hoist it
+                first_seen_names.retain(|n| n != name); // remove so duplicates aren't hoisted
+                let mut hoisted = Vec::new();
+                let mut cnt = inline_counter.get();
+                let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt);
+                inline_counter.set(cnt);
+                out.push_str(&render_hoisted_blocks(
+                    &hoisted,
+                    3,
+                    single_precision,
+                    enums,
+                    registry,
+                    helpers,
+                    &inline_counter,
+                ));
+                out.push_str(&format!(
+                    "   {} = {};\n",
+                    name,
+                    render_expr(&new_init, single_precision, registry, helpers)
+                ));
+            }
         }
     }
 
-    // Render remaining body statements (skip VarDecl since we already handled those)
+    // Render remaining body statements.
+    // First-occurrence VarDecls (with or without init) are skipped.
+    // Duplicate VarDecls with init are rendered as plain assignments in their natural position.
+    let mut body_seen: Vec<String> = Vec::new();
     for stmt in &func.body {
-        if matches!(stmt, Statement::VarDecl { .. }) {
-            continue;
+        match stmt {
+            Statement::VarDecl { name, init, .. } => {
+                if body_seen.contains(name) {
+                    // Duplicate VarDecl: render as assignment if it has an init
+                    if let Some(init_expr) = init {
+                        let mut hoisted = Vec::new();
+                        let mut cnt = inline_counter.get();
+                        let new_init =
+                            hoist_block_helpers(init_expr, helpers, &mut hoisted, &mut cnt);
+                        inline_counter.set(cnt);
+                        out.push_str(&render_hoisted_blocks(
+                            &hoisted,
+                            3,
+                            single_precision,
+                            enums,
+                            registry,
+                            helpers,
+                            &inline_counter,
+                        ));
+                        out.push_str(&format!(
+                            "   {} = {};\n",
+                            name,
+                            render_expr(&new_init, single_precision, registry, helpers)
+                        ));
+                    }
+                } else {
+                    body_seen.push(name.clone());
+                }
+            }
+            Statement::Block { body } => {
+                // Track VarDecl names inside Blocks (multi-var declarations)
+                for s in body {
+                    if let Statement::VarDecl { name, .. } = s {
+                        if !body_seen.contains(name) {
+                            body_seen.push(name.clone());
+                        }
+                    }
+                }
+            }
+            _ => {
+                out.push_str(&render_statement(
+                    stmt,
+                    3,
+                    single_precision,
+                    enums,
+                    registry,
+                    helpers,
+                    &inline_counter,
+                ));
+            }
         }
-        out.push_str(&render_statement(
-            stmt,
-            3,
-            single_precision,
-            enums,
-            registry,
-            helpers,
-            &inline_counter,
-        ));
     }
 
     out.push_str("\n   return TA_SUCCESS;\n");
@@ -327,12 +372,14 @@ fn render_hoisted_blocks(
     let pad = " ".repeat(indent);
     let mut out = String::new();
     for (temp_name, var_type, body) in hoisted {
-        let c_type = match var_type {
-            VarType::Real => "double",
-            VarType::Integer | VarType::Index => "int",
-            VarType::RetCodeType => "TA_RetCode",
+        let c_decl = match var_type {
+            VarType::Real => format!("double {temp_name}"),
+            VarType::Integer | VarType::Index => format!("int {temp_name}"),
+            VarType::RetCodeType => format!("TA_RetCode {temp_name}"),
+            VarType::RealPointer => format!("double *{temp_name}"),
+            VarType::IntPointer => format!("int *{temp_name}"),
         };
-        out.push_str(&format!("{pad}{c_type} {temp_name};\n"));
+        out.push_str(&format!("{pad}{c_decl};\n"));
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -365,10 +412,12 @@ pub fn render_statement(
             name,
             init,
         } => {
-            let c_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "TA_RetCode",
+            let c_decl = match var_type {
+                VarType::Real => format!("double {name}"),
+                VarType::Integer | VarType::Index => format!("int {name}"),
+                VarType::RetCodeType => format!("TA_RetCode {name}"),
+                VarType::RealPointer => format!("double *{name}"),
+                VarType::IntPointer => format!("int *{name}"),
             };
             match init {
                 Some(init_expr) => {
@@ -384,15 +433,12 @@ pub fn render_statement(
                         helpers, inline_counter,
                     );
                     out.push_str(&format!(
-                        "{}{} {} = {};\n",
-                        pad,
-                        c_type,
-                        name,
+                        "{pad}{c_decl} = {};\n",
                         render_expr(&new_init, single_precision, registry, helpers)
                     ));
                     out
                 }
-                None => format!("{pad}{c_type} {name};\n"),
+                None => format!("{pad}{c_decl};\n"),
             }
         }
         Statement::Assign {
@@ -757,6 +803,8 @@ fn render_return_expr(
             "BadParam" => "TA_BAD_PARAM".to_string(),
             "OutOfRangeEndIndex" => "TA_OUT_OF_RANGE_END_INDEX".to_string(),
             "OutOfRangeStartIndex" => "TA_OUT_OF_RANGE_START_INDEX".to_string(),
+            "ALLOC_ERR" => "TA_ALLOC_ERR".to_string(),
+            "INTERNAL_ERROR" => "TA_INTERNAL_ERROR".to_string(),
             _ => render_expr(expr, single_precision, registry, helpers),
         };
     }
@@ -790,6 +838,8 @@ fn render_expr(
             "DEFAULT" => "ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)".to_string(),
             "BAD_PARAM" => "TA_BAD_PARAM".to_string(),
             "SUCCESS" => "TA_SUCCESS".to_string(),
+            "ALLOC_ERR" => "TA_ALLOC_ERR".to_string(),
+            "INTERNAL_ERROR" => "TA_INTERNAL_ERROR".to_string(),
             _ => name.clone(),
         },
         Expr::ArrayAccess(name, idx) => {
@@ -829,6 +879,8 @@ fn render_expr(
                 VarType::Real => "double",
                 VarType::Integer | VarType::Index => "int",
                 VarType::RetCodeType => "TA_RetCode",
+                VarType::RealPointer => "double *",
+                VarType::IntPointer => "int *",
             };
             format!(
                 "(({}){})",
@@ -904,9 +956,13 @@ fn render_func_call(
 
     if fname == "UNSTABLE_PERIOD" {
         // UNSTABLE_PERIOD(RSI) -> TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi)
+        // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
         if let Some(Expr::Var(func_name)) = args.first() {
-            let upper = func_name.to_uppercase();
-            let pascal = to_pascal_case(func_name);
+            let base = func_name
+                .strip_prefix("FUNC_UNST_")
+                .unwrap_or(func_name);
+            let upper = base.to_uppercase();
+            let pascal = to_pascal_case(base);
             return format!("TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_{upper},{pascal})");
         }
         "TA_GLOBALS_UNSTABLE_PERIOD(0,0)".to_string()
@@ -959,6 +1015,13 @@ fn render_func_call(
             .map(|a| render_expr(a, single_precision, registry, helpers))
             .collect();
         format!("{}({})", c_name, rendered.join(","))
+    } else if STDLIB_FUNCTIONS.contains(&fname) {
+        // C stdlib functions — pass through as-is without TA_ prefix
+        let rendered: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, single_precision, registry, helpers))
+            .collect();
+        format!("{}({})", fname, rendered.join(","))
     } else {
         // Try cross-call resolution through the registry
         let resolved = registry.resolve_call(fname, Lang::C);
@@ -990,16 +1053,10 @@ fn render_lookback_code(
     let mut out = String::new();
     let inline_counter = Cell::new(0);
 
-    // Declare local variables
+    // Declare local variables (deduplicated)
+    let mut declared_vars: Vec<String> = Vec::new();
     for stmt in stmts {
-        if let Statement::VarDecl { var_type, name, .. } = stmt {
-            let c_type = match var_type {
-                VarType::Real => "double",
-                VarType::Integer | VarType::Index => "int",
-                VarType::RetCodeType => "TA_RetCode",
-            };
-            out.push_str(&format!("   {c_type} {name};\n"));
-        }
+        emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
 
     // Emit candle settings unpacking for lookback body
@@ -1043,6 +1100,70 @@ const MATH_FUNCTIONS: &[&str] = &[
     "atan", "sqrt", "fabs", "floor", "ceil", "log", "cos", "sin", "tan", "acos", "asin", "exp",
     "cosh", "sinh", "tanh", "log10", "max", "min", "fmax", "fmin", "ABS",
 ];
+
+/// C standard library functions and macros that should pass through as-is (no `TA_` prefix).
+const STDLIB_FUNCTIONS: &[&str] = &[
+    "free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC",
+];
+
+/// Collect variable names whose first VarDecl occurrence has an initializer.
+/// These are eligible for hoisted initialization. Names that first appear without init
+/// are NOT included (their init comes from a later duplicate and should be emitted inline).
+fn collect_first_seen_var_names(stmts: &[Statement], first_seen: &mut Vec<String>) {
+    let mut all_seen: Vec<String> = Vec::new();
+    for stmt in stmts {
+        match stmt {
+            Statement::VarDecl { name, init, .. } => {
+                if !all_seen.contains(name) {
+                    all_seen.push(name.clone());
+                    if init.is_some() {
+                        first_seen.push(name.clone());
+                    }
+                }
+            }
+            Statement::Block { body } => {
+                for s in body {
+                    if let Statement::VarDecl { name, init, .. } = s {
+                        if !all_seen.contains(name) {
+                            all_seen.push(name.clone());
+                            if init.is_some() {
+                                first_seen.push(name.clone());
+                            }
+                        }
+                    }
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Recursively emit C variable declarations from a statement, deduplicating by name.
+/// Walks into `Block` statements to handle multi-var declarations like `int i, j, k;`.
+fn emit_c_var_decls(stmt: &Statement, out: &mut String, declared: &mut Vec<String>) {
+    match stmt {
+        Statement::VarDecl { var_type, name, .. } => {
+            if declared.contains(name) {
+                return;
+            }
+            declared.push(name.clone());
+            let c_decl = match var_type {
+                VarType::Real => format!("double {name}"),
+                VarType::Integer | VarType::Index => format!("int {name}"),
+                VarType::RetCodeType => format!("TA_RetCode {name}"),
+                VarType::RealPointer => format!("double *{name}"),
+                VarType::IntPointer => format!("int *{name}"),
+            };
+            out.push_str(&format!("   {c_decl};\n"));
+        }
+        Statement::Block { body } => {
+            for s in body {
+                emit_c_var_decls(s, out, declared);
+            }
+        }
+        _ => {}
+    }
+}
 
 #[cfg(test)]
 mod tests {

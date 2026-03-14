@@ -147,6 +147,10 @@ pub enum VarType {
     Integer,
     Index,
     RetCodeType,
+    /// Pointer to double: `double *buf`
+    RealPointer,
+    /// Pointer to int: `int *ptr`
+    IntPointer,
 }
 
 #[derive(Debug, Clone)]

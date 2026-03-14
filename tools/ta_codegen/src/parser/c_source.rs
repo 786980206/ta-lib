@@ -881,9 +881,16 @@ impl Parser {
         };
 
         // Consume optional pointer declarator: `double *buf` or `int *ptr`
-        if self.peek() == Some(&Token::Star) {
+        let var_type = if self.peek() == Some(&Token::Star) {
             self.advance();
-        }
+            match var_type {
+                VarType::Real => VarType::RealPointer,
+                VarType::Integer => VarType::IntPointer,
+                other => other, // keep as-is for Index, RetCodeType, etc.
+            }
+        } else {
+            var_type
+        };
 
         let first = self.parse_single_var_decl(var_type.clone());
 

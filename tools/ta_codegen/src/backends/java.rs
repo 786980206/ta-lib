@@ -149,6 +149,8 @@ fn gen_func(
                 VarType::Real => "double",
                 VarType::Integer | VarType::Index => "int",
                 VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => "double[]",
+                VarType::IntPointer => "int[]",
             };
             out.push_str(&format!("      {java_type} {name};\n"));
         }
@@ -276,6 +278,8 @@ fn render_hoisted_blocks(
             VarType::Real => "double",
             VarType::Integer | VarType::Index => "int",
             VarType::RetCodeType => "RetCode",
+            VarType::RealPointer => "double[]",
+            VarType::IntPointer => "int[]",
         };
         out.push_str(&format!("{pad}{java_type} {temp_name};\n"));
         for stmt in body {
@@ -727,6 +731,8 @@ fn render_expr(
                 VarType::Real => "double",
                 VarType::Integer | VarType::Index => "int",
                 VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => "double[]",
+                VarType::IntPointer => "int[]",
             };
             format!(
                 "(({}){})",
@@ -792,8 +798,12 @@ fn render_func_call(
 
     if fname == "UNSTABLE_PERIOD" {
         // UNSTABLE_PERIOD(RSI) -> this.unstablePeriod[FuncUnstId.Rsi.ordinal()]
+        // UNSTABLE_PERIOD(FUNC_UNST_ATR) -> strip FUNC_UNST_ prefix first
         if let Some(Expr::Var(func_name)) = args.first() {
-            let pascal = to_pascal_case(func_name);
+            let base = func_name
+                .strip_prefix("FUNC_UNST_")
+                .unwrap_or(func_name);
+            let pascal = to_pascal_case(base);
             return format!("this.unstablePeriod[FuncUnstId.{pascal}.ordinal()]");
         }
         "this.unstablePeriod[0]".to_string()
@@ -840,6 +850,13 @@ fn render_func_call(
             .map(|a| render_expr(a, single_precision, registry, helpers))
             .collect();
         format!("Math.{}({})", java_name, rendered.join(", "))
+    } else if STDLIB_FUNCTIONS.contains(&fname) {
+        // C stdlib functions — pass through as-is for Java (will need proper mapping later)
+        let rendered: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, single_precision, registry, helpers))
+            .collect();
+        format!("{}({})", fname, rendered.join(", "))
     } else {
         // Use registry for cross-call resolution
         let java_name = registry.resolve_call(fname, Lang::Java);
@@ -858,6 +875,9 @@ const MATH_FUNCTIONS: &[&str] = &[
     "cosh", "sinh", "tanh", "log10", "ABS", "max", "min", "fmax", "fmin",
 ];
 
+/// C standard library functions and macros that should pass through as-is.
+const STDLIB_FUNCTIONS: &[&str] = &["free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC"];
+
 /// Render a complex lookback body (`LookbackExpr::Code`) into Java code.
 fn render_lookback_code(
     stmts: &[Statement],
@@ -875,6 +895,8 @@ fn render_lookback_code(
                 VarType::Real => "double",
                 VarType::Integer | VarType::Index => "int",
                 VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => "double[]",
+                VarType::IntPointer => "int[]",
             };
             out.push_str(&format!("      {java_type} {name};\n"));
         }

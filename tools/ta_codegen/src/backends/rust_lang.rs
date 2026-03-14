@@ -396,6 +396,14 @@ fn gen_unguarded_func(
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
                 VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => {
+                    if ctx.generic {
+                        "Vec<T>"
+                    } else {
+                        "Vec<f64>"
+                    }
+                }
+                VarType::IntPointer => "Vec<i32>",
             };
             let total_assigns = count_assignments(name, &func.body);
             let needs_mut = total_assigns > 1;
@@ -802,6 +810,10 @@ fn render_hoisted_blocks(
             VarType::Integer => "i32",
             VarType::Index => "usize",
             VarType::RetCodeType => "RetCode",
+            VarType::RealPointer => {
+                if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+            }
+            VarType::IntPointer => "Vec<i32>",
         };
         out.push_str(&format!("{pad}let mut {temp_name}: {rust_type};\n"));
         for stmt in body {
@@ -1510,6 +1522,7 @@ fn render_expr(
                     VarType::Integer => "i32",
                     VarType::Index => "usize",
                     VarType::RetCodeType => "RetCode",
+                    VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
                 };
                 format!(
                     "({}) as {}",
@@ -1574,6 +1587,8 @@ fn render_lookback_code(
                 VarType::Integer => "i32",
                 VarType::Index => "usize",
                 VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => "Vec<f64>",
+                VarType::IntPointer => "Vec<i32>",
             };
             let total_assigns = count_assignments(name, stmts);
             let needs_mut = total_assigns > 1;
@@ -1632,6 +1647,9 @@ const MATH_FUNCTIONS: &[&str] = &[
     "abs", "fabs", "cosh", "sinh", "tanh", "ABS", "max", "fmax", "min", "fmin",
 ];
 
+/// C standard library functions and macros that should pass through as-is.
+const STDLIB_FUNCTIONS: &[&str] = &["free", "malloc", "memcpy", "memmove", "memset", "sizeof", "ARRAY_ALLOC"];
+
 #[allow(clippy::too_many_lines)]
 fn render_func_call(
     fname: &str,
@@ -1650,7 +1668,10 @@ fn render_func_call(
     }
     if fname == "UNSTABLE_PERIOD" {
         if let Some(Expr::Var(func_name)) = args.first() {
-            let pascal = to_pascal_case(func_name);
+            let base = func_name
+                .strip_prefix("FUNC_UNST_")
+                .unwrap_or(func_name);
+            let pascal = to_pascal_case(base);
             return format!("self.unstable_period[FuncUnstId::{pascal} as usize]");
         }
         "self.unstable_period[0]".to_string()
@@ -1745,6 +1766,13 @@ fn render_func_call(
             return format!("({x}).{method}()");
         }
         format!("{fname}()")
+    } else if STDLIB_FUNCTIONS.contains(&fname) {
+        // C stdlib functions — pass through as-is for Rust (will need proper mapping later)
+        let rendered_args: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .collect();
+        format!("{}({})", fname, rendered_args.join(", "))
     } else if registry.contains(fname) {
         let rust_name = if ctx.generic {
             format!("{fname}_unguarded")
