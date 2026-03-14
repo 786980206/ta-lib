@@ -62,15 +62,28 @@ fn output_json_key(outputs: &[Output], idx: usize) -> String {
 
 /// Expand a list of inputs into individual array parameter names.
 ///
-/// - `ParamType::Real` → keeps the input's own name (e.g. `"inReal"`)
+/// Naming matches what `ta_regtest` sends in JSON-RPC requests:
+/// - Single `ParamType::Real` input → `"inReal"` (original name preserved)
+/// - Multiple `ParamType::Real` inputs → `"inReal0"`, `"inReal1"`, etc.
+///   (e.g. MAVP has `inReal` + `inPeriods`, MULT has `inReal0` + `inReal1`;
+///   both are sent as `inReal0`/`inReal1` by ta_regtest)
 /// - `ParamType::Price(components)` → one name per component, capitalised:
 ///   `["high", "low", "close"]` → `["inHigh", "inLow", "inClose"]`
 /// - All other types (Integer, Enum) are skipped.
 fn expand_input_names(inputs: &[Input]) -> Vec<String> {
+    let real_count = inputs.iter().filter(|i| i.param_type == ParamType::Real).count();
     let mut names = Vec::new();
+    let mut real_idx = 0usize;
     for inp in inputs {
         match &inp.param_type {
-            ParamType::Real => names.push(inp.name.clone()),
+            ParamType::Real => {
+                if real_count == 1 {
+                    names.push(inp.name.clone());
+                } else {
+                    names.push(format!("inReal{real_idx}"));
+                    real_idx += 1;
+                }
+            }
             ParamType::Price(components) => {
                 for comp in components {
                     let name = format!(
