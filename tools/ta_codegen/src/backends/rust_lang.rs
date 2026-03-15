@@ -20,6 +20,11 @@ pub struct RustRenderCtx {
     pub generic: bool,
     /// If true, emit `get_unchecked()` / `get_unchecked_mut()` instead of `[]` for array access.
     pub unchecked: bool,
+    /// Variable names declared as `VarType::Integer` or `VarType::Index` (usize in Rust).
+    /// Used by type inference in expression rendering.
+    pub index_vars: std::collections::HashSet<String>,
+    /// Variable names declared as `VarType::Real` (T in Rust generic mode).
+    pub real_vars: std::collections::HashSet<String>,
 }
 
 impl RustRenderCtx {
@@ -27,6 +32,8 @@ impl RustRenderCtx {
         RustRenderCtx {
             generic: false,
             unchecked: false,
+            index_vars: std::collections::HashSet::new(),
+            real_vars: std::collections::HashSet::new(),
         }
     }
 }
@@ -115,10 +122,22 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     // Guarded: validates params, delegates to unguarded
     out.push_str(&gen_guarded_func(func, &snake, enums, registry, helpers));
 
+    // Collect variable type info from function body for type inference
+    let mut index_vars = std::collections::HashSet::new();
+    let mut real_vars = std::collections::HashSet::new();
+    collect_var_types(&func.body, &mut index_vars, &mut real_vars);
+    // Also add parameter names
+    index_vars.insert("startIdx".to_string());
+    index_vars.insert("endIdx".to_string());
+    index_vars.insert("outBegIdx".to_string());
+    index_vars.insert("outNBElement".to_string());
+
     // Unguarded: real algorithm, bounds-checked array access
     let safe_ctx = RustRenderCtx {
         generic: true,
         unchecked: false,
+        index_vars: index_vars.clone(),
+        real_vars: real_vars.clone(),
     };
     out.push_str(&gen_unguarded_func(
         func, &snake, &safe_ctx, enums, registry, helpers,
@@ -131,6 +150,8 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     let unsafe_ctx = RustRenderCtx {
         generic: true,
         unchecked: true,
+        index_vars,
+        real_vars,
     };
     out.push_str(&gen_unguarded_func(
         func,
@@ -200,7 +221,7 @@ fn gen_lookback(
                 out.push_str(&format!("        return {n};\n"));
             }
             Some(LookbackExpr::ParamMinus(param, offset)) => {
-                out.push_str(&format!("        return {param} - {offset};\n"));
+                out.push_str(&format!("        return ({param} - {offset}) as usize;\n"));
             }
             Some(LookbackExpr::Code(stmts)) => {
                 out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
@@ -216,7 +237,7 @@ fn gen_lookback(
                 out.push_str(&format!("        return {n};\n"));
             }
             Some(LookbackExpr::ParamMinus(param, offset)) => {
-                out.push_str(&format!("        return {param} - {offset};\n"));
+                out.push_str(&format!("        return ({param} - {offset}) as usize;\n"));
             }
             Some(LookbackExpr::Code(stmts)) => {
                 out.push_str(&render_lookback_code(stmts, enums, registry, helpers));
@@ -391,7 +412,9 @@ fn gen_unguarded_func(
                 continue;
             }
             let total_assigns = count_assignments(name, &func.body);
-            let needs_mut = total_assigns > 1;
+            // With default initialization, the let itself is an assignment,
+            // so any body assignment means we need mut (threshold is > 0, not > 1)
+            let needs_mut = total_assigns > 0;
             match var_type {
                 VarType::RealArray(size) => {
                     let elem = if ctx.generic { "T::ta_zero()" } else { "0.0_f64" };
@@ -418,10 +441,21 @@ fn gen_unguarded_func(
                         VarType::IntPointer => "Vec<i32>",
                         VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                     };
+                    // Always initialize to avoid "used binding isn't initialized" errors
+                    let default_val = match var_type {
+                        VarType::Real => {
+                            if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+                        }
+                        VarType::Integer | VarType::Index => "0_usize",
+                        VarType::RetCodeType => "RetCode::Success",
+                        VarType::RealPointer => "Vec::new()",
+                        VarType::IntPointer => "Vec::new()",
+                        VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                    };
                     if needs_mut {
-                        out.push_str(&format!("        let mut {name}: {rust_type};\n"));
+                        out.push_str(&format!("        let mut {name}: {rust_type} = {default_val};\n"));
                     } else {
-                        out.push_str(&format!("        let {name}: {rust_type};\n"));
+                        out.push_str(&format!("        let {name}: {rust_type} = {default_val};\n"));
                     }
                 }
             }
@@ -460,8 +494,8 @@ fn gen_unguarded_func(
     for stmt in &func.body {
         if let Statement::VarDecl {
             name,
+            var_type: vt,
             init: Some(init),
-            ..
         } = stmt
         {
             if for_loop_vars.contains(name) {
@@ -480,11 +514,14 @@ fn gen_unguarded_func(
                 &output_names, &opt_real_params, enums, registry,
                 helpers, &inline_counter,
             ));
-            out.push_str(&format!(
-                "        {} = {};\n",
-                name,
-                render_expr(&new_init, ctx, &opt_real_params, registry, helpers)
-            ));
+            let rendered_init = render_expr(&new_init, ctx, &opt_real_params, registry, helpers);
+            // Wrap integer values assigned to T-typed variables
+            let wrapped_init = if ctx.generic && (ctx.real_vars.contains(name) || *vt == VarType::Real) && expr_is_untyped_integer(&new_init) {
+                format!("T::ta_from_i32({rendered_init} as i32)")
+            } else {
+                rendered_init
+            };
+            out.push_str(&format!("        {} = {};\n", name, wrapped_init));
         }
     }
 
@@ -629,9 +666,79 @@ fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> Str
     out
 }
 
+/// Collect variable type information from VarDecl statements (recursively).
+fn collect_var_types(
+    body: &[Statement],
+    index_vars: &mut std::collections::HashSet<String>,
+    real_vars: &mut std::collections::HashSet<String>,
+) {
+    for stmt in body {
+        match stmt {
+            Statement::VarDecl { var_type, name, .. } => {
+                match var_type {
+                    VarType::Integer | VarType::Index => { index_vars.insert(name.clone()); }
+                    VarType::Real => { real_vars.insert(name.clone()); }
+                    _ => {}
+                }
+            }
+            Statement::If { then_body, else_body, .. } => {
+                collect_var_types(then_body, index_vars, real_vars);
+                collect_var_types(else_body, index_vars, real_vars);
+            }
+            Statement::While { body: while_body, .. }
+            | Statement::DoWhile { body: while_body, .. } => {
+                collect_var_types(while_body, index_vars, real_vars);
+            }
+            Statement::For { body: for_body, .. } => {
+                collect_var_types(for_body, index_vars, real_vars);
+            }
+            Statement::ForC { body: for_body, .. } => {
+                collect_var_types(for_body, index_vars, real_vars);
+            }
+            Statement::Block { body: block_body } => {
+                collect_var_types(block_body, index_vars, real_vars);
+            }
+            Statement::Switch { cases, default, .. } => {
+                for (_, case_body) in cases {
+                    collect_var_types(case_body, index_vars, real_vars);
+                }
+                collect_var_types(default, index_vars, real_vars);
+            }
+            _ => {}
+        }
+    }
+}
+
 /// Count how many times a variable is assigned in the body (including `VarDecl` inits).
 fn count_assignments(name: &str, body: &[Statement]) -> usize {
     count_assignments_inner(name, body, false)
+}
+
+/// Count increment/decrement operations on a variable embedded in expressions.
+fn count_increments_in_expr(name: &str, expr: &Expr) -> usize {
+    match expr {
+        Expr::PostIncrement(inner) | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner) | Expr::PreDecrement(inner) => {
+            if let Expr::Var(vname) = inner.as_ref() {
+                if vname == name { return 1; }
+            }
+            count_increments_in_expr(name, inner)
+        }
+        Expr::BinOp(left, _, right) => {
+            count_increments_in_expr(name, left) + count_increments_in_expr(name, right)
+        }
+        Expr::ArrayAccess(_, idx) => count_increments_in_expr(name, idx),
+        Expr::FuncCall(_, args) => args.iter().map(|a| count_increments_in_expr(name, a)).sum(),
+        Expr::Not(inner) | Expr::Cast(_, inner) | Expr::AddressOf(inner) => {
+            count_increments_in_expr(name, inner)
+        }
+        Expr::Ternary(cond, then_expr, else_expr) => {
+            count_increments_in_expr(name, cond)
+                + count_increments_in_expr(name, then_expr)
+                + count_increments_in_expr(name, else_expr)
+        }
+        _ => 0,
+    }
 }
 
 fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usize {
@@ -645,12 +752,15 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
                     count += 1;
                 }
             }
-            Statement::Assign { target, .. } => {
+            Statement::Assign { target, value, .. } => {
                 if let Expr::Var(tname) = target {
                     if tname == name {
                         count += if in_loop { 2 } else { 1 };
                     }
                 }
+                // Also count increment/decrement embedded in expressions
+                count += count_increments_in_expr(name, target);
+                count += count_increments_in_expr(name, value);
             }
             Statement::While {
                 body: while_body, ..
@@ -875,7 +985,17 @@ fn render_hoisted_blocks(
                         continue;
                     }
                 };
-                out.push_str(&format!("{pad}let mut {name}: {local_type};\n"));
+                let default_val = match vt {
+                    VarType::Real => {
+                        if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+                    }
+                    VarType::Integer | VarType::Index => "0_usize",
+                    VarType::RetCodeType => "RetCode::Success",
+                    VarType::RealPointer => "Vec::new()",
+                    VarType::IntPointer => "Vec::new()",
+                    VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                };
+                out.push_str(&format!("{pad}let mut {name}: {local_type} = {default_val};\n"));
             }
         }
         for stmt in body {
@@ -943,7 +1063,17 @@ pub fn render_statement(
                     return format!("{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n");
                 }
             };
-            format!("{pad}let mut {name}: {rust_type};\n")
+            let default_val = match var_type {
+                VarType::Real => {
+                    if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+                }
+                VarType::Integer | VarType::Index => "0_usize",
+                VarType::RetCodeType => "RetCode::Success",
+                VarType::RealPointer => "Vec::new()",
+                VarType::IntPointer => "Vec::new()",
+                VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+            };
+            format!("{pad}let mut {name}: {rust_type} = {default_val};\n")
         }
         Statement::Block { body: block_body } => {
             let mut out = String::new();
@@ -1177,12 +1307,25 @@ pub fn render_statement(
                             if !op_str.is_empty() {
                                 let target_str =
                                     render_assign_target(target, ctx, opt_real_params, registry, helpers);
+                                let rhs_str = render_expr(right, ctx, opt_real_params, registry, helpers);
+                                // Wrap integer RHS in compound assignments to T-typed variables
+                                let rhs_wrapped = if ctx.generic
+                                    && !is_likely_index_var(tname)
+                                    && !tname.starts_with("optIn")
+                                    && !tname.ends_with("_avgPeriod")
+                                    && !tname.ends_with("_rangeType")
+                                    && expr_is_untyped_integer(right)
+                                {
+                                    format!("T::ta_from_i32({rhs_str} as i32)")
+                                } else {
+                                    rhs_str
+                                };
                                 out.push_str(&format!(
                                     "{}{} {} {};\n",
                                     pad,
                                     target_str,
                                     op_str,
-                                    render_expr(right, ctx, opt_real_params, registry, helpers)
+                                    rhs_wrapped
                                 ));
                                 return out;
                             }
@@ -1192,15 +1335,53 @@ pub fn render_statement(
             }
             let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
             let value_str = render_expr(&new_value, ctx, opt_real_params, registry, helpers);
-            let needs_cast = if ctx.generic {
+            let needs_f64_cast = if ctx.generic {
                 false
             } else if let Expr::ArrayAccess(name, _) = target {
                 output_names.contains(name) && expr_has_uncast_array_access(&new_value)
             } else {
                 false
             };
-            if needs_cast {
+            // Check if we're assigning an i32-typed expression to a non-i32 target variable
+            // (e.g., usize var = optInTimePeriod which is i32)
+            let needs_usize_cast = if let Expr::Var(tname) = target {
+                !output_names.iter().any(|n| n == tname)
+                    && !tname.starts_with("optIn")
+                    && !tname.ends_with("_avgPeriod")
+                    && !tname.ends_with("_rangeType")
+                    && (expr_is_i32_typed(&new_value) || (matches!(new_value, Expr::Var(ref v) if v.starts_with("optIn") || v.ends_with("_avgPeriod") || v.ends_with("_rangeType"))))
+            } else {
+                false
+            };
+            // Wrap integer values assigned to T-typed variables in generic context
+            let needs_t_wrap = if ctx.generic {
+                if let Expr::Var(tname) = target {
+                    // Target is T-typed if it's in the real_vars set (from VarDecl)
+                    // or matches naming heuristics for Real variables
+                    (ctx.real_vars.contains(tname)
+                        || (!ctx.index_vars.contains(tname)
+                            && !is_likely_index_var(tname)
+                            && !tname.starts_with("optIn")
+                            && !tname.ends_with("_avgPeriod")
+                            && !tname.ends_with("_rangeType")
+                            && !output_names.iter().any(|n| n == tname)))
+                        && expr_is_untyped_integer(&new_value)
+                } else if let Expr::ArrayAccess(name, _) = target {
+                    // Array target: Real arrays (output, temp, local) need T values
+                    !name.contains("Int") && !name.contains("integer")
+                        && expr_is_untyped_integer(&new_value)
+                } else {
+                    false
+                }
+            } else {
+                false
+            };
+            if needs_f64_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as f64;\n"));
+            } else if needs_t_wrap {
+                out.push_str(&format!("{pad}{target_str} = T::ta_from_i32({value_str} as i32);\n"));
+            } else if needs_usize_cast {
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
             } else {
                 out.push_str(&format!("{pad}{target_str} = {value_str};\n"));
             }
@@ -1668,14 +1849,20 @@ fn render_expr(
             let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
             let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
             if is_arithmetic {
-                let left_is_float = expr_is_float_typed(left);
-                let right_is_float = expr_is_float_typed(right);
-                let left_is_i32 = expr_is_i32_typed(left);
-                let right_is_i32 = expr_is_i32_typed(right);
+                // When in generic context, opt_real_params are wrapped to T by render_expr,
+                // so they should be treated as float-typed, not i32-typed
+                let left_is_opt_real = ctx.generic && matches!(left.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
+                let right_is_opt_real = ctx.generic && matches!(right.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
+                let left_is_float = expr_is_float_typed(left) || left_is_opt_real;
+                let right_is_float = expr_is_float_typed(right) || right_is_opt_real;
+                let left_is_i32 = expr_is_i32_typed(left) && !left_is_opt_real;
+                let right_is_i32 = expr_is_i32_typed(right) && !right_is_opt_real;
                 let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
                 let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
 
                 if ctx.generic {
+                    let left_is_untyped_int = expr_is_untyped_integer(left);
+                    let right_is_untyped_int = expr_is_untyped_integer(right);
                     // Wrap IntLiterals with T::ta_from_i32() when doing arithmetic with T-typed expressions
                     if left_is_int_lit && right_is_float {
                         if let Expr::IntLiteral(v) = left.as_ref() {
@@ -1694,6 +1881,24 @@ fn render_expr(
                     if right_is_i32 && left_is_float && !right_is_int_lit {
                         right_str = format!("T::ta_from_i32({right_str})");
                     }
+                    // Wrap untyped-integer expressions (ternaries, int arithmetic) when
+                    // doing arithmetic with T-typed expressions
+                    if left_is_untyped_int && !left_is_int_lit && right_is_float {
+                        left_str = format!("T::ta_from_i32({left_str} as i32)");
+                    }
+                    if right_is_untyped_int && !right_is_int_lit && left_is_float {
+                        right_str = format!("T::ta_from_i32({right_str} as i32)");
+                    }
+                    // Wrap usize-typed expressions when doing arithmetic with T-typed expressions
+                    // Only wrap if the expression is provably usize AND wasn't already handled by i32 wrapping
+                    let left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
+                    let right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
+                    if left_is_known_usize && right_is_float && !left_is_i32 {
+                        left_str = format!("T::ta_from_i32(({left_str}) as i32)");
+                    }
+                    if right_is_known_usize && left_is_float && !right_is_i32 {
+                        right_str = format!("T::ta_from_i32(({right_str}) as i32)");
+                    }
                 }
                 // Cast i32 operands to usize when mixed with usize-typed operands (not float)
                 let left_is_usize = !left_is_i32 && !left_is_float && !left_is_int_lit;
@@ -1706,13 +1911,50 @@ fn render_expr(
                 }
             }
             // For comparison operators, cast i32 to usize when mixed (not float)
+            // and wrap IntLiterals with T::ta_zero() / T::ta_from_i32() when comparing with T-typed exprs
             if matches!(op, BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq | BinOp::NotEq) {
-                let left_is_i32 = expr_is_i32_typed(left);
-                let right_is_i32 = expr_is_i32_typed(right);
-                if left_is_i32 && !right_is_i32 && !expr_is_float_typed(right) {
+                let cmp_left_is_opt_real = ctx.generic && matches!(left.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
+                let cmp_right_is_opt_real = ctx.generic && matches!(right.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
+                let left_is_i32 = expr_is_i32_typed(left) && !cmp_left_is_opt_real;
+                let right_is_i32 = expr_is_i32_typed(right) && !cmp_right_is_opt_real;
+                let left_is_float = expr_is_float_typed(left) || cmp_left_is_opt_real;
+                let right_is_float = expr_is_float_typed(right) || cmp_right_is_opt_real;
+                let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
+                let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
+                if ctx.generic {
+                    let left_is_untyped_int = expr_is_untyped_integer(left);
+                    let right_is_untyped_int = expr_is_untyped_integer(right);
+                    // Wrap IntLiteral when compared against T-typed expression
+                    if right_is_int_lit && left_is_float {
+                        if let Expr::IntLiteral(v) = right.as_ref() {
+                            right_str = format!("T::ta_from_i32({v})");
+                        }
+                    }
+                    if left_is_int_lit && right_is_float {
+                        if let Expr::IntLiteral(v) = left.as_ref() {
+                            left_str = format!("T::ta_from_i32({v})");
+                        }
+                    }
+                    // Wrap i32 variables with T::ta_from_i32() when comparing with T-typed expressions
+                    if left_is_i32 && right_is_float && !left_is_int_lit {
+                        left_str = format!("T::ta_from_i32({left_str})");
+                    }
+                    if right_is_i32 && left_is_float && !right_is_int_lit {
+                        right_str = format!("T::ta_from_i32({right_str})");
+                    }
+                    // Wrap untyped-integer expressions (ternaries, int arithmetic)
+                    // when compared with T-typed expressions
+                    if left_is_untyped_int && !left_is_int_lit && right_is_float {
+                        left_str = format!("T::ta_from_i32({left_str} as i32)");
+                    }
+                    if right_is_untyped_int && !right_is_int_lit && left_is_float {
+                        right_str = format!("T::ta_from_i32({right_str} as i32)");
+                    }
+                }
+                if left_is_i32 && !right_is_i32 && !right_is_float && !right_is_int_lit {
                     left_str = format!("({left_str}) as usize");
                 }
-                if right_is_i32 && !left_is_i32 && !expr_is_float_typed(left) {
+                if right_is_i32 && !left_is_i32 && !left_is_float && !left_is_int_lit {
                     right_str = format!("({right_str}) as usize");
                 }
             }
@@ -1720,7 +1962,7 @@ fn render_expr(
         }
         Expr::Cast(var_type, inner) => {
             if ctx.generic && *var_type == VarType::Real {
-                if expr_is_integer(inner) {
+                if expr_is_integer(inner) || expr_is_known_usize_ctx(inner, ctx) {
                     let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
                     // optIn* params are i32, other integer-typed vars are usize after our mapping
                     if expr_is_i32_typed(inner) || matches!(inner.as_ref(), Expr::IntLiteral(_)) {
@@ -1735,7 +1977,10 @@ fn render_expr(
                     )
                 }
             } else if ctx.generic && matches!(var_type, VarType::Integer | VarType::Index)
-                && expr_is_float_typed(inner)
+                && !expr_is_i32_typed(inner)
+                && !matches!(inner.as_ref(), Expr::IntLiteral(_))
+                && !expr_is_known_usize_ctx(inner, ctx)
+                && !expr_is_integer(inner)
             {
                 // T -> usize requires going through f64 first
                 format!(
@@ -1782,11 +2027,12 @@ fn render_expr(
             format!("{{ {rendered} -= 1; {rendered} }}")
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
+            let cond_str = render_expr(cond, ctx, opt_real_params, registry, helpers);
+            let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
+            let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
             format!(
                 "if {} {{ {} }} else {{ {} }}",
-                render_expr(cond, ctx, opt_real_params, registry, helpers),
-                render_expr(then_expr, ctx, opt_real_params, registry, helpers),
-                render_expr(else_expr, ctx, opt_real_params, registry, helpers)
+                cond_str, then_str, else_str
             )
         }
     }
@@ -1811,9 +2057,19 @@ fn expr_is_integer(expr: &Expr) -> bool {
 /// Used to decide whether an IntLiteral should be wrapped with `T::ta_from_i32()`.
 /// Conservative: only returns true when there's strong evidence the expression produces T.
 fn expr_is_float_typed(expr: &Expr) -> bool {
+    expr_is_float_typed_ctx(expr, None)
+}
+
+fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
     match expr {
         Expr::Literal(_) => true,
         Expr::Var(name) => {
+            // Check context's real_vars set first
+            if let Some(c) = ctx {
+                if c.real_vars.contains(name) {
+                    return true;
+                }
+            }
             // Only match known float-typed variable patterns.
             // Exclude anything that could be an integer/index variable.
             name.starts_with("temp") || name.starts_with("prev")
@@ -1836,7 +2092,10 @@ fn expr_is_float_typed(expr: &Expr) -> bool {
                 || name.starts_with("jI") || name.starts_with("jQ")
         }
         Expr::FuncCall(name, _) => {
-            // Math functions and ta_ methods return T
+            // Math functions and ta_ methods return T, but NOT integer-returning helpers
+            if is_integer_returning_helper(name) {
+                return false;
+            }
             name.starts_with("ta_") || name.contains("_from_")
                 || matches!(name.as_str(),
                     "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan"
@@ -1847,10 +2106,10 @@ fn expr_is_float_typed(expr: &Expr) -> bool {
         }
         Expr::BinOp(left, op, right) => {
             matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div)
-                && (expr_is_float_typed(left) || expr_is_float_typed(right))
+                && (expr_is_float_typed_ctx(left, ctx) || expr_is_float_typed_ctx(right, ctx))
         }
         Expr::Cast(VarType::Real, _) => true,
-        Expr::Ternary(_, then_expr, _) => expr_is_float_typed(then_expr),
+        Expr::Ternary(_, then_expr, _) => expr_is_float_typed_ctx(then_expr, ctx),
         _ => false,
     }
 }
@@ -1863,7 +2122,7 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
                 || name.ends_with("_rangeType")
         }
         Expr::FuncCall(name, _) => {
-            name == "UNSTABLE_PERIOD"
+            name == "UNSTABLE_PERIOD" // unstable_period array contains i32 values
         }
         Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) => {
             expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
@@ -1874,10 +2133,52 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
     }
 }
 
+/// Check if an expression produces an untyped integer (IntLiteral, ternary with int branches, etc.)
+/// These need wrapping with `T::ta_from_i32()` when used in a T-typed context.
+fn expr_is_untyped_integer(expr: &Expr) -> bool {
+    match expr {
+        Expr::IntLiteral(_) => true,
+        Expr::Ternary(_, then_expr, else_expr) => {
+            expr_is_untyped_integer(then_expr) || expr_is_untyped_integer(else_expr)
+        }
+        Expr::FuncCall(name, _) => {
+            // Integer-returning helpers inline to integer ternaries
+            is_integer_returning_helper(name)
+        }
+        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod) => {
+            let left_is_int = expr_is_untyped_integer(left) || matches!(left.as_ref(), Expr::IntLiteral(_));
+            let right_is_int = expr_is_untyped_integer(right) || matches!(right.as_ref(), Expr::IntLiteral(_));
+            left_is_int && right_is_int && !expr_is_i32_typed(left) && !expr_is_i32_typed(right)
+        }
+        _ => false,
+    }
+}
+
 /// Check if an expression is already usize-typed (to avoid redundant `as usize` casts).
 fn expr_is_usize(expr: &Expr) -> bool {
     matches!(expr, Expr::Cast(VarType::Index | VarType::Integer, _))
 }
+
+/// Check if an expression is provably usize-typed (for T-wrapping in arithmetic).
+/// Uses the context's `index_vars` set when available, falls back to naming heuristics.
+fn expr_is_known_usize_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    match expr {
+        Expr::Cast(VarType::Index | VarType::Integer, _) => true,
+        Expr::Var(name) => ctx.index_vars.contains(name) || is_likely_index_var(name),
+        Expr::PointerDeref(name) => {
+            // *outBegIdx, *outNBElement are usize
+            ctx.index_vars.contains(name) || is_likely_index_var(name)
+                || name == "outBegIdx" || name == "outNBElement"
+        }
+        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) => {
+            (expr_is_known_usize_ctx(left, ctx) || matches!(left.as_ref(), Expr::IntLiteral(_)))
+                && (expr_is_known_usize_ctx(right, ctx) || matches!(right.as_ref(), Expr::IntLiteral(_)))
+        }
+        _ => false,
+    }
+}
+
+
 
 /// Render an array index expression, adding `as usize` when needed.
 fn render_index_expr(
@@ -1933,10 +2234,18 @@ fn render_lookback_code(
                         VarType::IntPointer => "Vec<i32>",
                         VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                     };
+                    // Always initialize — lookback is always concrete (non-generic)
+                    let default_val = match var_type {
+                        VarType::Real => "0.0_f64",
+                        VarType::Integer | VarType::Index => "0_usize",
+                        VarType::RetCodeType => "RetCode::Success",
+                        VarType::RealPointer | VarType::IntPointer => "Vec::new()",
+                        VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                    };
                     if needs_mut {
-                        out.push_str(&format!("        let mut {name}: {rust_type};\n"));
+                        out.push_str(&format!("        let mut {name}: {rust_type} = {default_val};\n"));
                     } else {
-                        out.push_str(&format!("        let {name}: {rust_type};\n"));
+                        out.push_str(&format!("        let {name}: {rust_type} = {default_val};\n"));
                     }
                 }
             }
@@ -2161,7 +2470,19 @@ fn render_func_call(
                 } else {
                     format!("ta_{fname}")
                 };
-                return format!("{x}.{method}()");
+                // Wrap integer literals/expressions so we can call TaFloat methods on them
+                let x_wrapped = if matches!(arg, Expr::IntLiteral(_)) {
+                    if let Expr::IntLiteral(v) = arg {
+                        format!("T::ta_from_i32({v})")
+                    } else {
+                        x
+                    }
+                } else if expr_is_untyped_integer(arg) {
+                    format!("T::ta_from_i32({x} as i32)")
+                } else {
+                    x
+                };
+                return format!("{x_wrapped}.{method}()");
             }
             // Concrete (non-generic) path: use f64 method call syntax; fabs/ABS -> abs, log -> ln
             let method = match fname {
@@ -2253,14 +2574,14 @@ fn render_func_call(
         };
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .map(|a| render_cross_indicator_arg(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else if is_ta_function(fname) {
         let rust_name = fname.to_lowercase();
         let rendered_args: Vec<String> = args
             .iter()
-            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .map(|a| render_cross_indicator_arg(a, ctx, opt_real_params, registry, helpers))
             .collect();
         format!("self.{}({})", rust_name, rendered_args.join(", "))
     } else {
@@ -2272,8 +2593,72 @@ fn render_func_call(
     }
 }
 
+/// Render an argument for a cross-indicator call, applying Rust reference conventions:
+/// - `AddressOf(Var(name))` → `&mut name` (C `&scalar` becomes Rust `&mut scalar`)
+/// - `Var(name)` where name looks like a local buffer (tempBuffer, localBuffer) → `&name`
+///   because the callee expects `&[T]` but our local is `Vec<T>`
+fn render_cross_indicator_arg(
+    arg: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    match arg {
+        // &outBegIdxDummy -> &mut outBegIdxDummy
+        Expr::AddressOf(inner) => {
+            let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
+            format!("&mut {rendered}")
+        }
+        // Vec<T> local variables need & to convert to &[T] or &mut ...[..] for output
+        Expr::Var(name) if is_vec_local_var(name) => {
+            format!("&{name}")
+        }
+        _ => render_expr(arg, ctx, opt_real_params, registry, helpers),
+    }
+}
+
+/// Check if a variable name is likely a Vec<T> local variable (allocated via malloc).
+/// These need `&` to convert to `&[T]` when passed to cross-indicator calls.
+fn is_vec_local_var(name: &str) -> bool {
+    name.starts_with("tempBuffer")
+        || name.starts_with("localBuffer")
+        || name.starts_with("buffer")
+        || name.starts_with("localOutput")
+        || name.starts_with("tempOutput")
+}
+
 fn is_math_function(name: &str) -> bool {
     MATH_FUNCTIONS.contains(&name)
+}
+
+/// Helper functions that return int (not double/T).
+/// These must NOT be treated as float-typed by `expr_is_float_typed`.
+fn is_integer_returning_helper(name: &str) -> bool {
+    matches!(name,
+        "ta_candlecolor" | "ta_realbodygapup" | "ta_realbodygapdown"
+        | "ta_candlegapup" | "ta_candlegapdown"
+    )
+}
+
+/// Check if a variable name is likely an index/counter (usize) rather than a Real (T) variable.
+fn is_likely_index_var(name: &str) -> bool {
+    // Never match optIn params — they are i32 in the function signature
+    if name.starts_with("optIn") {
+        return false;
+    }
+    name == "startIdx" || name == "endIdx" || name == "lookbackTotal"
+        || name == "trailingIdx" || name == "today" || name == "i"
+        || name == "outIdx" || name == "nbInitialElementNeeded"
+        || name == "nbElement" || name == "nbElementToOutput"
+        || name.starts_with("trailing") || name.ends_with("Idx")
+        || name == "outBegIdx" || name == "outNBElement"
+        || name.starts_with("nb")
+        || name == "j" || name == "count" || name == "hi" || name == "lo"
+        || name == "outputSize" || name == "lookbackTotal"
+        || name.ends_with("Dummy") || name.ends_with("_idx")
+        || name.starts_with("highest") || name.starts_with("lowest")
+        || name == "isLong" || name == "isShort"
 }
 
 fn is_ta_function(name: &str) -> bool {
