@@ -200,18 +200,21 @@ core.sma(0, 2, input, 3, &mut beg, &mut nb, &mut output);
 ```
 
 ### Function Variants
-Each indicator generates 4 variants:
+Each indicator generates 2 variants:
 
-| Variant | Safety | Indexing | Use Case |
-|---------|--------|----------|----------|
-| `sma<T>` | Safe | Bounds-checked | Public API |
-| `sma_unguarded<T>` | Safe | Bounds-checked | Cross-indicator calls |
-| `sma_unchecked<T>` | Unsafe | get_unchecked | Performance-critical |
-| `sma_unguarded_unchecked<T>` | Unsafe | get_unchecked | Internal hot paths |
+| Variant | Validation | Safety (Rust) | Extra Params | Use Case |
+|---------|-----------|---------------|-------------|----------|
+| `sma` | Range checks | Bounds-checked | Public API only | Public API |
+| `sma_unguarded` | None | `get_unchecked` | Can accept extra optimization params | Cross-indicator calls, internal |
 
-- **Guarded** validates parameters and delegates to `_unguarded`
-- **Unchecked** uses `get_unchecked` for array access (unsafe)
-- Cross-indicator calls use `_unguarded` to avoid double-validation
+- **Guarded (`sma`)**: Validates parameters, pre-computes any optimization values, then calls `_unguarded`
+- **Unguarded (`sma_unguarded`)**: No range checks, `get_unchecked` in Rust, expects pre-computed params
+- **Cross-indicator calls always use `_unguarded`** to avoid double-validation
+- Functions with **extra internal params** (e.g., EMA's k factor) expose them on the unguarded variant:
+  - `ema(start, end, data, period)` → validates, computes `k = 2/(period+1)`, calls `ema_unguarded`
+  - `ema_unguarded(start, end, data, period, k)` → no validation, uses provided k directly
+  - MACD fix case calls `ema_unguarded(period=26, k=0.075)` with hardcoded k
+- Functions with **no extra params**: unguarded is just the body without range checks (auto-generated from the same C source)
 
 ### Code Generation Pipeline
 1. **Source of Truth**: C files in `src/ta_func/ta_*.c` contain cross-language code
@@ -286,6 +289,34 @@ LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback → self.rsi_lookba
 **Note**: `LOOKBACK_CALL` uses two-level expansion for Rust. `LOOKBACK_CALL(RSI)` → `TA_RSI_Lookback` → `self.rsi_lookback`. Add one `#define TA_XXX_Lookback self.xxx_lookback` per function in `ta_defs.h`.
 
 **Note**: `TA_FUNC_NO_RANGE_CHECK` was removed — it disabled ALL validation including basic range checks, causing test regressions. Use targeted macros (`CAST_TO_I32`, exclusion guards) instead.
+
+## Architecture Decisions (ta_codegen)
+
+### Data vs Logic Separation
+- **YAML** = data, config, enums, IDL. Pure definitions with no logic.
+  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum
+  - Function metadata (inputs, outputs, optional params, groups)
+  - Lives in `ta_func_defs/types/` (YAML files)
+- **C source files** = logic. Anything with computation.
+  - Indicator implementations (`ta_func_defs/<name>/<name>.c`)
+  - Helper functions (`ta_func_defs/helpers/`)
+  - **No logic in YAML, ever.**
+
+### Source of Truth
+- `ta_func_defs/` is the single source of truth for ALL generated code
+- The codegen parses C + YAML → IR → renders per-backend (C, Java, .NET, Rust, SWIG)
+- No hand-coded string literals for type definitions or scaffolding in the codegen
+
+### Generate vs Generate-Servers
+- `generate` produces **standalone libraries** (Java Core class, Rust crate, C lib with header)
+- `generate-servers` wraps those libraries with JSON-RPC server layer for testing
+- Servers import the generated library — they don't contain indicator code themselves
+
+### Extra Internal Parameters (Unguarded Variants)
+- Defined in the C source: if `ema.c` defines both `ema()` and `ema_unguarded()`, the parser picks up both
+- The unguarded signature can have extra params (like k) beyond the public API
+- The guarded variant pre-computes these and delegates to unguarded
+- If only `ema()` is defined (no explicit unguarded), the codegen auto-generates unguarded by stripping range checks
 
 ## Known Gotchas
 
