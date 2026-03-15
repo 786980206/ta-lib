@@ -28,6 +28,12 @@ pub struct RustRenderCtx {
     /// Variable names declared as `VarType::RealPointer` or `VarType::IntPointer` (Vec<T> / Vec<i32>).
     /// These need `&name` / `&mut name[..]` conversion when passed to cross-indicator calls.
     pub vec_vars: std::collections::HashSet<String>,
+    /// Variable names declared as `VarType::RealArray` (e.g., `[T; N]`).
+    /// These need `&mut name` when passed in output position to cross-indicator calls.
+    pub real_array_vars: std::collections::HashSet<String>,
+    /// Output parameter names that are integer (i32) arrays (e.g., outInteger, outMaxIdx).
+    /// Values assigned to these arrays need `as i32` cast when they are usize-typed.
+    pub int_output_names: std::collections::HashSet<String>,
     /// If true, we're inside a lookback function (returns usize, not RetCode).
     /// Return values that are i32-typed will be cast to usize.
     pub is_lookback: bool,
@@ -41,6 +47,8 @@ impl RustRenderCtx {
             index_vars: std::collections::HashSet::new(),
             real_vars: std::collections::HashSet::new(),
             vec_vars: std::collections::HashSet::new(),
+            real_array_vars: std::collections::HashSet::new(),
+            int_output_names: std::collections::HashSet::new(),
             is_lookback: false,
         }
     }
@@ -134,12 +142,19 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     let mut index_vars = std::collections::HashSet::new();
     let mut real_vars = std::collections::HashSet::new();
     let mut vec_vars = std::collections::HashSet::new();
-    collect_var_types(&func.body, &mut index_vars, &mut real_vars, &mut vec_vars);
+    let mut real_array_vars = std::collections::HashSet::new();
+    collect_var_types(&func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars);
     // Also add parameter names
     index_vars.insert("startIdx".to_string());
     index_vars.insert("endIdx".to_string());
     index_vars.insert("outBegIdx".to_string());
     index_vars.insert("outNBElement".to_string());
+
+    // Collect integer output names for i32 cast detection
+    let int_output_set: std::collections::HashSet<String> = func.outputs.iter()
+        .filter(|o| o.param_type == ParamType::Integer)
+        .map(|o| o.name.clone())
+        .collect();
 
     // Unguarded: real algorithm, bounds-checked array access
     let safe_ctx = RustRenderCtx {
@@ -148,6 +163,8 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         index_vars: index_vars.clone(),
         real_vars: real_vars.clone(),
         vec_vars: vec_vars.clone(),
+        real_array_vars: real_array_vars.clone(),
+        int_output_names: int_output_set.clone(),
         is_lookback: false,
     };
     out.push_str(&gen_unguarded_func(
@@ -164,6 +181,8 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         index_vars,
         real_vars,
         vec_vars,
+        real_array_vars,
+        int_output_names: int_output_set,
         is_lookback: false,
     };
     out.push_str(&gen_unguarded_func(
@@ -483,6 +502,7 @@ fn gen_unguarded_func(
 
     // Collect output array names for cast insertion
     let output_names: Vec<String> = func.outputs.iter().map(|o| o.name.clone()).collect();
+    // (int_output_names tracked via ctx.int_output_names for i32 array cast detection)
 
     // Collect variables that have both VarDecl init AND a body assignment
     let body_assigned: std::collections::HashSet<String> = func
@@ -685,6 +705,7 @@ fn collect_var_types(
     index_vars: &mut std::collections::HashSet<String>,
     real_vars: &mut std::collections::HashSet<String>,
     vec_vars: &mut std::collections::HashSet<String>,
+    real_array_vars: &mut std::collections::HashSet<String>,
 ) {
     for stmt in body {
         match stmt {
@@ -693,31 +714,33 @@ fn collect_var_types(
                     VarType::Integer | VarType::Index => { index_vars.insert(name.clone()); }
                     VarType::Real => { real_vars.insert(name.clone()); }
                     VarType::RealPointer | VarType::IntPointer => { vec_vars.insert(name.clone()); }
+                    VarType::IntArray(_) => { index_vars.insert(name.clone()); }
+                    VarType::RealArray(_) => { real_array_vars.insert(name.clone()); }
                     _ => {}
                 }
             }
             Statement::If { then_body, else_body, .. } => {
-                collect_var_types(then_body, index_vars, real_vars, vec_vars);
-                collect_var_types(else_body, index_vars, real_vars, vec_vars);
+                collect_var_types(then_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(else_body, index_vars, real_vars, vec_vars, real_array_vars);
             }
             Statement::While { body: while_body, .. }
             | Statement::DoWhile { body: while_body, .. } => {
-                collect_var_types(while_body, index_vars, real_vars, vec_vars);
+                collect_var_types(while_body, index_vars, real_vars, vec_vars, real_array_vars);
             }
             Statement::For { body: for_body, .. } => {
-                collect_var_types(for_body, index_vars, real_vars, vec_vars);
+                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars);
             }
             Statement::ForC { body: for_body, .. } => {
-                collect_var_types(for_body, index_vars, real_vars, vec_vars);
+                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars);
             }
             Statement::Block { body: block_body } => {
-                collect_var_types(block_body, index_vars, real_vars, vec_vars);
+                collect_var_types(block_body, index_vars, real_vars, vec_vars, real_array_vars);
             }
             Statement::Switch { cases, default, .. } => {
                 for (_, case_body) in cases {
-                    collect_var_types(case_body, index_vars, real_vars, vec_vars);
+                    collect_var_types(case_body, index_vars, real_vars, vec_vars, real_array_vars);
                 }
-                collect_var_types(default, index_vars, real_vars, vec_vars);
+                collect_var_types(default, index_vars, real_vars, vec_vars, real_array_vars);
             }
             _ => {}
         }
@@ -1305,6 +1328,11 @@ pub fn render_statement(
                 helpers, inline_counter,
             );
 
+            // Emit dummy variable declaration for duplicate &mut borrows in cross-indicator calls
+            if has_duplicate_address_of(&new_value) {
+                out.push_str(&format!("{pad}let mut _dup_out: usize = 0_usize;\n"));
+            }
+
             if *compound {
                 if let (Expr::Var(tname), Expr::BinOp(left, op, right)) = (target, &new_value) {
                     if let Expr::Var(lname) = left.as_ref() {
@@ -1371,7 +1399,20 @@ pub fn render_statement(
                 }
             }
             let target_str = render_assign_target(target, ctx, opt_real_params, registry, helpers);
-            let value_str = render_expr(&new_value, ctx, opt_real_params, registry, helpers);
+            // When target is an optIn Real param (f64 in sig), render value WITHOUT
+            // optIn Real wrapping to avoid T::ta_from_f64() on the value side
+            let target_is_opt_real_param = if let Expr::Var(tname) = target {
+                ctx.generic && opt_real_params.contains(tname)
+            } else {
+                false
+            };
+            let value_str = if target_is_opt_real_param {
+                // Render without opt_real_params wrapping so optIn Real values stay f64
+                let empty_opt: Vec<String> = Vec::new();
+                render_expr(&new_value, ctx, &empty_opt, registry, helpers)
+            } else {
+                render_expr(&new_value, ctx, opt_real_params, registry, helpers)
+            };
             let needs_f64_cast = if ctx.generic {
                 false
             } else if let Expr::ArrayAccess(name, _) = target {
@@ -1391,6 +1432,29 @@ pub fn render_statement(
             } else {
                 false
             };
+            // Check if target is an i32 optIn param and value is usize
+            // (e.g., optInFastPeriod = tempInteger where tempInteger is usize)
+            let needs_i32_cast = if let Expr::Var(tname) = target {
+                is_i32_opt_in_param(tname)
+                    && !expr_is_i32_typed(&new_value)
+                    && !matches!(new_value, Expr::IntLiteral(_))
+                    && (expr_is_known_usize_ctx(&new_value, ctx)
+                        || matches!(new_value, Expr::Var(ref v) if ctx.index_vars.contains(v) || is_likely_index_var(v)))
+            } else {
+                false
+            };
+            // Check if target is an integer output array (e.g., outInteger[idx] = usize_val)
+            // Values assigned to i32 output arrays need `as i32` cast when usize-typed
+            let needs_int_output_cast = if let Expr::ArrayAccess(name, _) = target {
+                ctx.int_output_names.contains(name)
+                    && !expr_is_i32_typed(&new_value)
+                    && !matches!(new_value, Expr::IntLiteral(_))
+                    && (expr_is_known_usize_ctx(&new_value, ctx)
+                        || matches!(&new_value, Expr::Var(v) if ctx.index_vars.contains(v) || is_likely_index_var(v))
+                        || matches!(&new_value, Expr::BinOp(_, _, _)))
+            } else {
+                false
+            };
             // Wrap integer values assigned to T-typed variables in generic context
             let needs_t_wrap = if ctx.generic {
                 if let Expr::Var(tname) = target {
@@ -1407,7 +1471,12 @@ pub fn render_statement(
                             || expr_is_known_usize_ctx(&new_value, ctx))
                 } else if let Expr::ArrayAccess(name, _) = target {
                     // Array target: Real arrays (output, temp, local) need T values
+                    // But NOT IntArray targets (periods, usedFlag, sortedPeriods, etc.)
+                    // and NOT integer output arrays (outInteger, outMaxIdx, etc.)
                     !name.contains("Int") && !name.contains("integer")
+                        && !ctx.index_vars.contains(name)
+                        && !is_int_array_var(name)
+                        && !ctx.int_output_names.contains(name)
                         && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
                             || expr_is_known_usize_ctx(&new_value, ctx))
                 } else {
@@ -1416,7 +1485,26 @@ pub fn render_statement(
             } else {
                 false
             };
-            if needs_f64_cast {
+            // Check if target is a Vec<T> variable and value is a slice/output param
+            // (buffer aliasing pattern in BBANDS, STOCH, etc.)
+            let needs_to_vec = if let Expr::Var(tname) = target {
+                if ctx.vec_vars.contains(tname) || is_vec_local_var(tname) {
+                    if let Expr::Var(vname) = &new_value {
+                        output_names.contains(vname) || vname.starts_with("in")
+                    } else {
+                        false
+                    }
+                } else {
+                    false
+                }
+            } else {
+                false
+            };
+            if needs_to_vec {
+                out.push_str(&format!("{pad}{target_str} = {value_str}.to_vec();\n"));
+            } else if needs_int_output_cast {
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
+            } else if needs_f64_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as f64;\n"));
             } else if needs_t_wrap {
                 if expr_is_i32_typed(&new_value) {
@@ -1426,6 +1514,8 @@ pub fn render_statement(
                 } else {
                     out.push_str(&format!("{pad}{target_str} = T::ta_from_i32({value_str} as i32);\n"));
                 }
+            } else if needs_i32_cast {
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
             } else if needs_usize_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
             } else {
@@ -1532,7 +1622,7 @@ pub fn render_statement(
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
-                render_expr(condition, ctx, opt_real_params, registry, helpers)
+                render_condition(condition, ctx, opt_real_params, registry, helpers)
             );
             for s in then_body {
                 out.push_str(&render_statement(
@@ -1595,9 +1685,12 @@ pub fn render_statement(
         Statement::Return { value } => match value {
             Some(expr) => {
                 let rendered = render_return_expr(expr, ctx, opt_real_params, registry, helpers);
-                // In lookback functions, return value must be usize. Cast i32-typed expressions.
-                if ctx.is_lookback && !matches!(expr, Expr::Var(ref n) if n == "retValue" || n == "lookbackTotal" || n == "emaLookback")
-                    && (expr_is_i32_typed(expr) || matches!(expr, Expr::Var(ref n) if is_i32_opt_in_param(n)))
+                // In lookback functions, return value must be usize. Cast any i32/mixed expression.
+                let is_already_usize = matches!(expr, Expr::Var(ref n) if n == "retValue" || n == "lookbackTotal" || n == "emaLookback")
+                    || expr_is_known_usize_ctx(expr, ctx)
+                    || expr_returns_usize(expr);
+                if ctx.is_lookback && !is_already_usize
+                    && !matches!(expr, Expr::Var(ref n) if n == "SUCCESS" || n == "BadParam" || n.starts_with("RetCode"))
                 {
                     format!("{pad}return ({rendered}) as usize;\n")
                 } else {
@@ -1818,6 +1911,38 @@ fn render_return_expr(
     render_expr(expr, ctx, opt_real_params, registry, helpers)
 }
 
+/// Render a condition expression, ensuring it's boolean-typed.
+/// Bare integer/usize variables get `!= 0` wrapping.
+fn render_condition(
+    expr: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    // Bare Var used as condition: needs != 0 if it's an integer/usize
+    if let Expr::Var(name) = expr {
+        if ctx.index_vars.contains(name) || is_likely_index_var(name)
+            || is_i32_opt_in_param(name)
+        {
+            let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+            return format!("{rendered} != 0");
+        }
+    }
+    // Not(Var) → Var == 0 for integer vars
+    if let Expr::Not(inner) = expr {
+        if let Expr::Var(name) = inner.as_ref() {
+            if ctx.index_vars.contains(name) || is_likely_index_var(name)
+                || is_i32_opt_in_param(name)
+            {
+                let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
+                return format!("{rendered} == 0");
+            }
+        }
+    }
+    render_expr(expr, ctx, opt_real_params, registry, helpers)
+}
+
 #[allow(clippy::too_many_lines)]
 fn render_expr(
     expr: &Expr,
@@ -1898,7 +2023,7 @@ fn render_expr(
                 BinOp::Shr => " >> ",
                 BinOp::Shl => " << ",
             };
-            let is_arithmetic = matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod);
+            let is_arithmetic = matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod | BinOp::Shr | BinOp::Shl);
             let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
             let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
             if is_arithmetic {
@@ -1928,10 +2053,11 @@ fn render_expr(
                         }
                     }
                     // Wrap i32 variables with T::ta_from_i32() when doing arithmetic with T-typed expressions
-                    if left_is_i32 && right_is_float && !left_is_int_lit {
+                    // But NOT if the variable is also float-typed (e.g., optInK_1 is Real despite optIn prefix)
+                    if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
                         left_str = format!("T::ta_from_i32({left_str})");
                     }
-                    if right_is_i32 && left_is_float && !right_is_int_lit {
+                    if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
                         right_str = format!("T::ta_from_i32({right_str})");
                     }
                     // Wrap untyped-integer expressions (ternaries, int arithmetic) when
@@ -1989,10 +2115,11 @@ fn render_expr(
                         }
                     }
                     // Wrap i32 variables with T::ta_from_i32() when comparing with T-typed expressions
-                    if left_is_i32 && right_is_float && !left_is_int_lit {
+                    // But NOT if the variable is also float-typed (e.g., optInK_1 is Real despite optIn prefix)
+                    if left_is_i32 && right_is_float && !left_is_int_lit && !left_is_float {
                         left_str = format!("T::ta_from_i32({left_str})");
                     }
-                    if right_is_i32 && left_is_float && !right_is_int_lit {
+                    if right_is_i32 && left_is_float && !right_is_int_lit && !right_is_float {
                         right_str = format!("T::ta_from_i32({right_str})");
                     }
                     // Wrap untyped-integer expressions (ternaries, int arithmetic)
@@ -2034,7 +2161,7 @@ fn render_expr(
                 if expr_is_i32_typed(inner) || matches!(inner.as_ref(), Expr::IntLiteral(_)) {
                     // Already i32: just cast to usize
                     format!("({rendered}) as usize")
-                } else if expr_is_known_usize_ctx(inner, ctx) || expr_is_integer(inner) {
+                } else if expr_is_known_usize_ctx(inner, ctx) || expr_is_integer(inner) || expr_returns_usize(inner) {
                     // Already usize: no cast needed
                     rendered
                 } else {
@@ -2122,6 +2249,8 @@ fn is_i32_opt_in_param(name: &str) -> bool {
         | "optInNbDevUp" | "optInNbDevDn" | "optInNbDev"
         | "optInPenetration" | "optInVFactor"
         | "optInStartValue" | "optInPercentage"
+        | "optInAccelerationInitLong" | "optInAccelerationLong" | "optInAccelerationMaxLong"
+        | "optInAccelerationInitShort" | "optInAccelerationShort" | "optInAccelerationMaxShort"
     )
 }
 
@@ -2156,6 +2285,12 @@ fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
                 || name.starts_with("_tempReal")
         }
         Expr::ArrayAccess(name, _) => {
+            // Check context's real_array_vars set
+            if let Some(c) = ctx {
+                if c.real_array_vars.contains(name) {
+                    return true;
+                }
+            }
             // Real arrays: input arrays, temp buffers, output Real arrays
             name.starts_with("in") || name.starts_with("temp")
                 || (name.starts_with("out") && !name.contains("Int") && !name.contains("integer"))
@@ -2197,7 +2332,7 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
         Expr::FuncCall(name, _) => {
             name == "UNSTABLE_PERIOD" // unstable_period array contains i32 values
         }
-        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) => {
+        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Shr | BinOp::Shl | BinOp::Mod) => {
             expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
                 || expr_is_i32_typed(right) && matches!(left.as_ref(), Expr::IntLiteral(_))
         }
@@ -2508,9 +2643,21 @@ fn render_func_call(
         let rendered_args: Vec<String> = args
             .iter()
             .map(|a| {
+                // Real optIn params stay as f64 in lookback calls (no T-wrapping, no i32 cast)
+                let is_opt_real = matches!(a, Expr::Var(n) if !is_i32_opt_in_param(n) && n.starts_with("optIn"));
+                if is_opt_real {
+                    // Render without T-wrapping
+                    let empty_opt: Vec<String> = Vec::new();
+                    return render_expr(a, ctx, &empty_opt, registry, helpers);
+                }
+                // Float literals are Real optIn values — don't cast to i32
+                if matches!(a, Expr::Literal(_)) {
+                    let empty_opt: Vec<String> = Vec::new();
+                    return render_expr(a, ctx, &empty_opt, registry, helpers);
+                }
                 let rendered = render_expr(a, ctx, opt_real_params, registry, helpers);
-                // Lookback functions take i32 params; cast usize args
-                if expr_is_known_usize_ctx(a, ctx) && !expr_is_i32_typed(a) {
+                // Lookback functions take i32 params for Integer optIns; cast non-i32 args
+                if !expr_is_i32_typed(a) && !matches!(a, Expr::IntLiteral(_)) {
                     format!("({rendered}) as i32")
                 } else {
                     rendered
@@ -2522,9 +2669,20 @@ fn render_func_call(
         let rendered_args: Vec<String> = args
             .iter()
             .map(|a| {
+                // Real optIn params stay as f64 in lookback calls (no T-wrapping, no i32 cast)
+                let is_opt_real = matches!(a, Expr::Var(n) if !is_i32_opt_in_param(n) && n.starts_with("optIn"));
+                if is_opt_real {
+                    let empty_opt: Vec<String> = Vec::new();
+                    return render_expr(a, ctx, &empty_opt, registry, helpers);
+                }
+                // Float literals are Real optIn values — don't cast to i32
+                if matches!(a, Expr::Literal(_)) {
+                    let empty_opt: Vec<String> = Vec::new();
+                    return render_expr(a, ctx, &empty_opt, registry, helpers);
+                }
                 let rendered = render_expr(a, ctx, opt_real_params, registry, helpers);
-                // Lookback functions take i32 params; cast usize args
-                if expr_is_known_usize_ctx(a, ctx) && !expr_is_i32_typed(a) {
+                // Lookback functions take i32 params for Integer optIns; cast non-i32 args
+                if !expr_is_i32_typed(a) && !matches!(a, Expr::IntLiteral(_)) {
                     format!("({rendered}) as i32")
                 } else {
                     rendered
@@ -2695,22 +2853,63 @@ fn render_cross_indicator_args(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> Vec<String> {
-    // Find the index of the last AddressOf arg (marks end of scalar output params)
-    // Everything after that is output slice position
-    let last_address_of = args.iter().rposition(|a| matches!(a, Expr::AddressOf(_)));
-    let output_start = last_address_of.map_or(args.len(), |i| i + 1);
+    // Find the outBegIdx/outNBElement boundary: two consecutive AddressOf args.
+    // Everything after the second one is output slice/array position.
+    // Don't use last AddressOf because outputs can also be AddressOf (e.g., &prevATR for scalar T).
+    let output_start = find_output_boundary(args);
+
+    // Collect output variable names for aliasing detection
+    let output_vars: Vec<&str> = args[output_start..].iter()
+        .filter_map(|a| if let Expr::Var(n) = a { Some(n.as_str()) } else { None })
+        .collect();
+
+    // Detect duplicate AddressOf vars (e.g., &tempInt used for both outBegIdx and outNBElement)
+    let mut seen_address_of: std::collections::HashSet<String> = std::collections::HashSet::new();
+    // Track which args need a pre-declared dummy (second mutable borrow of same var)
+    let mut dup_vars: Vec<(usize, String)> = Vec::new();
+    for (i, arg) in args.iter().enumerate() {
+        if let Expr::AddressOf(inner) = arg {
+            if let Expr::Var(name) = inner.as_ref() {
+                if !seen_address_of.insert(name.clone()) {
+                    dup_vars.push((i, name.clone()));
+                }
+            }
+        }
+    }
 
     args.iter()
         .enumerate()
-        .map(|(i, arg)| render_cross_indicator_arg(arg, i >= output_start, ctx, opt_real_params, registry, helpers))
+        .map(|(i, arg)| {
+            let is_output = i >= output_start;
+            // Detect input-output aliasing: same Vec var used as both input and output
+            if !is_output {
+                if let Expr::Var(name) = arg {
+                    if (ctx.vec_vars.contains(name) || is_vec_local_var(name))
+                        && output_vars.contains(&name.as_str())
+                    {
+                        // Clone to avoid borrow conflict
+                        return format!("&{name}.clone()");
+                    }
+                }
+            }
+            // Detect duplicate &mut borrows: use the pre-declared dummy variable
+            if let Some((_, _)) = dup_vars.iter().find(|(idx, _)| *idx == i) {
+                return "&mut _dup_out".to_string();
+            }
+            render_cross_indicator_arg(arg, i, is_output, ctx, opt_real_params, registry, helpers)
+        })
         .collect()
 }
 
 /// Render a single argument for a cross-indicator call.
 /// - `AddressOf(Var(name))` → `&mut name` (C `&scalar` becomes Rust `&mut scalar`)
 /// - `Var(name)` where name is a Vec local → `&name` for inputs, `&mut name[..]` for outputs
+/// - First two args (idx 0,1 = startIdx, endIdx) cast i32 to usize
+/// - Scalar T vars in output position get `std::slice::from_mut()` wrapping
+/// - Literal values and optIn Real params are rendered as f64 (not T-wrapped)
 fn render_cross_indicator_arg(
     arg: &Expr,
+    position: usize,
     is_output_position: bool,
     ctx: &RustRenderCtx,
     opt_real_params: &[String],
@@ -2719,7 +2918,16 @@ fn render_cross_indicator_arg(
 ) -> String {
     match arg {
         // &outBegIdxDummy -> &mut outBegIdxDummy
+        // Special handling for Vec and scalar T vars in output position
         Expr::AddressOf(inner) => {
+            if let Expr::Var(name) = inner.as_ref() {
+                if is_output_position && (ctx.vec_vars.contains(name) || is_vec_local_var(name)) {
+                    return format!("&mut {name}[..]");
+                }
+                if is_output_position && ctx.real_vars.contains(name) {
+                    return format!("std::slice::from_mut(&mut {name})");
+                }
+            }
             let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
             format!("&mut {rendered}")
         }
@@ -2731,7 +2939,111 @@ fn render_cross_indicator_arg(
                 format!("&{name}")
             }
         }
-        _ => render_expr(arg, ctx, opt_real_params, registry, helpers),
+        // Literal values in cross-indicator calls: render as raw f64 (not T-wrapped)
+        // because the callee's optIn Real params are f64
+        Expr::Literal(f) => {
+            #[allow(clippy::float_cmp)]
+            let is_whole = *f == f.floor() && f.abs() < 1e15;
+            if is_whole {
+                #[allow(clippy::cast_possible_truncation)]
+                let i = *f as i64;
+                format!("{i}.0")
+            } else {
+                format!("{f}")
+            }
+        }
+        // optIn Real params: render without T-wrapping for cross-indicator calls
+        Expr::Var(name) if !is_i32_opt_in_param(name) && name.starts_with("optIn") => {
+            name.clone()
+        }
+        // RealArray vars (e.g., [T; N]): &mut name in output position, &name in input
+        Expr::Var(name) if ctx.real_array_vars.contains(name) => {
+            if is_output_position {
+                format!("&mut {name}")
+            } else {
+                format!("&{name}")
+            }
+        }
+        _ => {
+            let rendered = render_expr(arg, ctx, opt_real_params, registry, helpers);
+            // First two positions are startIdx, endIdx (usize) — cast i32 args
+            if position <= 1 && (expr_is_i32_typed(arg) || matches!(arg, Expr::BinOp(_, _, _) if has_any_i32_operand(arg))) {
+                format!("({rendered}) as usize")
+            // Output position: scalar T vars need slice wrapping
+            } else if is_output_position {
+                if let Expr::Var(name) = arg {
+                    if ctx.real_vars.contains(name) {
+                        return format!("std::slice::from_mut(&mut {name})");
+                    }
+                }
+                rendered
+            } else {
+                rendered
+            }
+        }
+    }
+}
+
+/// Find the output boundary in cross-indicator call args.
+/// Cross-indicator signatures are: startIdx, endIdx, inputs..., opts..., &outBegIdx, &outNBElement, outputs...
+/// The boundary is after the outBegIdx/outNBElement pair. These can be:
+/// - AddressOf pairs: `&outBegIdx1, &outNbElement1`
+/// - Var pairs when passing through from caller: `outBegIdx, outNBElement`
+/// Returns the index of the first output arg.
+fn find_output_boundary(args: &[Expr]) -> usize {
+    // Look for consecutive AddressOf pairs first (starting from position 2+)
+    for i in 2..args.len().saturating_sub(1) {
+        if matches!(&args[i], Expr::AddressOf(_)) && matches!(&args[i + 1], Expr::AddressOf(_)) {
+            return i + 2;
+        }
+    }
+    // Also check for Var pairs that look like outBegIdx/outNBElement
+    for i in 2..args.len().saturating_sub(1) {
+        if is_beg_nb_var(&args[i]) && is_beg_nb_var(&args[i + 1]) {
+            return i + 2;
+        }
+    }
+    // Fallback: no boundary found, all args are non-output
+    args.len()
+}
+
+/// Check if a Var expression looks like an outBegIdx or outNBElement parameter.
+fn is_beg_nb_var(expr: &Expr) -> bool {
+    match expr {
+        Expr::Var(name) => {
+            let lower = name.to_lowercase();
+            lower.contains("begidx") || lower.contains("nbelement")
+        }
+        Expr::AddressOf(inner) => is_beg_nb_var(inner),
+        _ => false,
+    }
+}
+
+/// Check if a FuncCall expression has duplicate AddressOf args (same var borrowed mutably twice).
+fn has_duplicate_address_of(expr: &Expr) -> bool {
+    if let Expr::FuncCall(_, args) = expr {
+        let mut seen = std::collections::HashSet::new();
+        for arg in args {
+            if let Expr::AddressOf(inner) = arg {
+                if let Expr::Var(name) = inner.as_ref() {
+                    if !seen.insert(name.clone()) {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    false
+}
+
+/// Check if a BinOp expression contains any i32-typed operands.
+fn has_any_i32_operand(expr: &Expr) -> bool {
+    match expr {
+        Expr::BinOp(left, _, right) => {
+            expr_is_i32_typed(left) || expr_is_i32_typed(right)
+                || has_any_i32_operand(left) || has_any_i32_operand(right)
+        }
+        _ => expr_is_i32_typed(expr),
     }
 }
 
@@ -2743,6 +3055,25 @@ fn is_vec_local_var(name: &str) -> bool {
         || name.starts_with("buffer")
         || name.starts_with("localOutput")
         || name.starts_with("tempOutput")
+}
+
+/// Check if an expression returns usize (e.g., lookback function calls, UNSTABLE_PERIOD).
+fn expr_returns_usize(expr: &Expr) -> bool {
+    match expr {
+        Expr::FuncCall(name, _) => {
+            name.ends_with("_lookback") || name.ends_with("_Lookback")
+                || name == "UNSTABLE_PERIOD"
+        }
+        _ => false,
+    }
+}
+
+/// Check if a variable name is an IntArray (i32 element array).
+/// These should NOT be wrapped with T::ta_from_i32() when assigned to.
+fn is_int_array_var(name: &str) -> bool {
+    matches!(name,
+        "periods" | "usedFlag" | "sortedPeriods"
+    )
 }
 
 fn is_math_function(name: &str) -> bool {
@@ -2777,6 +3108,14 @@ fn is_likely_index_var(name: &str) -> bool {
         || name == "highestIdx" || name == "lowestIdx"
         || name == "isLong" || name == "isShort"
         || name == "currentBar"
+        || name == "tempInteger" || name == "tempInt"
+        || name == "tempMAType"
+        || name == "retValue"
+        || name == "trend" || name == "daysInTrend"
+        || name == "patternResult" || name == "patternIdx"
+        || name == "maxPeriod" || name == "longestPeriod"
+        || name == "longestIndex" || name == "divider"
+        || name == "curPeriod"
 }
 
 fn is_ta_function(name: &str) -> bool {
