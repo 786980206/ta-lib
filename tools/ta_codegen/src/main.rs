@@ -100,6 +100,8 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         None => vec!["c", "rust", "java", "dotnet", "swig"],
     };
 
+    let mut generated_funcs: Vec<ir::FuncDef> = Vec::new();
+
     for entry in &func_dirs {
         let dir = entry.path();
         let func_name_lower = entry.file_name().to_string_lossy().to_string();
@@ -137,6 +139,14 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         for backend in &backends_to_run {
             generate_backend(&func_def, backend, &enums, &registry, &helper_registry);
         }
+
+        generated_funcs.push(func_def);
+    }
+
+    // Generate Rust crate scaffolding when Rust is one of the backends
+    if backends_to_run.contains(&"rust") {
+        let out_base = Path::new("../../ta_codegen_output");
+        generate_rust_crate_scaffolding(out_base, &generated_funcs);
     }
 }
 
@@ -254,8 +264,8 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  SWIG/Python server -> {}", path.display());
             }
             "rust" => {
-                let rust_bin_dir = Path::new("../../rust/src/bin");
-                std::fs::create_dir_all(rust_bin_dir).unwrap();
+                let rust_bin_dir = out_base.join("rust/src/bin");
+                std::fs::create_dir_all(&rust_bin_dir).unwrap();
                 let output = server_gen::generate_rust_server(&funcs);
                 let path = rust_bin_dir.join("ta_codegen_serve.rs");
                 std::fs::write(&path, &output).unwrap();
@@ -505,10 +515,10 @@ fn build_servers(backend_filter: Option<&str>) {
             }
             "rust" => {
                 print!("  Building Rust server... ");
-                let rust_dir = Path::new("../../rust");
+                let rust_dir = out_base.join("rust");
                 match std::process::Command::new("cargo")
                     .args(["build", "--release", "--bin", "ta_codegen_serve"])
-                    .current_dir(rust_dir)
+                    .current_dir(&rust_dir)
                     .status()
                 {
                     Ok(s) if s.success() => {
@@ -831,6 +841,394 @@ fn format_yaml_num(v: f64) -> String {
     }
 }
 
+fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef]) {
+    let rust_dir = out_base.join("rust");
+    let src_dir = rust_dir.join("src");
+    let ta_func_dir = src_dir.join("ta_func");
+    let bin_dir = src_dir.join("bin");
+
+    std::fs::create_dir_all(&ta_func_dir).unwrap();
+    std::fs::create_dir_all(&bin_dir).unwrap();
+
+    // --- Cargo.toml ---
+    let cargo_toml = r#"[package]
+name = "ta-lib"
+version = "0.6.4"
+edition = "2021"
+
+[lib]
+name = "ta_lib"
+path = "src/lib.rs"
+
+[[bin]]
+name = "ta_codegen_serve"
+path = "src/bin/ta_codegen_serve.rs"
+
+[dependencies]
+serde_json = "1"
+"#;
+    let cargo_path = rust_dir.join("Cargo.toml");
+    std::fs::write(&cargo_path, cargo_toml).unwrap();
+    println!("  Scaffolding -> {}", cargo_path.display());
+
+    // --- src/lib.rs ---
+    let lib_rs = r#"#![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens)]
+pub mod ta_func;
+pub use ta_func::*;
+"#;
+    let lib_path = src_dir.join("lib.rs");
+    std::fs::write(&lib_path, lib_rs).unwrap();
+    println!("  Scaffolding -> {}", lib_path.display());
+
+    // --- src/ta_func/float.rs ---
+    let float_rs = r#"//! Sealed floating-point trait for TA-Lib generic indicator functions.
+//!
+//! [`TaFloat`] is implemented for [`f32`] and [`f64`]. It cannot be implemented
+//! outside this crate (sealed via `private::Sealed`).
+//!
+//! All trait methods use a `ta_` prefix to avoid name collisions with inherent
+//! `f32`/`f64` methods in the standard library.
+
+/// Sealed floating-point trait for generic TA-Lib indicator functions.
+///
+/// Provides constants, conversions, and math operations needed by
+/// generated indicator code. All methods delegate to built-in intrinsics
+/// and compile to single CPU instructions after monomorphization.
+///
+/// # Sealed
+///
+/// This trait cannot be implemented outside this crate. This allows
+/// adding methods in future versions without breaking changes.
+pub trait TaFloat:
+    private::Sealed
+    + Copy
+    + PartialEq
+    + PartialOrd
+    + std::ops::Add<Output = Self>
+    + std::ops::Sub<Output = Self>
+    + std::ops::Mul<Output = Self>
+    + std::ops::Div<Output = Self>
+    + std::ops::Rem<Output = Self>
+    + std::ops::Neg<Output = Self>
+    + std::ops::AddAssign
+    + std::ops::SubAssign
+    + std::ops::MulAssign
+    + std::ops::DivAssign
+    + std::ops::RemAssign
+{
+    /// The additive identity (0.0).
+    fn ta_zero() -> Self;
+    /// The multiplicative identity (1.0).
+    fn ta_one() -> Self;
+    /// Machine epsilon for near-zero comparison.
+    fn ta_epsilon() -> Self;
+
+    /// Convert from `f64`. For `f64` this is identity; for `f32` it narrows.
+    fn ta_from_f64(v: f64) -> Self;
+    /// Convert from `i32`.
+    fn ta_from_i32(v: i32) -> Self;
+    /// Convert to `f64`. For `f64` this is identity; for `f32` it widens.
+    fn ta_to_f64(self) -> f64;
+
+    /// Absolute value.
+    fn ta_abs(self) -> Self;
+    /// Square root.
+    fn ta_sqrt(self) -> Self;
+    /// Ceiling (round up).
+    fn ta_ceil(self) -> Self;
+    /// Floor (round down).
+    fn ta_floor(self) -> Self;
+    /// Round to nearest integer.
+    fn ta_round(self) -> Self;
+
+    /// Sine.
+    fn ta_sin(self) -> Self;
+    /// Cosine.
+    fn ta_cos(self) -> Self;
+    /// Tangent.
+    fn ta_tan(self) -> Self;
+    /// Arcsine.
+    fn ta_asin(self) -> Self;
+    /// Arccosine.
+    fn ta_acos(self) -> Self;
+    /// Arctangent.
+    fn ta_atan(self) -> Self;
+
+    /// Hyperbolic sine.
+    fn ta_sinh(self) -> Self;
+    /// Hyperbolic cosine.
+    fn ta_cosh(self) -> Self;
+    /// Hyperbolic tangent.
+    fn ta_tanh(self) -> Self;
+
+    /// Natural logarithm.
+    fn ta_ln(self) -> Self;
+    /// Base-10 logarithm.
+    fn ta_log10(self) -> Self;
+    /// Exponential (e^self).
+    fn ta_exp(self) -> Self;
+}
+
+macro_rules! impl_ta_float {
+    ($t:ty, $epsilon:expr) => {
+        impl TaFloat for $t {
+            #[inline(always)] fn ta_zero() -> Self { 0.0 }
+            #[inline(always)] fn ta_one() -> Self { 1.0 }
+            #[inline(always)] fn ta_epsilon() -> Self { $epsilon }
+
+            #[inline(always)] fn ta_from_f64(v: f64) -> Self { v as Self }
+            #[inline(always)] fn ta_from_i32(v: i32) -> Self { v as Self }
+            #[inline(always)] fn ta_to_f64(self) -> f64 { self as f64 }
+
+            #[inline(always)] fn ta_abs(self) -> Self { <$t>::abs(self) }
+            #[inline(always)] fn ta_sqrt(self) -> Self { <$t>::sqrt(self) }
+            #[inline(always)] fn ta_ceil(self) -> Self { <$t>::ceil(self) }
+            #[inline(always)] fn ta_floor(self) -> Self { <$t>::floor(self) }
+            #[inline(always)] fn ta_round(self) -> Self { <$t>::round(self) }
+
+            #[inline(always)] fn ta_sin(self) -> Self { <$t>::sin(self) }
+            #[inline(always)] fn ta_cos(self) -> Self { <$t>::cos(self) }
+            #[inline(always)] fn ta_tan(self) -> Self { <$t>::tan(self) }
+            #[inline(always)] fn ta_asin(self) -> Self { <$t>::asin(self) }
+            #[inline(always)] fn ta_acos(self) -> Self { <$t>::acos(self) }
+            #[inline(always)] fn ta_atan(self) -> Self { <$t>::atan(self) }
+
+            #[inline(always)] fn ta_sinh(self) -> Self { <$t>::sinh(self) }
+            #[inline(always)] fn ta_cosh(self) -> Self { <$t>::cosh(self) }
+            #[inline(always)] fn ta_tanh(self) -> Self { <$t>::tanh(self) }
+
+            #[inline(always)] fn ta_ln(self) -> Self { <$t>::ln(self) }
+            #[inline(always)] fn ta_log10(self) -> Self { <$t>::log10(self) }
+            #[inline(always)] fn ta_exp(self) -> Self { <$t>::exp(self) }
+        }
+    };
+}
+
+impl_ta_float!(f64, 1e-14);
+impl_ta_float!(f32, 1e-6);
+
+mod private {
+    /// Sealed trait -- prevents external implementations of [`super::TaFloat`].
+    pub trait Sealed {}
+    impl Sealed for f32 {}
+    impl Sealed for f64 {}
+}
+"#;
+    let float_path = ta_func_dir.join("float.rs");
+    std::fs::write(&float_path, float_rs).unwrap();
+    println!("  Scaffolding -> {}", float_path.display());
+
+    // --- src/ta_func/mod.rs ---
+    let mut mod_rs = String::new();
+    mod_rs.push_str(
+        r#"/* TA-LIB Copyright (c) 1999-2025, Mario Fortier
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or
+ * without modification, are permitted provided that the following
+ * conditions are met:
+ *
+ * - Redistributions of source code must retain the above copyright
+ *   notice, this list of conditions and the following disclaimer.
+ *
+ * - Redistributions in binary form must reproduce the above copyright
+ *   notice, this list of conditions and the following disclaimer in
+ *   the documentation and/or other materials provided with the
+ *   distribution.
+ *
+ * - Neither name of author nor the names of its contributors
+ *   may be used to endorse or promote products derived from this
+ *   software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+ * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+ * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+ * FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+ * REGENTS OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+ * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+ * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+ * EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+
+/// Return codes for TA-Lib function calls.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum RetCode {
+    /// Function completed successfully.
+    Success,
+    /// One or more parameters are invalid.
+    BadParam,
+    /// The start index is out of range.
+    OutOfRangeStartIndex,
+    /// The end index is out of range or less than start index.
+    OutOfRangeEndIndex,
+    /// Memory allocation failed.
+    AllocErr,
+    /// Internal error occurred.
+    InternalError,
+}
+
+/// Compatibility mode for technical analysis calculations.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Compatibility {
+    /// Default TA-Lib compatibility mode.
+    Default,
+    /// Metastock-compatible calculation mode.
+    Metastock,
+}
+
+/// Identifies functions that have an unstable period.
+///
+/// Some technical analysis functions produce unreliable output during an
+/// initial "unstable" period. This enum identifies each such function so
+/// that a per-function unstable period can be configured.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum FuncUnstId {
+    /// Average Directional Movement Index.
+    Adx,
+    /// Average Directional Movement Index Rating.
+    Adxr,
+    /// Average True Range.
+    Atr,
+    /// Chande Momentum Oscillator.
+    Cmo,
+    /// Directional Movement Index.
+    Dx,
+    /// Exponential Moving Average.
+    Ema,
+    /// Hilbert Transform - Dominant Cycle Period.
+    HtDcPeriod,
+    /// Hilbert Transform - Dominant Cycle Phase.
+    HtDcPhase,
+    /// Hilbert Transform - Phasor Components.
+    HtPhasor,
+    /// Hilbert Transform - SineWave.
+    HtSine,
+    /// Hilbert Transform - Instantaneous Trendline.
+    HtTrendline,
+    /// Hilbert Transform - Trend vs Cycle Mode.
+    HtTrendMode,
+    /// Intraday Momentum Index.
+    Imi,
+    /// Kaufman Adaptive Moving Average.
+    Kama,
+    /// MESA Adaptive Moving Average.
+    Mama,
+    /// Money Flow Index.
+    Mfi,
+    /// Minus Directional Indicator.
+    MinusDI,
+    /// Minus Directional Movement.
+    MinusDM,
+    /// Normalized Average True Range.
+    Natr,
+    /// Plus Directional Indicator.
+    PlusDI,
+    /// Plus Directional Movement.
+    PlusDM,
+    /// Relative Strength Index.
+    Rsi,
+    /// Stochastic Relative Strength Index.
+    StochRsi,
+    /// Triple Exponential Moving Average (T3).
+    T3,
+    /// Wildcard: set the unstable period for all functions at once.
+    FuncUnstAll,
+}
+
+mod float;
+pub use float::TaFloat;
+
+/// Core struct providing access to all TA-Lib technical analysis functions.
+///
+/// Create an instance with [`Core::new()`] and call functions as methods.
+/// Unstable period and compatibility mode can be configured per-instance.
+///
+/// # Example
+///
+/// ```
+/// use ta_lib::ta_func::{Core, RetCode};
+///
+/// let core = Core::new();
+/// let lookback = core.sma_lookback(30);
+/// assert_eq!(lookback, 29);
+/// ```
+pub struct Core {
+    /// Unstable period for each function identified by [`FuncUnstId`].
+    pub unstable_period: [i32; FuncUnstId::FuncUnstAll as usize],
+    /// Compatibility mode (default: [`Compatibility::Default`]).
+    pub compatibility: Compatibility,
+}
+
+impl Core {
+    /// Create a new Core instance with default settings.
+    ///
+    /// All unstable periods are initialized to 0 and compatibility
+    /// mode is set to [`Compatibility::Default`].
+    pub fn new() -> Self {
+        Self {
+            unstable_period: [0; FuncUnstId::FuncUnstAll as usize],
+            compatibility: Compatibility::Default,
+        }
+    }
+
+    /// Set the unstable period for a specific function.
+    pub fn set_unstable_period(&mut self, id: FuncUnstId, period: i32) {
+        self.unstable_period[id as usize] = period;
+    }
+
+    /// Get the unstable period for a specific function.
+    pub fn get_unstable_period(&self, id: FuncUnstId) -> i32 {
+        self.unstable_period[id as usize]
+    }
+
+    /// Set the compatibility mode.
+    pub fn set_compatibility(&mut self, compat: Compatibility) {
+        self.compatibility = compat;
+    }
+
+    /// Get the current compatibility mode.
+    pub fn get_compatibility(&self) -> Compatibility {
+        self.compatibility
+    }
+}
+
+"#,
+    );
+
+    // Add mod declarations for each generated indicator
+    let mut func_names: Vec<String> = funcs
+        .iter()
+        .map(|f| f.name.to_lowercase())
+        .collect();
+    func_names.sort();
+
+    for name in &func_names {
+        mod_rs.push_str(&format!("mod {};\n", name));
+    }
+
+    let mod_path = ta_func_dir.join("mod.rs");
+    std::fs::write(&mod_path, &mod_rs).unwrap();
+    println!("  Scaffolding -> {}", mod_path.display());
+
+    // --- src/bin/ta_codegen_serve.rs (placeholder) ---
+    let placeholder_bin = r#"fn main() {
+    eprintln!("Server not yet generated — run: ta_codegen generate-servers --backend=rust");
+}
+"#;
+    let bin_path = bin_dir.join("ta_codegen_serve.rs");
+    // Only write placeholder if the server binary doesn't already exist
+    if !bin_path.exists() {
+        std::fs::write(&bin_path, placeholder_bin).unwrap();
+        println!("  Scaffolding -> {} (placeholder)", bin_path.display());
+    }
+
+    println!("  Rust crate scaffolding generated ({} indicators)", func_names.len());
+}
+
 fn generate_backend(
     func_def: &ir::FuncDef,
     backend: &str,
@@ -851,7 +1249,7 @@ fn generate_backend(
         }
         "rust" => {
             let output = backends::rust_lang::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("rust");
+            let dir = out_base.join("rust/src/ta_func");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("{}.rs", func_def.name.to_lowercase()));
             std::fs::write(&path, &output).unwrap();
