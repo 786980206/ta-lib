@@ -823,6 +823,12 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     params.lastBegIdx   = begIdx;
     params.lastNbElement = nbElem;
 
+    /* Warmup call: discard the first call to eliminate cold-start effects
+     * (JVM class loading, Rust monomorphization, CPU cache priming, etc.) */
+    build_json_request(&params, 0, params.nbBars - 1);
+    codegen_pipe_call(params.cp, params.requestBuf,
+                      params.responseBuf, JSON_BUF_SIZE);
+
     /* Codegen comparison: one full-range JSON-RPC call, compare all outputs.
      * This is done BEFORE doRangeTest to separate concerns:
      * - codegen comparison: does generated code match C reference?
