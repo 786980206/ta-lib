@@ -64,10 +64,10 @@ static const CodegenLanguage ALL_LANGUAGES[] = {
 
 typedef struct {
     char   funcName[64];
-    double c_ref_us;
+    double c_ref_ns;
     struct {
         int    tested;   /* 0=skipped, 1=pass, -1=fail */
-        double avg_us;
+        double avg_ns;
     } langs[NUM_LANGUAGES];
 } FuncTimingResult;
 
@@ -844,7 +844,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
     long long c_ns1 = get_nanotime();
     long long c_elapsed_ns = c_ns1 - c_ns0;
-    double c_avg_us = (double)c_elapsed_ns / 1000.0;
+    double c_avg_ns = (double)c_elapsed_ns;
     params.c_ref_total_ns = c_elapsed_ns;
 
     /* Save C reference results for codegen comparison */
@@ -890,8 +890,8 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     }
 
     /* Compute server average timing */
-    double s_avg_us = (params.timing_count > 0)
-                      ? (double)params.server_total_ns / (double)params.timing_count / 1000.0
+    double s_avg_ns = (params.timing_count > 0)
+                      ? (double)params.server_total_ns / (double)params.timing_count
                       : 0.0;
 
     /* Record results in global timing table */
@@ -910,7 +910,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         memset(&g_timingResults[resultIdx], 0, sizeof(FuncTimingResult));
         strncpy(g_timingResults[resultIdx].funcName, funcInfo->name,
                 sizeof(g_timingResults[resultIdx].funcName) - 1);
-        g_timingResults[resultIdx].c_ref_us = c_avg_us;
+        g_timingResults[resultIdx].c_ref_ns = c_avg_ns;
     }
 
     /* Check for codegen mismatch */
@@ -920,7 +920,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
         {
             g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
-            g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+            g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
         }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
@@ -935,7 +935,7 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
         {
             g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
-            g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+            g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
         }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
@@ -948,15 +948,15 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     if( resultIdx >= 0 && ctx->langIndex < (int)NUM_LANGUAGES )
     {
         g_timingResults[resultIdx].langs[ctx->langIndex].tested  = 1;
-        g_timingResults[resultIdx].langs[ctx->langIndex].avg_us  = s_avg_us;
+        g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
     }
 
     /* Print result with timing and speedup ratio */
-    if( s_avg_us > 0 && c_avg_us > 0 )
+    if( s_avg_ns > 0 && c_avg_ns > 0 )
     {
-        double ratio = c_avg_us / s_avg_us;
-        printf("PASS   (C: %.1fus, %s: %.1fus, %.2fx %s)\n",
-               c_avg_us, ctx->lang->display, s_avg_us,
+        double ratio = c_avg_ns / s_avg_ns;
+        printf("PASS   (C: %.0fns, %s: %.0fns, %.2fx %s)\n",
+               c_avg_ns, ctx->lang->display, s_avg_ns,
                (ratio >= 1.0) ? ratio : 1.0 / ratio,
                (ratio >= 1.0) ? "faster" : "slower");
     }
@@ -1071,7 +1071,7 @@ static void print_timing_table(const char *languageFilter)
 
     printf("\n");
     printf("=============================================\n");
-    printf("Codegen Results + Timing (avg us/call)\n");
+    printf("Codegen Results + Timing (avg ns/call)\n");
     printf("=============================================\n");
 
     /* Header */
@@ -1087,7 +1087,7 @@ static void print_timing_table(const char *languageFilter)
     for( int ri = 0; ri < g_numTimingResults; ri++ )
     {
         FuncTimingResult *r = &g_timingResults[ri];
-        printf("%-20s %8.1f", r->funcName, r->c_ref_us);
+        printf("%-20s %8.0f", r->funcName, r->c_ref_ns);
         for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
         {
             if( !showLang[li] )
@@ -1098,7 +1098,7 @@ static void print_timing_table(const char *languageFilter)
             else if( st == -1 )
                 printf(" %9s", "FAIL");
             else
-                printf(" %7.1fok", r->langs[li].avg_us);
+                printf(" %7.0fok", r->langs[li].avg_ns);
         }
         printf("\n");
     }
@@ -1133,7 +1133,7 @@ static void write_timing_report(const char *filepath)
         FuncTimingResult *r = &g_timingResults[ri];
         if( !first ) fprintf(f, ",");
         first = 0;
-        fprintf(f, "\"%s\":{\"c_ref_us\":%.3f,\"langs\":{", r->funcName, r->c_ref_us);
+        fprintf(f, "\"%s\":{\"c_ref_ns\":%.3f,\"langs\":{", r->funcName, r->c_ref_ns);
         int firstLang = 1;
         for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
         {
@@ -1141,10 +1141,10 @@ static void write_timing_report(const char *filepath)
             if( st == 0 ) continue;   /* skip not-tested */
             if( !firstLang ) fprintf(f, ",");
             firstLang = 0;
-            fprintf(f, "\"%s\":{\"status\":\"%s\",\"avg_us\":%.3f}",
+            fprintf(f, "\"%s\":{\"status\":\"%s\",\"avg_ns\":%.0f}",
                     ALL_LANGUAGES[li].name,
                     (st == 1) ? "pass" : "fail",
-                    r->langs[li].avg_us);
+                    r->langs[li].avg_ns);
         }
         fprintf(f, "}}");
     }

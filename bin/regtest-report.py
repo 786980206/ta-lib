@@ -69,11 +69,10 @@ def parse_results(output):
     return results, columns
 
 
-def fmt_ns(val_us):
-    """Format timing in nanoseconds (input is microseconds)."""
-    if val_us is None:
+def fmt_ns(ns):
+    """Format timing in nanoseconds."""
+    if ns is None:
         return "—"
-    ns = val_us * 1000
     if ns == 0:
         return "<42"
     if ns < 100:
