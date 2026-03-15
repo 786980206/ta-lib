@@ -35,6 +35,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     int outNbElement1;
     int outBegIdx2;
     int outNbElement2;
+    double slowK, fastK;
     int lookbackTotal, lookbackSignal;
     int i;
 
@@ -74,12 +75,27 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     optInFastPeriod = tempInteger;
     }
 
-    /* Catch special case for fix 26/12 MACD. */
+    /* Catch special case for fix 26/12 MACD.
+     * Use hardcoded k values matching the original algorithm. */
     if( optInSlowPeriod == 0 )
+    {
     optInSlowPeriod = 26;
+    slowK = 0.075;
+    }
+    else
+    {
+    slowK = 2.0 / ((double)(optInSlowPeriod + 1));
+    }
 
     if( optInFastPeriod == 0 )
+    {
     optInFastPeriod = 12;
+    fastK = 0.15;
+    }
+    else
+    {
+    fastK = 2.0 / ((double)(optInFastPeriod + 1));
+    }
 
     lookbackSignal = ema_lookback( optInSignalPeriod );
 
@@ -127,8 +143,8 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     * will start at the requested 'startIdx'.
     */
     tempInteger = startIdx-lookbackSignal;
-    retCode = ema( tempInteger, endIdx,
-    inReal, optInSlowPeriod,
+    retCode = ema_unguarded( tempInteger, endIdx,
+    inReal, optInSlowPeriod, slowK,
     &outBegIdx1, &outNbElement1, slowEMABuffer );
 
     if( retCode != TA_SUCCESS )
@@ -141,8 +157,8 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     }
 
     /* Calculate the fast EMA. */
-    retCode = ema( tempInteger, endIdx,
-    inReal, optInFastPeriod,
+    retCode = ema_unguarded( tempInteger, endIdx,
+    inReal, optInFastPeriod, fastK,
     &outBegIdx2, &outNbElement2, fastEMABuffer );
 
     if( retCode != TA_SUCCESS )

@@ -16,6 +16,8 @@ pub struct ParsedCFunction {
     pub name: String,
     pub is_internal: bool,
     pub body: Vec<Statement>,
+    /// Parameter names and C types, in order. E.g., [("startIdx", "int"), ("inReal", "const double *")].
+    pub params: Vec<(String, String)>,
 }
 
 /// Parse a `.c` source file containing TA-Lib function definitions.
@@ -394,6 +396,74 @@ fn tokenize(input: &str) -> Vec<Token> {
 // --- Function Extraction ---
 
 /// Scan tokens for function definitions and extract their bodies.
+/// Extract C parameter list from tokens starting at the expected `(` position.
+/// Returns Vec of (param_name, c_type_string). Handles `const`, `*`, `[]`.
+fn extract_func_params(tokens: &[Token], start: usize) -> Vec<(String, String)> {
+    let mut params = Vec::new();
+    let mut i = start;
+
+    // Find opening paren
+    while i < tokens.len() && tokens[i] != Token::LParen {
+        i += 1;
+    }
+    if i >= tokens.len() {
+        return params;
+    }
+    i += 1; // skip LParen
+
+    // Parse params until RParen
+    while i < tokens.len() && tokens[i] != Token::RParen {
+        if tokens[i] == Token::Comma {
+            i += 1;
+            continue;
+        }
+
+        // Collect type tokens until we hit an identifier followed by comma/rparen/lbracket
+        let mut type_parts = Vec::new();
+        let mut param_name = String::new();
+
+        // Consume tokens for this parameter
+        while i < tokens.len() && tokens[i] != Token::Comma && tokens[i] != Token::RParen {
+            match &tokens[i] {
+                Token::Ident(s) => {
+                    // Peek ahead: if next is comma, rparen, or lbracket, this is the name
+                    let next = tokens.get(i + 1);
+                    let is_name = matches!(
+                        next,
+                        Some(Token::Comma)
+                            | Some(Token::RParen)
+                            | Some(Token::LBracket)
+                            | None
+                    );
+                    if is_name && !type_parts.is_empty() {
+                        param_name = s.clone();
+                        i += 1;
+                        // Skip [] if present
+                        if matches!(tokens.get(i), Some(Token::LBracket)) {
+                            type_parts.push("[]".to_string());
+                            i += 1; // skip [
+                            if matches!(tokens.get(i), Some(Token::RBracket)) {
+                                i += 1; // skip ]
+                            }
+                        }
+                        break;
+                    }
+                    type_parts.push(s.clone());
+                }
+                Token::Star => type_parts.push("*".to_string()),
+                _ => {}
+            }
+            i += 1;
+        }
+
+        if !param_name.is_empty() {
+            params.push((param_name, type_parts.join(" ")));
+        }
+    }
+
+    params
+}
+
 fn extract_functions(tokens: &[Token]) -> ParsedCSource {
     let mut lookback_body = Vec::new();
     let mut functions = Vec::new();
@@ -424,20 +494,34 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
         // Look for implementation function:
         //   Old: TA_RetCode TA_XXX ( ... ) { body }
         //   New: TA_RetCode xxx ( ... ) { body }  (plain indicator name)
-        if matches!(&tokens[i], Token::Ident(s) if s == "TA_RetCode") {
-            if let Some(Token::Ident(name)) = tokens.get(i + 1) {
+        //   Also: static TA_RetCode xxx ( ... ) { body }
+        let func_start = if matches!(&tokens[i], Token::Ident(s) if s == "TA_RetCode") {
+            Some(i)
+        } else if matches!(&tokens[i], Token::Ident(s) if s == "static")
+            && matches!(tokens.get(i + 1), Some(Token::Ident(s)) if s == "TA_RetCode")
+        {
+            Some(i + 1)
+        } else {
+            None
+        };
+        if let Some(ret_pos) = func_start {
+            if let Some(Token::Ident(name)) = tokens.get(ret_pos + 1) {
                 let is_old_func = name.starts_with("TA_");
                 let is_new_func = !name.starts_with("TA_") && !name.ends_with("_lookback");
                 if is_old_func || is_new_func {
                     let func_name = name.clone();
-                    let is_internal = func_name.starts_with("TA_INT_");
-                    if let Some(brace_start) = find_open_brace(tokens, i + 2) {
+                    let is_internal = func_name.starts_with("TA_INT_")
+                        || func_name.ends_with("_unguarded");
+                    // Parse parameter list
+                    let params = extract_func_params(tokens, ret_pos + 2);
+                    if let Some(brace_start) = find_open_brace(tokens, ret_pos + 2) {
                         if let Some(brace_end) = find_matching_brace(tokens, brace_start) {
                             let body_tokens = &tokens[brace_start + 1..brace_end];
                             functions.push(ParsedCFunction {
                                 name: func_name,
                                 is_internal,
                                 body: parse_body(body_tokens),
+                                params,
                             });
                             i = brace_end + 1;
                             continue;
