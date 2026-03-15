@@ -1018,10 +1018,12 @@ fn render_hoisted_blocks(
             }
         };
         out.push_str(&decl_line);
-        // Emit VarDecl statements from the hoisted body (these are local vars
-        // of the helper function that need inline declaration)
+        // Emit VarDecl statements from the hoisted body with their init expressions.
+        // These are local vars of the helper function that need inline declaration.
+        // Using init expressions is critical: e.g., `double range = th - tl` in
+        // ta_true_range must initialize range to the actual value, not zero.
         for stmt in body {
-            if let Statement::VarDecl { var_type: vt, name, .. } = stmt {
+            if let Statement::VarDecl { var_type: vt, name, init } = stmt {
                 let local_type = match vt {
                     VarType::Real => {
                         if ctx.generic { "T" } else { "f64" }
@@ -1047,20 +1049,30 @@ fn render_hoisted_blocks(
                         continue;
                     }
                 };
-                let default_val = match vt {
-                    VarType::Real => {
-                        if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
-                    }
-                    VarType::Integer | VarType::Index => "0_usize",
-                    VarType::RetCodeType => "RetCode::Success",
-                    VarType::RealPointer => "Vec::new()",
-                    VarType::IntPointer => "Vec::new()",
-                    VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                // Use the init expression if available, otherwise use a type default
+                let init_str = if let Some(init_expr) = init {
+                    render_expr(init_expr, ctx, opt_real_params, registry, helpers)
+                } else {
+                    match vt {
+                        VarType::Real => {
+                            if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+                        }
+                        VarType::Integer | VarType::Index => "0_usize",
+                        VarType::RetCodeType => "RetCode::Success",
+                        VarType::RealPointer => "Vec::new()",
+                        VarType::IntPointer => "Vec::new()",
+                        VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                    }.to_string()
                 };
-                out.push_str(&format!("{pad}let mut {name}: {local_type} = {default_val};\n"));
+                out.push_str(&format!("{pad}let mut {name}: {local_type} = {init_str};\n"));
             }
         }
+        // Render non-VarDecl statements from the body (skip VarDecls since they
+        // were already emitted above with proper init expressions)
         for stmt in body {
+            if matches!(stmt, Statement::VarDecl { .. }) {
+                continue;
+            }
             out.push_str(&render_statement(
                 stmt,
                 indent,
@@ -2905,6 +2917,12 @@ fn render_func_call(
                 } else {
                     x
                 };
+                // Wrap in parens if the expression is compound (BinOp, Ternary, etc.)
+                // to ensure method call binds correctly: (a - b).ta_abs() not a - b.ta_abs()
+                let needs_parens = matches!(arg, Expr::BinOp(_, _, _) | Expr::Ternary(_, _, _));
+                if needs_parens {
+                    return format!("({x_wrapped}).{method}()");
+                }
                 return format!("{x_wrapped}.{method}()");
             }
             // Concrete (non-generic) path: use f64 method call syntax; fabs/ABS -> abs, log -> ln
