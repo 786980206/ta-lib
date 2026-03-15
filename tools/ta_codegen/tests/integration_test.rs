@@ -34,6 +34,7 @@ fn load_mult() -> ir::FuncDef {
     let parsed = parser::c_source::parse_c_source(&c_path);
     func_def.body = parsed.functions[0].body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
+    func_def.unguarded_body = func_def.body.clone();
     func_def
 }
 
@@ -45,13 +46,12 @@ fn load_sma() -> ir::FuncDef {
 
     let mut func_def = parser::yaml::parse_yaml(&yaml_path);
     let parsed = parser::c_source::parse_c_source(&c_path);
-    func_def.body = parsed
-        .functions
-        .first()
-        .expect("C source must contain at least one function")
-        .body
-        .clone();
+    let guarded = parsed.functions.iter().find(|f| !f.name.ends_with("_unguarded"))
+        .expect("C source must contain at least one function");
+    func_def.body = guarded.body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
+    // Auto-generate unguarded (copy guarded body — SMA has no extra params)
+    func_def.unguarded_body = func_def.body.clone();
     func_def
 }
 
@@ -215,12 +215,8 @@ fn test_rust_backend_generates_mult() {
         "Rust output missing lookback function"
     );
     assert!(
-        output.contains("fn mult<T: TaFloat>"),
-        "Rust output missing generic mult function"
-    );
-    assert!(
-        output.contains("T: TaFloat"),
-        "Rust output missing TaFloat generic bound"
+        output.contains("fn mult("),
+        "Rust output missing mult function"
     );
 }
 
@@ -239,8 +235,8 @@ fn test_rust_sma_from_c_produces_valid_output() {
         "Missing sma_lookback function"
     );
     assert!(
-        output.contains("fn sma_unguarded<T: TaFloat>"),
-        "Missing sma_unguarded generic function"
+        output.contains("fn sma_unguarded("),
+        "Missing sma_unguarded function"
     );
     assert!(
         output.contains("RetCode::Success"),
@@ -518,16 +514,16 @@ fn test_rust_generates_generic_variants() {
     let func = load_sma();
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry(), &HelperRegistry::empty());
 
-    // Guarded generic function
+    // Guarded function (concrete f64)
     assert!(
-        output.contains("pub fn sma<T: TaFloat>"),
-        "Missing sma<T: TaFloat> function"
+        output.contains("pub fn sma("),
+        "Missing sma function"
     );
 
-    // Unguarded generic function (real algorithm)
+    // Unguarded function (concrete f64, get_unchecked)
     assert!(
-        output.contains("pub fn sma_unguarded<T: TaFloat>"),
-        "Missing sma_unguarded<T: TaFloat> function"
+        output.contains("pub fn sma_unguarded("),
+        "Missing sma_unguarded function"
     );
 
     // Guarded function should delegate to unguarded
@@ -536,34 +532,18 @@ fn test_rust_generates_generic_variants() {
         "Guarded fn should delegate to sma_unguarded"
     );
 
-    // Unchecked variants (unsafe)
+    // Should NOT contain old 4-variant patterns
     assert!(
-        output.contains("pub unsafe fn sma_unchecked<T: TaFloat>"),
-        "Missing sma_unchecked<T: TaFloat> function"
+        !output.contains("fn sma_unchecked("),
+        "Should not contain sma_unchecked (dropped)"
     );
     assert!(
-        output.contains("pub unsafe fn sma_unguarded_unchecked<T: TaFloat>"),
-        "Missing sma_unguarded_unchecked<T: TaFloat> function"
-    );
-
-    // Unchecked guarded should delegate to unguarded_unchecked
-    assert!(
-        output.contains("self.sma_unguarded_unchecked("),
-        "Unchecked fn should delegate to sma_unguarded_unchecked"
-    );
-
-    // Should NOT contain the old naming patterns
-    assert!(
-        !output.contains("fn sma_logic("),
-        "Should not contain old sma_logic naming"
+        !output.contains("fn sma_unguarded_unchecked("),
+        "Should not contain sma_unguarded_unchecked (dropped)"
     );
     assert!(
-        !output.contains("fn sma_s("),
-        "Should not contain old sma_s naming"
-    );
-    assert!(
-        !output.contains("sma_unsafe"),
-        "Should not contain old sma_unsafe naming"
+        !output.contains("pub unsafe fn"),
+        "Should not contain pub unsafe fn (unsafe is internal)"
     );
 }
 
@@ -573,20 +553,22 @@ fn test_rust_mult_generates_generic_variants() {
     let output = backends::rust_lang::generate(&func, &no_enums(), &make_registry(), &HelperRegistry::empty());
 
     // MULT should have all 4 generic variants regardless of optional inputs
+    // 2-variant system: guarded + unguarded only, concrete f64
     assert!(
-        output.contains("pub fn mult<T: TaFloat>"),
-        "Missing mult<T: TaFloat> function"
+        output.contains("pub fn mult("),
+        "Missing mult function"
     );
     assert!(
-        output.contains("pub fn mult_unguarded<T: TaFloat>"),
-        "Missing mult_unguarded<T: TaFloat> function"
+        output.contains("pub fn mult_unguarded("),
+        "Missing mult_unguarded function"
+    );
+    // Old variants should be gone
+    assert!(
+        !output.contains("fn mult_unchecked("),
+        "Should not contain mult_unchecked"
     );
     assert!(
-        output.contains("pub unsafe fn mult_unchecked<T: TaFloat>"),
-        "Missing mult_unchecked<T: TaFloat> function"
-    );
-    assert!(
-        output.contains("pub unsafe fn mult_unguarded_unchecked<T: TaFloat>"),
-        "Missing mult_unguarded_unchecked<T: TaFloat> function"
+        !output.contains("fn mult_unguarded_unchecked("),
+        "Should not contain mult_unguarded_unchecked"
     );
 }

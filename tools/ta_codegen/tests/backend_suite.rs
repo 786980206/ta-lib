@@ -59,6 +59,22 @@ fn load_indicator(name: &str) -> (ir::FuncDef, HashMap<String, ir::EnumDef>) {
         .clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
 
+    // Mirror main.rs: check for explicit _unguarded variant in C source.
+    // If present, use it as unguarded_body with its extra params.
+    // Otherwise, copy body to unguarded_body (same body for both variants).
+    let unguarded_name = format!("{}_unguarded", name);
+    if let Some(ung) = parsed.functions.iter().find(|f| f.name == unguarded_name) {
+        func_def.unguarded_body = ung.body.clone();
+        func_def.has_explicit_unguarded = true;
+        // Extract extra params (those beyond the standard guarded params)
+        let guarded_param_count = parsed.functions[0].params.len();
+        for (pname, ptype) in ung.params.iter().skip(guarded_param_count) {
+            func_def.unguarded_extra_params.push((pname.clone(), ptype.clone()));
+        }
+    } else {
+        func_def.unguarded_body = func_def.body.clone();
+    }
+
     (func_def, enums)
 }
 
@@ -162,7 +178,9 @@ fn check_c_variants(c: &str, upper: &str, name: &str) {
     );
 }
 
-/// Check that all Rust generic variants exist for a given indicator.
+/// Check that all Rust variants exist for a given indicator.
+/// After the 2-variant refactor: only `foo` (guarded) + `foo_unguarded`.
+/// No `_unchecked` or `_unguarded_unchecked` variants. Concrete f64 types, not generic.
 fn check_rust_generic_variants(r: &str, snake: &str, name: &str) {
     // Lookback (non-generic)
     assert!(
@@ -171,31 +189,17 @@ fn check_rust_generic_variants(r: &str, snake: &str, name: &str) {
         name,
         snake
     );
-    // Guarded generic
+    // Guarded (concrete f64, no generics)
     assert!(
-        r.contains(&format!("fn {}<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}<T: TaFloat>",
+        r.contains(&format!("fn {}(", snake)),
+        "{}: Rust missing fn {}(",
         name,
         snake
     );
-    // Unguarded generic (real algorithm, bounds-checked)
+    // Unguarded (concrete f64, no generics)
     assert!(
-        r.contains(&format!("fn {}_unguarded<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unguarded<T: TaFloat>",
-        name,
-        snake
-    );
-    // Unchecked guarded (unsafe)
-    assert!(
-        r.contains(&format!("fn {}_unchecked<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unchecked<T: TaFloat>",
-        name,
-        snake
-    );
-    // Unguarded unchecked (unsafe, real algorithm)
-    assert!(
-        r.contains(&format!("fn {}_unguarded_unchecked<T: TaFloat>", snake)),
-        "{}: Rust missing fn {}_unguarded_unchecked<T: TaFloat>",
+        r.contains(&format!("fn {}_unguarded(", snake)),
+        "{}: Rust missing fn {}_unguarded(",
         name,
         snake
     );
@@ -450,13 +454,15 @@ fn test_ma_c_cross_calls() {
         c.contains("TA_EMA_Lookback("),
         "C: MA should call TA_EMA_Lookback"
     );
+    // After the 2-variant refactor, bare cross-indicator calls (sma, ema)
+    // resolve to the guarded variant (TA_SMA, TA_EMA), not Logic/INT.
     assert!(
-        c.contains("TA_INT_SMA("),
-        "C: MA should call TA_INT_SMA (sma_logic)"
+        c.contains("TA_SMA("),
+        "C: MA should call TA_SMA (guarded)"
     );
     assert!(
-        c.contains("TA_INT_EMA("),
-        "C: MA should call TA_INT_EMA (ema_logic)"
+        c.contains("TA_EMA("),
+        "C: MA should call TA_EMA (guarded)"
     );
 }
 
@@ -474,8 +480,10 @@ fn test_ma_java_cross_calls() {
         j.contains("emaLookback("),
         "Java: MA should call emaLookback"
     );
-    assert!(j.contains("smaLogic("), "Java: MA should call smaLogic");
-    assert!(j.contains("emaLogic("), "Java: MA should call emaLogic");
+    // After the 2-variant refactor, bare cross-indicator calls (sma, ema)
+    // resolve to the guarded variant (sma, ema), not Logic.
+    assert!(j.contains("sma("), "Java: MA should call sma (guarded)");
+    assert!(j.contains("ema("), "Java: MA should call ema (guarded)");
 }
 
 #[test]
@@ -484,7 +492,7 @@ fn test_ma_rust_cross_calls() {
     let out = generate_all(&func, &enums);
     let r = &out.rust;
 
-    // In Rust, cross-calls use self.{name}_unguarded for the algorithm
+    // Lookback calls remain the same.
     assert!(
         r.contains("self.sma_lookback("),
         "Rust: MA should call self.sma_lookback"
@@ -493,6 +501,8 @@ fn test_ma_rust_cross_calls() {
         r.contains("self.ema_lookback("),
         "Rust: MA should call self.ema_lookback"
     );
+    // The Rust backend renders bare cross-indicator calls (sma, ema) as _unguarded
+    // to avoid double-validation in cross-indicator dispatch.
     assert!(
         r.contains("self.sma_unguarded("),
         "Rust: MA should call self.sma_unguarded"
@@ -591,10 +601,11 @@ fn test_rust_sma_guarded_has_validation() {
     let out = generate_all(&func, &enums);
 
     // The guarded Rust function delegates to _unguarded, but first validates params.
+    // After 2-variant refactor: concrete f64 types, no generics.
     let guarded = extract_section(
         &out.rust,
-        "pub fn sma<T: TaFloat>",
-        "pub fn sma_unguarded<T: TaFloat>",
+        "pub fn sma(",
+        "pub fn sma_unguarded(",
     );
     assert!(
         guarded.contains("endIdx < startIdx"),
@@ -607,15 +618,15 @@ fn test_rust_sma_unguarded_omits_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // The unguarded function should not have the range check
+    // The unguarded function should not have the range check.
+    // After 2-variant refactor: concrete f64 types, no _unchecked variant.
     let unguarded_start = out
         .rust
-        .find("pub fn sma_unguarded<T: TaFloat>")
+        .find("pub fn sma_unguarded(")
         .expect("Missing sma_unguarded");
     let unguarded_section = &out.rust[unguarded_start..];
-    let end = unguarded_section
-        .find("pub unsafe fn sma_unchecked")
-        .unwrap_or(unguarded_section.len());
+    // No _unchecked variant anymore; use end of impl block or file as boundary
+    let end = unguarded_section.len();
     let unguarded = &unguarded_section[..end];
     assert!(
         !unguarded.contains("OutOfRangeStartIndex"),
@@ -1138,10 +1149,16 @@ fn test_rust_generic_output_smoke() {
     let out = generate_all(&func, &enums);
     let r = &out.rust;
 
-    // 1. Generic signatures present
+    // After the 2-variant refactor, Rust uses concrete f64 types, not generics.
+
+    // 1. Concrete f64 signatures present (no generics)
     assert!(
-        r.contains("<T: TaFloat>"),
-        "Rust SMA should use generic <T: TaFloat> signatures"
+        r.contains("pub fn sma("),
+        "Rust SMA should have pub fn sma("
+    );
+    assert!(
+        r.contains("pub fn sma_unguarded("),
+        "Rust SMA should have pub fn sma_unguarded("
     );
 
     // 2. No _s suffix methods
@@ -1150,27 +1167,35 @@ fn test_rust_generic_output_smoke() {
         "Rust SMA should NOT contain _s suffixed methods"
     );
 
-    // 3. Output params use generic T
+    // 3. Output params use concrete f64
     assert!(
-        r.contains("&mut [T]"),
-        "Rust SMA output params should use generic type &mut [T]"
+        r.contains("&mut [f64]"),
+        "Rust SMA output params should use concrete type &mut [f64]"
     );
 
-    // 4. Input params use generic T
+    // 4. Input params use concrete f64
     assert!(
-        r.contains("&[T]"),
-        "Rust SMA input params should use generic type &[T]"
+        r.contains("&[f64]"),
+        "Rust SMA input params should use concrete type &[f64]"
     );
 
-    // 5. No f64-specific function signatures (except lookback which is non-generic)
-    // The guarded/unguarded/unchecked functions should NOT have f64 in their signature
+    // 5. No _unchecked or _unguarded_unchecked variants
     assert!(
-        !r.contains("fn sma(&self") && !r.contains("pub fn sma(&self"),
-        "Rust SMA should use generic signature, not concrete f64"
+        !r.contains("fn sma_unchecked(") && !r.contains("fn sma_unchecked<"),
+        "Rust SMA should NOT contain _unchecked variants"
+    );
+    assert!(
+        !r.contains("fn sma_unguarded_unchecked(") && !r.contains("fn sma_unguarded_unchecked<"),
+        "Rust SMA should NOT contain _unguarded_unchecked variants"
     );
 
-    // 6. Verify also for an indicator with optional Real inputs (if any exist)
-    // For now SMA is sufficient as it covers the common case
+    // 6. Only 2 pub fn declarations (guarded + unguarded), plus lookback
+    let pub_fn_count = r.matches("pub fn sma").count();
+    assert_eq!(
+        pub_fn_count, 3,
+        "Rust SMA should have exactly 3 pub fn (sma, sma_unguarded, sma_lookback), got {}",
+        pub_fn_count
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -1663,8 +1688,8 @@ fn backends_render_max_min_fmax_fmin_abs() {
             flags: vec![],
         }],
         lookback: Some(LookbackExpr::Literal(0)),
-        body,
-        unguarded_body: vec![],
+        body: body.clone(),
+        unguarded_body: body,
         unguarded_extra_params: vec![],
         has_explicit_unguarded: false,
     };
@@ -1725,8 +1750,8 @@ fn backends_render_max_min_fmax_fmin_abs() {
         "Rust: min/fmin should render as .min(): {rust_out}"
     );
     assert!(
-        rust_out.contains(".ta_abs()") || rust_out.contains(".abs()"),
-        "Rust: ABS should render as .ta_abs() or .abs(): {rust_out}"
+        rust_out.contains(".abs()"),
+        "Rust: ABS should render as .abs(): {rust_out}"
     );
     // Rust must NOT emit bare ABS() free-function calls
     assert!(
@@ -1770,15 +1795,15 @@ fn backends_render_math_functions_idiomatically() {
         assert!(!java_wrong_fabs, "Java backend must not render Math.fabs");
     }
 
-    // Rust generic: method call syntax via TaFloat trait
+    // Rust: method call syntax on concrete f64 — .atan()
     assert!(
-        rust_out.contains(".ta_atan()"),
-        "Rust generic backend should render atan as .ta_atan() method call"
+        rust_out.contains(".atan()"),
+        "Rust backend should render atan as .atan() method call"
     );
-    // Rust must NOT produce bare atan() free-function calls (but .ta_atan() is fine)
+    // Rust must NOT produce bare atan() free-function calls (but .atan() is fine)
     let has_bare_atan = rust_out
         .match_indices("atan(")
-        .any(|(i, _)| !rust_out[..i].ends_with("ta_") && !rust_out[..i].ends_with('.'));
+        .any(|(i, _)| !rust_out[..i].ends_with('.'));
     assert!(
         !has_bare_atan,
         "Rust backend must not render math functions as free-function calls"
@@ -2133,6 +2158,18 @@ fn make_func_with_helper_call(
     call_name: &str,
     args: Vec<ir::Expr>,
 ) -> ir::FuncDef {
+    let body = vec![
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::Real,
+            name: "result".to_string(),
+            init: None,
+        },
+        ir::Statement::Assign {
+            target: ir::Expr::Var("result".to_string()),
+            value: ir::Expr::FuncCall(call_name.to_string(), args),
+            compound: false,
+        },
+    ];
     ir::FuncDef {
         name: "TEST".to_string(),
         group: "Test".to_string(),
@@ -2151,19 +2188,8 @@ fn make_func_with_helper_call(
             flags: vec![],
         }],
         lookback: Some(ir::LookbackExpr::Literal(0)),
-        body: vec![
-            ir::Statement::VarDecl {
-                var_type: ir::VarType::Real,
-                name: "result".to_string(),
-                init: None,
-            },
-            ir::Statement::Assign {
-                target: ir::Expr::Var("result".to_string()),
-                value: ir::Expr::FuncCall(call_name.to_string(), args),
-                compound: false,
-            },
-        ],
-        unguarded_body: vec![],
+        body: body.clone(),
+        unguarded_body: body,
         unguarded_extra_params: vec![],
         has_explicit_unguarded: false,
     }
@@ -2513,7 +2539,7 @@ fn candle_settings_unpacking_in_lookback() {
         "C lookback should contain candle settings unpacking"
     );
 
-    let rust_lookback_end = rust_out.find("pub fn cdl2crows<").unwrap();
+    let rust_lookback_end = rust_out.find("pub fn cdl2crows(").unwrap();
     let rust_lookback = &rust_out[..rust_lookback_end];
     assert!(
         rust_lookback.contains("self.candle_settings.body_long"),
