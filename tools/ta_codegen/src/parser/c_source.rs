@@ -954,6 +954,29 @@ impl Parser {
         }
     }
 
+    /// Check whether a variable name declared as `int` should be refined to
+    /// `VarType::Index` (array index / loop counter, always non-negative).
+    /// Variables that may hold negative values (sentinels, lookback totals,
+    /// optional params) stay as `VarType::Integer`.
+    fn is_index_var_name(name: &str) -> bool {
+        // Common loop counters
+        if matches!(name, "i" | "j" | "k") {
+            return true;
+        }
+        // Well-known index variables
+        if matches!(
+            name,
+            "outIdx" | "today" | "todayIdx" | "trailingIdx" | "inIdx" | "totIdx" | "idx"
+        ) {
+            return true;
+        }
+        // Variables ending in TrailingIdx (e.g. BodyLongTrailingIdx)
+        if name.ends_with("TrailingIdx") {
+            return true;
+        }
+        false
+    }
+
     fn parse_var_decl(&mut self) -> Vec<Statement> {
         let type_tok = self.advance();
         let var_type = match type_tok {
@@ -994,6 +1017,13 @@ impl Parser {
         let name = match self.advance() {
             Token::Ident(s) => s,
             other => panic!("Expected identifier in var decl, got {other:?}"),
+        };
+
+        // Refine int → Index for variables that are array indices / loop counters
+        let var_type = if var_type == VarType::Integer && Self::is_index_var_name(&name) {
+            VarType::Index
+        } else {
+            var_type
         };
 
         // Detect fixed-size array declarations: `double buf[SIZE]`
