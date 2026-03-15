@@ -2648,7 +2648,7 @@ fn render_expr(
             let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
             let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
             format!(
-                "if {} {{ {} }} else {{ {} }}",
+                "(if {} {{ {} }} else {{ {} }})",
                 cond_str, then_str, else_str
             )
         }
@@ -3150,32 +3150,11 @@ fn decompose_rust_array_ref(
     }
 }
 
-/// Known candle range types, used for constant-propagating the rangeType
-/// argument into inlined candlestick helper calls.
-#[derive(Clone, Copy)]
-enum CandleRangeKind {
-    /// rangeType 0: `(close - open).abs()`
-    RealBody,
-    /// rangeType 1: `high - low`
-    HighLow,
-    /// rangeType 2: `high - low - (close - open).abs()`
-    Shadows,
-}
-
-/// Determine the candle range kind from a variable name like `"BodyLong_rangeType"`.
-/// Returns `None` if the prefix doesn't match any known setting.
-fn candle_range_kind_from_var(var_name: &str) -> Option<CandleRangeKind> {
-    let prefix = var_name.strip_suffix("_rangeType")?;
-    if prefix.contains("Body") || prefix.contains("Doji") {
-        Some(CandleRangeKind::RealBody)
-    } else if prefix.contains("Shadow") {
-        Some(CandleRangeKind::Shadows)
-    } else if prefix.contains("Near") || prefix.contains("Far") || prefix.contains("Equal") {
-        Some(CandleRangeKind::HighLow)
-    } else {
-        None
-    }
-}
+// NOTE: Candle range types (rangeType 0=RealBody, 1=HighLow, 2=Shadows)
+// are configurable at runtime via candle settings, so we cannot
+// constant-propagate them at code-generation time. The codegen emits
+// runtime method calls (`self.ta_candlerange` / `self.ta_candleaverage`)
+// which dispatch on the actual rangeType value.
 
 #[allow(clippy::too_many_lines)]
 fn render_func_call(
@@ -3394,84 +3373,23 @@ fn render_func_call(
             "/* memset: bad args */".to_string()
         }
     } else if fname == "ta_candlerange" && args.len() == 5 {
-        // Inline ta_candlerange with constant-propagated rangeType.
-        // First arg is a Var like "BodyLong_rangeType" — extract the prefix to determine
-        // which branch to emit, eliminating the runtime match.
-        let range_kind = if let Expr::Var(ref name) = args[0] {
-            candle_range_kind_from_var(name)
-        } else {
-            None
-        };
-        let open = render_expr(&args[1], ctx, opt_real_params, registry, helpers);
-        let high = render_expr(&args[2], ctx, opt_real_params, registry, helpers);
-        let low = render_expr(&args[3], ctx, opt_real_params, registry, helpers);
-        let close = render_expr(&args[4], ctx, opt_real_params, registry, helpers);
-        match range_kind {
-            Some(CandleRangeKind::RealBody) => {
-                format!("(({close}) - ({open})).abs()")
-            }
-            Some(CandleRangeKind::HighLow) => {
-                format!("({high}) - ({low})")
-            }
-            Some(CandleRangeKind::Shadows) => {
-                format!("({high}) - ({low}) - (({close}) - ({open})).abs()")
-            }
-            None => {
-                // Unknown prefix — fall back to method call
-                let range_type =
-                    render_expr(&args[0], ctx, opt_real_params, registry, helpers);
-                format!(
-                    "self.ta_candlerange({}, {}, {}, {}, {})",
-                    range_type, open, high, low, close
-                )
-            }
-        }
+        // Emit runtime method call — rangeType is configurable, cannot constant-propagate.
+        let rendered_args: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .collect();
+        format!(
+            "self.ta_candlerange({}, {}, {}, {}, {})",
+            rendered_args[0], rendered_args[1], rendered_args[2],
+            rendered_args[3], rendered_args[4]
+        )
     } else if fname == "ta_candleaverage" && args.len() == 8 {
-        // Inline ta_candleaverage with constant-propagated rangeType.
-        // Args: rangeType, avgPeriod, factor, sum, open, high, low, close
-        let range_kind = if let Expr::Var(ref name) = args[0] {
-            candle_range_kind_from_var(name)
-        } else {
-            None
-        };
-        if let Some(kind) = range_kind {
-            let avg_period =
-                render_expr(&args[1], ctx, opt_real_params, registry, helpers);
-            let factor =
-                render_expr(&args[2], ctx, opt_real_params, registry, helpers);
-            let sum = render_expr(&args[3], ctx, opt_real_params, registry, helpers);
-            let open = render_expr(&args[4], ctx, opt_real_params, registry, helpers);
-            let high = render_expr(&args[5], ctx, opt_real_params, registry, helpers);
-            let low = render_expr(&args[6], ctx, opt_real_params, registry, helpers);
-            let close =
-                render_expr(&args[7], ctx, opt_real_params, registry, helpers);
-            let candlerange_expr = match kind {
-                CandleRangeKind::RealBody => {
-                    format!("(({close}) - ({open})).abs()")
-                }
-                CandleRangeKind::HighLow => format!("({high}) - ({low})"),
-                CandleRangeKind::Shadows => {
-                    format!(
-                        "({high}) - ({low}) - (({close}) - ({open})).abs()"
-                    )
-                }
-            };
-            let divisor = match kind {
-                CandleRangeKind::Shadows => "2.0",
-                _ => "1.0",
-            };
-            format!(
-                "{{ let _avg = if {avg_period} != 0 {{ ({sum}) / ({avg_period} as f64) }} \
-                 else {{ {candlerange_expr} }}; ({factor}) * _avg / {divisor} }}"
-            )
-        } else {
-            // Unknown prefix — fall back to method call
-            let rendered_args: Vec<String> = args
-                .iter()
-                .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
-                .collect();
-            format!("self.ta_candleaverage({})", rendered_args.join(", "))
-        }
+        // Emit runtime method call — rangeType is configurable, cannot constant-propagate.
+        let rendered_args: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .collect();
+        format!("self.ta_candleaverage({})", rendered_args.join(", "))
     } else if registry.contains(fname) {
         let rust_name = format!("{fname}_unguarded");
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
