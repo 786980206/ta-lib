@@ -13,9 +13,27 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
 
 #include "ta_libc.h"
 #include "ta_abstract.h"
+
+/* ---- High-resolution nanosecond timer ---- */
+static long long get_nanotime(void) {
+#ifdef __APPLE__
+    static mach_timebase_info_data_t info = {0, 0};
+    if( info.denom == 0 ) mach_timebase_info(&info);
+    uint64_t t = mach_absolute_time();
+    return (long long)(t * info.numer / info.denom);
+#else
+    struct timespec ts;
+    if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 )
+        return (long long)ts.tv_sec * 1000000000LL + (long long)ts.tv_nsec;
+    return 0;
+#endif
+}
 
 /* ---- Language definitions ---- */
 
@@ -807,16 +825,20 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     /* Set up output buffers */
     setup_outputs(&params);
 
-    /* Measure C reference call once for timing baseline */
+    /* Warmup C reference call (cache priming) */
     TA_Integer begIdx  = 0;
     TA_Integer nbElem  = 0;
-    clock_t c_t0 = clock();
     TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
-    clock_t c_t1 = clock();
-    double c_avg_us = (c_t1 > c_t0 && CLOCKS_PER_SEC > 0)
-                      ? (double)(c_t1 - c_t0) / (double)CLOCKS_PER_SEC * 1e6
-                      : 0.0;
-    params.c_ref_total_ns = (long long)((double)(c_t1 - c_t0) / (double)CLOCKS_PER_SEC * 1e9);
+
+    /* Measure C reference call with high-resolution timer */
+    begIdx = 0;
+    nbElem = 0;
+    long long c_ns0 = get_nanotime();
+    TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
+    long long c_ns1 = get_nanotime();
+    long long c_elapsed_ns = c_ns1 - c_ns0;
+    double c_avg_us = (double)c_elapsed_ns / 1000.0;
+    params.c_ref_total_ns = c_elapsed_ns;
 
     /* Save C reference results for codegen comparison */
     params.lastRetCode  = TA_SUCCESS;
