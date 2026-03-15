@@ -121,6 +121,7 @@ impl Core {
         let mut rocLookback: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElementToOutput: usize = 0_usize;
+    unsafe {
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;
@@ -135,7 +136,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
         tempBuffer = vec![0.0_f64; (nbElementToOutput * 1) as usize];
-        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -143,27 +144,28 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
+        retCode = self.roc(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

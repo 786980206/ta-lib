@@ -180,6 +180,7 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut bufferIsAllocated: usize = 0_usize;
+    unsafe {
         lookbackK = (optInFastK_Period - 1) as usize;
         lookbackKSlow = self.ma_lookback(optInSlowK_Period, optInSlowK_MAType);
         lookbackDSlow = self.ma_lookback(optInSlowD_Period, optInSlowD_MAType);
@@ -254,7 +255,7 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
+        retCode = self.ma(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
@@ -262,7 +263,7 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ma_unguarded(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+        retCode = self.ma(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
         {
             let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;
@@ -278,6 +279,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

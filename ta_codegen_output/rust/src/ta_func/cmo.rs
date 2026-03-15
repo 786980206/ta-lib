@@ -129,6 +129,7 @@ impl Core {
         let mut tempValue2: f64 = 0.0_f64;
         let mut tempValue3: f64 = 0.0_f64;
         let mut tempValue4: f64 = 0.0_f64;
+    unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);
@@ -253,6 +254,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

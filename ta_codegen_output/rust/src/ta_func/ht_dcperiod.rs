@@ -154,6 +154,7 @@ impl Core {
         let mut rad2Deg: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
+    unsafe {
         a = 0.0962;
         b = 0.5769;
         rad2Deg = 180.0 / (4.0 * (1_f64).atan());
@@ -371,6 +372,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

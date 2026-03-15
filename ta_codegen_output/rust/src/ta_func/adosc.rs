@@ -159,6 +159,7 @@ impl Core {
         let mut fastk: f64 = 0.0_f64;
         let mut one_minus_fastk: f64 = 0.0_f64;
         let mut ad: f64 = 0.0_f64;
+    unsafe {
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = (optInSlowPeriod) as usize;
         } else {
@@ -218,6 +219,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

@@ -123,6 +123,7 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
+    unsafe {
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -156,6 +157,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

@@ -413,19 +413,31 @@ fn gen_guarded_func(
             .map(|o| o.name.clone())
             .collect();
         let g_inline_counter = std::cell::Cell::new(0);
+        // For explicit guarded bodies, emit VarDecls as let bindings first
+        for stmt in &func.body {
+            if let Statement::VarDecl { var_type, name, init } = stmt {
+                let rust_type = match var_type {
+                    VarType::Real => "f64",
+                    VarType::Integer | VarType::Index => "i32",
+                    _ => "f64",
+                };
+                if let Some(init_expr) = init {
+                    let rendered = render_expr(init_expr, &g_ctx, &g_opt_real_params, registry, helpers);
+                    out.push_str(&format!("        let {name}: {rust_type} = {rendered};\n"));
+                } else {
+                    out.push_str(&format!("        let mut {name}: {rust_type} = 0 as {rust_type};\n"));
+                }
+            }
+        }
+        // Render non-VarDecl statements
         for stmt in &func.body {
             if matches!(stmt, Statement::VarDecl { .. }) {
-                // Render VarDecl for guarded body
-                out.push_str(&render_statement(
-                    stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
-                    &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
-                ));
-            } else {
-                out.push_str(&render_statement(
-                    stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
-                    &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
-                ));
+                continue;
             }
+            out.push_str(&render_statement(
+                stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
+                &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
+            ));
         }
     } else {
         // Auto-generated: delegate to unguarded with same params (no extra params)
@@ -603,6 +615,11 @@ fn gen_unguarded_func(
 
     let inline_counter = Cell::new(0);
 
+    // Wrap entire body in unsafe block when using get_unchecked
+    if ctx.unchecked {
+        out.push_str("    unsafe {\n");
+    }
+
     // Emit VarDecl initializations only when there's no body assignment for the same var
     for stmt in &func.body {
         if let Statement::VarDecl {
@@ -655,6 +672,11 @@ fn gen_unguarded_func(
             helpers,
             &inline_counter,
         ));
+    }
+
+    // Close unsafe block
+    if ctx.unchecked {
+        out.push_str("    } // unsafe\n");
     }
 
     out.push_str("    }\n");
@@ -3394,9 +3416,13 @@ fn render_func_call(
              ({factor}) * _avg / _div }}"
         )
     } else if registry.contains(fname) {
-        let rust_name = format!("{fname}_unguarded");
+        // Bare cross-indicator calls go to guarded variant (handles validation + pre-compute)
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}({})", rust_name, rendered_args.join(", "))
+        format!("self.{}({})", fname, rendered_args.join(", "))
+    } else if fname.ends_with("_unguarded") {
+        // Explicit _unguarded cross-indicator call (e.g., ema_unguarded with extra params)
+        let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
+        format!("self.{}({})", fname, rendered_args.join(", "))
     } else if is_ta_function(fname) {
         let rust_name = fname.to_lowercase();
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);

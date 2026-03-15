@@ -123,6 +123,7 @@ impl Core {
         let mut ep: f64 = 0.0_f64;
         let mut sar: f64 = 0.0_f64;
         let mut ep_temp: [f64; 1 as usize] = [0.0_f64; 1 as usize];
+    unsafe {
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -137,7 +138,7 @@ impl Core {
             af = optInAcceleration;
         }
         let mut _dup_out: usize = 0_usize;
-        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
+        retCode = self.minus_dm(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
         if (*ep_temp.get_unchecked(0)) > 0_f64 {
             isLong = 0;
         } else {
@@ -244,6 +245,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

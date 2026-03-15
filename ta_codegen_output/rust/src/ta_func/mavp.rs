@@ -144,6 +144,7 @@ impl Core {
         let mut localBegIdx: usize = 0_usize;
         let mut localNbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+    unsafe {
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -183,7 +184,7 @@ impl Core {
         while i < outputSize {
             curPeriod = ((*localPeriodArray.get_unchecked(i))) as usize;
             if curPeriod != 0 {
-                retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
+                retCode = self.ma(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
                     (*outBegIdx) = 0;
                     (*outNBElement) = 0;
@@ -205,6 +206,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

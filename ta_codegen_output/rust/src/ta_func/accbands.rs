@@ -138,6 +138,7 @@ impl Core {
         let mut bufferSize: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
+    unsafe {
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -167,19 +168,19 @@ impl Core {
             i += 1;
             j += 1;
         }
-        retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
+        retCode = self.sma(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
+        retCode = self.sma(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
+        retCode = self.sma(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
         if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -188,6 +189,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

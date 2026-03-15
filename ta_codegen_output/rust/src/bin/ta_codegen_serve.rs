@@ -2699,7 +2699,7 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
             let start_time = Instant::now();
-            let rc = core.ema_unguarded(
+            let rc = core.ema(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,

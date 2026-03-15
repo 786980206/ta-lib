@@ -114,6 +114,7 @@ impl Core {
         let mut inIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
+    unsafe {
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }
@@ -131,6 +132,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

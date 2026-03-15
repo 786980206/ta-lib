@@ -137,6 +137,7 @@ impl Core {
         let mut sumDX: f64 = 0.0_f64;
         let mut prevADX: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
+    unsafe {
         lookbackTotal = (2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -310,6 +311,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

@@ -112,6 +112,7 @@ impl Core {
         let mut tempCY: f64 = 0.0_f64;
         let mut tempLT: f64 = 0.0_f64;
         let mut tempHT: f64 = 0.0_f64;
+    unsafe {
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -141,6 +142,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

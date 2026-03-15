@@ -76590,7 +76590,7 @@ class Core {
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          return macd(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+          return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
        }
        public RetCode macdfixLogic( int startIdx,
                                     int endIdx,
@@ -76602,7 +76602,7 @@ class Core {
                                     double outMACDSignal[],
                                     double outMACDHist[] )
        {
-          return macd(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+          return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
        }
        public RetCode macdfix( int startIdx,
                                int endIdx,
@@ -76620,7 +76620,7 @@ class Core {
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          return macd(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+          return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
        }
        public RetCode macdfixLogic( int startIdx,
                                     int endIdx,
@@ -76632,7 +76632,7 @@ class Core {
                                     double outMACDSignal[],
                                     double outMACDHist[] )
        {
-          return macd(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
+          return macdLogic(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist) ;
        }
 
        public int mamaLookback( double optInFastLimit, double optInSlowLimit )

@@ -114,6 +114,7 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookback: usize = 0_usize;
+    unsafe {
         lookback = (optInTimePeriod - 1) as usize;
         if startIdx < lookback {
             startIdx = lookback;
@@ -150,6 +151,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

@@ -128,6 +128,7 @@ impl Core {
         let mut outNbElement1: usize = 0_usize;
         let mut prevATR: f64 = 0.0_f64;
         let mut tempBuffer: Vec<f64> = Vec::new();
+    unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.atr_lookback(optInTimePeriod);
@@ -138,14 +139,14 @@ impl Core {
             return RetCode::Success;
         }
         if optInTimePeriod <= 1 {
-            return self.trange_unguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
+            return self.trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
         }
         tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
-        retCode = self.trange_unguarded(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
+        retCode = self.trange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
         if retCode != RetCode::Success {
             return retCode;
         }
-        retCode = self.sma_unguarded((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
+        retCode = self.sma((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
         if retCode != RetCode::Success {
             return retCode;
         }
@@ -169,6 +170,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return retCode;
+    } // unsafe
     }
 }
 /* Generated */

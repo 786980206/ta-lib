@@ -168,6 +168,7 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSignal: usize = 0_usize;
         let mut i: usize = 0_usize;
+    unsafe {
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -200,13 +201,13 @@ impl Core {
         fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
-        retCode = ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -229,7 +230,7 @@ impl Core {
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
-        retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
+        retCode = self.ema(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -244,6 +245,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

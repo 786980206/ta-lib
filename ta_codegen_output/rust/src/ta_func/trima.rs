@@ -122,6 +122,7 @@ impl Core {
         let mut middleIdx: usize = 0_usize;
         let mut factor: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
+    unsafe {
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -222,6 +223,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

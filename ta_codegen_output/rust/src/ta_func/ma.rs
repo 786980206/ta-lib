@@ -155,6 +155,7 @@ impl Core {
         let mut nbElement: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut todayIdx: usize = 0_usize;
+    unsafe {
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
@@ -171,38 +172,39 @@ impl Core {
         }
         match optInMAType {
             0 => {
-                retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             1 => {
-                retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             2 => {
-                retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             3 => {
-                retCode = self.dema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             4 => {
-                retCode = self.tema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             5 => {
-                retCode = self.trima_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             6 => {
-                retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
                 dummyBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
-                retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
+                retCode = self.mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }
             8 => {
-                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+                retCode = self.t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
             }
             _ => {
                 retCode = RetCode::BadParam;
             }
         }
         return retCode;
+    } // unsafe
     }
 }
 /* Generated */

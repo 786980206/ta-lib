@@ -138,6 +138,7 @@ impl Core {
         let mut tempReal2: f64 = 0.0_f64;
         let mut tempBuffer1: Vec<f64> = Vec::new();
         let mut tempBuffer2: Vec<f64> = Vec::new();
+    unsafe {
         if inReal == outRealUpperBand {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();
@@ -154,7 +155,7 @@ impl Core {
         if tempBuffer1 == inReal || tempBuffer2 == inReal {
             return RetCode::BadParam;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
+        retCode = self.ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             return retCode;
@@ -200,7 +201,7 @@ impl Core {
                 _endSum += 1;
             }
         } else {
-            retCode = self.stddev_unguarded((((*outBegIdx)) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
+            retCode = self.stddev((((*outBegIdx)) as usize) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
@@ -268,6 +269,7 @@ impl Core {
             }
         }
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

@@ -126,6 +126,7 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut highestIdx: i32 = 0_i32;
         let mut lowestIdx: i32 = 0_i32;
+    unsafe {
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
@@ -184,6 +185,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

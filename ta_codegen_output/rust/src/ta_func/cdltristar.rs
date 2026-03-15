@@ -125,6 +125,7 @@ impl Core {
         let BodyDoji_avgPeriod: i32 = self.candle_settings.body_doji.avg_period;
         #[allow(non_snake_case)]
         let BodyDoji_factor: f64 = self.candle_settings.body_doji.factor;
+    unsafe {
         lookbackTotal = self.cdltristar_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -209,6 +210,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

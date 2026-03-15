@@ -130,6 +130,7 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut nbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
+    unsafe {
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;
@@ -140,7 +141,7 @@ impl Core {
             return RetCode::Success;
         }
         adx = vec![0.0_f64; ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
-        retCode = self.adx_unguarded((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
+        retCode = self.adx((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
         if retCode != RetCode::Success {
             return retCode;
         }
@@ -154,6 +155,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
+    } // unsafe
     }
 }
 /* Generated */

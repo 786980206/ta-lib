@@ -138,15 +138,16 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
+    unsafe {
         tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
+        retCode = self.ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
         if retCode == RetCode::Success {
-            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
+            retCode = self.ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
             if retCode == RetCode::Success {
                 tempInteger = outBegIdx1 - outBegIdx2;
                 // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
@@ -162,6 +163,7 @@ impl Core {
             }
         }
         return retCode;
+    } // unsafe
     }
 }
 /* Generated */

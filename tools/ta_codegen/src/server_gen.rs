@@ -1982,10 +1982,17 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         // Timing
         s.push_str("            let start_time = Instant::now();\n");
 
-        // Call the unguarded variant (no bounds checks, no param validation — server handles that)
-        s.push_str(&format!(
-            "            let rc = core.{fn_name}_unguarded(\n"
-        ));
+        // Call the unguarded variant (no param validation — server handles that).
+        // For functions with extra unguarded params (e.g., EMA's k), use guarded instead.
+        if func.has_explicit_unguarded {
+            s.push_str(&format!(
+                "            let rc = core.{fn_name}(\n"
+            ));
+        } else {
+            s.push_str(&format!(
+                "            let rc = core.{fn_name}_unguarded(\n"
+            ));
+        }
         s.push_str("                startIdx, endIdx,\n");
 
         // Input arrays (pass as slices)
