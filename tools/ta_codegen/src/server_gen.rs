@@ -1769,3 +1769,326 @@ pub fn generate_swig_server(funcs: &[FuncDef]) -> String {
 
     s
 }
+
+/// Format a default f64 value for Rust source code.
+/// Ensures integers get a `.0` suffix so they're valid f64 literals.
+fn format_default_f64(v: f64) -> String {
+    if (v - v.floor()).abs() < f64::EPSILON && v.abs() < 1e15 && !v.is_nan() && !v.is_infinite() {
+        format!("{v:.1}")
+    } else {
+        format!("{v}")
+    }
+}
+
+/// Generate a Rust JSON-RPC server source file.
+///
+/// The generated file is a standalone binary that imports from the `ta_lib` crate.
+/// It reads JSON-RPC requests from stdin, dispatches to the generated TA function
+/// implementations, and writes JSON responses to stdout.
+#[allow(clippy::too_many_lines)]
+pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
+    let mut s = String::new();
+
+    // File-level attributes
+    s.push_str("#![allow(non_snake_case, unused_variables, clippy::all)]\n\n");
+
+    // Imports
+    s.push_str("use serde_json::{self, Value};\n");
+    s.push_str("use std::io::{self, BufRead, Write};\n");
+    s.push_str("use std::time::Instant;\n");
+    s.push_str("use ta_lib::{Core, RetCode, FuncUnstId, Compatibility, TaFloat};\n\n");
+
+    // Helper: parse f64 array from JSON value
+    s.push_str("fn parse_f64_array(val: &Value) -> Vec<f64> {\n");
+    s.push_str("    match val.as_array() {\n");
+    s.push_str("        Some(arr) => arr.iter().filter_map(|v| v.as_f64()).collect(),\n");
+    s.push_str("        None => Vec::new(),\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
+    // Helper: RetCode to integer
+    s.push_str("fn retcode_to_int(rc: RetCode) -> i32 {\n");
+    s.push_str("    match rc {\n");
+    s.push_str("        RetCode::Success => 0,\n");
+    s.push_str("        RetCode::BadParam => 2,\n");
+    s.push_str("        RetCode::AllocErr => 3,\n");
+    s.push_str("        RetCode::InternalError => 5000,\n");
+    s.push_str("        RetCode::OutOfRangeStartIndex => 12,\n");
+    s.push_str("        RetCode::OutOfRangeEndIndex => 13,\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
+    // Helper: FuncUnstId from integer
+    s.push_str("fn func_unst_id_from_int(id: usize) -> Option<FuncUnstId> {\n");
+    s.push_str("    match id {\n");
+    s.push_str("        0 => Some(FuncUnstId::Adx),\n");
+    s.push_str("        1 => Some(FuncUnstId::Adxr),\n");
+    s.push_str("        2 => Some(FuncUnstId::Atr),\n");
+    s.push_str("        3 => Some(FuncUnstId::Cmo),\n");
+    s.push_str("        4 => Some(FuncUnstId::Dx),\n");
+    s.push_str("        5 => Some(FuncUnstId::Ema),\n");
+    s.push_str("        6 => Some(FuncUnstId::HtDcPeriod),\n");
+    s.push_str("        7 => Some(FuncUnstId::HtDcPhase),\n");
+    s.push_str("        8 => Some(FuncUnstId::HtPhasor),\n");
+    s.push_str("        9 => Some(FuncUnstId::HtSine),\n");
+    s.push_str("        10 => Some(FuncUnstId::HtTrendline),\n");
+    s.push_str("        11 => Some(FuncUnstId::HtTrendMode),\n");
+    s.push_str("        12 => Some(FuncUnstId::Imi),\n");
+    s.push_str("        13 => Some(FuncUnstId::Kama),\n");
+    s.push_str("        14 => Some(FuncUnstId::Mama),\n");
+    s.push_str("        15 => Some(FuncUnstId::Mfi),\n");
+    s.push_str("        16 => Some(FuncUnstId::MinusDI),\n");
+    s.push_str("        17 => Some(FuncUnstId::MinusDM),\n");
+    s.push_str("        18 => Some(FuncUnstId::Natr),\n");
+    s.push_str("        19 => Some(FuncUnstId::PlusDI),\n");
+    s.push_str("        20 => Some(FuncUnstId::PlusDM),\n");
+    s.push_str("        21 => Some(FuncUnstId::Rsi),\n");
+    s.push_str("        22 => Some(FuncUnstId::StochRsi),\n");
+    s.push_str("        23 => Some(FuncUnstId::T3),\n");
+    s.push_str("        _ => None,\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
+    // handle_request function
+    s.push_str("fn handle_request(core: &mut Core, line: &str) -> String {\n");
+    s.push_str("    let req: Value = match serde_json::from_str(line) {\n");
+    s.push_str("        Ok(v) => v,\n");
+    s.push_str(
+        "        Err(e) => return format!(\"{{\\\"error\\\":\\\"Parse error: {}\\\"}}\", e),\n",
+    );
+    s.push_str("    };\n");
+    s.push_str("    let method = match req[\"method\"].as_str() {\n");
+    s.push_str("        Some(m) => m,\n");
+    s.push_str(
+        "        None => return \"{\\\"error\\\":\\\"Missing method field\\\"}\".to_string(),\n",
+    );
+    s.push_str("    };\n");
+    s.push_str("    let params = &req[\"params\"];\n\n");
+
+    // Dispatch match
+    s.push_str("    match method {\n");
+
+    // Per-function dispatch
+    for func in funcs {
+        let method_name = format!("TA_{}", func.name);
+        let fn_name = func.name.to_lowercase();
+
+        s.push_str(&format!("        \"{method_name}\" => {{\n"));
+
+        // Parse startIdx, endIdx
+        s.push_str(
+            "            let startIdx = params[\"startIdx\"].as_u64().unwrap_or(0) as usize;\n",
+        );
+        s.push_str(
+            "            let endIdx = params[\"endIdx\"].as_u64().unwrap_or(0) as usize;\n",
+        );
+
+        // Parse input arrays
+        let input_names = expand_input_names(&func.inputs);
+        for name in &input_names {
+            s.push_str(&format!(
+                "            let {name}: Vec<f64> = parse_f64_array(&params[\"{name}\"]);\n"
+            ));
+        }
+
+        // Parse optional params
+        for opt in &func.optional_inputs {
+            let default_val = opt.default.unwrap_or(0.0);
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "            let {} = params[\"{}\"].as_f64().unwrap_or({}) as f64;\n",
+                    opt.name,
+                    opt.name,
+                    format_default_f64(default_val)
+                ));
+            } else {
+                #[allow(clippy::cast_possible_truncation)]
+                let default_i = default_val as i64;
+                s.push_str(&format!(
+                    "            let {} = params[\"{}\"].as_i64().unwrap_or({}) as i32;\n",
+                    opt.name, opt.name, default_i
+                ));
+            }
+        }
+
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str("            if let Some(period) = params[\"unstablePeriod\"].as_i64() {\n");
+            s.push_str(&format!(
+                "                core.unstable_period[{id}] = period as i32;\n"
+            ));
+            s.push_str("            }\n");
+        }
+
+        // Allocate output buffers
+        // Size: endIdx - startIdx + 1 is a reasonable upper bound
+        s.push_str("            let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };\n");
+        let outputs = &func.outputs;
+        let mut real_idx = 0usize;
+        let mut int_idx = 0usize;
+        for out in outputs {
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "            let mut outIntBuf{int_idx}: Vec<i32> = vec![0i32; out_size];\n"
+                ));
+                int_idx += 1;
+            } else {
+                s.push_str(&format!(
+                    "            let mut outBuf{real_idx}: Vec<f64> = vec![0.0f64; out_size];\n"
+                ));
+                real_idx += 1;
+            }
+        }
+
+        // Declare output scalars
+        s.push_str("            let mut outBegIdx: usize = 0;\n");
+        s.push_str("            let mut outNBElement: usize = 0;\n");
+
+        // Timing
+        s.push_str("            let start_time = Instant::now();\n");
+
+        // Call the function
+        s.push_str(&format!(
+            "            let rc = core.{fn_name}::<f64>(\n"
+        ));
+        s.push_str("                startIdx, endIdx,\n");
+
+        // Input arrays (pass as slices)
+        for name in &input_names {
+            s.push_str(&format!("                &{name},\n"));
+        }
+
+        // Optional params
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("                {},\n", opt.name));
+        }
+
+        // Output scalar params + output arrays
+        s.push_str("                &mut outBegIdx, &mut outNBElement");
+        real_idx = 0;
+        int_idx = 0;
+        for out in outputs {
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(", &mut outIntBuf{int_idx}"));
+                int_idx += 1;
+            } else {
+                s.push_str(&format!(", &mut outBuf{real_idx}"));
+                real_idx += 1;
+            }
+        }
+        s.push_str(",\n");
+        s.push_str("            );\n");
+
+        // Calculate elapsed
+        s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64;\n");
+
+        // Build response JSON
+        s.push_str("            let mut resp = serde_json::json!({\n");
+        s.push_str("                \"retCode\": retcode_to_int(rc),\n");
+        s.push_str("                \"outBegIdx\": outBegIdx,\n");
+        s.push_str("                \"outNBElement\": outNBElement,\n");
+        s.push_str("                \"timing_ns\": elapsed_ns,\n");
+        s.push_str("            });\n");
+
+        // Add output arrays to response
+        real_idx = 0;
+        int_idx = 0;
+        for (k, out) in outputs.iter().enumerate() {
+            let key = output_json_key(outputs, k);
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "            resp[\"{key}\"] = serde_json::json!(&outIntBuf{int_idx}[..outNBElement]);\n"
+                ));
+                int_idx += 1;
+            } else {
+                s.push_str(&format!(
+                    "            resp[\"{key}\"] = serde_json::json!(&outBuf{real_idx}[..outNBElement]);\n"
+                ));
+                real_idx += 1;
+            }
+        }
+
+        s.push_str("            resp.to_string()\n");
+        s.push_str("        }\n");
+    }
+
+    // list_functions method
+    s.push_str("        \"list_functions\" => {\n");
+    s.push_str("            let funcs: Vec<&str> = vec![\n");
+    for func in funcs {
+        s.push_str(&format!("                \"TA_{}\",\n", func.name));
+    }
+    s.push_str("            ];\n");
+    s.push_str(
+        "            serde_json::json!({ \"functions\": funcs }).to_string()\n",
+    );
+    s.push_str("        }\n");
+
+    // set_unstable_period method
+    s.push_str("        \"set_unstable_period\" => {\n");
+    s.push_str(
+        "            let id = params[\"id\"].as_u64().unwrap_or(99) as usize;\n",
+    );
+    s.push_str(
+        "            let period = params[\"period\"].as_i64().unwrap_or(0) as i32;\n",
+    );
+    s.push_str(
+        "            if id < FuncUnstId::FuncUnstAll as usize {\n",
+    );
+    s.push_str("                core.unstable_period[id] = period;\n");
+    s.push_str(
+        "                \"{\\\"status\\\":\\\"ok\\\"}\".to_string()\n",
+    );
+    s.push_str("            } else {\n");
+    s.push_str(
+        "                \"{\\\"error\\\":\\\"Invalid unstable period id\\\"}\".to_string()\n",
+    );
+    s.push_str("            }\n");
+    s.push_str("        }\n");
+
+    // set_compatibility method
+    s.push_str("        \"set_compatibility\" => {\n");
+    s.push_str(
+        "            let mode = params[\"mode\"].as_u64().unwrap_or(0);\n",
+    );
+    s.push_str("            core.compatibility = match mode {\n");
+    s.push_str("                1 => Compatibility::Metastock,\n");
+    s.push_str("                _ => Compatibility::Default,\n");
+    s.push_str("            };\n");
+    s.push_str(
+        "            \"{\\\"status\\\":\\\"ok\\\"}\".to_string()\n",
+    );
+    s.push_str("        }\n");
+
+    // Unknown method
+    s.push_str("        _ => {\n");
+    s.push_str(
+        "            format!(\"{{\\\"error\\\":\\\"Unknown method: {}\\\"}}\", method)\n",
+    );
+    s.push_str("        }\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
+    // Main function
+    s.push_str("fn main() {\n");
+    s.push_str("    let mut core = Core::new();\n");
+    s.push_str("    let stdin = io::stdin();\n");
+    s.push_str("    let stdout = io::stdout();\n");
+    s.push_str("    let mut stdout = stdout.lock();\n");
+    s.push_str("    for line in stdin.lock().lines() {\n");
+    s.push_str("        let line = match line {\n");
+    s.push_str("            Ok(l) => l,\n");
+    s.push_str("            Err(_) => break,\n");
+    s.push_str("        };\n");
+    s.push_str("        let line = line.trim();\n");
+    s.push_str("        if line.is_empty() {\n");
+    s.push_str("            continue;\n");
+    s.push_str("        }\n");
+    s.push_str("        let resp = handle_request(&mut core, line);\n");
+    s.push_str("        writeln!(stdout, \"{}\", resp).ok();\n");
+    s.push_str("        stdout.flush().ok();\n");
+    s.push_str("    }\n");
+    s.push_str("}\n");
+
+    s
+}

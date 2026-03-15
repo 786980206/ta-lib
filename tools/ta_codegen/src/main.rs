@@ -197,7 +197,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     let backends_to_run: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
-        None => vec!["c", "java", "dotnet", "swig"],
+        None => vec!["c", "java", "dotnet", "swig", "rust"],
     };
 
     let out_base = Path::new("../../ta_codegen_output");
@@ -254,7 +254,12 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  SWIG/Python server -> {}", path.display());
             }
             "rust" => {
-                println!("  Rust server: skipping (no server target)");
+                let rust_bin_dir = Path::new("../../rust/src/bin");
+                std::fs::create_dir_all(rust_bin_dir).unwrap();
+                let output = server_gen::generate_rust_server(&funcs);
+                let path = rust_bin_dir.join("ta_codegen_serve.rs");
+                std::fs::write(&path, &output).unwrap();
+                println!("  Rust server -> {}", path.display());
             }
             _ => {
                 eprintln!("Unknown backend: {}", backend);
@@ -271,7 +276,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
 fn build_servers(backend_filter: Option<&str>) {
     let backends_to_build: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
-        None => vec!["c", "java", "dotnet", "swig"],
+        None => vec!["c", "java", "dotnet", "swig", "rust"],
     };
 
     let out_base = Path::new("../../ta_codegen_output");
@@ -499,7 +504,25 @@ fn build_servers(backend_filter: Option<&str>) {
                 println!("  SWIG/Python server installed");
             }
             "rust" => {
-                println!("  Rust server: skipping (no server target)");
+                print!("  Building Rust server... ");
+                let rust_dir = Path::new("../../rust");
+                match std::process::Command::new("cargo")
+                    .args(["build", "--release", "--bin", "ta_codegen_serve"])
+                    .current_dir(rust_dir)
+                    .status()
+                {
+                    Ok(s) if s.success() => {
+                        let src = rust_dir.join("target/release/ta_codegen_serve");
+                        let dst = bin_dir.join("ta_codegen_serve_rust");
+                        if let Err(e) = std::fs::copy(&src, &dst) {
+                            println!("OK (build), FAILED (copy: {})", e);
+                        } else {
+                            println!("OK");
+                        }
+                    }
+                    Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+                    Err(e) => println!("FAILED (cargo not found: {})", e),
+                }
             }
             _ => {
                 eprintln!("  Unknown backend: {}", backend);
