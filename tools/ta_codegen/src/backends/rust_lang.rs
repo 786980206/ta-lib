@@ -40,6 +40,10 @@ pub struct RustRenderCtx {
     /// If true, we're inside a lookback function (returns usize, not RetCode).
     /// Return values that are i32-typed will be cast to usize.
     pub is_lookback: bool,
+    /// Variable names that are assigned negative values (e.g., `highestIdx = -1`).
+    /// These are declared as `i32` instead of `usize` to preserve sentinel semantics.
+    /// When used as array indices, they get `as usize` casts.
+    pub sentinel_vars: std::collections::HashSet<String>,
 }
 
 impl RustRenderCtx {
@@ -54,6 +58,7 @@ impl RustRenderCtx {
             int_output_names: std::collections::HashSet::new(),
             int_vec_vars: std::collections::HashSet::new(),
             is_lookback: false,
+            sentinel_vars: std::collections::HashSet::new(),
         }
     }
 }
@@ -163,6 +168,14 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     index_vars.insert("outBegIdx".to_string());
     index_vars.insert("outNBElement".to_string());
 
+    // Pre-scan for sentinel variables (assigned -1) — these must be i32, not usize
+    let mut sentinel_vars = std::collections::HashSet::new();
+    collect_sentinel_vars(&func.body, &mut sentinel_vars);
+    // Remove sentinel vars from index_vars — they're i32, not usize
+    for sv in &sentinel_vars {
+        index_vars.remove(sv);
+    }
+
     // Collect integer output names for i32 cast detection
     let int_output_set: std::collections::HashSet<String> = func.outputs.iter()
         .filter(|o| o.param_type == ParamType::Integer)
@@ -180,6 +193,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         int_output_names: int_output_set.clone(),
         int_vec_vars: int_vec_vars.clone(),
         is_lookback: false,
+        sentinel_vars: sentinel_vars.clone(),
     };
     out.push_str(&gen_unguarded_func(
         func, &snake, &safe_ctx, enums, registry, helpers,
@@ -199,6 +213,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         int_output_names: int_output_set,
         int_vec_vars,
         is_lookback: false,
+        sentinel_vars,
     };
     out.push_str(&gen_unguarded_func(
         func,
@@ -476,11 +491,15 @@ fn gen_unguarded_func(
                     ));
                 }
                 _ => {
+                    // Sentinel vars (assigned -1) are i32, not usize
+                    let is_sentinel = ctx.sentinel_vars.contains(name);
                     let rust_type = match var_type {
                         VarType::Real => {
                             if ctx.generic { "T" } else { "f64" }
                         }
-                        VarType::Integer | VarType::Index => "usize",
+                        VarType::Integer | VarType::Index => {
+                            if is_sentinel { "i32" } else { "usize" }
+                        }
                         VarType::RetCodeType => "RetCode",
                         VarType::RealPointer => {
                             if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
@@ -493,7 +512,9 @@ fn gen_unguarded_func(
                         VarType::Real => {
                             if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
                         }
-                        VarType::Integer | VarType::Index => "0_usize",
+                        VarType::Integer | VarType::Index => {
+                            if is_sentinel { "0_i32" } else { "0_usize" }
+                        }
                         VarType::RetCodeType => "RetCode::Success",
                         VarType::RealPointer => "Vec::new()",
                         VarType::IntPointer => "Vec::new()",
@@ -758,6 +779,79 @@ fn collect_var_types(
                     collect_var_types(case_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
                 }
                 collect_var_types(default, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
+            }
+            _ => {}
+        }
+    }
+}
+
+/// Check if an expression is `0 - 1` (unary minus parsed as `BinOp(IntLiteral(0), Sub, IntLiteral(1))`).
+fn is_negative_one(expr: &Expr) -> bool {
+    matches!(
+        expr,
+        Expr::BinOp(left, BinOp::Sub, right)
+            if matches!(left.as_ref(), Expr::IntLiteral(0))
+            && matches!(right.as_ref(), Expr::IntLiteral(1))
+    )
+}
+
+/// Pre-scan function body for variables assigned negative values (sentinel pattern).
+fn collect_sentinel_vars(
+    body: &[Statement],
+    sentinel_vars: &mut std::collections::HashSet<String>,
+) {
+    for stmt in body {
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::Integer | VarType::Index,
+                name,
+                init: Some(init),
+            } if is_negative_one(init) => {
+                sentinel_vars.insert(name.clone());
+            }
+            Statement::Assign { target, value, .. } => {
+                if is_negative_one(value) {
+                    if let Expr::Var(name) = target {
+                        sentinel_vars.insert(name.clone());
+                    }
+                }
+            }
+            Statement::Block { body: block_body } => {
+                for s in block_body {
+                    if let Statement::Assign { target: Expr::Var(name), value, .. } = s {
+                        if is_negative_one(value) {
+                            sentinel_vars.insert(name.clone());
+                        }
+                    }
+                }
+                for s in block_body {
+                    if let Statement::Assign { target: Expr::Var(name), value: Expr::Var(vname), .. } = s {
+                        if sentinel_vars.contains(vname) && !sentinel_vars.contains(name) {
+                            sentinel_vars.insert(name.clone());
+                        }
+                    }
+                }
+                collect_sentinel_vars(block_body, sentinel_vars);
+            }
+            Statement::If { then_body, else_body, .. } => {
+                collect_sentinel_vars(then_body, sentinel_vars);
+                collect_sentinel_vars(else_body, sentinel_vars);
+            }
+            Statement::While { body: inner, .. }
+            | Statement::DoWhile { body: inner, .. } => {
+                collect_sentinel_vars(inner, sentinel_vars);
+            }
+            Statement::For { body: inner, .. } => {
+                collect_sentinel_vars(inner, sentinel_vars);
+            }
+            Statement::ForC { body: inner, .. } => {
+                collect_sentinel_vars(inner, sentinel_vars);
+            }
+            Statement::Switch { cases, default, .. } => {
+                for (_, case_body) in cases {
+                    collect_sentinel_vars(case_body, sentinel_vars);
+                }
+                collect_sentinel_vars(default, sentinel_vars);
             }
             _ => {}
         }
@@ -1118,11 +1212,15 @@ pub fn render_statement(
                 // Top-level VarDecl already handled
                 return String::new();
             }
+            // Sentinel vars (assigned -1) are i32, not usize
+            let is_sentinel = ctx.sentinel_vars.contains(name);
             let rust_type = match var_type {
                 VarType::Real => {
                     if ctx.generic { "T" } else { "f64" }
                 }
-                VarType::Integer | VarType::Index => "usize",
+                VarType::Integer | VarType::Index => {
+                    if is_sentinel { "i32" } else { "usize" }
+                }
                 VarType::RetCodeType => "RetCode",
                 VarType::RealPointer => {
                     if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
@@ -1141,7 +1239,9 @@ pub fn render_statement(
                 VarType::Real => {
                     if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
                 }
-                VarType::Integer | VarType::Index => "0_usize",
+                VarType::Integer | VarType::Index => {
+                    if is_sentinel { "0_i32" } else { "0_usize" }
+                }
                 VarType::RetCodeType => "RetCode::Success",
                 VarType::RealPointer => "Vec::new()",
                 VarType::IntPointer => "Vec::new()",
@@ -1449,6 +1549,27 @@ pub fn render_statement(
             } else {
                 false
             };
+            // Sentinel var assignment: cast usize value to i32 when assigning to sentinel target
+            let needs_sentinel_i32_cast = if let Expr::Var(tname) = target {
+                ctx.sentinel_vars.contains(tname)
+                    && !expr_is_i32_typed_ctx(&new_value, ctx)
+                    && !matches!(new_value, Expr::IntLiteral(_))
+                    && !is_negative_one(&new_value)
+                    && (expr_is_known_usize_ctx(&new_value, ctx)
+                        || matches!(new_value, Expr::Var(ref v) if ctx.index_vars.contains(v) || is_likely_index_var(v)))
+            } else {
+                false
+            };
+            // Sentinel var used as value: cast i32 sentinel to usize when assigning to usize target
+            let needs_sentinel_usize_cast = if let Expr::Var(tname) = target {
+                !ctx.sentinel_vars.contains(tname)
+                    && (ctx.index_vars.contains(tname) || is_likely_index_var(tname))
+                    && expr_is_i32_typed_ctx(&new_value, ctx)
+                    && !expr_is_i32_typed(&new_value)
+                    && !matches!(new_value, Expr::IntLiteral(_))
+            } else {
+                false
+            };
             // Check if we're assigning an i32-typed expression to a non-i32 target variable
             // (e.g., usize var = optInTimePeriod which is i32,
             //  or curPeriod = localPeriodArray[i] where array is Vec<i32>)
@@ -1461,6 +1582,7 @@ pub fn render_statement(
                     && !tname.ends_with("_avgPeriod")
                     && !tname.ends_with("_rangeType")
                     && !ctx.real_vars.contains(tname)
+                    && !ctx.sentinel_vars.contains(tname)
                     && value_is_i32
             } else {
                 false
@@ -1498,6 +1620,7 @@ pub fn render_statement(
                         || (!ctx.index_vars.contains(tname)
                             && !is_likely_index_var(tname)
                             && !is_i32_opt_in_param(tname)
+                            && !ctx.sentinel_vars.contains(tname)
                             && !tname.ends_with("_avgPeriod")
                             && !tname.ends_with("_rangeType")
                             && !output_names.iter().any(|n| n == tname)))
@@ -1537,6 +1660,10 @@ pub fn render_statement(
             };
             if needs_to_vec {
                 out.push_str(&format!("{pad}{target_str} = {value_str}.to_vec();\n"));
+            } else if needs_sentinel_i32_cast {
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
+            } else if needs_sentinel_usize_cast {
+                out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
             } else if needs_int_output_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
             } else if needs_f64_cast {
@@ -2082,14 +2209,23 @@ fn render_expr(
             let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
             let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
             if is_arithmetic {
+                // Sentinel vars are i32 — when mixed with usize, cast usize→i32
+                let left_is_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
+                let right_is_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
+                if left_is_sentinel && !right_is_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right.as_ref(), Expr::IntLiteral(_)) {
+                    right_str = format!("({right_str}) as i32");
+                }
+                if right_is_sentinel && !left_is_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left.as_ref(), Expr::IntLiteral(_)) {
+                    left_str = format!("({left_str}) as i32");
+                }
                 // When in generic context, opt_real_params are wrapped to T by render_expr,
                 // so they should be treated as float-typed, not i32-typed
                 let left_is_opt_real = ctx.generic && matches!(left.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
                 let right_is_opt_real = ctx.generic && matches!(right.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
                 let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) || left_is_opt_real;
                 let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) || right_is_opt_real;
-                let left_is_i32 = expr_is_i32_typed(left) && !left_is_opt_real;
-                let right_is_i32 = expr_is_i32_typed(right) && !right_is_opt_real;
+                let left_is_i32 = (expr_is_i32_typed(left) || left_is_sentinel) && !left_is_opt_real;
+                let right_is_i32 = (expr_is_i32_typed(right) || right_is_sentinel) && !right_is_opt_real;
                 let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
                 let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
 
@@ -2147,10 +2283,10 @@ fn render_expr(
                 let right_is_i32_eff = right_is_i32 || arith_right_is_i32_arr;
                 let left_is_usize = !left_is_i32_eff && !left_is_float && !left_is_int_lit;
                 let right_is_usize = !right_is_i32_eff && !right_is_float && !right_is_int_lit;
-                if left_is_i32_eff && right_is_usize {
+                if left_is_i32_eff && right_is_usize && !left_is_sentinel {
                     left_str = format!("({left_str}) as usize");
                 }
-                if right_is_i32_eff && left_is_usize {
+                if right_is_i32_eff && left_is_usize && !right_is_sentinel {
                     right_str = format!("({right_str}) as usize");
                 }
                 // When both sides appear i32-typed but one actually renders as usize
@@ -2169,10 +2305,19 @@ fn render_expr(
             // For comparison operators, cast i32 to usize when mixed (not float)
             // and wrap IntLiterals with T::ta_zero() / T::ta_from_i32() when comparing with T-typed exprs
             if matches!(op, BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq | BinOp::NotEq) {
+                // Sentinel vars are i32 — when compared with usize, cast usize→i32
+                let cmp_left_sentinel = expr_is_i32_typed_ctx(left, ctx) && !expr_is_i32_typed(left);
+                let cmp_right_sentinel = expr_is_i32_typed_ctx(right, ctx) && !expr_is_i32_typed(right);
+                if cmp_left_sentinel && !cmp_right_sentinel && !expr_is_i32_typed(right) && !expr_is_float_typed_ctx(right, Some(ctx)) && !matches!(right.as_ref(), Expr::IntLiteral(_)) {
+                    right_str = format!("({right_str}) as i32");
+                }
+                if cmp_right_sentinel && !cmp_left_sentinel && !expr_is_i32_typed(left) && !expr_is_float_typed_ctx(left, Some(ctx)) && !matches!(left.as_ref(), Expr::IntLiteral(_)) {
+                    left_str = format!("({left_str}) as i32");
+                }
                 let cmp_left_is_opt_real = ctx.generic && matches!(left.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
                 let cmp_right_is_opt_real = ctx.generic && matches!(right.as_ref(), Expr::Var(n) if opt_real_params.contains(n));
-                let left_is_i32 = expr_is_i32_typed(left) && !cmp_left_is_opt_real;
-                let right_is_i32 = expr_is_i32_typed(right) && !cmp_right_is_opt_real;
+                let left_is_i32 = (expr_is_i32_typed(left) || cmp_left_sentinel) && !cmp_left_is_opt_real;
+                let right_is_i32 = (expr_is_i32_typed(right) || cmp_right_sentinel) && !cmp_right_is_opt_real;
                 let left_is_float = expr_is_float_typed_ctx(left, Some(ctx)) || cmp_left_is_opt_real;
                 let right_is_float = expr_is_float_typed_ctx(right, Some(ctx)) || cmp_right_is_opt_real;
                 let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
@@ -2225,10 +2370,10 @@ fn render_expr(
                 let right_is_i32_arr = matches!(right.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
                 let left_is_i32_eff = left_is_i32 || left_is_i32_arr;
                 let right_is_i32_eff = right_is_i32 || right_is_i32_arr;
-                if left_is_i32_eff && !right_is_i32_eff && !right_is_float && !right_is_int_lit {
+                if left_is_i32_eff && !right_is_i32_eff && !right_is_float && !right_is_int_lit && !cmp_left_sentinel {
                     left_str = format!("({left_str}) as usize");
                 }
-                if right_is_i32_eff && !left_is_i32_eff && !left_is_float && !left_is_int_lit {
+                if right_is_i32_eff && !left_is_i32_eff && !left_is_float && !left_is_int_lit && !cmp_right_sentinel {
                     right_str = format!("({right_str}) as usize");
                 }
             }
@@ -2472,6 +2617,45 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
     }
 }
 
+/// Context-aware version of `expr_is_i32_typed` that also recognizes sentinel variables.
+fn expr_is_i32_typed_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    if expr_is_i32_typed(expr) {
+        return true;
+    }
+    match expr {
+        Expr::Var(name) => ctx.sentinel_vars.contains(name),
+        Expr::BinOp(left, op, right)
+            if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) =>
+        {
+            let l_i32 = expr_is_i32_typed_ctx(left, ctx)
+                || matches!(left.as_ref(), Expr::IntLiteral(_));
+            let r_i32 = expr_is_i32_typed_ctx(right, ctx)
+                || matches!(right.as_ref(), Expr::IntLiteral(_));
+            if l_i32 && r_i32 { return true; }
+            let l_sentinel = matches!(left.as_ref(), Expr::Var(n) if ctx.sentinel_vars.contains(n))
+                || (l_i32 && !expr_is_i32_typed(left) && !matches!(left.as_ref(), Expr::IntLiteral(_)));
+            let r_sentinel = matches!(right.as_ref(), Expr::Var(n) if ctx.sentinel_vars.contains(n))
+                || (r_i32 && !expr_is_i32_typed(right) && !matches!(right.as_ref(), Expr::IntLiteral(_)));
+            let l_usize = expr_is_known_usize_ctx(left, ctx) || matches!(left.as_ref(), Expr::IntLiteral(_));
+            let r_usize = expr_is_known_usize_ctx(right, ctx) || matches!(right.as_ref(), Expr::IntLiteral(_));
+            (l_sentinel && r_usize) || (r_sentinel && l_usize)
+                || (l_i32 && r_usize && contains_sentinel_expr(left, ctx))
+                || (r_i32 && l_usize && contains_sentinel_expr(right, ctx))
+        }
+        _ => false,
+    }
+}
+
+fn contains_sentinel_expr(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    match expr {
+        Expr::Var(name) => ctx.sentinel_vars.contains(name),
+        Expr::BinOp(left, _, right) => {
+            contains_sentinel_expr(left, ctx) || contains_sentinel_expr(right, ctx)
+        }
+        _ => false,
+    }
+}
+
 /// Check if an expression produces an untyped integer (IntLiteral, ternary with int branches, etc.)
 /// These need wrapping with `T::ta_from_i32()` when used in a T-typed context.
 fn expr_is_untyped_integer(expr: &Expr) -> bool {
@@ -2506,10 +2690,13 @@ fn expr_is_known_usize_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
         Expr::Var(name) => {
             // Real vars are never usize, even if name matches heuristics
             if ctx.real_vars.contains(name) { return false; }
+            // Sentinel vars (assigned -1) are i32, not usize
+            if ctx.sentinel_vars.contains(name) { return false; }
             ctx.index_vars.contains(name) || is_likely_index_var(name)
         }
         Expr::PointerDeref(name) => {
             // *outBegIdx, *outNBElement are usize
+            if ctx.sentinel_vars.contains(name) { return false; }
             ctx.index_vars.contains(name) || is_likely_index_var(name)
                 || name == "outBegIdx" || name == "outNBElement"
         }
