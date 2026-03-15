@@ -351,6 +351,18 @@ fn gen_func(
         params.push(format!("{} {}", java_type, opt.name));
     }
 
+    // Extra unguarded params (e.g., EMA's k factor) — only on Logic variant
+    if logic {
+        for (param_name, c_type) in &func.unguarded_extra_params {
+            let java_type = match c_type.as_str() {
+                "double" => "double",
+                "int" => "int",
+                _ => "double",
+            };
+            params.push(format!("{} {}", java_type, param_name));
+        }
+    }
+
     params.push("MInteger outBegIdx".to_string());
     params.push("MInteger outNBElement".to_string());
 
@@ -377,8 +389,11 @@ fn gen_func(
     // Body
     out.push_str("   {\n");
 
+    // Use unguarded_body for Logic variant, body for guarded
+    let body = if logic { &func.unguarded_body } else { &func.body };
+
     // Pre-scan for variables used in AddressOf contexts (need MInteger wrapping)
-    let mut address_of_vars = collect_address_of_vars(&func.body);
+    let mut address_of_vars = collect_address_of_vars(body);
 
     // In single-precision variants, input params are float[] while outputs are double[].
     // Collect input param names so render_expr can replace float[]==double[] with false.
@@ -397,12 +412,12 @@ fn gen_func(
         .filter(|o| matches!(&o.param_type, ParamType::Enum(n) if n == "MAType"))
         .map(|o| o.name.clone())
         .collect();
-    let matype_vars = collect_matype_vars(&func.body, &matype_params);
+    let matype_vars = collect_matype_vars(body, &matype_params);
 
     // Collect Real-typed variables used in AddressOf contexts.
     // These need `double[]` wrapping (not MInteger) — e.g. `double prevATR`
     // becomes `double[] prevATR = new double[1]` and uses `[0]` instead of `.value`.
-    let double_address_of_vars = collect_double_address_of_vars(&func.body, &address_of_vars);
+    let double_address_of_vars = collect_double_address_of_vars(body, &address_of_vars);
 
     // Remove double address-of vars from the integer set so they don't get `.value`
     for name in &double_address_of_vars {
@@ -410,7 +425,7 @@ fn gen_func(
     }
 
     // Declare local variables
-    for stmt in &func.body {
+    for stmt in body {
         if let Statement::VarDecl { var_type, name, .. } = stmt {
             let java_decl = if matype_vars.contains(name) {
                 format!("MAType {name}")
@@ -438,7 +453,7 @@ fn gen_func(
     }
 
     // Emit candle settings unpacking (only for referenced settings)
-    let candle_used = detect_candle_settings(&func.body);
+    let candle_used = detect_candle_settings(body);
     if !candle_used.is_empty() {
         out.push_str(&emit_java_unpacking(&candle_used, 6));
     }
@@ -456,7 +471,7 @@ fn gen_func(
     let inline_counter = Cell::new(0);
 
     // Emit VarDecl initializations
-    for stmt in &func.body {
+    for stmt in body {
         if let Statement::VarDecl {
             name,
             init: Some(init),
@@ -495,7 +510,7 @@ fn gen_func(
     }
 
     // Render body statements (skip VarDecls)
-    for stmt in &func.body {
+    for stmt in body {
         if matches!(stmt, Statement::VarDecl { .. }) {
             continue;
         }

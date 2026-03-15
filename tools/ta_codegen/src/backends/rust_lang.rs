@@ -301,9 +301,9 @@ fn gen_lookback(
 fn gen_guarded_func(
     func: &FuncDef,
     snake: &str,
-    _enums: &HashMap<String, EnumDef>,
-    _registry: &Registry,
-    _helpers: &HelperRegistry,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
 
@@ -370,7 +370,6 @@ fn gen_guarded_func(
     if func.has_explicit_unguarded {
         // The guarded body already contains delegation to _unguarded with extra params.
         // Render it directly (it includes pre-computation + delegation call).
-        // Build a RustRenderCtx for bounds-checked rendering
         let mut g_index_vars = std::collections::HashSet::new();
         let mut g_real_vars = std::collections::HashSet::new();
         let mut g_vec_vars = std::collections::HashSet::new();
@@ -396,8 +395,37 @@ fn gen_guarded_func(
             is_lookback: false,
             sentinel_vars: g_sentinel_vars,
         };
+        let g_for_loop_vars = collect_for_loop_vars(&func.body);
+        let g_var_inits: std::collections::HashMap<String, &Expr> = func
+            .body
+            .iter()
+            .filter_map(|s| {
+                if let Statement::VarDecl { name, init: Some(init), .. } = s {
+                    Some((name.clone(), init))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let g_output_names: Vec<String> = func.outputs.iter().map(|o| o.name.clone()).collect();
+        let g_opt_real_params: Vec<String> = func.optional_inputs.iter()
+            .filter(|o| o.param_type == ParamType::Real)
+            .map(|o| o.name.clone())
+            .collect();
+        let g_inline_counter = std::cell::Cell::new(0);
         for stmt in &func.body {
-            out.push_str(&render_statement(stmt, "        ", &g_ctx, func, enums, registry, helpers));
+            if matches!(stmt, Statement::VarDecl { .. }) {
+                // Render VarDecl for guarded body
+                out.push_str(&render_statement(
+                    stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
+                    &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
+                ));
+            } else {
+                out.push_str(&render_statement(
+                    stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
+                    &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
+                ));
+            }
         }
     } else {
         // Auto-generated: delegate to unguarded with same params (no extra params)
