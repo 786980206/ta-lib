@@ -1379,14 +1379,14 @@ mod tests {
             "ema_lookback should resolve to TA_EMA_Lookback"
         );
 
-        // bare sma and ema calls should resolve to TA_INT_SMA and TA_INT_EMA
+        // bare sma and ema calls should resolve to guarded TA_SMA and TA_EMA
         assert!(
-            output.contains("TA_INT_SMA("),
-            "sma should resolve to TA_INT_SMA"
+            output.contains("TA_SMA("),
+            "sma should resolve to TA_SMA"
         );
         assert!(
-            output.contains("TA_INT_EMA("),
-            "ema should resolve to TA_INT_EMA"
+            output.contains("TA_EMA("),
+            "ema should resolve to TA_EMA"
         );
     }
 }

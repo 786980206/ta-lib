@@ -60,19 +60,34 @@ impl Registry {
     ///
     /// Returns the original name unchanged if the indicator is not found.
     pub fn resolve_call(&self, func_name: &str, lang: Lang) -> String {
-        // First, check if this is a bare indicator name (no suffix)
+        // Handle _unguarded suffix: strip it and resolve the base name
+        // (which maps to the Logic/INT variant in all backends)
+        if let Some(base) = func_name.strip_suffix("_unguarded") {
+            if self.contains(base) {
+                return match lang {
+                    Lang::Rust => format!("{base}_unguarded"),
+                    Lang::C | Lang::Swig => format!("TA_INT_{}", base.to_uppercase()),
+                    Lang::Java => {
+                        let camel = self.to_camel_case(base);
+                        format!("{camel}Logic")
+                    }
+                    Lang::DotNet => {
+                        let pascal = capitalize(base);
+                        format!("{pascal}Logic")
+                    }
+                };
+            }
+        }
+
+        // First, check if this is a bare indicator name (no suffix).
+        // Bare names resolve to the GUARDED variant (TA_FOO, not TA_INT_FOO).
+        // Only _unguarded calls resolve to the Logic/INT variant.
         if self.contains(func_name) {
             return match lang {
                 Lang::Rust => func_name.to_string(),
-                Lang::C | Lang::Swig => format!("TA_INT_{}", func_name.to_uppercase()),
-                Lang::Java => {
-                    let camel = self.to_camel_case(func_name);
-                    format!("{camel}Logic")
-                }
-                Lang::DotNet => {
-                    let pascal = capitalize(func_name);
-                    format!("{pascal}Logic")
-                }
+                Lang::C | Lang::Swig => format!("TA_{}", func_name.to_uppercase()),
+                Lang::Java => self.to_camel_case(func_name),
+                Lang::DotNet => capitalize(func_name),
             };
         }
 
@@ -175,9 +190,13 @@ mod tests {
             "TA_SMA_Lookback"
         );
 
-        // C backend: bare indicator names resolve to TA_INT_<NAME>
-        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_INT_SMA");
-        assert_eq!(registry.resolve_call("ema", Lang::C), "TA_INT_EMA");
+        // C backend: bare indicator names resolve to guarded TA_<NAME>
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA");
+        assert_eq!(registry.resolve_call("ema", Lang::C), "TA_EMA");
+
+        // C backend: _unguarded suffix resolves to TA_INT_<NAME>
+        assert_eq!(registry.resolve_call("sma_unguarded", Lang::C), "TA_INT_SMA");
+        assert_eq!(registry.resolve_call("ema_unguarded", Lang::C), "TA_INT_EMA");
 
         // Rust backend (bare names stay as-is)
         assert_eq!(registry.resolve_call("ema", Lang::Rust), "ema");
@@ -186,26 +205,29 @@ mod tests {
             "ema_lookback"
         );
 
-        // Java backend (camelCase for lookback, Logic suffix for bare names)
+        // Java backend (camelCase for lookback, guarded for bare names)
         assert_eq!(
             registry.resolve_call("ema_lookback", Lang::Java),
             "emaLookback"
         );
-        assert_eq!(registry.resolve_call("ema", Lang::Java), "emaLogic");
+        assert_eq!(registry.resolve_call("ema", Lang::Java), "ema");
+        assert_eq!(registry.resolve_call("ema_unguarded", Lang::Java), "emaLogic");
 
-        // .NET backend (PascalCase for lookback, Logic suffix for bare names)
+        // .NET backend (PascalCase for lookback, guarded for bare names)
         assert_eq!(
             registry.resolve_call("sma_lookback", Lang::DotNet),
             "SmaLookback"
         );
-        assert_eq!(registry.resolve_call("sma", Lang::DotNet), "SmaLogic");
+        assert_eq!(registry.resolve_call("sma", Lang::DotNet), "Sma");
+        assert_eq!(registry.resolve_call("sma_unguarded", Lang::DotNet), "SmaLogic");
 
         // SWIG mirrors C
         assert_eq!(
             registry.resolve_call("rsi_lookback", Lang::Swig),
             "TA_RSI_Lookback"
         );
-        assert_eq!(registry.resolve_call("rsi", Lang::Swig), "TA_INT_RSI");
+        assert_eq!(registry.resolve_call("rsi", Lang::Swig), "TA_RSI");
+        assert_eq!(registry.resolve_call("rsi_unguarded", Lang::Swig), "TA_INT_RSI");
     }
 
     #[test]
@@ -229,11 +251,13 @@ mod tests {
     }
 
     #[test]
-    fn test_registry_bare_name_resolves_to_internal() {
+    fn test_registry_bare_name_resolves_to_guarded() {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
         let registry = Registry::from_dir(&base);
-        // A bare indicator name resolves to the internal/unguarded variant
-        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_INT_SMA");
+        // A bare indicator name resolves to the guarded variant
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA");
+        // _unguarded resolves to internal variant
+        assert_eq!(registry.resolve_call("sma_unguarded", Lang::C), "TA_INT_SMA");
         // For Rust, bare names stay as-is
         assert_eq!(registry.resolve_call("sma", Lang::Rust), "sma");
     }

@@ -1664,6 +1664,9 @@ fn backends_render_max_min_fmax_fmin_abs() {
         }],
         lookback: Some(LookbackExpr::Literal(0)),
         body,
+        unguarded_body: vec![],
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
     };
 
     let enums = std::collections::HashMap::new();
@@ -2160,6 +2163,9 @@ fn make_func_with_helper_call(
                 compound: false,
             },
         ],
+        unguarded_body: vec![],
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
     }
 }
 
@@ -2291,6 +2297,9 @@ fn inlining_counter_avoids_name_collisions() {
                 compound: false,
             },
         ],
+        unguarded_body: vec![],
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
     };
     let enums = HashMap::new();
     let registry = make_registry();
