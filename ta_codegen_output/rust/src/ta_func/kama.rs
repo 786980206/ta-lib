@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn kama_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn kama_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize];
+        return (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
     }
     /// Kaufman Adaptive Moving Average
     ///
@@ -111,24 +111,24 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let constMax: T;
-        let constDiff: T;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut sumROC1: T;
-        let mut periodROC: T;
-        let mut prevKAMA: T;
-        let i: i32;
-        let today: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let trailingIdx: i32;
-        let mut trailingValue: T;
+        let mut constMax: T = T::ta_zero();
+        let mut constDiff: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut sumROC1: T = T::ta_zero();
+        let mut periodROC: T = T::ta_zero();
+        let mut prevKAMA: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut trailingValue: T = T::ta_zero();
         constMax = T::ta_from_f64(2.0) / (T::ta_from_f64(30.0) + T::ta_from_f64(1.0));
         constDiff = T::ta_from_f64(2.0) / (T::ta_from_f64(2.0) + T::ta_from_f64(1.0)) - constMax;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize];
+        lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -140,60 +140,60 @@ impl Core {
         sumROC1 = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
         trailingIdx = today;
-        i = optInTimePeriod;
+        i = (optInTimePeriod) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
-            tempReal = inReal[{ let _v = today; today += 1; _v }];
-            tempReal -= inReal[today];
+            tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
+            tempReal -= inReal[(today) as usize];
             sumROC1 += tempReal.ta_abs();
         }
-        prevKAMA = inReal[today - 1];
-        tempReal = inReal[today];
-        tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+        prevKAMA = inReal[(today - 1) as usize];
+        tempReal = inReal[(today) as usize];
+        tempReal2 = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
         periodROC = tempReal - tempReal2;
         trailingValue = tempReal2;
-        if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+        if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
             tempReal = T::ta_from_f64(1.0);
         } else {
-            tempReal = periodROC / sumROC1.ta_abs();
+            tempReal = (periodROC / sumROC1).ta_abs();
         }
         tempReal = tempReal * constDiff + constMax;
         tempReal *= tempReal;
-        prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
+        prevKAMA = (inReal[({ let _v = today; today += 1; _v }) as usize] - prevKAMA) * tempReal + prevKAMA;
         while today <= startIdx {
-            tempReal = inReal[today];
-            tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            tempReal = inReal[(today) as usize];
+            tempReal2 = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
             periodROC = tempReal - tempReal2;
-            sumROC1 -= trailingValue - tempReal2.ta_abs();
-            sumROC1 += tempReal - inReal[today - 1].ta_abs();
+            sumROC1 -= (trailingValue - tempReal2).ta_abs();
+            sumROC1 += (tempReal - inReal[(today - 1) as usize]).ta_abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+            if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
                 tempReal = T::ta_from_f64(1.0);
             } else {
-                tempReal = periodROC / sumROC1.ta_abs();
+                tempReal = (periodROC / sumROC1).ta_abs();
             }
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = (inReal[({ let _v = today; today += 1; _v }) as usize] - prevKAMA) * tempReal + prevKAMA;
         }
-        outReal[0] = prevKAMA;
+        outReal[(0) as usize] = prevKAMA;
         outIdx = 1;
         (*outBegIdx) = today - 1;
         while today <= endIdx {
-            tempReal = inReal[today];
-            tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            tempReal = inReal[(today) as usize];
+            tempReal2 = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
             periodROC = tempReal - tempReal2;
-            sumROC1 -= trailingValue - tempReal2.ta_abs();
-            sumROC1 += tempReal - inReal[today - 1].ta_abs();
+            sumROC1 -= (trailingValue - tempReal2).ta_abs();
+            sumROC1 += (tempReal - inReal[(today - 1) as usize]).ta_abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+            if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
                 tempReal = T::ta_from_f64(1.0);
             } else {
-                tempReal = periodROC / sumROC1.ta_abs();
+                tempReal = (periodROC / sumROC1).ta_abs();
             }
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevKAMA;
+            prevKAMA = (inReal[({ let _v = today; today += 1; _v }) as usize] - prevKAMA) * tempReal + prevKAMA;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevKAMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -236,24 +236,24 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let constMax: T;
-        let constDiff: T;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut sumROC1: T;
-        let mut periodROC: T;
-        let mut prevKAMA: T;
-        let i: i32;
-        let today: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let trailingIdx: i32;
-        let mut trailingValue: T;
+        let mut constMax: T = T::ta_zero();
+        let mut constDiff: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut sumROC1: T = T::ta_zero();
+        let mut periodROC: T = T::ta_zero();
+        let mut prevKAMA: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut trailingValue: T = T::ta_zero();
         constMax = T::ta_from_f64(2.0) / (T::ta_from_f64(30.0) + T::ta_from_f64(1.0));
         constDiff = T::ta_from_f64(2.0) / (T::ta_from_f64(2.0) + T::ta_from_f64(1.0)) - constMax;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize];
+        lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Kama as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -265,60 +265,60 @@ impl Core {
         sumROC1 = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
         trailingIdx = today;
-        i = optInTimePeriod;
+        i = (optInTimePeriod) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
-            tempReal = *inReal.get_unchecked({ let _v = today; today += 1; _v });
-            tempReal -= *inReal.get_unchecked(today);
+            tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+            tempReal -= (*inReal.get_unchecked((today) as usize));
             sumROC1 += tempReal.ta_abs();
         }
-        prevKAMA = *inReal.get_unchecked(today - 1);
-        tempReal = *inReal.get_unchecked(today);
-        tempReal2 = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+        prevKAMA = (*inReal.get_unchecked((today - 1) as usize));
+        tempReal = (*inReal.get_unchecked((today) as usize));
+        tempReal2 = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
         periodROC = tempReal - tempReal2;
         trailingValue = tempReal2;
-        if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+        if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
             tempReal = T::ta_from_f64(1.0);
         } else {
-            tempReal = periodROC / sumROC1.ta_abs();
+            tempReal = (periodROC / sumROC1).ta_abs();
         }
         tempReal = tempReal * constDiff + constMax;
         tempReal *= tempReal;
-        prevKAMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevKAMA) * tempReal + prevKAMA;
+        prevKAMA = ((*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) - prevKAMA) * tempReal + prevKAMA;
         while today <= startIdx {
-            tempReal = *inReal.get_unchecked(today);
-            tempReal2 = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+            tempReal = (*inReal.get_unchecked((today) as usize));
+            tempReal2 = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
             periodROC = tempReal - tempReal2;
-            sumROC1 -= trailingValue - tempReal2.ta_abs();
-            sumROC1 += tempReal - *inReal.get_unchecked(today - 1).ta_abs();
+            sumROC1 -= (trailingValue - tempReal2).ta_abs();
+            sumROC1 += (tempReal - (*inReal.get_unchecked((today - 1) as usize))).ta_abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+            if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
                 tempReal = T::ta_from_f64(1.0);
             } else {
-                tempReal = periodROC / sumROC1.ta_abs();
+                tempReal = (periodROC / sumROC1).ta_abs();
             }
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = ((*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) - prevKAMA) * tempReal + prevKAMA;
         }
-        *outReal.get_unchecked_mut(0) = prevKAMA;
+        (*outReal.get_unchecked_mut((0) as usize)) = prevKAMA;
         outIdx = 1;
         (*outBegIdx) = today - 1;
         while today <= endIdx {
-            tempReal = *inReal.get_unchecked(today);
-            tempReal2 = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+            tempReal = (*inReal.get_unchecked((today) as usize));
+            tempReal2 = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
             periodROC = tempReal - tempReal2;
-            sumROC1 -= trailingValue - tempReal2.ta_abs();
-            sumROC1 += tempReal - *inReal.get_unchecked(today - 1).ta_abs();
+            sumROC1 -= (trailingValue - tempReal2).ta_abs();
+            sumROC1 += (tempReal - (*inReal.get_unchecked((today - 1) as usize))).ta_abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0 - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
+            if sumROC1 <= periodROC || T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < sumROC1 && sumROC1 < T::ta_from_f64(0.00000001) {
                 tempReal = T::ta_from_f64(1.0);
             } else {
-                tempReal = periodROC / sumROC1.ta_abs();
+                tempReal = (periodROC / sumROC1).ta_abs();
             }
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
-            prevKAMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevKAMA) * tempReal + prevKAMA;
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevKAMA;
+            prevKAMA = ((*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) - prevKAMA) * tempReal + prevKAMA;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevKAMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

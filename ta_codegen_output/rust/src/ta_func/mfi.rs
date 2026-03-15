@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn mfi_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn mfi_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize];
+        return (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
     }
     /// Money Flow Index
     ///
@@ -123,32 +123,32 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut posSumMF: T;
-        let mut negSumMF: T;
-        let mut prevValue: T;
-        let mut tempValue1: T;
-        let mut tempValue2: T;
-        let lookbackTotal: i32;
-        let outIdx: i32;
-        let i: i32;
-        let mut today: i32;
-        let mut mflow_positive: [T; 50 as usize] = [T::zero(); 50 as usize];
-        let mut mflow_negative: [T; 50 as usize] = [T::zero(); 50 as usize];
-        let mut mflow_Idx: i32;
+        let mut posSumMF: T = T::ta_zero();
+        let mut negSumMF: T = T::ta_zero();
+        let mut prevValue: T = T::ta_zero();
+        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue2: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut mflow_positive: [T; 50 as usize] = [T::ta_zero(); 50 as usize];
+        let mut mflow_negative: [T; 50 as usize] = [T::ta_zero(); 50 as usize];
+        let mut mflow_Idx: usize = 0_usize;
         mflow_Idx = 0;
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            mflow_positive[_si.._si + _n].fill(T::default());
+            mflow_positive[_si.._si + _n].fill(T::ta_zero());
         };
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            mflow_negative[_si.._si + _n].fill(T::default());
+            mflow_negative[_si.._si + _n].fill(T::ta_zero());
         };
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize];
+        lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -157,88 +157,88 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx - lookbackTotal;
-        prevValue = (inHigh[today] + inLow[today] + inClose[today]) / T::ta_from_f64(3.0);
+        prevValue = (inHigh[(today) as usize] + inLow[(today) as usize] + inClose[(today) as usize]) / T::ta_from_f64(3.0);
         posSumMF = T::ta_from_f64(0.0);
         negSumMF = T::ta_from_f64(0.0);
         today += 1;
-        // for( i = optInTimePeriod; i > 0; i -= 1 )
-        i = optInTimePeriod;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / T::ta_from_f64(3.0);
+            tempValue1 = (inHigh[(today) as usize] + inLow[(today) as usize] + inClose[(today) as usize]) / T::ta_from_f64(3.0);
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
-            if tempValue2 < 0 {
-                mflow_negative[mflow_Idx] = tempValue1;
+            tempValue1 *= inVolume[({ let _v = today; today += 1; _v }) as usize];
+            if tempValue2 < T::ta_from_i32(0) {
+                mflow_negative[(mflow_Idx) as usize] = tempValue1;
                 negSumMF += tempValue1;
-                mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-            } else if tempValue2 > 0 {
-                mflow_positive[mflow_Idx] = tempValue1;
+                mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+            } else if tempValue2 > T::ta_from_i32(0) {
+                mflow_positive[(mflow_Idx) as usize] = tempValue1;
                 posSumMF += tempValue1;
-                mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
             } else {
-                mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-                mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+                mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
             }
-            mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             i -= 1;
         }
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < T::ta_from_f64(1.0) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
             }
         } else {
             while today < startIdx {
-                posSumMF -= mflow_positive[mflow_Idx];
-                negSumMF -= mflow_negative[mflow_Idx];
-                tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / T::ta_from_f64(3.0);
+                posSumMF -= mflow_positive[(mflow_Idx) as usize];
+                negSumMF -= mflow_negative[(mflow_Idx) as usize];
+                tempValue1 = (inHigh[(today) as usize] + inLow[(today) as usize] + inClose[(today) as usize]) / T::ta_from_f64(3.0);
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
-                if tempValue2 < 0 {
-                    mflow_negative[mflow_Idx] = tempValue1;
+                tempValue1 *= inVolume[({ let _v = today; today += 1; _v }) as usize];
+                if tempValue2 < T::ta_from_i32(0) {
+                    mflow_negative[(mflow_Idx) as usize] = tempValue1;
                     negSumMF += tempValue1;
-                    mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-                } else if tempValue2 > 0 {
-                    mflow_positive[mflow_Idx] = tempValue1;
+                    mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+                } else if tempValue2 > T::ta_from_i32(0) {
+                    mflow_positive[(mflow_Idx) as usize] = tempValue1;
                     posSumMF += tempValue1;
-                    mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                    mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
                 } else {
-                    mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-                    mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                    mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+                    mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
                 }
-                mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+                mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         while today <= endIdx {
-            posSumMF -= mflow_positive[mflow_Idx];
-            negSumMF -= mflow_negative[mflow_Idx];
-            tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / T::ta_from_f64(3.0);
+            posSumMF -= mflow_positive[(mflow_Idx) as usize];
+            negSumMF -= mflow_negative[(mflow_Idx) as usize];
+            tempValue1 = (inHigh[(today) as usize] + inLow[(today) as usize] + inClose[(today) as usize]) / T::ta_from_f64(3.0);
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
-            if tempValue2 < 0 {
-                mflow_negative[mflow_Idx] = tempValue1;
+            tempValue1 *= inVolume[({ let _v = today; today += 1; _v }) as usize];
+            if tempValue2 < T::ta_from_i32(0) {
+                mflow_negative[(mflow_Idx) as usize] = tempValue1;
                 negSumMF += tempValue1;
-                mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-            } else if tempValue2 > 0 {
-                mflow_positive[mflow_Idx] = tempValue1;
+                mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+            } else if tempValue2 > T::ta_from_i32(0) {
+                mflow_positive[(mflow_Idx) as usize] = tempValue1;
                 posSumMF += tempValue1;
-                mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
             } else {
-                mflow_positive[mflow_Idx] = T::ta_from_f64(0.0);
-                mflow_negative[mflow_Idx] = T::ta_from_f64(0.0);
+                mflow_positive[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
+                mflow_negative[(mflow_Idx) as usize] = T::ta_from_f64(0.0);
             }
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < T::ta_from_f64(1.0) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
             }
-            mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
@@ -291,32 +291,32 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut posSumMF: T;
-        let mut negSumMF: T;
-        let mut prevValue: T;
-        let mut tempValue1: T;
-        let mut tempValue2: T;
-        let lookbackTotal: i32;
-        let outIdx: i32;
-        let i: i32;
-        let mut today: i32;
-        let mut mflow_positive: [T; 50 as usize] = [T::zero(); 50 as usize];
-        let mut mflow_negative: [T; 50 as usize] = [T::zero(); 50 as usize];
-        let mut mflow_Idx: i32;
+        let mut posSumMF: T = T::ta_zero();
+        let mut negSumMF: T = T::ta_zero();
+        let mut prevValue: T = T::ta_zero();
+        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue2: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut mflow_positive: [T; 50 as usize] = [T::ta_zero(); 50 as usize];
+        let mut mflow_negative: [T; 50 as usize] = [T::ta_zero(); 50 as usize];
+        let mut mflow_Idx: usize = 0_usize;
         mflow_Idx = 0;
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            mflow_positive[_si.._si + _n].fill(T::default());
+            mflow_positive[_si.._si + _n].fill(T::ta_zero());
         };
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            mflow_negative[_si.._si + _n].fill(T::default());
+            mflow_negative[_si.._si + _n].fill(T::ta_zero());
         };
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize];
+        lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -325,88 +325,88 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx - lookbackTotal;
-        prevValue = (*inHigh.get_unchecked(today) + *inLow.get_unchecked(today) + *inClose.get_unchecked(today)) / T::ta_from_f64(3.0);
+        prevValue = ((*inHigh.get_unchecked((today) as usize)) + (*inLow.get_unchecked((today) as usize)) + (*inClose.get_unchecked((today) as usize))) / T::ta_from_f64(3.0);
         posSumMF = T::ta_from_f64(0.0);
         negSumMF = T::ta_from_f64(0.0);
         today += 1;
-        // for( i = optInTimePeriod; i > 0; i -= 1 )
-        i = optInTimePeriod;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = (*inHigh.get_unchecked(today) + *inLow.get_unchecked(today) + *inClose.get_unchecked(today)) / T::ta_from_f64(3.0);
+            tempValue1 = ((*inHigh.get_unchecked((today) as usize)) + (*inLow.get_unchecked((today) as usize)) + (*inClose.get_unchecked((today) as usize))) / T::ta_from_f64(3.0);
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= *inVolume.get_unchecked({ let _v = today; today += 1; _v });
-            if tempValue2 < 0 {
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = tempValue1;
+            tempValue1 *= (*inVolume.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+            if tempValue2 < T::ta_from_i32(0) {
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                 negSumMF += tempValue1;
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-            } else if tempValue2 > 0 {
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = tempValue1;
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+            } else if tempValue2 > T::ta_from_i32(0) {
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                 posSumMF += tempValue1;
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
             } else {
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
             }
-            mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             i -= 1;
         }
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < T::ta_from_f64(1.0) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
             }
         } else {
             while today < startIdx {
-                posSumMF -= *mflow_positive.get_unchecked(mflow_Idx);
-                negSumMF -= *mflow_negative.get_unchecked(mflow_Idx);
-                tempValue1 = (*inHigh.get_unchecked(today) + *inLow.get_unchecked(today) + *inClose.get_unchecked(today)) / T::ta_from_f64(3.0);
+                posSumMF -= (*mflow_positive.get_unchecked((mflow_Idx) as usize));
+                negSumMF -= (*mflow_negative.get_unchecked((mflow_Idx) as usize));
+                tempValue1 = ((*inHigh.get_unchecked((today) as usize)) + (*inLow.get_unchecked((today) as usize)) + (*inClose.get_unchecked((today) as usize))) / T::ta_from_f64(3.0);
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                tempValue1 *= *inVolume.get_unchecked({ let _v = today; today += 1; _v });
-                if tempValue2 < 0 {
-                    *mflow_negative.get_unchecked_mut(mflow_Idx) = tempValue1;
+                tempValue1 *= (*inVolume.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+                if tempValue2 < T::ta_from_i32(0) {
+                    (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                     negSumMF += tempValue1;
-                    *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-                } else if tempValue2 > 0 {
-                    *mflow_positive.get_unchecked_mut(mflow_Idx) = tempValue1;
+                    (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+                } else if tempValue2 > T::ta_from_i32(0) {
+                    (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                     posSumMF += tempValue1;
-                    *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                    (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
                 } else {
-                    *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-                    *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                    (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+                    (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
                 }
-                mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+                mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         while today <= endIdx {
-            posSumMF -= *mflow_positive.get_unchecked(mflow_Idx);
-            negSumMF -= *mflow_negative.get_unchecked(mflow_Idx);
-            tempValue1 = (*inHigh.get_unchecked(today) + *inLow.get_unchecked(today) + *inClose.get_unchecked(today)) / T::ta_from_f64(3.0);
+            posSumMF -= (*mflow_positive.get_unchecked((mflow_Idx) as usize));
+            negSumMF -= (*mflow_negative.get_unchecked((mflow_Idx) as usize));
+            tempValue1 = ((*inHigh.get_unchecked((today) as usize)) + (*inLow.get_unchecked((today) as usize)) + (*inClose.get_unchecked((today) as usize))) / T::ta_from_f64(3.0);
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= *inVolume.get_unchecked({ let _v = today; today += 1; _v });
-            if tempValue2 < 0 {
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = tempValue1;
+            tempValue1 *= (*inVolume.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+            if tempValue2 < T::ta_from_i32(0) {
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                 negSumMF += tempValue1;
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-            } else if tempValue2 > 0 {
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = tempValue1;
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+            } else if tempValue2 > T::ta_from_i32(0) {
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = tempValue1;
                 posSumMF += tempValue1;
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
             } else {
-                *mflow_positive.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
-                *mflow_negative.get_unchecked_mut(mflow_Idx) = T::ta_from_f64(0.0);
+                (*mflow_positive.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
+                (*mflow_negative.get_unchecked_mut((mflow_Idx) as usize)) = T::ta_from_f64(0.0);
             }
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < T::ta_from_f64(1.0) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(100.0) * (posSumMF / tempValue1);
             }
-            mflow_Idx = (mflow_Idx + 1) % optInTimePeriod;
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

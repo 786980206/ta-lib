@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn pvi_lookback(&self) -> i32 {
-        return 0;
+    pub fn pvi_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Positive Volume Index
     ///

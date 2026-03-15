@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn nvi_lookback(&self) -> i32 {
-        return 0;
+    pub fn nvi_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Negative Volume Index
     ///

@@ -55,19 +55,19 @@ impl Core {
     ///
     /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
     /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
-    pub fn stochf_lookback(&self, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> i32 {
+    pub fn stochf_lookback(&self, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInFastK_Period) as i32) == (i32::MIN) {
             optInFastK_Period = 5;
         } else if (((optInFastK_Period) as i32) < 1) || (((optInFastK_Period) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInFastD_Period) as i32) == (i32::MIN) {
             optInFastD_Period = 3;
         } else if (((optInFastD_Period) as i32) < 1) || (((optInFastD_Period) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let mut retValue: i32;
-        retValue = optInFastK_Period - 1;
+        let mut retValue: usize = 0_usize;
+        retValue = (optInFastK_Period - 1) as usize;
         retValue += self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         return retValue;
     }
@@ -144,23 +144,23 @@ impl Core {
         outFastK: &mut [T],
         outFastD: &mut [T],
     ) -> RetCode {
-        let retCode: RetCode;
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let mut diff: T;
-        let mut tempBuffer: Vec<T>;
-        let outIdx: i32;
-        let mut lowestIdx: i32;
-        let mut highestIdx: i32;
-        let lookbackTotal: i32;
-        let lookbackK: i32;
-        let lookbackFastD: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        let mut bufferIsAllocated: i32;
-        lookbackK = optInFastK_Period - 1;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut diff: T = T::ta_zero();
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut outIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut highestIdx: i32 = 0_i32;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackK: usize = 0_usize;
+        let mut lookbackFastD: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut bufferIsAllocated: usize = 0_usize;
+        lookbackK = (optInFastK_Period - 1) as usize;
         lookbackFastD = self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         lookbackTotal = lookbackK + lookbackFastD;
         if startIdx < lookbackTotal {
@@ -181,73 +181,73 @@ impl Core {
         diff = highest;
         bufferIsAllocated = 0;
         if outFastK == inHigh || outFastK == inLow || outFastK == inClose {
-            tempBuffer = outFastK;
+            tempBuffer = outFastK.to_vec();
         } else if outFastD == inHigh || outFastD == inLow || outFastD == inClose {
-            tempBuffer = outFastD;
+            tempBuffer = outFastD.to_vec();
         } else {
             bufferIsAllocated = 1;
-            tempBuffer = vec![T::default(); ((endIdx - today + 1) * 1) as usize];
+            tempBuffer = vec![T::ta_zero(); ((endIdx - today + 1) * 1) as usize];
         }
         while today <= endIdx {
-            tmp = inLow[today];
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                i = lowestIdx;
+            tmp = inLow[(today) as usize];
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inLow[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inLow[i];
+                    tmp = inLow[(i) as usize];
                     if tmp < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             }
-            tmp = inHigh[today];
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                i = highestIdx;
+            tmp = inHigh[(today) as usize];
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = inHigh[(highestIdx) as usize];
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inHigh[i];
+                    tmp = inHigh[(i) as usize];
                     if tmp > highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             } else if tmp >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmp;
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             }
             if diff != T::ta_from_f64(0.0) {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = (inClose[today] - lowest) / diff;
+                tempBuffer[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (inClose[(today) as usize] - lowest) / diff;
             } else {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                tempBuffer[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma_unguarded(0, outIdx - 1, tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
-            if bufferIsAllocated {
+        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+            if bufferIsAllocated != 0 {
             }
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         {
-            let _n = ((((*outNBElement)) as i32) * 1) as usize;
+            let _n = ((((*outNBElement))) as usize * 1) as usize;
             let _di = (0) as usize;
-            let _si = (lookbackFastD) as usize;
+            let _si = ((lookbackFastD) as usize) as usize;
             outFastK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);
         };
-        if bufferIsAllocated {
+        if bufferIsAllocated != 0 {
         }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
@@ -315,23 +315,23 @@ impl Core {
         outFastK: &mut [T],
         outFastD: &mut [T],
     ) -> RetCode {
-        let retCode: RetCode;
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let mut diff: T;
-        let mut tempBuffer: Vec<T>;
-        let outIdx: i32;
-        let mut lowestIdx: i32;
-        let mut highestIdx: i32;
-        let lookbackTotal: i32;
-        let lookbackK: i32;
-        let lookbackFastD: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        let mut bufferIsAllocated: i32;
-        lookbackK = optInFastK_Period - 1;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut diff: T = T::ta_zero();
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut outIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut highestIdx: i32 = 0_i32;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackK: usize = 0_usize;
+        let mut lookbackFastD: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut bufferIsAllocated: usize = 0_usize;
+        lookbackK = (optInFastK_Period - 1) as usize;
         lookbackFastD = self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         lookbackTotal = lookbackK + lookbackFastD;
         if startIdx < lookbackTotal {
@@ -352,73 +352,73 @@ impl Core {
         diff = highest;
         bufferIsAllocated = 0;
         if outFastK == inHigh || outFastK == inLow || outFastK == inClose {
-            tempBuffer = outFastK;
+            tempBuffer = outFastK.to_vec();
         } else if outFastD == inHigh || outFastD == inLow || outFastD == inClose {
-            tempBuffer = outFastD;
+            tempBuffer = outFastD.to_vec();
         } else {
             bufferIsAllocated = 1;
-            tempBuffer = vec![T::default(); ((endIdx - today + 1) * 1) as usize];
+            tempBuffer = vec![T::ta_zero(); ((endIdx - today + 1) * 1) as usize];
         }
         while today <= endIdx {
-            tmp = *inLow.get_unchecked(today);
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = *inLow.get_unchecked(lowestIdx);
-                i = lowestIdx;
+            tmp = (*inLow.get_unchecked((today) as usize));
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = (*inLow.get_unchecked((lowestIdx) as usize));
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = *inLow.get_unchecked(i);
+                    tmp = (*inLow.get_unchecked((i) as usize));
                     if tmp < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             }
-            tmp = *inHigh.get_unchecked(today);
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = *inHigh.get_unchecked(highestIdx);
-                i = highestIdx;
+            tmp = (*inHigh.get_unchecked((today) as usize));
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = (*inHigh.get_unchecked((highestIdx) as usize));
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = *inHigh.get_unchecked(i);
+                    tmp = (*inHigh.get_unchecked((i) as usize));
                     if tmp > highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             } else if tmp >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmp;
                 diff = (highest - lowest) / T::ta_from_f64(100.0);
             }
             if diff != T::ta_from_f64(0.0) {
-                *tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (*inClose.get_unchecked(today) - lowest) / diff;
+                (*tempBuffer.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ((*inClose.get_unchecked((today) as usize)) - lowest) / diff;
             } else {
-                *tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*tempBuffer.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma_unguarded(0, outIdx - 1, tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
-            if bufferIsAllocated {
+        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+            if bufferIsAllocated != 0 {
             }
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         {
-            let _n = ((((*outNBElement)) as i32) * 1) as usize;
+            let _n = ((((*outNBElement))) as usize * 1) as usize;
             let _di = (0) as usize;
-            let _si = (lookbackFastD) as usize;
+            let _si = ((lookbackFastD) as usize) as usize;
             outFastK[_di.._di + _n].copy_from_slice(&tempBuffer[_si.._si + _n]);
         };
-        if bufferIsAllocated {
+        if bufferIsAllocated != 0 {
         }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;

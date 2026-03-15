@@ -55,8 +55,8 @@ impl Core {
     ///
     /// * `optInAcceleration` - Number of period (default: 0, range: 0..=2147483647)
     /// * `optInMaximum` - Number of period (default: 0, range: 0..=2147483647)
-    pub fn sar_lookback(&self, mut optInAcceleration: f64, mut optInMaximum: f64) -> i32 {
-        return 1;
+    pub fn sar_lookback(&self, mut optInAcceleration: f64, mut optInMaximum: f64) -> usize {
+        return (1) as usize;
     }
     /// Parabolic SAR
     ///
@@ -110,19 +110,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let retCode: RetCode;
-        let mut isLong: i32;
-        let mut todayIdx: i32;
-        let outIdx: i32;
-        let tempInt: i32;
-        let mut newHigh: T;
-        let mut newLow: T;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut af: T;
-        let mut ep: T;
-        let mut sar: T;
-        let mut ep_temp: [T; 1 as usize] = [T::zero(); 1 as usize];
+        let mut retCode: RetCode = RetCode::Success;
+        let mut isLong: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut newHigh: T = T::ta_zero();
+        let mut newLow: T = T::ta_zero();
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut af: T = T::ta_zero();
+        let mut ep: T = T::ta_zero();
+        let mut sar: T = T::ta_zero();
+        let mut ep_temp: [T; 1 as usize] = [T::ta_zero(); 1 as usize];
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -133,11 +133,12 @@ impl Core {
         }
         af = T::ta_from_f64(optInAcceleration);
         if af > T::ta_from_f64(optInMaximum) {
-            optInAcceleration = T::ta_from_f64(optInMaximum);
+            optInAcceleration = optInMaximum;
             af = T::ta_from_f64(optInAcceleration);
         }
-        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-        if ep_temp[0] > 0 {
+        let mut _dup_out: usize = 0_usize;
+        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
+        if ep_temp[(0) as usize] > T::ta_from_i32(0) {
             isLong = 0;
         } else {
             isLong = 1;
@@ -150,22 +151,22 @@ impl Core {
         (*outBegIdx) = startIdx;
         outIdx = 0;
         todayIdx = startIdx;
-        newHigh = inHigh[todayIdx - 1];
-        newLow = inLow[todayIdx - 1];
+        newHigh = inHigh[(todayIdx - 1) as usize];
+        newLow = inLow[(todayIdx - 1) as usize];
         if isLong == 1 {
-            ep = inHigh[todayIdx];
+            ep = inHigh[(todayIdx) as usize];
             sar = newLow;
         } else {
-            ep = inLow[todayIdx];
+            ep = inLow[(todayIdx) as usize];
             sar = newHigh;
         }
-        newLow = inLow[todayIdx];
-        newHigh = inHigh[todayIdx];
+        newLow = inLow[(todayIdx) as usize];
+        newHigh = inHigh[(todayIdx) as usize];
         while todayIdx <= endIdx {
             prevLow = newLow;
             prevHigh = newHigh;
-            newLow = inLow[todayIdx];
-            newHigh = inHigh[todayIdx];
+            newLow = inLow[(todayIdx) as usize];
+            newHigh = inHigh[(todayIdx) as usize];
             todayIdx += 1;
             if isLong == 1 {
                 if newLow <= sar {
@@ -177,7 +178,7 @@ impl Core {
                     if sar < newHigh {
                         sar = newHigh;
                     }
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                    outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = sar;
                     af = T::ta_from_f64(optInAcceleration);
                     ep = newLow;
                     sar = sar + af * (ep - sar);
@@ -188,7 +189,7 @@ impl Core {
                         sar = newHigh;
                     }
                 } else {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                    outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = sar;
                     if newHigh > ep {
                         ep = newHigh;
                         af += T::ta_from_f64(optInAcceleration);
@@ -213,7 +214,7 @@ impl Core {
                 if sar > newLow {
                     sar = newLow;
                 }
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = sar;
                 af = T::ta_from_f64(optInAcceleration);
                 ep = newHigh;
                 sar = sar + af * (ep - sar);
@@ -224,7 +225,7 @@ impl Core {
                     sar = newLow;
                 }
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = sar;
                 if newLow < ep {
                     ep = newLow;
                     af += T::ta_from_f64(optInAcceleration);
@@ -283,19 +284,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let retCode: RetCode;
-        let mut isLong: i32;
-        let mut todayIdx: i32;
-        let outIdx: i32;
-        let tempInt: i32;
-        let mut newHigh: T;
-        let mut newLow: T;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut af: T;
-        let mut ep: T;
-        let mut sar: T;
-        let mut ep_temp: [T; 1 as usize] = [T::zero(); 1 as usize];
+        let mut retCode: RetCode = RetCode::Success;
+        let mut isLong: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut newHigh: T = T::ta_zero();
+        let mut newLow: T = T::ta_zero();
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut af: T = T::ta_zero();
+        let mut ep: T = T::ta_zero();
+        let mut sar: T = T::ta_zero();
+        let mut ep_temp: [T; 1 as usize] = [T::ta_zero(); 1 as usize];
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -306,11 +307,12 @@ impl Core {
         }
         af = T::ta_from_f64(optInAcceleration);
         if af > T::ta_from_f64(optInMaximum) {
-            optInAcceleration = T::ta_from_f64(optInMaximum);
+            optInAcceleration = optInMaximum;
             af = T::ta_from_f64(optInAcceleration);
         }
-        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
-        if *ep_temp.get_unchecked(0) > 0 {
+        let mut _dup_out: usize = 0_usize;
+        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
+        if (*ep_temp.get_unchecked((0) as usize)) > T::ta_from_i32(0) {
             isLong = 0;
         } else {
             isLong = 1;
@@ -323,22 +325,22 @@ impl Core {
         (*outBegIdx) = startIdx;
         outIdx = 0;
         todayIdx = startIdx;
-        newHigh = *inHigh.get_unchecked(todayIdx - 1);
-        newLow = *inLow.get_unchecked(todayIdx - 1);
+        newHigh = (*inHigh.get_unchecked((todayIdx - 1) as usize));
+        newLow = (*inLow.get_unchecked((todayIdx - 1) as usize));
         if isLong == 1 {
-            ep = *inHigh.get_unchecked(todayIdx);
+            ep = (*inHigh.get_unchecked((todayIdx) as usize));
             sar = newLow;
         } else {
-            ep = *inLow.get_unchecked(todayIdx);
+            ep = (*inLow.get_unchecked((todayIdx) as usize));
             sar = newHigh;
         }
-        newLow = *inLow.get_unchecked(todayIdx);
-        newHigh = *inHigh.get_unchecked(todayIdx);
+        newLow = (*inLow.get_unchecked((todayIdx) as usize));
+        newHigh = (*inHigh.get_unchecked((todayIdx) as usize));
         while todayIdx <= endIdx {
             prevLow = newLow;
             prevHigh = newHigh;
-            newLow = *inLow.get_unchecked(todayIdx);
-            newHigh = *inHigh.get_unchecked(todayIdx);
+            newLow = (*inLow.get_unchecked((todayIdx) as usize));
+            newHigh = (*inHigh.get_unchecked((todayIdx) as usize));
             todayIdx += 1;
             if isLong == 1 {
                 if newLow <= sar {
@@ -350,7 +352,7 @@ impl Core {
                     if sar < newHigh {
                         sar = newHigh;
                     }
-                    *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = sar;
+                    (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = sar;
                     af = T::ta_from_f64(optInAcceleration);
                     ep = newLow;
                     sar = sar + af * (ep - sar);
@@ -361,7 +363,7 @@ impl Core {
                         sar = newHigh;
                     }
                 } else {
-                    *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = sar;
+                    (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = sar;
                     if newHigh > ep {
                         ep = newHigh;
                         af += T::ta_from_f64(optInAcceleration);
@@ -386,7 +388,7 @@ impl Core {
                 if sar > newLow {
                     sar = newLow;
                 }
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = sar;
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = sar;
                 af = T::ta_from_f64(optInAcceleration);
                 ep = newHigh;
                 sar = sar + af * (ep - sar);
@@ -397,7 +399,7 @@ impl Core {
                     sar = newLow;
                 }
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = sar;
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = sar;
                 if newLow < ep {
                     ep = newLow;
                     af += T::ta_from_f64(optInAcceleration);

@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
-    pub fn rocr_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn rocr_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 10;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod;
+        return (optInTimePeriod) as usize;
     }
     /// Rate of change ratio: (price/prevPrice)
     ///
@@ -111,12 +111,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut inIdx: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let mut tempReal: T;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut inIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -125,13 +125,13 @@ impl Core {
         }
         outIdx = 0;
         inIdx = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
             if tempReal != T::ta_from_f64(0.0) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = inReal[inIdx] / tempReal;
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = inReal[(inIdx) as usize] / tempReal;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
             inIdx += 1;
         }
@@ -177,12 +177,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut inIdx: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let mut tempReal: T;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut inIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -191,13 +191,13 @@ impl Core {
         }
         outIdx = 0;
         inIdx = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            tempReal = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
             if tempReal != T::ta_from_f64(0.0) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = *inReal.get_unchecked(inIdx) / tempReal;
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (*inReal.get_unchecked((inIdx) as usize)) / tempReal;
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
             inIdx += 1;
         }

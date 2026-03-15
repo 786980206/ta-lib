@@ -54,16 +54,16 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn dx_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn dx_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if optInTimePeriod > 1 {
-            return optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize];
+            return (optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize]) as usize;
         } else {
-            return 2;
+            return (2) as usize;
         }
     }
     /// Directional Movement Index
@@ -123,24 +123,24 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut lookbackTotal: i32;
-        let mut outIdx: i32;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut prevClose: T;
-        let mut prevMinusDM: T;
-        let mut prevPlusDM: T;
-        let mut prevTR: T;
-        let mut tempReal: T;
-        let tempReal2: T;
-        let mut diffP: T;
-        let mut diffM: T;
-        let mut minusDI: T;
-        let mut plusDI: T;
-        let mut i: i32;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut prevClose: T = T::ta_zero();
+        let mut prevMinusDM: T = T::ta_zero();
+        let mut prevPlusDM: T = T::ta_zero();
+        let mut prevTR: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let tempReal2: T = T::ta_zero();
+        let mut diffP: T = T::ta_zero();
+        let mut diffM: T = T::ta_zero();
+        let mut minusDI: T = T::ta_zero();
+        let mut plusDI: T = T::ta_zero();
+        let mut i: usize = 0_usize;
         if optInTimePeriod > 1 {
-            lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize];
+            lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize]) as usize;
         } else {
             lookbackTotal = 2;
         }
@@ -159,116 +159,122 @@ impl Core {
         prevPlusDM = T::ta_from_f64(0.0);
         prevTR = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
-        prevHigh = inHigh[today];
-        prevLow = inLow[today];
-        prevClose = inClose[today];
-        i = optInTimePeriod - 1;
+        prevHigh = inHigh[(today) as usize];
+        prevLow = inLow[(today) as usize];
+        prevClose = inClose[(today) as usize];
+        i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_0: T;
+            let mut range_0: T = prevHigh - prevLow;
+            let mut tmp_0: T = (prevHigh - prevClose).ta_abs();
             if tmp_0 > range_0 {
                 range_0 = tmp_0;
             }
-            tmp_0 = prevLow - prevClose.ta_abs();
+            tmp_0 = (prevLow - prevClose).ta_abs();
             if tmp_0 > range_0 {
                 range_0 = tmp_0;
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
             prevTR += tempReal;
-            prevClose = inClose[today];
+            prevClose = inClose[(today) as usize];
         }
-        i = self.unstable_period[FuncUnstId::Dx as usize] + 1;
+        i = (self.unstable_period[FuncUnstId::Dx as usize] + 1) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            prevMinusDM -= prevMinusDM / optInTimePeriod;
-            prevPlusDM -= prevPlusDM / optInTimePeriod;
-            if diffM > 0 && diffP < diffM {
+            prevMinusDM -= prevMinusDM / T::ta_from_i32(optInTimePeriod);
+            prevPlusDM -= prevPlusDM / T::ta_from_i32(optInTimePeriod);
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_1: T;
+            let mut range_1: T = prevHigh - prevLow;
+            let mut tmp_1: T = (prevHigh - prevClose).ta_abs();
             if tmp_1 > range_1 {
                 range_1 = tmp_1;
             }
-            tmp_1 = prevLow - prevClose.ta_abs();
+            tmp_1 = (prevLow - prevClose).ta_abs();
             if tmp_1 > range_1 {
                 range_1 = tmp_1;
             }
             _true_range_1 = range_1;
             tempReal = _true_range_1;
-            prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-            prevClose = inClose[today];
+            prevTR = prevTR - prevTR / T::ta_from_i32(optInTimePeriod) + tempReal;
+            prevClose = inClose[(today) as usize];
         }
-        if !(0 - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
-            minusDI = T::ta_from_f64(100.0) * (prevMinusDM / prevTR);
-            plusDI = T::ta_from_f64(100.0) * (prevPlusDM / prevTR);
+        if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
+            minusDI = (T::ta_from_f64(100.0) * (prevMinusDM / prevTR));
+            plusDI = (T::ta_from_f64(100.0) * (prevPlusDM / prevTR));
             tempReal = minusDI + plusDI;
-            if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                outReal[0] = T::ta_from_f64(100.0) * (minusDI - plusDI.ta_abs() / tempReal);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                outReal[(0) as usize] = (T::ta_from_f64(100.0) * ((minusDI - plusDI).ta_abs() / tempReal));
             } else {
-                outReal[0] = T::ta_from_f64(0.0);
+                outReal[(0) as usize] = T::ta_from_f64(0.0);
             }
         } else {
-            outReal[0] = T::ta_from_f64(0.0);
+            outReal[(0) as usize] = T::ta_from_f64(0.0);
         }
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            prevMinusDM -= prevMinusDM / optInTimePeriod;
-            prevPlusDM -= prevPlusDM / optInTimePeriod;
-            if diffM > 0 && diffP < diffM {
+            prevMinusDM -= prevMinusDM / T::ta_from_i32(optInTimePeriod);
+            prevPlusDM -= prevPlusDM / T::ta_from_i32(optInTimePeriod);
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_2: T;
+            let mut range_2: T = prevHigh - prevLow;
+            let mut tmp_2: T = (prevHigh - prevClose).ta_abs();
             if tmp_2 > range_2 {
                 range_2 = tmp_2;
             }
-            tmp_2 = prevLow - prevClose.ta_abs();
+            tmp_2 = (prevLow - prevClose).ta_abs();
             if tmp_2 > range_2 {
                 range_2 = tmp_2;
             }
             _true_range_2 = range_2;
             tempReal = _true_range_2;
-            prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-            prevClose = inClose[today];
-            if !(0 - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
-                minusDI = T::ta_from_f64(100.0) * (prevMinusDM / prevTR);
-                plusDI = T::ta_from_f64(100.0) * (prevPlusDM / prevTR);
+            prevTR = prevTR - prevTR / T::ta_from_i32(optInTimePeriod) + tempReal;
+            prevClose = inClose[(today) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
+                minusDI = (T::ta_from_f64(100.0) * (prevMinusDM / prevTR));
+                plusDI = (T::ta_from_f64(100.0) * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
-                if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                    outReal[outIdx] = T::ta_from_f64(100.0) * (minusDI - plusDI.ta_abs() / tempReal);
+                if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                    outReal[(outIdx) as usize] = (T::ta_from_f64(100.0) * ((minusDI - plusDI).ta_abs() / tempReal));
                 } else {
-                    outReal[outIdx] = outReal[outIdx - 1];
+                    outReal[(outIdx) as usize] = outReal[(outIdx - 1) as usize];
                 }
             } else {
-                outReal[outIdx] = outReal[outIdx - 1];
+                outReal[(outIdx) as usize] = outReal[(outIdx - 1) as usize];
             }
             outIdx += 1;
         }
@@ -319,24 +325,24 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut lookbackTotal: i32;
-        let mut outIdx: i32;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut prevClose: T;
-        let mut prevMinusDM: T;
-        let mut prevPlusDM: T;
-        let mut prevTR: T;
-        let mut tempReal: T;
-        let tempReal2: T;
-        let mut diffP: T;
-        let mut diffM: T;
-        let mut minusDI: T;
-        let mut plusDI: T;
-        let mut i: i32;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut prevClose: T = T::ta_zero();
+        let mut prevMinusDM: T = T::ta_zero();
+        let mut prevPlusDM: T = T::ta_zero();
+        let mut prevTR: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let tempReal2: T = T::ta_zero();
+        let mut diffP: T = T::ta_zero();
+        let mut diffM: T = T::ta_zero();
+        let mut minusDI: T = T::ta_zero();
+        let mut plusDI: T = T::ta_zero();
+        let mut i: usize = 0_usize;
         if optInTimePeriod > 1 {
-            lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize];
+            lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Dx as usize]) as usize;
         } else {
             lookbackTotal = 2;
         }
@@ -355,116 +361,122 @@ impl Core {
         prevPlusDM = T::ta_from_f64(0.0);
         prevTR = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
-        prevHigh = *inHigh.get_unchecked(today);
-        prevLow = *inLow.get_unchecked(today);
-        prevClose = *inClose.get_unchecked(today);
-        i = optInTimePeriod - 1;
+        prevHigh = (*inHigh.get_unchecked((today) as usize));
+        prevLow = (*inLow.get_unchecked((today) as usize));
+        prevClose = (*inClose.get_unchecked((today) as usize));
+        i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_0: T;
+            let mut range_0: T = prevHigh - prevLow;
+            let mut tmp_0: T = (prevHigh - prevClose).ta_abs();
             if tmp_0 > range_0 {
                 range_0 = tmp_0;
             }
-            tmp_0 = prevLow - prevClose.ta_abs();
+            tmp_0 = (prevLow - prevClose).ta_abs();
             if tmp_0 > range_0 {
                 range_0 = tmp_0;
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
             prevTR += tempReal;
-            prevClose = *inClose.get_unchecked(today);
+            prevClose = (*inClose.get_unchecked((today) as usize));
         }
-        i = self.unstable_period[FuncUnstId::Dx as usize] + 1;
+        i = (self.unstable_period[FuncUnstId::Dx as usize] + 1) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            prevMinusDM -= prevMinusDM / optInTimePeriod;
-            prevPlusDM -= prevPlusDM / optInTimePeriod;
-            if diffM > 0 && diffP < diffM {
+            prevMinusDM -= prevMinusDM / T::ta_from_i32(optInTimePeriod);
+            prevPlusDM -= prevPlusDM / T::ta_from_i32(optInTimePeriod);
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_1: T;
+            let mut range_1: T = prevHigh - prevLow;
+            let mut tmp_1: T = (prevHigh - prevClose).ta_abs();
             if tmp_1 > range_1 {
                 range_1 = tmp_1;
             }
-            tmp_1 = prevLow - prevClose.ta_abs();
+            tmp_1 = (prevLow - prevClose).ta_abs();
             if tmp_1 > range_1 {
                 range_1 = tmp_1;
             }
             _true_range_1 = range_1;
             tempReal = _true_range_1;
-            prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-            prevClose = *inClose.get_unchecked(today);
+            prevTR = prevTR - prevTR / T::ta_from_i32(optInTimePeriod) + tempReal;
+            prevClose = (*inClose.get_unchecked((today) as usize));
         }
-        if !(0 - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
-            minusDI = T::ta_from_f64(100.0) * (prevMinusDM / prevTR);
-            plusDI = T::ta_from_f64(100.0) * (prevPlusDM / prevTR);
+        if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
+            minusDI = (T::ta_from_f64(100.0) * (prevMinusDM / prevTR));
+            plusDI = (T::ta_from_f64(100.0) * (prevPlusDM / prevTR));
             tempReal = minusDI + plusDI;
-            if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut(0) = T::ta_from_f64(100.0) * (minusDI - plusDI.ta_abs() / tempReal);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                (*outReal.get_unchecked_mut((0) as usize)) = (T::ta_from_f64(100.0) * ((minusDI - plusDI).ta_abs() / tempReal));
             } else {
-                *outReal.get_unchecked_mut(0) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut((0) as usize)) = T::ta_from_f64(0.0);
             }
         } else {
-            *outReal.get_unchecked_mut(0) = T::ta_from_f64(0.0);
+            (*outReal.get_unchecked_mut((0) as usize)) = T::ta_from_f64(0.0);
         }
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            prevMinusDM -= prevMinusDM / optInTimePeriod;
-            prevPlusDM -= prevPlusDM / optInTimePeriod;
-            if diffM > 0 && diffP < diffM {
+            prevMinusDM -= prevMinusDM / T::ta_from_i32(optInTimePeriod);
+            prevPlusDM -= prevPlusDM / T::ta_from_i32(optInTimePeriod);
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
-            } else if diffP > 0 && diffP > diffM {
+            } else if diffP > T::ta_from_i32(0) && diffP > diffM {
                 prevPlusDM += diffP;
             }
             let mut _true_range_2: T;
+            let mut range_2: T = prevHigh - prevLow;
+            let mut tmp_2: T = (prevHigh - prevClose).ta_abs();
             if tmp_2 > range_2 {
                 range_2 = tmp_2;
             }
-            tmp_2 = prevLow - prevClose.ta_abs();
+            tmp_2 = (prevLow - prevClose).ta_abs();
             if tmp_2 > range_2 {
                 range_2 = tmp_2;
             }
             _true_range_2 = range_2;
             tempReal = _true_range_2;
-            prevTR = prevTR - prevTR / optInTimePeriod + tempReal;
-            prevClose = *inClose.get_unchecked(today);
-            if !(0 - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
-                minusDI = T::ta_from_f64(100.0) * (prevMinusDM / prevTR);
-                plusDI = T::ta_from_f64(100.0) * (prevPlusDM / prevTR);
+            prevTR = prevTR - prevTR / T::ta_from_i32(optInTimePeriod) + tempReal;
+            prevClose = (*inClose.get_unchecked((today) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < prevTR && prevTR < T::ta_from_f64(0.00000001)) {
+                minusDI = (T::ta_from_f64(100.0) * (prevMinusDM / prevTR));
+                plusDI = (T::ta_from_f64(100.0) * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
-                if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                    *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (minusDI - plusDI.ta_abs() / tempReal);
+                if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                    (*outReal.get_unchecked_mut((outIdx) as usize)) = (T::ta_from_f64(100.0) * ((minusDI - plusDI).ta_abs() / tempReal));
                 } else {
-                    *outReal.get_unchecked_mut(outIdx) = *outReal.get_unchecked(outIdx - 1);
+                    (*outReal.get_unchecked_mut((outIdx) as usize)) = (*outReal.get_unchecked((outIdx - 1) as usize));
                 }
             } else {
-                *outReal.get_unchecked_mut(outIdx) = *outReal.get_unchecked(outIdx - 1);
+                (*outReal.get_unchecked_mut((outIdx) as usize)) = (*outReal.get_unchecked((outIdx - 1) as usize));
             }
             outIdx += 1;
         }

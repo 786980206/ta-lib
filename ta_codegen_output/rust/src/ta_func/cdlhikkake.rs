@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn cdlhikkake_lookback(&self) -> i32 {
-        return 5;
+    pub fn cdlhikkake_lookback(&self) -> usize {
+        return (5) as usize;
     }
     /// Hikkake Pattern
     ///
@@ -108,11 +108,11 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut i: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let mut patternIdx: i32;
-        let mut patternResult: i32;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut patternIdx: usize = 0_usize;
+        let mut patternResult: i32 = 0_i32;
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -126,10 +126,10 @@ impl Core {
         patternResult = 0;
         i = startIdx - 3;
         while i < startIdx {
-            if inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]) {
-                patternResult = 100 * if inHigh[i] < inHigh[i - 1] { 1 } else { 0 - 1 };
+            if inHigh[(i - 1) as usize] < inHigh[(i - 2) as usize] && inLow[(i - 1) as usize] > inLow[(i - 2) as usize] && (inHigh[(i) as usize] < inHigh[(i - 1) as usize] && inLow[(i) as usize] < inLow[(i - 1) as usize] || inHigh[(i) as usize] > inHigh[(i - 1) as usize] && inLow[(i) as usize] > inLow[(i - 1) as usize]) {
+                patternResult = 100 * if inHigh[(i) as usize] < inHigh[(i - 1) as usize] { 1 } else { 0 - 1 };
                 patternIdx = i;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] || patternResult < 0 && inClose[i] < inLow[patternIdx - 1]) {
+            } else if i <= patternIdx + 3 && (patternResult > 0 && inClose[(i) as usize] > inHigh[(patternIdx - 1) as usize] || patternResult < 0 && inClose[(i) as usize] < inLow[(patternIdx - 1) as usize]) {
                 patternIdx = 0;
             }
             i += 1;
@@ -137,15 +137,15 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1]) {
-                patternResult = 100 * if inHigh[i] < inHigh[i - 1] { 1 } else { 0 - 1 };
+            if inHigh[(i - 1) as usize] < inHigh[(i - 2) as usize] && inLow[(i - 1) as usize] > inLow[(i - 2) as usize] && (inHigh[(i) as usize] < inHigh[(i - 1) as usize] && inLow[(i) as usize] < inLow[(i - 1) as usize] || inHigh[(i) as usize] > inHigh[(i - 1) as usize] && inLow[(i) as usize] > inLow[(i - 1) as usize]) {
+                patternResult = 100 * if inHigh[(i) as usize] < inHigh[(i - 1) as usize] { 1 } else { 0 - 1 };
                 patternIdx = i;
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = patternResult;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] || patternResult < 0 && inClose[i] < inLow[patternIdx - 1]) {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = patternResult + 100 * if patternResult > 0 { 1 } else { 0 - 1 };
+                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (patternResult) as i32;
+            } else if i <= patternIdx + 3 && (patternResult > 0 && inClose[(i) as usize] > inHigh[(patternIdx - 1) as usize] || patternResult < 0 && inClose[(i) as usize] < inLow[(patternIdx - 1) as usize]) {
+                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (patternResult + (100 * if patternResult > 0 { 1 } else { 0 - 1 }) as i32) as i32;
                 patternIdx = 0;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }
@@ -193,11 +193,11 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut i: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let mut patternIdx: i32;
-        let mut patternResult: i32;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut patternIdx: usize = 0_usize;
+        let mut patternResult: i32 = 0_i32;
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -211,10 +211,10 @@ impl Core {
         patternResult = 0;
         i = startIdx - 3;
         while i < startIdx {
-            if *inHigh.get_unchecked(i - 1) < *inHigh.get_unchecked(i - 2) && *inLow.get_unchecked(i - 1) > *inLow.get_unchecked(i - 2) && (*inHigh.get_unchecked(i) < *inHigh.get_unchecked(i - 1) && *inLow.get_unchecked(i) < *inLow.get_unchecked(i - 1) || *inHigh.get_unchecked(i) > *inHigh.get_unchecked(i - 1) && *inLow.get_unchecked(i) > *inLow.get_unchecked(i - 1)) {
-                patternResult = 100 * if *inHigh.get_unchecked(i) < *inHigh.get_unchecked(i - 1) { 1 } else { 0 - 1 };
+            if (*inHigh.get_unchecked((i - 1) as usize)) < (*inHigh.get_unchecked((i - 2) as usize)) && (*inLow.get_unchecked((i - 1) as usize)) > (*inLow.get_unchecked((i - 2) as usize)) && ((*inHigh.get_unchecked((i) as usize)) < (*inHigh.get_unchecked((i - 1) as usize)) && (*inLow.get_unchecked((i) as usize)) < (*inLow.get_unchecked((i - 1) as usize)) || (*inHigh.get_unchecked((i) as usize)) > (*inHigh.get_unchecked((i - 1) as usize)) && (*inLow.get_unchecked((i) as usize)) > (*inLow.get_unchecked((i - 1) as usize))) {
+                patternResult = 100 * if (*inHigh.get_unchecked((i) as usize)) < (*inHigh.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 };
                 patternIdx = i;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.get_unchecked(i) > *inHigh.get_unchecked(patternIdx - 1) || patternResult < 0 && *inClose.get_unchecked(i) < *inLow.get_unchecked(patternIdx - 1)) {
+            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked((i) as usize)) > (*inHigh.get_unchecked((patternIdx - 1) as usize)) || patternResult < 0 && (*inClose.get_unchecked((i) as usize)) < (*inLow.get_unchecked((patternIdx - 1) as usize))) {
                 patternIdx = 0;
             }
             i += 1;
@@ -222,15 +222,15 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if *inHigh.get_unchecked(i - 1) < *inHigh.get_unchecked(i - 2) && *inLow.get_unchecked(i - 1) > *inLow.get_unchecked(i - 2) && (*inHigh.get_unchecked(i) < *inHigh.get_unchecked(i - 1) && *inLow.get_unchecked(i) < *inLow.get_unchecked(i - 1) || *inHigh.get_unchecked(i) > *inHigh.get_unchecked(i - 1) && *inLow.get_unchecked(i) > *inLow.get_unchecked(i - 1)) {
-                patternResult = 100 * if *inHigh.get_unchecked(i) < *inHigh.get_unchecked(i - 1) { 1 } else { 0 - 1 };
+            if (*inHigh.get_unchecked((i - 1) as usize)) < (*inHigh.get_unchecked((i - 2) as usize)) && (*inLow.get_unchecked((i - 1) as usize)) > (*inLow.get_unchecked((i - 2) as usize)) && ((*inHigh.get_unchecked((i) as usize)) < (*inHigh.get_unchecked((i - 1) as usize)) && (*inLow.get_unchecked((i) as usize)) < (*inLow.get_unchecked((i - 1) as usize)) || (*inHigh.get_unchecked((i) as usize)) > (*inHigh.get_unchecked((i - 1) as usize)) && (*inLow.get_unchecked((i) as usize)) > (*inLow.get_unchecked((i - 1) as usize))) {
+                patternResult = 100 * if (*inHigh.get_unchecked((i) as usize)) < (*inHigh.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 };
                 patternIdx = i;
-                *outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = patternResult;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.get_unchecked(i) > *inHigh.get_unchecked(patternIdx - 1) || patternResult < 0 && *inClose.get_unchecked(i) < *inLow.get_unchecked(patternIdx - 1)) {
-                *outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = patternResult + 100 * if patternResult > 0 { 1 } else { 0 - 1 };
+                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (patternResult) as i32;
+            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked((i) as usize)) > (*inHigh.get_unchecked((patternIdx - 1) as usize)) || patternResult < 0 && (*inClose.get_unchecked((i) as usize)) < (*inLow.get_unchecked((patternIdx - 1) as usize))) {
+                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (patternResult + (100 * if patternResult > 0 { 1 } else { 0 - 1 }) as i32) as i32;
                 patternIdx = 0;
             } else {
-                *outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = 0;
+                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }

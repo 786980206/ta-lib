@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
-    pub fn macdfix_lookback(&self, mut optInSignalPeriod: i32) -> i32 {
+    pub fn macdfix_lookback(&self, mut optInSignalPeriod: i32) -> usize {
         if ((optInSignalPeriod) as i32) == (i32::MIN) {
             optInSignalPeriod = 9;
         } else if (((optInSignalPeriod) as i32) < 1) || (((optInSignalPeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return self.ema_lookback(26) + self.ema_lookback(optInSignalPeriod);
+        return (self.ema_lookback(26) + self.ema_lookback(optInSignalPeriod)) as usize;
     }
     /// Moving Average Convergence/Divergence Fix 12/26
     ///

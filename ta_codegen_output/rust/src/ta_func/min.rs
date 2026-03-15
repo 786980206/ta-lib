@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn min_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn min_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Lowest value over a specified period
     ///
@@ -111,15 +111,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut tmp: T;
-        let outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut lowestIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut lowest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -134,23 +134,23 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         while today <= endIdx {
-            tmp = inReal[today];
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                i = lowestIdx;
+            tmp = inReal[(today) as usize];
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inReal[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inReal[i];
+                    tmp = inReal[(i) as usize];
                     if tmp < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = lowest;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = lowest;
             trailingIdx += 1;
             today += 1;
         }
@@ -196,15 +196,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut tmp: T;
-        let outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut lowestIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut lowest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -219,23 +219,23 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         while today <= endIdx {
-            tmp = *inReal.get_unchecked(today);
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = *inReal.get_unchecked(lowestIdx);
-                i = lowestIdx;
+            tmp = (*inReal.get_unchecked((today) as usize));
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = (*inReal.get_unchecked((lowestIdx) as usize));
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = *inReal.get_unchecked(i);
+                    tmp = (*inReal.get_unchecked((i) as usize));
                     if tmp < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = lowest;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = lowest;
             trailingIdx += 1;
             today += 1;
         }

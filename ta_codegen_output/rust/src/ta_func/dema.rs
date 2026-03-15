@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn dema_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn dema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return self.ema_lookback(optInTimePeriod) * 2;
+        return (self.ema_lookback(optInTimePeriod) * 2) as usize;
     }
     /// Double Exponential Moving Average
     ///
@@ -111,18 +111,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut firstEMA: Vec<T>;
-        let secondEMA: Vec<T>;
-        let firstEMABegIdx: i32;
-        let firstEMANbElement: i32;
-        let secondEMABegIdx: i32;
-        let secondEMANbElement: i32;
-        let tempInt: i32;
-        let mut outIdx: i32;
-        let firstEMAIdx: i32;
-        let lookbackTotal: i32;
-        let lookbackEMA: i32;
-        let mut retCode: RetCode;
+        let mut firstEMA: Vec<T> = Vec::new();
+        let mut secondEMA: Vec<T> = Vec::new();
+        let mut firstEMABegIdx: usize = 0_usize;
+        let mut firstEMANbElement: usize = 0_usize;
+        let mut secondEMABegIdx: usize = 0_usize;
+        let mut secondEMANbElement: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut firstEMAIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackEMA: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
         lookbackEMA = self.ema_lookback(optInTimePeriod);
@@ -134,19 +134,19 @@ impl Core {
             return RetCode::Success;
         }
         if inReal == outReal {
-            firstEMA = outReal;
+            firstEMA = outReal.to_vec();
         } else {
             tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-            firstEMA = vec![T::default(); (tempInt * 1) as usize];
+            firstEMA = vec![T::ta_zero(); (tempInt * 1) as usize];
         }
-        retCode = self.ema_unguarded(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+        retCode = self.ema_unguarded(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             if firstEMA != outReal {
             }
             return retCode;
         }
-        secondEMA = vec![T::default(); (firstEMANbElement * 1) as usize];
-        retCode = self.ema_unguarded(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+        secondEMA = vec![T::ta_zero(); (firstEMANbElement * 1) as usize];
+        retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             if firstEMA != outReal {
             }
@@ -155,7 +155,7 @@ impl Core {
         firstEMAIdx = secondEMABegIdx;
         outIdx = 0;
         while outIdx < secondEMANbElement {
-            outReal[outIdx] = T::ta_from_f64(2.0) * firstEMA[{ let _v = firstEMAIdx; firstEMAIdx += 1; _v }] - secondEMA[outIdx];
+            outReal[(outIdx) as usize] = T::ta_from_f64(2.0) * firstEMA[({ let _v = firstEMAIdx; firstEMAIdx += 1; _v }) as usize] - secondEMA[(outIdx) as usize];
             outIdx += 1;
         }
         if firstEMA != outReal {
@@ -202,18 +202,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut firstEMA: Vec<T>;
-        let secondEMA: Vec<T>;
-        let firstEMABegIdx: i32;
-        let firstEMANbElement: i32;
-        let secondEMABegIdx: i32;
-        let secondEMANbElement: i32;
-        let tempInt: i32;
-        let mut outIdx: i32;
-        let firstEMAIdx: i32;
-        let lookbackTotal: i32;
-        let lookbackEMA: i32;
-        let mut retCode: RetCode;
+        let mut firstEMA: Vec<T> = Vec::new();
+        let mut secondEMA: Vec<T> = Vec::new();
+        let mut firstEMABegIdx: usize = 0_usize;
+        let mut firstEMANbElement: usize = 0_usize;
+        let mut secondEMABegIdx: usize = 0_usize;
+        let mut secondEMANbElement: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut firstEMAIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackEMA: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
         lookbackEMA = self.ema_lookback(optInTimePeriod);
@@ -225,19 +225,19 @@ impl Core {
             return RetCode::Success;
         }
         if inReal == outReal {
-            firstEMA = outReal;
+            firstEMA = outReal.to_vec();
         } else {
             tempInt = lookbackTotal + (endIdx - startIdx) + 1;
-            firstEMA = vec![T::default(); (tempInt * 1) as usize];
+            firstEMA = vec![T::ta_zero(); (tempInt * 1) as usize];
         }
-        retCode = self.ema_unguarded(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+        retCode = self.ema_unguarded(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             if firstEMA != outReal {
             }
             return retCode;
         }
-        secondEMA = vec![T::default(); (firstEMANbElement * 1) as usize];
-        retCode = self.ema_unguarded(0, firstEMANbElement - 1, firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+        secondEMA = vec![T::ta_zero(); (firstEMANbElement * 1) as usize];
+        retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             if firstEMA != outReal {
             }
@@ -246,7 +246,7 @@ impl Core {
         firstEMAIdx = secondEMABegIdx;
         outIdx = 0;
         while outIdx < secondEMANbElement {
-            *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(2.0) * *firstEMA.get_unchecked({ let _v = firstEMAIdx; firstEMAIdx += 1; _v }) - *secondEMA.get_unchecked(outIdx);
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(2.0) * (*firstEMA.get_unchecked(({ let _v = firstEMAIdx; firstEMAIdx += 1; _v }) as usize)) - (*secondEMA.get_unchecked((outIdx) as usize));
             outIdx += 1;
         }
         if firstEMA != outReal {

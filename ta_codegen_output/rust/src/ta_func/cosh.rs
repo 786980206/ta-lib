@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn cosh_lookback(&self) -> i32 {
-        return 0;
+    pub fn cosh_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Vector Trigonometric Cosh
     ///
@@ -96,17 +96,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        // for( i = startIdx;
-outIdx = 0; i <= endIdx; i += 1;
-outIdx += 1 )
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
         i = startIdx;
-outIdx = 0;
+        outIdx = 0;
         while i <= endIdx {
-            outReal[outIdx] = inReal[i].ta_cosh();
+            outReal[(outIdx) as usize] = inReal[(i) as usize].ta_cosh();
             i += 1;
-outIdx += 1;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
@@ -142,17 +140,15 @@ outIdx += 1;
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        // for( i = startIdx;
-outIdx = 0; i <= endIdx; i += 1;
-outIdx += 1 )
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
         i = startIdx;
-outIdx = 0;
+        outIdx = 0;
         while i <= endIdx {
-            *outReal.get_unchecked_mut(outIdx) = *inReal.get_unchecked(i).ta_cosh();
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = (*inReal.get_unchecked((i) as usize)).ta_cosh();
             i += 1;
-outIdx += 1;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;

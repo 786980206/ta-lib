@@ -55,11 +55,11 @@ impl Core {
     ///
     /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
     /// * `optInNbDev` - Number of period (default: 1, range: -2147483648..=2147483647)
-    pub fn stddev_lookback(&self, mut optInTimePeriod: i32, mut optInNbDev: f64) -> i32 {
+    pub fn stddev_lookback(&self, mut optInTimePeriod: i32, mut optInNbDev: f64) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         return self.var_lookback(optInTimePeriod, optInNbDev);
     }
@@ -116,34 +116,34 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let i: i32;
-        let retCode: RetCode;
-        let mut tempReal: T;
-        retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(1.0), outBegIdx, outNBElement, outReal);
+        let mut i: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempReal: T = T::ta_zero();
+        retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;
         }
         if T::ta_from_f64(optInNbDev) != T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = outReal[i];
+            while i < (((*outNBElement))) as usize {
+                tempReal = outReal[(i) as usize];
                 if !(tempReal < T::ta_from_f64(0.00000001)) {
-                    outReal[i] = tempReal.ta_sqrt() * T::ta_from_f64(optInNbDev);
+                    outReal[(i) as usize] = tempReal.ta_sqrt() * T::ta_from_f64(optInNbDev);
                 } else {
-                    outReal[i] = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+                    outReal[(i) as usize] = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
                 }
                 i += 1;
             }
         } else {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = outReal[i];
+            while i < (((*outNBElement))) as usize {
+                tempReal = outReal[(i) as usize];
                 if !(tempReal < T::ta_from_f64(0.00000001)) {
-                    outReal[i] = tempReal.ta_sqrt();
+                    outReal[(i) as usize] = tempReal.ta_sqrt();
                 } else {
-                    outReal[i] = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+                    outReal[(i) as usize] = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
                 }
                 i += 1;
             }
@@ -191,34 +191,34 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let i: i32;
-        let retCode: RetCode;
-        let mut tempReal: T;
-        retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(1.0), outBegIdx, outNBElement, outReal);
+        let mut i: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempReal: T = T::ta_zero();
+        retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;
         }
         if T::ta_from_f64(optInNbDev) != T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = *outReal.get_unchecked(i);
+            while i < (((*outNBElement))) as usize {
+                tempReal = (*outReal.get_unchecked((i) as usize));
                 if !(tempReal < T::ta_from_f64(0.00000001)) {
-                    *outReal.get_unchecked_mut(i) = tempReal.ta_sqrt() * T::ta_from_f64(optInNbDev);
+                    (*outReal.get_unchecked_mut((i) as usize)) = tempReal.ta_sqrt() * T::ta_from_f64(optInNbDev);
                 } else {
-                    *outReal.get_unchecked_mut(i) = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+                    (*outReal.get_unchecked_mut((i) as usize)) = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
                 }
                 i += 1;
             }
         } else {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = *outReal.get_unchecked(i);
+            while i < (((*outNBElement))) as usize {
+                tempReal = (*outReal.get_unchecked((i) as usize));
                 if !(tempReal < T::ta_from_f64(0.00000001)) {
-                    *outReal.get_unchecked_mut(i) = tempReal.ta_sqrt();
+                    (*outReal.get_unchecked_mut((i) as usize)) = tempReal.ta_sqrt();
                 } else {
-                    *outReal.get_unchecked_mut(i) = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
+                    (*outReal.get_unchecked_mut((i) as usize)) = T::ta_from_f64((T::ta_from_f64(0.0)).ta_to_f64());
                 }
                 i += 1;
             }

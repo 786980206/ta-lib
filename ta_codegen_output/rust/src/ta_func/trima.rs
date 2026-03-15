@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn trima_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn trima_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Triangular Moving Average
     ///
@@ -111,18 +111,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let lookbackTotal: i32;
-        let mut numerator: T;
-        let mut numeratorSub: T;
-        let mut numeratorAdd: T;
-        let mut i: i32;
-        let mut outIdx: i32;
-        let mut todayIdx: i32;
-        let mut trailingIdx: i32;
-        let mut middleIdx: i32;
-        let mut factor: T;
-        let mut tempReal: T;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut numerator: T = T::ta_zero();
+        let mut numeratorSub: T = T::ta_zero();
+        let mut numeratorAdd: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut middleIdx: usize = 0_usize;
+        let mut factor: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -133,8 +133,8 @@ impl Core {
         }
         outIdx = 0;
         if optInTimePeriod % 2 == 1 {
-            i = optInTimePeriod >> 1;
-            factor = (i + 1) * (i + 1);
+            i = (optInTimePeriod >> 1) as usize;
+            factor = T::ta_from_i32(((i + 1) * (i + 1)) as i32);
             factor = T::ta_from_f64(1.0) / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i;
@@ -143,39 +143,41 @@ impl Core {
             numeratorSub = T::ta_from_f64(0.0);
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
-            while i >= trailingIdx {
-                tempReal = inReal[i];
+            loop {
+                tempReal = inReal[(i) as usize];
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
+                if i == trailingIdx { break; }
                 i -= 1;
             }
             numeratorAdd = T::ta_from_f64(0.0);
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = inReal[i];
+                tempReal = inReal[(i) as usize];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
+            i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = inReal[{ let _v = middleIdx; middleIdx += 1; _v }];
+                tempReal = inReal[({ let _v = middleIdx; middleIdx += 1; _v }) as usize];
                 numeratorSub += tempReal;
                 numerator += numeratorAdd;
                 numeratorAdd -= tempReal;
-                tempReal = inReal[{ let _v = todayIdx; todayIdx += 1; _v }];
+                tempReal = inReal[({ let _v = todayIdx; todayIdx += 1; _v }) as usize];
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+                tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
             }
         } else {
-            i = optInTimePeriod >> 1;
-            factor = i * (i + 1);
+            i = (optInTimePeriod >> 1) as usize;
+            factor = T::ta_from_i32((i * (i + 1)) as i32);
             factor = T::ta_from_f64(1.0) / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i - 1;
@@ -184,35 +186,37 @@ impl Core {
             numeratorSub = T::ta_from_f64(0.0);
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
-            while i >= trailingIdx {
-                tempReal = inReal[i];
+            loop {
+                tempReal = inReal[(i) as usize];
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
+                if i == trailingIdx { break; }
                 i -= 1;
             }
             numeratorAdd = T::ta_from_f64(0.0);
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = inReal[i];
+                tempReal = inReal[(i) as usize];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
+            i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = inReal[{ let _v = middleIdx; middleIdx += 1; _v }];
+                tempReal = inReal[({ let _v = middleIdx; middleIdx += 1; _v }) as usize];
                 numeratorSub += tempReal;
                 numeratorAdd -= tempReal;
                 numerator += numeratorAdd;
-                tempReal = inReal[{ let _v = todayIdx; todayIdx += 1; _v }];
+                tempReal = inReal[({ let _v = todayIdx; todayIdx += 1; _v }) as usize];
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+                tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
             }
         }
         (*outNBElement) = outIdx;
@@ -257,18 +261,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let lookbackTotal: i32;
-        let mut numerator: T;
-        let mut numeratorSub: T;
-        let mut numeratorAdd: T;
-        let mut i: i32;
-        let mut outIdx: i32;
-        let mut todayIdx: i32;
-        let mut trailingIdx: i32;
-        let mut middleIdx: i32;
-        let mut factor: T;
-        let mut tempReal: T;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut numerator: T = T::ta_zero();
+        let mut numeratorSub: T = T::ta_zero();
+        let mut numeratorAdd: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut middleIdx: usize = 0_usize;
+        let mut factor: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -279,8 +283,8 @@ impl Core {
         }
         outIdx = 0;
         if optInTimePeriod % 2 == 1 {
-            i = optInTimePeriod >> 1;
-            factor = (i + 1) * (i + 1);
+            i = (optInTimePeriod >> 1) as usize;
+            factor = T::ta_from_i32(((i + 1) * (i + 1)) as i32);
             factor = T::ta_from_f64(1.0) / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i;
@@ -289,39 +293,41 @@ impl Core {
             numeratorSub = T::ta_from_f64(0.0);
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
-            while i >= trailingIdx {
-                tempReal = *inReal.get_unchecked(i);
+            loop {
+                tempReal = (*inReal.get_unchecked((i) as usize));
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
+                if i == trailingIdx { break; }
                 i -= 1;
             }
             numeratorAdd = T::ta_from_f64(0.0);
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = *inReal.get_unchecked(i);
+                tempReal = (*inReal.get_unchecked((i) as usize));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
+            i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = numerator * factor;
+            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = *inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v });
+                tempReal = (*inReal.get_unchecked(({ let _v = middleIdx; middleIdx += 1; _v }) as usize));
                 numeratorSub += tempReal;
                 numerator += numeratorAdd;
                 numeratorAdd -= tempReal;
-                tempReal = *inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v });
+                tempReal = (*inReal.get_unchecked(({ let _v = todayIdx; todayIdx += 1; _v }) as usize));
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = numerator * factor;
+                tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
             }
         } else {
-            i = optInTimePeriod >> 1;
-            factor = i * (i + 1);
+            i = (optInTimePeriod >> 1) as usize;
+            factor = T::ta_from_i32((i * (i + 1)) as i32);
             factor = T::ta_from_f64(1.0) / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i - 1;
@@ -330,35 +336,37 @@ impl Core {
             numeratorSub = T::ta_from_f64(0.0);
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
-            while i >= trailingIdx {
-                tempReal = *inReal.get_unchecked(i);
+            loop {
+                tempReal = (*inReal.get_unchecked((i) as usize));
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
+                if i == trailingIdx { break; }
                 i -= 1;
             }
             numeratorAdd = T::ta_from_f64(0.0);
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = *inReal.get_unchecked(i);
+                tempReal = (*inReal.get_unchecked((i) as usize));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
+            i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = numerator * factor;
+            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = *inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v });
+                tempReal = (*inReal.get_unchecked(({ let _v = middleIdx; middleIdx += 1; _v }) as usize));
                 numeratorSub += tempReal;
                 numeratorAdd -= tempReal;
                 numerator += numeratorAdd;
-                tempReal = *inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v });
+                tempReal = (*inReal.get_unchecked(({ let _v = todayIdx; todayIdx += 1; _v }) as usize));
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = numerator * factor;
+                tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
             }
         }
         (*outNBElement) = outIdx;

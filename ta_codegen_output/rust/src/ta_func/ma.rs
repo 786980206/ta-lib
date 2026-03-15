@@ -54,15 +54,15 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    pub fn ma_lookback(&self, mut optInTimePeriod: i32, mut optInMAType: i32) -> i32 {
+    pub fn ma_lookback(&self, mut optInTimePeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let mut retValue: i32;
+        let mut retValue: usize = 0_usize;
         if optInTimePeriod <= 1 {
-            return 0;
+            return (0) as usize;
         }
         match optInMAType {
             0 => {
@@ -150,23 +150,21 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let dummyBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let nbElement: i32;
-        let outIdx: i32;
-        let todayIdx: i32;
+        let mut dummyBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut nbElement: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
-            // for( todayIdx = startIdx;
-outIdx = 0; outIdx < nbElement; outIdx += 1;
-todayIdx += 1 )
+            // for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
             todayIdx = startIdx;
-outIdx = 0;
+            outIdx = 0;
             while outIdx < nbElement {
-                outReal[outIdx] = inReal[todayIdx];
+                outReal[(outIdx) as usize] = inReal[(todayIdx) as usize];
                 outIdx += 1;
-todayIdx += 1;
+                todayIdx += 1;
             }
             (*outBegIdx) = startIdx;
             return RetCode::Success;
@@ -194,11 +192,11 @@ todayIdx += 1;
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
-                dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-                retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
+                dummyBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+                retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }
             8 => {
-                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
+                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
             }
             _ => {
                 retCode = RetCode::BadParam;
@@ -247,23 +245,21 @@ todayIdx += 1;
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let dummyBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let nbElement: i32;
-        let outIdx: i32;
-        let todayIdx: i32;
+        let mut dummyBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut nbElement: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
-            // for( todayIdx = startIdx;
-outIdx = 0; outIdx < nbElement; outIdx += 1;
-todayIdx += 1 )
+            // for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
             todayIdx = startIdx;
-outIdx = 0;
+            outIdx = 0;
             while outIdx < nbElement {
-                *outReal.get_unchecked_mut(outIdx) = *inReal.get_unchecked(todayIdx);
+                (*outReal.get_unchecked_mut((outIdx) as usize)) = (*inReal.get_unchecked((todayIdx) as usize));
                 outIdx += 1;
-todayIdx += 1;
+                todayIdx += 1;
             }
             (*outBegIdx) = startIdx;
             return RetCode::Success;
@@ -291,11 +287,11 @@ todayIdx += 1;
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
-                dummyBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
-                retCode = self.mama_unguarded(startIdx, endIdx, inReal, T::ta_from_f64(0.5), T::ta_from_f64(0.05), outBegIdx, outNBElement, outReal, dummyBuffer);
+                dummyBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+                retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }
             8 => {
-                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, T::ta_from_f64(0.7), outBegIdx, outNBElement, outReal);
+                retCode = self.t3_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
             }
             _ => {
                 retCode = RetCode::BadParam;

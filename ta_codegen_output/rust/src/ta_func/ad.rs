@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn ad_lookback(&self) -> i32 {
-        return 0;
+    pub fn ad_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Chaikin A/D Line
     ///
@@ -108,14 +108,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut nbBar: i32;
-        let mut currentBar: i32;
-        let outIdx: i32;
-        let mut high: T;
-        let mut low: T;
-        let mut close: T;
-        let mut tmp: T;
-        let mut ad: T;
+        let mut nbBar: usize = 0_usize;
+        let mut currentBar: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut high: T = T::ta_zero();
+        let mut low: T = T::ta_zero();
+        let mut close: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut ad: T = T::ta_zero();
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;
@@ -123,14 +123,14 @@ impl Core {
         outIdx = 0;
         ad = T::ta_from_f64(0.0);
         while nbBar != 0 {
-            high = inHigh[currentBar];
-            low = inLow[currentBar];
+            high = inHigh[(currentBar) as usize];
+            low = inLow[(currentBar) as usize];
             tmp = high - low;
-            close = inClose[currentBar];
+            close = inClose[(currentBar) as usize];
             if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[currentBar]).ta_to_f64()));
+                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[(currentBar) as usize]).ta_to_f64()));
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ad;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = ad;
             currentBar += 1;
             nbBar -= 1;
         }
@@ -175,14 +175,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut nbBar: i32;
-        let mut currentBar: i32;
-        let outIdx: i32;
-        let mut high: T;
-        let mut low: T;
-        let mut close: T;
-        let mut tmp: T;
-        let mut ad: T;
+        let mut nbBar: usize = 0_usize;
+        let mut currentBar: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut high: T = T::ta_zero();
+        let mut low: T = T::ta_zero();
+        let mut close: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut ad: T = T::ta_zero();
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;
@@ -190,14 +190,14 @@ impl Core {
         outIdx = 0;
         ad = T::ta_from_f64(0.0);
         while nbBar != 0 {
-            high = *inHigh.get_unchecked(currentBar);
-            low = *inLow.get_unchecked(currentBar);
+            high = (*inHigh.get_unchecked((currentBar) as usize));
+            low = (*inLow.get_unchecked((currentBar) as usize));
             tmp = high - low;
-            close = *inClose.get_unchecked(currentBar);
+            close = (*inClose.get_unchecked((currentBar) as usize));
             if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((*inVolume.get_unchecked(currentBar)).ta_to_f64()));
+                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64(((*inVolume.get_unchecked((currentBar) as usize))).ta_to_f64()));
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = ad;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ad;
             currentBar += 1;
             nbBar -= 1;
         }

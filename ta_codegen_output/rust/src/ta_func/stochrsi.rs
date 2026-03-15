@@ -56,23 +56,23 @@ impl Core {
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
     /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
     /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
-    pub fn stochrsi_lookback(&self, mut optInTimePeriod: i32, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> i32 {
+    pub fn stochrsi_lookback(&self, mut optInTimePeriod: i32, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInFastK_Period) as i32) == (i32::MIN) {
             optInFastK_Period = 5;
         } else if (((optInFastK_Period) as i32) < 1) || (((optInFastK_Period) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInFastD_Period) as i32) == (i32::MIN) {
             optInFastD_Period = 3;
         } else if (((optInFastD_Period) as i32) < 1) || (((optInFastD_Period) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let retValue: i32;
+        let mut retValue: usize = 0_usize;
         retValue = self.rsi_lookback(optInTimePeriod) + self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
         return retValue;
     }
@@ -150,14 +150,14 @@ impl Core {
         outFastK: &mut [T],
         outFastD: &mut [T],
     ) -> RetCode {
-        let tempRSIBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let lookbackTotal: i32;
-        let lookbackSTOCHF: i32;
-        let tempArraySize: i32;
-        let outBegIdx1: i32;
-        let outBegIdx2: i32;
-        let outNbElement1: i32;
+        let mut tempRSIBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackSTOCHF: usize = 0_usize;
+        let mut tempArraySize: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
@@ -172,15 +172,15 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
-        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
-        retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+        tempRSIBuffer = vec![T::ta_zero(); (tempArraySize * 1) as usize];
+        retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, &mut tempRSIBuffer[..]);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.stochf_unguarded(0, tempArraySize - 1, tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
@@ -247,14 +247,14 @@ impl Core {
         outFastK: &mut [T],
         outFastD: &mut [T],
     ) -> RetCode {
-        let tempRSIBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let lookbackTotal: i32;
-        let lookbackSTOCHF: i32;
-        let tempArraySize: i32;
-        let outBegIdx1: i32;
-        let outBegIdx2: i32;
-        let outNbElement1: i32;
+        let mut tempRSIBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackSTOCHF: usize = 0_usize;
+        let mut tempArraySize: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
@@ -269,15 +269,15 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
-        tempRSIBuffer = vec![T::default(); (tempArraySize * 1) as usize];
-        retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+        tempRSIBuffer = vec![T::ta_zero(); (tempArraySize * 1) as usize];
+        retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, &mut tempRSIBuffer[..]);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.stochf_unguarded(0, tempArraySize - 1, tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

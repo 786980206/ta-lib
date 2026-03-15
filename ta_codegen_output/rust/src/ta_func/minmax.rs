@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn minmax_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn minmax_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Lowest and highest values over a specified period
     ///
@@ -115,18 +115,18 @@ impl Core {
         outMin: &mut [T],
         outMax: &mut [T],
     ) -> RetCode {
-        let mut highest: T;
-        let mut lowest: T;
-        let mut tmpHigh: T;
-        let mut tmpLow: T;
-        let mut outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        let mut highestIdx: i32;
-        let mut lowestIdx: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut highest: T = T::ta_zero();
+        let mut lowest: T = T::ta_zero();
+        let mut tmpHigh: T = T::ta_zero();
+        let mut tmpLow: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut highestIdx: i32 = 0_i32;
+        let mut lowestIdx: i32 = 0_i32;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -143,40 +143,40 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         while today <= endIdx {
-            tmpHigh = inReal[today];
+            tmpHigh = inReal[(today) as usize];
             tmpLow = tmpHigh;
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = inReal[highestIdx];
-                i = highestIdx;
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = inReal[(highestIdx) as usize];
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpHigh = inReal[i];
+                    tmpHigh = inReal[(i) as usize];
                     if tmpHigh > highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmpHigh;
                     }
                 }
             } else if tmpHigh >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmpHigh;
             }
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = inReal[lowestIdx];
-                i = lowestIdx;
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inReal[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpLow = inReal[i];
+                    tmpLow = inReal[(i) as usize];
                     if tmpLow < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmpLow;
                     }
                 }
             } else if tmpLow <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmpLow;
             }
-            outMax[outIdx] = highest;
-            outMin[outIdx] = lowest;
+            outMax[(outIdx) as usize] = highest;
+            outMin[(outIdx) as usize] = lowest;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;
@@ -226,18 +226,18 @@ impl Core {
         outMin: &mut [T],
         outMax: &mut [T],
     ) -> RetCode {
-        let mut highest: T;
-        let mut lowest: T;
-        let mut tmpHigh: T;
-        let mut tmpLow: T;
-        let mut outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        let mut highestIdx: i32;
-        let mut lowestIdx: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut highest: T = T::ta_zero();
+        let mut lowest: T = T::ta_zero();
+        let mut tmpHigh: T = T::ta_zero();
+        let mut tmpLow: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut highestIdx: i32 = 0_i32;
+        let mut lowestIdx: i32 = 0_i32;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -254,40 +254,40 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         while today <= endIdx {
-            tmpHigh = *inReal.get_unchecked(today);
+            tmpHigh = (*inReal.get_unchecked((today) as usize));
             tmpLow = tmpHigh;
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = *inReal.get_unchecked(highestIdx);
-                i = highestIdx;
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = (*inReal.get_unchecked((highestIdx) as usize));
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpHigh = *inReal.get_unchecked(i);
+                    tmpHigh = (*inReal.get_unchecked((i) as usize));
                     if tmpHigh > highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmpHigh;
                     }
                 }
             } else if tmpHigh >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmpHigh;
             }
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = *inReal.get_unchecked(lowestIdx);
-                i = lowestIdx;
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = (*inReal.get_unchecked((lowestIdx) as usize));
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpLow = *inReal.get_unchecked(i);
+                    tmpLow = (*inReal.get_unchecked((i) as usize));
                     if tmpLow < lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmpLow;
                     }
                 }
             } else if tmpLow <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmpLow;
             }
-            *outMax.get_unchecked_mut(outIdx) = highest;
-            *outMin.get_unchecked_mut(outIdx) = lowest;
+            (*outMax.get_unchecked_mut((outIdx) as usize)) = highest;
+            (*outMin.get_unchecked_mut((outIdx) as usize)) = lowest;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

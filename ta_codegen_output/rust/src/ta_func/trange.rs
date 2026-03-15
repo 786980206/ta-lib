@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn trange_lookback(&self) -> i32 {
-        return 1;
+    pub fn trange_lookback(&self) -> usize {
+        return (1) as usize;
     }
     /// True Range
     ///
@@ -104,14 +104,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let outIdx: i32;
-        let mut val2: T;
-        let mut val3: T;
-        let mut greatest: T;
-        let mut tempCY: T;
-        let mut tempLT: T;
-        let mut tempHT: T;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut val2: T = T::ta_zero();
+        let mut val3: T = T::ta_zero();
+        let mut greatest: T = T::ta_zero();
+        let mut tempCY: T = T::ta_zero();
+        let mut tempLT: T = T::ta_zero();
+        let mut tempHT: T = T::ta_zero();
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -123,19 +123,19 @@ impl Core {
         outIdx = 0;
         today = startIdx;
         while today <= endIdx {
-            tempLT = inLow[today];
-            tempHT = inHigh[today];
-            tempCY = inClose[today - 1];
+            tempLT = inLow[(today) as usize];
+            tempHT = inHigh[(today) as usize];
+            tempCY = inClose[(today - 1) as usize];
             greatest = tempHT - tempLT;
-            val2 = tempCY - tempHT.ta_abs();
+            val2 = (tempCY - tempHT).ta_abs();
             if val2 > greatest {
                 greatest = val2;
             }
-            val3 = tempCY - tempLT.ta_abs();
+            val3 = (tempCY - tempLT).ta_abs();
             if val3 > greatest {
                 greatest = val3;
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = greatest;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = greatest;
             today += 1;
         }
         (*outNBElement) = outIdx;
@@ -178,14 +178,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let outIdx: i32;
-        let mut val2: T;
-        let mut val3: T;
-        let mut greatest: T;
-        let mut tempCY: T;
-        let mut tempLT: T;
-        let mut tempHT: T;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut val2: T = T::ta_zero();
+        let mut val3: T = T::ta_zero();
+        let mut greatest: T = T::ta_zero();
+        let mut tempCY: T = T::ta_zero();
+        let mut tempLT: T = T::ta_zero();
+        let mut tempHT: T = T::ta_zero();
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -197,19 +197,19 @@ impl Core {
         outIdx = 0;
         today = startIdx;
         while today <= endIdx {
-            tempLT = *inLow.get_unchecked(today);
-            tempHT = *inHigh.get_unchecked(today);
-            tempCY = *inClose.get_unchecked(today - 1);
+            tempLT = (*inLow.get_unchecked((today) as usize));
+            tempHT = (*inHigh.get_unchecked((today) as usize));
+            tempCY = (*inClose.get_unchecked((today - 1) as usize));
             greatest = tempHT - tempLT;
-            val2 = tempCY - tempHT.ta_abs();
+            val2 = (tempCY - tempHT).ta_abs();
             if val2 > greatest {
                 greatest = val2;
             }
-            val3 = tempCY - tempLT.ta_abs();
+            val3 = (tempCY - tempLT).ta_abs();
             if val3 > greatest {
                 greatest = val3;
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = greatest;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = greatest;
             today += 1;
         }
         (*outNBElement) = outIdx;

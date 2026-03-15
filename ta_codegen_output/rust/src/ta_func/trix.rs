@@ -54,15 +54,15 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    pub fn trix_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn trix_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let emaLookback: i32;
+        let mut emaLookback: usize = 0_usize;
         emaLookback = self.ema_lookback(optInTimePeriod);
-        return emaLookback * 3 + self.rocr_lookback(1);
+        return (emaLookback * 3 + self.rocr_lookback(1)) as usize;
     }
     /// 1-day Rate-Of-Change (ROC) of a Triple Smooth EMA
     ///
@@ -113,14 +113,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let tempBuffer: Vec<T>;
-        let nbElement: i32;
-        let begIdx: i32;
-        let totalLookback: i32;
-        let emaLookback: i32;
-        let rocLookback: i32;
-        let mut retCode: RetCode;
-        let mut nbElementToOutput: i32;
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut nbElement: usize = 0_usize;
+        let mut begIdx: usize = 0_usize;
+        let mut totalLookback: usize = 0_usize;
+        let mut emaLookback: usize = 0_usize;
+        let mut rocLookback: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut nbElementToOutput: usize = 0_usize;
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;
@@ -134,8 +134,8 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
-        tempBuffer = vec![T::default(); (nbElementToOutput * 1) as usize];
-        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        tempBuffer = vec![T::ta_zero(); (nbElementToOutput * 1) as usize];
+        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -143,22 +143,22 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.roc_unguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
@@ -203,14 +203,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let tempBuffer: Vec<T>;
-        let nbElement: i32;
-        let begIdx: i32;
-        let totalLookback: i32;
-        let emaLookback: i32;
-        let rocLookback: i32;
-        let mut retCode: RetCode;
-        let mut nbElementToOutput: i32;
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut nbElement: usize = 0_usize;
+        let mut begIdx: usize = 0_usize;
+        let mut totalLookback: usize = 0_usize;
+        let mut emaLookback: usize = 0_usize;
+        let mut rocLookback: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut nbElementToOutput: usize = 0_usize;
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;
@@ -224,8 +224,8 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
-        tempBuffer = vec![T::default(); (nbElementToOutput * 1) as usize];
-        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        tempBuffer = vec![T::ta_zero(); (nbElementToOutput * 1) as usize];
+        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -233,22 +233,22 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema_unguarded(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+        retCode = self.ema_unguarded(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.roc_unguarded(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;

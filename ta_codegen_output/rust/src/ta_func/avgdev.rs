@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn avgdev_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn avgdev_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Average Deviation
     ///
@@ -111,10 +111,10 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut outIdx: i32;
-        let lookback: i32;
-        lookback = optInTimePeriod - 1;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookback: usize = 0_usize;
+        lookback = (optInTimePeriod - 1) as usize;
         if startIdx < lookback {
             startIdx = lookback;
         }
@@ -127,21 +127,24 @@ impl Core {
         (*outBegIdx) = today;
         outIdx = 0;
         while today <= endIdx {
+            let mut todaySum: T = T::ta_zero();
+            let mut todayDev: T = T::ta_zero();
+            let mut i: usize = 0_usize;
             todaySum = T::ta_from_f64(0.0);
-            // for( i = 0; i < optInTimePeriod; i += 1 )
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
-            while i < optInTimePeriod {
-                todaySum += inReal[today - i];
+            while i < (optInTimePeriod) as usize {
+                todaySum += inReal[(today - i) as usize];
                 i += 1;
             }
             todayDev = T::ta_from_f64(0.0);
-            // for( i = 0; i < optInTimePeriod; i += 1 )
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
-            while i < optInTimePeriod {
-                todayDev += inReal[today - i] - todaySum / optInTimePeriod.ta_abs();
+            while i < (optInTimePeriod) as usize {
+                todayDev += (inReal[(today - i) as usize] - todaySum / T::ta_from_i32(optInTimePeriod)).ta_abs();
                 i += 1;
             }
-            outReal[outIdx] = todayDev / optInTimePeriod;
+            outReal[(outIdx) as usize] = todayDev / T::ta_from_i32(optInTimePeriod);
             outIdx += 1;
             today += 1;
         }
@@ -186,10 +189,10 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut outIdx: i32;
-        let lookback: i32;
-        lookback = optInTimePeriod - 1;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookback: usize = 0_usize;
+        lookback = (optInTimePeriod - 1) as usize;
         if startIdx < lookback {
             startIdx = lookback;
         }
@@ -202,21 +205,24 @@ impl Core {
         (*outBegIdx) = today;
         outIdx = 0;
         while today <= endIdx {
+            let mut todaySum: T = T::ta_zero();
+            let mut todayDev: T = T::ta_zero();
+            let mut i: usize = 0_usize;
             todaySum = T::ta_from_f64(0.0);
-            // for( i = 0; i < optInTimePeriod; i += 1 )
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
-            while i < optInTimePeriod {
-                todaySum += *inReal.get_unchecked(today - i);
+            while i < (optInTimePeriod) as usize {
+                todaySum += (*inReal.get_unchecked((today - i) as usize));
                 i += 1;
             }
             todayDev = T::ta_from_f64(0.0);
-            // for( i = 0; i < optInTimePeriod; i += 1 )
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
-            while i < optInTimePeriod {
-                todayDev += *inReal.get_unchecked(today - i) - todaySum / optInTimePeriod.ta_abs();
+            while i < (optInTimePeriod) as usize {
+                todayDev += ((*inReal.get_unchecked((today - i) as usize)) - todaySum / T::ta_from_i32(optInTimePeriod)).ta_abs();
                 i += 1;
             }
-            *outReal.get_unchecked_mut(outIdx) = todayDev / optInTimePeriod;
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = todayDev / T::ta_from_i32(optInTimePeriod);
             outIdx += 1;
             today += 1;
         }

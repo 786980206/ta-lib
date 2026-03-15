@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn cdl3outside_lookback(&self) -> i32 {
-        return 3;
+    pub fn cdl3outside_lookback(&self) -> usize {
+        return (3) as usize;
     }
     /// Three Outside Up/Down
     ///
@@ -108,9 +108,9 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut i: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
         lookbackTotal = self.cdl3outside_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -123,10 +123,10 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 } == 1 && if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 } == 0 - 1 && inClose[i - 1] > inOpen[i - 2] && inOpen[i - 1] < inClose[i - 2] && inClose[i] > inClose[i - 1] || if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 } == 0 - 1 && if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 } == 1 && inOpen[i - 1] > inClose[i - 2] && inClose[i - 1] < inOpen[i - 2] && inClose[i] < inClose[i - 1] {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 } * 100;
+            if if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } == 1 && (if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 }) as i32 == 0 - 1 && inClose[(i - 1) as usize] > inOpen[(i - 2) as usize] && inOpen[(i - 1) as usize] < inClose[(i - 2) as usize] && inClose[(i) as usize] > inClose[(i - 1) as usize] || (if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 }) as i32 == 0 - 1 && if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } == 1 && inOpen[(i - 1) as usize] > inClose[(i - 2) as usize] && inClose[(i - 1) as usize] < inOpen[(i - 2) as usize] && inClose[(i) as usize] < inClose[(i - 1) as usize] {
+                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } * 100) as i32;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }
@@ -174,9 +174,9 @@ impl Core {
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut i: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
         lookbackTotal = self.cdl3outside_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -189,10 +189,10 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if if *inClose.get_unchecked(i - 1) >= *inOpen.get_unchecked(i - 1) { 1 } else { 0 - 1 } == 1 && if *inClose.get_unchecked(i - 2) >= *inOpen.get_unchecked(i - 2) { 1 } else { 0 - 1 } == 0 - 1 && *inClose.get_unchecked(i - 1) > *inOpen.get_unchecked(i - 2) && *inOpen.get_unchecked(i - 1) < *inClose.get_unchecked(i - 2) && *inClose.get_unchecked(i) > *inClose.get_unchecked(i - 1) || if *inClose.get_unchecked(i - 1) >= *inOpen.get_unchecked(i - 1) { 1 } else { 0 - 1 } == 0 - 1 && if *inClose.get_unchecked(i - 2) >= *inOpen.get_unchecked(i - 2) { 1 } else { 0 - 1 } == 1 && *inOpen.get_unchecked(i - 1) > *inClose.get_unchecked(i - 2) && *inClose.get_unchecked(i - 1) < *inOpen.get_unchecked(i - 2) && *inClose.get_unchecked(i) < *inClose.get_unchecked(i - 1) {
-                *outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = if *inClose.get_unchecked(i - 1) >= *inOpen.get_unchecked(i - 1) { 1 } else { 0 - 1 } * 100;
+            if if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } == 1 && (if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 }) as i32 == 0 - 1 && (*inClose.get_unchecked((i - 1) as usize)) > (*inOpen.get_unchecked((i - 2) as usize)) && (*inOpen.get_unchecked((i - 1) as usize)) < (*inClose.get_unchecked((i - 2) as usize)) && (*inClose.get_unchecked((i) as usize)) > (*inClose.get_unchecked((i - 1) as usize)) || (if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 }) as i32 == 0 - 1 && if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } == 1 && (*inOpen.get_unchecked((i - 1) as usize)) > (*inClose.get_unchecked((i - 2) as usize)) && (*inClose.get_unchecked((i - 1) as usize)) < (*inOpen.get_unchecked((i - 2) as usize)) && (*inClose.get_unchecked((i) as usize)) < (*inClose.get_unchecked((i - 1) as usize)) {
+                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } * 100) as i32;
             } else {
-                *outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = 0;
+                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }

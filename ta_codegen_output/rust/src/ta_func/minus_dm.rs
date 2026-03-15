@@ -54,16 +54,16 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
-    pub fn minus_dm_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn minus_dm_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if optInTimePeriod > 1 {
-            return optInTimePeriod + self.unstable_period[FuncUnstId::Minus_dm as usize] - 1;
+            return (optInTimePeriod + self.unstable_period[FuncUnstId::MinusDM as usize] - 1) as usize;
         } else {
-            return 1;
+            return (1) as usize;
         }
     }
     /// Minus Directional Movement
@@ -119,18 +119,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut lookbackTotal: i32;
-        let mut outIdx: i32;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut tempReal: T;
-        let mut prevMinusDM: T;
-        let mut diffP: T;
-        let mut diffM: T;
-        let mut i: i32;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut prevMinusDM: T = T::ta_zero();
+        let mut diffP: T = T::ta_zero();
+        let mut diffM: T = T::ta_zero();
+        let mut i: usize = 0_usize;
         if optInTimePeriod > 1 {
-            lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Minus_dm as usize] - 1;
+            lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::MinusDM as usize] - 1) as usize;
         } else {
             lookbackTotal = 1;
         }
@@ -146,20 +146,20 @@ impl Core {
         if optInTimePeriod <= 1 {
             (*outBegIdx) = startIdx;
             today = startIdx - 1;
-            prevHigh = inHigh[today];
-            prevLow = inLow[today];
+            prevHigh = inHigh[(today) as usize];
+            prevLow = inLow[(today) as usize];
             while today < endIdx {
                 today += 1;
-                tempReal = inHigh[today];
+                tempReal = inHigh[(today) as usize];
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
-                tempReal = inLow[today];
+                tempReal = inLow[(today) as usize];
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                if diffM > 0 && diffP < diffM {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = diffM;
+                if diffM > T::ta_from_i32(0) && diffP < diffM {
+                    outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = diffM;
                 } else {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                    outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_i32(0 as i32);
                 }
             }
             (*outNBElement) = outIdx;
@@ -168,52 +168,52 @@ impl Core {
         (*outBegIdx) = startIdx;
         prevMinusDM = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
-        prevHigh = inHigh[today];
-        prevLow = inLow[today];
-        i = optInTimePeriod - 1;
+        prevHigh = inHigh[(today) as usize];
+        prevLow = inLow[(today) as usize];
+        i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
             }
         }
-        i = self.unstable_period[FuncUnstId::Minus_dm as usize];
+        i = (self.unstable_period[FuncUnstId::MinusDM as usize]) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod + diffM;
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod) + diffM;
             } else {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod;
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod);
             }
         }
-        outReal[0] = prevMinusDM;
+        outReal[(0) as usize] = prevMinusDM;
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = inHigh[today];
+            tempReal = inHigh[(today) as usize];
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = inLow[today];
+            tempReal = inLow[(today) as usize];
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod + diffM;
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod) + diffM;
             } else {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod;
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod);
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevMinusDM;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevMinusDM;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -259,18 +259,18 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut today: i32;
-        let mut lookbackTotal: i32;
-        let mut outIdx: i32;
-        let mut prevHigh: T;
-        let mut prevLow: T;
-        let mut tempReal: T;
-        let mut prevMinusDM: T;
-        let mut diffP: T;
-        let mut diffM: T;
-        let mut i: i32;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevHigh: T = T::ta_zero();
+        let mut prevLow: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut prevMinusDM: T = T::ta_zero();
+        let mut diffP: T = T::ta_zero();
+        let mut diffM: T = T::ta_zero();
+        let mut i: usize = 0_usize;
         if optInTimePeriod > 1 {
-            lookbackTotal = optInTimePeriod + self.unstable_period[FuncUnstId::Minus_dm as usize] - 1;
+            lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::MinusDM as usize] - 1) as usize;
         } else {
             lookbackTotal = 1;
         }
@@ -286,20 +286,20 @@ impl Core {
         if optInTimePeriod <= 1 {
             (*outBegIdx) = startIdx;
             today = startIdx - 1;
-            prevHigh = *inHigh.get_unchecked(today);
-            prevLow = *inLow.get_unchecked(today);
+            prevHigh = (*inHigh.get_unchecked((today) as usize));
+            prevLow = (*inLow.get_unchecked((today) as usize));
             while today < endIdx {
                 today += 1;
-                tempReal = *inHigh.get_unchecked(today);
+                tempReal = (*inHigh.get_unchecked((today) as usize));
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
-                tempReal = *inLow.get_unchecked(today);
+                tempReal = (*inLow.get_unchecked((today) as usize));
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
-                if diffM > 0 && diffP < diffM {
-                    *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = diffM;
+                if diffM > T::ta_from_i32(0) && diffP < diffM {
+                    (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = diffM;
                 } else {
-                    *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = 0;
+                    (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_i32(0 as i32);
                 }
             }
             (*outNBElement) = outIdx;
@@ -308,52 +308,52 @@ impl Core {
         (*outBegIdx) = startIdx;
         prevMinusDM = T::ta_from_f64(0.0);
         today = startIdx - lookbackTotal;
-        prevHigh = *inHigh.get_unchecked(today);
-        prevLow = *inLow.get_unchecked(today);
-        i = optInTimePeriod - 1;
+        prevHigh = (*inHigh.get_unchecked((today) as usize));
+        prevLow = (*inLow.get_unchecked((today) as usize));
+        i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
                 prevMinusDM += diffM;
             }
         }
-        i = self.unstable_period[FuncUnstId::Minus_dm as usize];
+        i = (self.unstable_period[FuncUnstId::MinusDM as usize]) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod + diffM;
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod) + diffM;
             } else {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod;
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod);
             }
         }
-        *outReal.get_unchecked_mut(0) = prevMinusDM;
+        (*outReal.get_unchecked_mut((0) as usize)) = prevMinusDM;
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = *inHigh.get_unchecked(today);
+            tempReal = (*inHigh.get_unchecked((today) as usize));
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = *inLow.get_unchecked(today);
+            tempReal = (*inLow.get_unchecked((today) as usize));
             diffM = prevLow - tempReal;
             prevLow = tempReal;
-            if diffM > 0 && diffP < diffM {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod + diffM;
+            if diffM > T::ta_from_i32(0) && diffP < diffM {
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod) + diffM;
             } else {
-                prevMinusDM = prevMinusDM - prevMinusDM / optInTimePeriod;
+                prevMinusDM = prevMinusDM - prevMinusDM / T::ta_from_i32(optInTimePeriod);
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevMinusDM;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevMinusDM;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

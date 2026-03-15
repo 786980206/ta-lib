@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
-    pub fn correl_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn correl_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Pearson's Correlation Coefficient (r)
     ///
@@ -115,21 +115,21 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut sumXY: T;
-        let mut sumX: T;
-        let mut sumY: T;
-        let mut sumX2: T;
-        let mut sumY2: T;
-        let mut x: T;
-        let mut y: T;
-        let mut trailingX: T;
-        let mut trailingY: T;
-        let mut tempReal: T;
-        let lookbackTotal: i32;
-        let today: i32;
-        let trailingIdx: i32;
-        let outIdx: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut sumXY: T = T::ta_zero();
+        let mut sumX: T = T::ta_zero();
+        let mut sumY: T = T::ta_zero();
+        let mut sumX2: T = T::ta_zero();
+        let mut sumY2: T = T::ta_zero();
+        let mut x: T = T::ta_zero();
+        let mut y: T = T::ta_zero();
+        let mut trailingX: T = T::ta_zero();
+        let mut trailingY: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -146,21 +146,22 @@ impl Core {
         sumX = sumY;
         sumXY = sumX;
         for today in (trailingIdx as usize)..=(startIdx as usize) {
-            x = inReal0[today];
+            x = inReal0[(today) as usize];
             sumX += x;
             sumX2 += x * x;
-            y = inReal1[today];
+            y = inReal1[(today) as usize];
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
         }
-        trailingX = inReal0[trailingIdx];
-        trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-        tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+        today = (startIdx as usize) + 1;
+        trailingX = inReal0[(trailingIdx) as usize];
+        trailingY = inReal1[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+        tempReal = (sumX2 - sumX * sumX / T::ta_from_i32(optInTimePeriod)) * (sumY2 - sumY * sumY / T::ta_from_i32(optInTimePeriod));
         if !(tempReal < T::ta_from_f64(0.00000001)) {
-            outReal[0] = (sumXY - sumX * sumY / optInTimePeriod) / tempReal.ta_sqrt();
+            outReal[(0) as usize] = (sumXY - sumX * sumY / T::ta_from_i32(optInTimePeriod)) / tempReal.ta_sqrt();
         } else {
-            outReal[0] = T::ta_from_f64(0.0);
+            outReal[(0) as usize] = T::ta_from_f64(0.0);
         }
         outIdx = 1;
         while today <= endIdx {
@@ -169,20 +170,20 @@ impl Core {
             sumXY -= trailingX * trailingY;
             sumY -= trailingY;
             sumY2 -= trailingY * trailingY;
-            x = inReal0[today];
+            x = inReal0[(today) as usize];
             sumX += x;
             sumX2 += x * x;
-            y = inReal1[{ let _v = today; today += 1; _v }];
+            y = inReal1[({ let _v = today; today += 1; _v }) as usize];
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
-            trailingX = inReal0[trailingIdx];
-            trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+            trailingX = inReal0[(trailingIdx) as usize];
+            trailingY = inReal1[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            tempReal = (sumX2 - sumX * sumX / T::ta_from_i32(optInTimePeriod)) * (sumY2 - sumY * sumY / T::ta_from_i32(optInTimePeriod));
             if !(tempReal < T::ta_from_f64(0.00000001)) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (sumXY - sumX * sumY / optInTimePeriod) / tempReal.ta_sqrt();
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (sumXY - sumX * sumY / T::ta_from_i32(optInTimePeriod)) / tempReal.ta_sqrt();
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
         }
         (*outNBElement) = outIdx;
@@ -229,21 +230,21 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut sumXY: T;
-        let mut sumX: T;
-        let mut sumY: T;
-        let mut sumX2: T;
-        let mut sumY2: T;
-        let mut x: T;
-        let mut y: T;
-        let mut trailingX: T;
-        let mut trailingY: T;
-        let mut tempReal: T;
-        let lookbackTotal: i32;
-        let today: i32;
-        let trailingIdx: i32;
-        let outIdx: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut sumXY: T = T::ta_zero();
+        let mut sumX: T = T::ta_zero();
+        let mut sumY: T = T::ta_zero();
+        let mut sumX2: T = T::ta_zero();
+        let mut sumY2: T = T::ta_zero();
+        let mut x: T = T::ta_zero();
+        let mut y: T = T::ta_zero();
+        let mut trailingX: T = T::ta_zero();
+        let mut trailingY: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -260,21 +261,22 @@ impl Core {
         sumX = sumY;
         sumXY = sumX;
         for today in (trailingIdx as usize)..=(startIdx as usize) {
-            x = *inReal0.get_unchecked(today);
+            x = (*inReal0.get_unchecked((today) as usize));
             sumX += x;
             sumX2 += x * x;
-            y = *inReal1.get_unchecked(today);
+            y = (*inReal1.get_unchecked((today) as usize));
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
         }
-        trailingX = *inReal0.get_unchecked(trailingIdx);
-        trailingY = *inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-        tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+        today = (startIdx as usize) + 1;
+        trailingX = (*inReal0.get_unchecked((trailingIdx) as usize));
+        trailingY = (*inReal1.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+        tempReal = (sumX2 - sumX * sumX / T::ta_from_i32(optInTimePeriod)) * (sumY2 - sumY * sumY / T::ta_from_i32(optInTimePeriod));
         if !(tempReal < T::ta_from_f64(0.00000001)) {
-            *outReal.get_unchecked_mut(0) = (sumXY - sumX * sumY / optInTimePeriod) / tempReal.ta_sqrt();
+            (*outReal.get_unchecked_mut((0) as usize)) = (sumXY - sumX * sumY / T::ta_from_i32(optInTimePeriod)) / tempReal.ta_sqrt();
         } else {
-            *outReal.get_unchecked_mut(0) = T::ta_from_f64(0.0);
+            (*outReal.get_unchecked_mut((0) as usize)) = T::ta_from_f64(0.0);
         }
         outIdx = 1;
         while today <= endIdx {
@@ -283,20 +285,20 @@ impl Core {
             sumXY -= trailingX * trailingY;
             sumY -= trailingY;
             sumY2 -= trailingY * trailingY;
-            x = *inReal0.get_unchecked(today);
+            x = (*inReal0.get_unchecked((today) as usize));
             sumX += x;
             sumX2 += x * x;
-            y = *inReal1.get_unchecked({ let _v = today; today += 1; _v });
+            y = (*inReal1.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
-            trailingX = *inReal0.get_unchecked(trailingIdx);
-            trailingY = *inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-            tempReal = (sumX2 - sumX * sumX / optInTimePeriod) * (sumY2 - sumY * sumY / optInTimePeriod);
+            trailingX = (*inReal0.get_unchecked((trailingIdx) as usize));
+            trailingY = (*inReal1.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            tempReal = (sumX2 - sumX * sumX / T::ta_from_i32(optInTimePeriod)) * (sumY2 - sumY * sumY / T::ta_from_i32(optInTimePeriod));
             if !(tempReal < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (sumXY - sumX * sumY / optInTimePeriod) / tempReal.ta_sqrt();
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (sumXY - sumX * sumY / T::ta_from_i32(optInTimePeriod)) / tempReal.ta_sqrt();
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
         }
         (*outNBElement) = outIdx;

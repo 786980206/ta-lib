@@ -56,11 +56,11 @@ impl Core {
     /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
     /// * `optInNbDevUp` - Number of period (default: 2, range: -2147483648..=2147483647)
     /// * `optInNbDevDn` - Number of period (default: 2, range: -2147483648..=2147483647)
-    pub fn bbands_lookback(&self, mut optInTimePeriod: i32, mut optInNbDevUp: f64, mut optInNbDevDn: f64, mut optInMAType: i32) -> i32 {
+    pub fn bbands_lookback(&self, mut optInTimePeriod: i32, mut optInNbDevUp: f64, mut optInNbDevDn: f64, mut optInMAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         return self.ma_lookback(optInTimePeriod, optInMAType);
     }
@@ -132,71 +132,75 @@ impl Core {
         outRealMiddleBand: &mut [T],
         outRealLowerBand: &mut [T],
     ) -> RetCode {
-        let mut retCode: RetCode;
-        let i: i32;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut tempBuffer1: Vec<T>;
-        let mut tempBuffer2: Vec<T>;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut i: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut tempBuffer1: Vec<T> = Vec::new();
+        let mut tempBuffer2: Vec<T> = Vec::new();
         if inReal == outRealUpperBand {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealLowerBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealLowerBand.to_vec();
         } else if inReal == outRealLowerBand {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         } else if inReal == outRealMiddleBand {
-            tempBuffer1 = outRealLowerBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealLowerBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         } else {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         }
         if tempBuffer1 == inReal || tempBuffer2 == inReal {
             return RetCode::BadParam;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outNBElement) = 0;
             return retCode;
         }
-        if optInMAType == TA_MAType_SMA {
-            _startSum = 1 + (((*outBegIdx)) as i32) - optInTimePeriod;
-            _endSum = ((*outBegIdx)) as i32;
-            _periodTotal2 = 0;
+        if (optInMAType) as usize == 0 {
+            let mut _tempReal: T = T::ta_zero();
+            let mut _periodTotal2: T = T::ta_zero();
+            let mut _meanValue2: T = T::ta_zero();
+            let mut _outIdx: usize = 0_usize;
+            let mut _startSum: usize = 0_usize;
+            let mut _endSum: usize = 0_usize;
+            _startSum = (1 + ((*outBegIdx)) - (optInTimePeriod) as usize) as usize;
+            _endSum = ((*outBegIdx)) as usize;
+            _periodTotal2 = T::ta_from_i32(0 as i32);
             // for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
             _outIdx = _startSum;
             while _outIdx < _endSum {
-                _tempReal = inReal[_outIdx];
+                _tempReal = inReal[(_outIdx) as usize];
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
                 _outIdx += 1;
             }
-            // for( _outIdx = 0; _outIdx < (((*outNBElement)) as i32); _outIdx += 1;
-_startSum += 1;
-_endSum += 1 )
+            // for( _outIdx = 0; _outIdx < (((*outNBElement))) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
             _outIdx = 0;
-            while _outIdx < (((*outNBElement)) as i32) {
-                _tempReal = inReal[_endSum];
+            while _outIdx < (((*outNBElement))) as usize {
+                _tempReal = inReal[(_endSum) as usize];
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
-                _meanValue2 = _periodTotal2 / optInTimePeriod;
-                _tempReal = inReal[_startSum];
+                _meanValue2 = _periodTotal2 / T::ta_from_i32(optInTimePeriod);
+                _tempReal = inReal[(_startSum) as usize];
                 _tempReal *= _tempReal;
                 _periodTotal2 -= _tempReal;
-                _tempReal = tempBuffer1[_outIdx];
+                _tempReal = tempBuffer1[(_outIdx) as usize];
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
                 if !(_meanValue2 < T::ta_from_f64(0.00000001)) {
-                    tempBuffer2[_outIdx] = _meanValue2.ta_sqrt();
+                    tempBuffer2[(_outIdx) as usize] = _meanValue2.ta_sqrt();
                 } else {
-                    tempBuffer2[_outIdx] = T::ta_from_f64(0.0);
+                    tempBuffer2[(_outIdx) as usize] = T::ta_from_f64(0.0);
                 }
                 _outIdx += 1;
-_startSum += 1;
-_endSum += 1;
+                _startSum += 1;
+                _endSum += 1;
             }
         } else {
-            retCode = self.stddev_unguarded(((*outBegIdx)) as i32, endIdx, inReal, optInTimePeriod, T::ta_from_f64(1.0), outBegIdx, outNBElement, tempBuffer2);
+            retCode = self.stddev_unguarded(((*outBegIdx)) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
@@ -212,54 +216,54 @@ _endSum += 1;
         }
         if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(optInNbDevDn) {
             if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(1.0) {
-                // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+                // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
                 i = 0;
-                while i < (((*outNBElement)) as i32) {
-                    tempReal = tempBuffer2[i];
-                    tempReal2 = outRealMiddleBand[i];
-                    outRealUpperBand[i] = tempReal2 + tempReal;
-                    outRealLowerBand[i] = tempReal2 - tempReal;
+                while i < (((*outNBElement))) as usize {
+                    tempReal = tempBuffer2[(i) as usize];
+                    tempReal2 = outRealMiddleBand[(i) as usize];
+                    outRealUpperBand[(i) as usize] = tempReal2 + tempReal;
+                    outRealLowerBand[(i) as usize] = tempReal2 - tempReal;
                     i += 1;
                 }
             } else {
-                // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+                // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
                 i = 0;
-                while i < (((*outNBElement)) as i32) {
-                    tempReal = tempBuffer2[i] * T::ta_from_f64(optInNbDevUp);
-                    tempReal2 = outRealMiddleBand[i];
-                    outRealUpperBand[i] = tempReal2 + tempReal;
-                    outRealLowerBand[i] = tempReal2 - tempReal;
+                while i < (((*outNBElement))) as usize {
+                    tempReal = tempBuffer2[(i) as usize] * T::ta_from_f64(optInNbDevUp);
+                    tempReal2 = outRealMiddleBand[(i) as usize];
+                    outRealUpperBand[(i) as usize] = tempReal2 + tempReal;
+                    outRealLowerBand[(i) as usize] = tempReal2 - tempReal;
                     i += 1;
                 }
             }
         } else if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal;
-                outRealLowerBand[i] = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
+            while i < (((*outNBElement))) as usize {
+                tempReal = tempBuffer2[(i) as usize];
+                tempReal2 = outRealMiddleBand[(i) as usize];
+                outRealUpperBand[(i) as usize] = tempReal2 + tempReal;
+                outRealLowerBand[(i) as usize] = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
                 i += 1;
             }
         } else if T::ta_from_f64(optInNbDevDn) == T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
+            while i < (((*outNBElement))) as usize {
+                tempReal = tempBuffer2[(i) as usize];
+                tempReal2 = outRealMiddleBand[(i) as usize];
+                outRealLowerBand[(i) as usize] = tempReal2 - tempReal;
+                outRealUpperBand[(i) as usize] = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
                 i += 1;
             }
         } else {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = tempBuffer2[i];
-                tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
-                outRealLowerBand[i] = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
+            while i < (((*outNBElement))) as usize {
+                tempReal = tempBuffer2[(i) as usize];
+                tempReal2 = outRealMiddleBand[(i) as usize];
+                outRealUpperBand[(i) as usize] = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
+                outRealLowerBand[(i) as usize] = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
                 i += 1;
             }
         }
@@ -318,71 +322,75 @@ _endSum += 1;
         outRealMiddleBand: &mut [T],
         outRealLowerBand: &mut [T],
     ) -> RetCode {
-        let mut retCode: RetCode;
-        let i: i32;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut tempBuffer1: Vec<T>;
-        let mut tempBuffer2: Vec<T>;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut i: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut tempBuffer1: Vec<T> = Vec::new();
+        let mut tempBuffer2: Vec<T> = Vec::new();
         if inReal == outRealUpperBand {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealLowerBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealLowerBand.to_vec();
         } else if inReal == outRealLowerBand {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         } else if inReal == outRealMiddleBand {
-            tempBuffer1 = outRealLowerBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealLowerBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         } else {
-            tempBuffer1 = outRealMiddleBand;
-            tempBuffer2 = outRealUpperBand;
+            tempBuffer1 = outRealMiddleBand.to_vec();
+            tempBuffer2 = outRealUpperBand.to_vec();
         }
         if tempBuffer1 == inReal || tempBuffer2 == inReal {
             return RetCode::BadParam;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
-        if retCode != RetCode::Success || (((*outNBElement)) as i32) == 0 {
+        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, &mut tempBuffer1[..]);
+        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
             (*outNBElement) = 0;
             return retCode;
         }
-        if optInMAType == TA_MAType_SMA {
-            _startSum = 1 + (((*outBegIdx)) as i32) - optInTimePeriod;
-            _endSum = ((*outBegIdx)) as i32;
-            _periodTotal2 = 0;
+        if (optInMAType) as usize == 0 {
+            let mut _tempReal: T = T::ta_zero();
+            let mut _periodTotal2: T = T::ta_zero();
+            let mut _meanValue2: T = T::ta_zero();
+            let mut _outIdx: usize = 0_usize;
+            let mut _startSum: usize = 0_usize;
+            let mut _endSum: usize = 0_usize;
+            _startSum = (1 + ((*outBegIdx)) - (optInTimePeriod) as usize) as usize;
+            _endSum = ((*outBegIdx)) as usize;
+            _periodTotal2 = T::ta_from_i32(0 as i32);
             // for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
             _outIdx = _startSum;
             while _outIdx < _endSum {
-                _tempReal = *inReal.get_unchecked(_outIdx);
+                _tempReal = (*inReal.get_unchecked((_outIdx) as usize));
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
                 _outIdx += 1;
             }
-            // for( _outIdx = 0; _outIdx < (((*outNBElement)) as i32); _outIdx += 1;
-_startSum += 1;
-_endSum += 1 )
+            // for( _outIdx = 0; _outIdx < (((*outNBElement))) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
             _outIdx = 0;
-            while _outIdx < (((*outNBElement)) as i32) {
-                _tempReal = *inReal.get_unchecked(_endSum);
+            while _outIdx < (((*outNBElement))) as usize {
+                _tempReal = (*inReal.get_unchecked((_endSum) as usize));
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
-                _meanValue2 = _periodTotal2 / optInTimePeriod;
-                _tempReal = *inReal.get_unchecked(_startSum);
+                _meanValue2 = _periodTotal2 / T::ta_from_i32(optInTimePeriod);
+                _tempReal = (*inReal.get_unchecked((_startSum) as usize));
                 _tempReal *= _tempReal;
                 _periodTotal2 -= _tempReal;
-                _tempReal = *tempBuffer1.get_unchecked(_outIdx);
+                _tempReal = (*tempBuffer1.get_unchecked((_outIdx) as usize));
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
                 if !(_meanValue2 < T::ta_from_f64(0.00000001)) {
-                    *tempBuffer2.get_unchecked_mut(_outIdx) = _meanValue2.ta_sqrt();
+                    (*tempBuffer2.get_unchecked_mut((_outIdx) as usize)) = _meanValue2.ta_sqrt();
                 } else {
-                    *tempBuffer2.get_unchecked_mut(_outIdx) = T::ta_from_f64(0.0);
+                    (*tempBuffer2.get_unchecked_mut((_outIdx) as usize)) = T::ta_from_f64(0.0);
                 }
                 _outIdx += 1;
-_startSum += 1;
-_endSum += 1;
+                _startSum += 1;
+                _endSum += 1;
             }
         } else {
-            retCode = self.stddev_unguarded(((*outBegIdx)) as i32, endIdx, inReal, optInTimePeriod, T::ta_from_f64(1.0), outBegIdx, outNBElement, tempBuffer2);
+            retCode = self.stddev_unguarded(((*outBegIdx)) as usize, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, &mut tempBuffer2[..]);
             if retCode != RetCode::Success {
                 (*outNBElement) = 0;
                 return retCode;
@@ -398,54 +406,54 @@ _endSum += 1;
         }
         if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(optInNbDevDn) {
             if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(1.0) {
-                // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+                // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
                 i = 0;
-                while i < (((*outNBElement)) as i32) {
-                    tempReal = *tempBuffer2.get_unchecked(i);
-                    tempReal2 = *outRealMiddleBand.get_unchecked(i);
-                    *outRealUpperBand.get_unchecked_mut(i) = tempReal2 + tempReal;
-                    *outRealLowerBand.get_unchecked_mut(i) = tempReal2 - tempReal;
+                while i < (((*outNBElement))) as usize {
+                    tempReal = (*tempBuffer2.get_unchecked((i) as usize));
+                    tempReal2 = (*outRealMiddleBand.get_unchecked((i) as usize));
+                    (*outRealUpperBand.get_unchecked_mut((i) as usize)) = tempReal2 + tempReal;
+                    (*outRealLowerBand.get_unchecked_mut((i) as usize)) = tempReal2 - tempReal;
                     i += 1;
                 }
             } else {
-                // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+                // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
                 i = 0;
-                while i < (((*outNBElement)) as i32) {
-                    tempReal = *tempBuffer2.get_unchecked(i) * T::ta_from_f64(optInNbDevUp);
-                    tempReal2 = *outRealMiddleBand.get_unchecked(i);
-                    *outRealUpperBand.get_unchecked_mut(i) = tempReal2 + tempReal;
-                    *outRealLowerBand.get_unchecked_mut(i) = tempReal2 - tempReal;
+                while i < (((*outNBElement))) as usize {
+                    tempReal = (*tempBuffer2.get_unchecked((i) as usize)) * T::ta_from_f64(optInNbDevUp);
+                    tempReal2 = (*outRealMiddleBand.get_unchecked((i) as usize));
+                    (*outRealUpperBand.get_unchecked_mut((i) as usize)) = tempReal2 + tempReal;
+                    (*outRealLowerBand.get_unchecked_mut((i) as usize)) = tempReal2 - tempReal;
                     i += 1;
                 }
             }
         } else if T::ta_from_f64(optInNbDevUp) == T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = *tempBuffer2.get_unchecked(i);
-                tempReal2 = *outRealMiddleBand.get_unchecked(i);
-                *outRealUpperBand.get_unchecked_mut(i) = tempReal2 + tempReal;
-                *outRealLowerBand.get_unchecked_mut(i) = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
+            while i < (((*outNBElement))) as usize {
+                tempReal = (*tempBuffer2.get_unchecked((i) as usize));
+                tempReal2 = (*outRealMiddleBand.get_unchecked((i) as usize));
+                (*outRealUpperBand.get_unchecked_mut((i) as usize)) = tempReal2 + tempReal;
+                (*outRealLowerBand.get_unchecked_mut((i) as usize)) = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
                 i += 1;
             }
         } else if T::ta_from_f64(optInNbDevDn) == T::ta_from_f64(1.0) {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = *tempBuffer2.get_unchecked(i);
-                tempReal2 = *outRealMiddleBand.get_unchecked(i);
-                *outRealLowerBand.get_unchecked_mut(i) = tempReal2 - tempReal;
-                *outRealUpperBand.get_unchecked_mut(i) = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
+            while i < (((*outNBElement))) as usize {
+                tempReal = (*tempBuffer2.get_unchecked((i) as usize));
+                tempReal2 = (*outRealMiddleBand.get_unchecked((i) as usize));
+                (*outRealLowerBand.get_unchecked_mut((i) as usize)) = tempReal2 - tempReal;
+                (*outRealUpperBand.get_unchecked_mut((i) as usize)) = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
                 i += 1;
             }
         } else {
-            // for( i = 0; i < (((*outNBElement)) as i32); i += 1 )
+            // for( i = 0; i < (((*outNBElement))) as usize; i += 1 )
             i = 0;
-            while i < (((*outNBElement)) as i32) {
-                tempReal = *tempBuffer2.get_unchecked(i);
-                tempReal2 = *outRealMiddleBand.get_unchecked(i);
-                *outRealUpperBand.get_unchecked_mut(i) = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
-                *outRealLowerBand.get_unchecked_mut(i) = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
+            while i < (((*outNBElement))) as usize {
+                tempReal = (*tempBuffer2.get_unchecked((i) as usize));
+                tempReal2 = (*outRealMiddleBand.get_unchecked((i) as usize));
+                (*outRealUpperBand.get_unchecked_mut((i) as usize)) = tempReal2 + tempReal * T::ta_from_f64(optInNbDevUp);
+                (*outRealLowerBand.get_unchecked_mut((i) as usize)) = tempReal2 - tempReal * T::ta_from_f64(optInNbDevDn);
                 i += 1;
             }
         }

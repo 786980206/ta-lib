@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn wclprice_lookback(&self) -> i32 {
-        return 0;
+    pub fn wclprice_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Weighted Close Price
     ///
@@ -104,12 +104,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (inHigh[i] + inLow[i] + inClose[i] * T::ta_from_f64(2.0)) / T::ta_from_f64(4.0);
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (inHigh[(i) as usize] + inLow[(i) as usize] + inClose[(i) as usize] * T::ta_from_f64(2.0)) / T::ta_from_f64(4.0);
         }
+        i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
@@ -150,12 +151,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (*inHigh.get_unchecked(i) + *inLow.get_unchecked(i) + *inClose.get_unchecked(i) * T::ta_from_f64(2.0)) / T::ta_from_f64(4.0);
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize)) + (*inClose.get_unchecked((i) as usize)) * T::ta_from_f64(2.0)) / T::ta_from_f64(4.0);
         }
+        i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

@@ -54,14 +54,14 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn cmo_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn cmo_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let mut retValue: i32;
-        retValue = optInTimePeriod + self.unstable_period[FuncUnstId::Cmo as usize];
+        let mut retValue: usize = 0_usize;
+        retValue = (optInTimePeriod + self.unstable_period[FuncUnstId::Cmo as usize]) as usize;
         if self.compatibility == Compatibility::Metastock {
             retValue -= 1;
         }
@@ -116,19 +116,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let mut today: i32;
-        let lookbackTotal: i32;
-        let unstablePeriod: i32;
-        let i: i32;
-        let mut prevGain: T;
-        let mut prevLoss: T;
-        let mut prevValue: T;
-        let savePrevValue: T;
-        let mut tempValue1: T;
-        let mut tempValue2: T;
-        let tempValue3: T;
-        let tempValue4: T;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut unstablePeriod: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut prevGain: T = T::ta_zero();
+        let mut prevLoss: T = T::ta_zero();
+        let mut prevValue: T = T::ta_zero();
+        let mut savePrevValue: T = T::ta_zero();
+        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue2: T = T::ta_zero();
+        let mut tempValue3: T = T::ta_zero();
+        let mut tempValue4: T = T::ta_zero();
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);
@@ -145,109 +145,109 @@ impl Core {
             (*outNBElement) = i;
             {
             let _n = (i * 1) as usize;
-            let _di = (0) as usize;
-            let _si = (startIdx) as usize;
+            let _di = ((0) as usize) as usize;
+            let _si = ((startIdx) as usize) as usize;
             outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
         };
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
-        prevValue = inReal[today];
-        unstablePeriod = self.unstable_period[FuncUnstId::Cmo as usize];
+        prevValue = inReal[(today) as usize];
+        unstablePeriod = (self.unstable_period[FuncUnstId::Cmo as usize]) as usize;
         if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
             prevGain = T::ta_from_f64(0.0);
             prevLoss = T::ta_from_f64(0.0);
-            // for( i = optInTimePeriod; i > 0; i -= 1 )
-            i = optInTimePeriod;
+            // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+            i = (optInTimePeriod) as usize;
             while i > 0 {
-                tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+                tempValue1 = inReal[({ let _v = today; today += 1; _v }) as usize];
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                if tempValue2 < 0 {
+                if tempValue2 < T::ta_from_i32(0) {
                     prevLoss -= tempValue2;
                 } else {
                     prevGain += tempValue2;
                 }
                 i -= 1;
             }
-            tempValue1 = prevLoss / optInTimePeriod;
-            tempValue2 = prevGain / optInTimePeriod;
+            tempValue1 = prevLoss / T::ta_from_i32(optInTimePeriod);
+            tempValue2 = prevGain / T::ta_from_i32(optInTimePeriod);
             tempValue3 = tempValue2 - tempValue1;
             tempValue4 = tempValue1 + tempValue2;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue4 && tempValue4 < T::ta_from_f64(0.00000001)) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100 * (tempValue3 / tempValue4);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue4 && tempValue4 < T::ta_from_f64(0.00000001)) {
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_i32(100) * (tempValue3 / tempValue4);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
             if today > endIdx {
                 (*outBegIdx) = startIdx;
                 (*outNBElement) = outIdx;
                 return RetCode::Success;
             }
-            today -= optInTimePeriod;
+            today -= (optInTimePeriod) as usize;
             prevValue = savePrevValue;
         }
         prevGain = T::ta_from_f64(0.0);
         prevLoss = T::ta_from_f64(0.0);
         today += 1;
-        // for( i = optInTimePeriod; i > 0; i -= 1 )
-        i = optInTimePeriod;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+            tempValue1 = inReal[({ let _v = today; today += 1; _v }) as usize];
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            if tempValue2 < 0 {
+            if tempValue2 < T::ta_from_i32(0) {
                 prevLoss -= tempValue2;
             } else {
                 prevGain += tempValue2;
             }
             i -= 1;
         }
-        prevLoss /= optInTimePeriod;
-        prevGain /= optInTimePeriod;
+        prevLoss /= T::ta_from_i32(optInTimePeriod);
+        prevGain /= T::ta_from_i32(optInTimePeriod);
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
         } else {
             while today < startIdx {
-                tempValue1 = inReal[today];
+                tempValue1 = inReal[(today) as usize];
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                prevLoss *= optInTimePeriod - 1;
-                prevGain *= optInTimePeriod - 1;
-                if tempValue2 < 0 {
+                prevLoss *= T::ta_from_i32(optInTimePeriod - 1);
+                prevGain *= T::ta_from_i32(optInTimePeriod - 1);
+                if tempValue2 < T::ta_from_i32(0) {
                     prevLoss -= tempValue2;
                 } else {
                     prevGain += tempValue2;
                 }
-                prevLoss /= optInTimePeriod;
-                prevGain /= optInTimePeriod;
+                prevLoss /= T::ta_from_i32(optInTimePeriod);
+                prevGain /= T::ta_from_i32(optInTimePeriod);
                 today += 1;
             }
         }
         while today <= endIdx {
-            tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+            tempValue1 = inReal[({ let _v = today; today += 1; _v }) as usize];
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            prevLoss *= optInTimePeriod - 1;
-            prevGain *= optInTimePeriod - 1;
-            if tempValue2 < 0 {
+            prevLoss *= T::ta_from_i32(optInTimePeriod - 1);
+            prevGain *= T::ta_from_i32(optInTimePeriod - 1);
+            if tempValue2 < T::ta_from_i32(0) {
                 prevLoss -= tempValue2;
             } else {
                 prevGain += tempValue2;
             }
-            prevLoss /= optInTimePeriod;
-            prevGain /= optInTimePeriod;
+            prevLoss /= T::ta_from_i32(optInTimePeriod);
+            prevGain /= T::ta_from_i32(optInTimePeriod);
             tempValue1 = prevGain + prevLoss;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
         }
         (*outBegIdx) = startIdx;
@@ -292,19 +292,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let mut today: i32;
-        let lookbackTotal: i32;
-        let unstablePeriod: i32;
-        let i: i32;
-        let mut prevGain: T;
-        let mut prevLoss: T;
-        let mut prevValue: T;
-        let savePrevValue: T;
-        let mut tempValue1: T;
-        let mut tempValue2: T;
-        let tempValue3: T;
-        let tempValue4: T;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut unstablePeriod: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut prevGain: T = T::ta_zero();
+        let mut prevLoss: T = T::ta_zero();
+        let mut prevValue: T = T::ta_zero();
+        let mut savePrevValue: T = T::ta_zero();
+        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue2: T = T::ta_zero();
+        let mut tempValue3: T = T::ta_zero();
+        let mut tempValue4: T = T::ta_zero();
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.cmo_lookback(optInTimePeriod);
@@ -321,109 +321,109 @@ impl Core {
             (*outNBElement) = i;
             {
             let _n = (i * 1) as usize;
-            let _di = (0) as usize;
-            let _si = (startIdx) as usize;
+            let _di = ((0) as usize) as usize;
+            let _si = ((startIdx) as usize) as usize;
             outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
         };
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
-        prevValue = *inReal.get_unchecked(today);
-        unstablePeriod = self.unstable_period[FuncUnstId::Cmo as usize];
+        prevValue = (*inReal.get_unchecked((today) as usize));
+        unstablePeriod = (self.unstable_period[FuncUnstId::Cmo as usize]) as usize;
         if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
             prevGain = T::ta_from_f64(0.0);
             prevLoss = T::ta_from_f64(0.0);
-            // for( i = optInTimePeriod; i > 0; i -= 1 )
-            i = optInTimePeriod;
+            // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+            i = (optInTimePeriod) as usize;
             while i > 0 {
-                tempValue1 = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+                tempValue1 = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                if tempValue2 < 0 {
+                if tempValue2 < T::ta_from_i32(0) {
                     prevLoss -= tempValue2;
                 } else {
                     prevGain += tempValue2;
                 }
                 i -= 1;
             }
-            tempValue1 = prevLoss / optInTimePeriod;
-            tempValue2 = prevGain / optInTimePeriod;
+            tempValue1 = prevLoss / T::ta_from_i32(optInTimePeriod);
+            tempValue2 = prevGain / T::ta_from_i32(optInTimePeriod);
             tempValue3 = tempValue2 - tempValue1;
             tempValue4 = tempValue1 + tempValue2;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue4 && tempValue4 < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = 100 * (tempValue3 / tempValue4);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue4 && tempValue4 < T::ta_from_f64(0.00000001)) {
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_i32(100) * (tempValue3 / tempValue4);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
             if today > endIdx {
                 (*outBegIdx) = startIdx;
                 (*outNBElement) = outIdx;
                 return RetCode::Success;
             }
-            today -= optInTimePeriod;
+            today -= (optInTimePeriod) as usize;
             prevValue = savePrevValue;
         }
         prevGain = T::ta_from_f64(0.0);
         prevLoss = T::ta_from_f64(0.0);
         today += 1;
-        // for( i = optInTimePeriod; i > 0; i -= 1 )
-        i = optInTimePeriod;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+            tempValue1 = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            if tempValue2 < 0 {
+            if tempValue2 < T::ta_from_i32(0) {
                 prevLoss -= tempValue2;
             } else {
                 prevGain += tempValue2;
             }
             i -= 1;
         }
-        prevLoss /= optInTimePeriod;
-        prevGain /= optInTimePeriod;
+        prevLoss /= T::ta_from_i32(optInTimePeriod);
+        prevGain /= T::ta_from_i32(optInTimePeriod);
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
         } else {
             while today < startIdx {
-                tempValue1 = *inReal.get_unchecked(today);
+                tempValue1 = (*inReal.get_unchecked((today) as usize));
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                prevLoss *= optInTimePeriod - 1;
-                prevGain *= optInTimePeriod - 1;
-                if tempValue2 < 0 {
+                prevLoss *= T::ta_from_i32(optInTimePeriod - 1);
+                prevGain *= T::ta_from_i32(optInTimePeriod - 1);
+                if tempValue2 < T::ta_from_i32(0) {
                     prevLoss -= tempValue2;
                 } else {
                     prevGain += tempValue2;
                 }
-                prevLoss /= optInTimePeriod;
-                prevGain /= optInTimePeriod;
+                prevLoss /= T::ta_from_i32(optInTimePeriod);
+                prevGain /= T::ta_from_i32(optInTimePeriod);
                 today += 1;
             }
         }
         while today <= endIdx {
-            tempValue1 = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+            tempValue1 = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            prevLoss *= optInTimePeriod - 1;
-            prevGain *= optInTimePeriod - 1;
-            if tempValue2 < 0 {
+            prevLoss *= T::ta_from_i32(optInTimePeriod - 1);
+            prevGain *= T::ta_from_i32(optInTimePeriod - 1);
+            if tempValue2 < T::ta_from_i32(0) {
                 prevLoss -= tempValue2;
             } else {
                 prevGain += tempValue2;
             }
-            prevLoss /= optInTimePeriod;
-            prevGain /= optInTimePeriod;
+            prevLoss /= T::ta_from_i32(optInTimePeriod);
+            prevGain /= T::ta_from_i32(optInTimePeriod);
             tempValue1 = prevGain + prevLoss;
-            if !(0 - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempValue1 && tempValue1 < T::ta_from_f64(0.00000001)) {
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(100.0) * ((prevGain - prevLoss) / tempValue1);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
         }
         (*outBegIdx) = startIdx;

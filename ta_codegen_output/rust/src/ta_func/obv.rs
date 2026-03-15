@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn obv_lookback(&self) -> i32 {
-        return 0;
+    pub fn obv_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// On Balance Volume
     ///
@@ -100,24 +100,25 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let i: i32;
-        let outIdx: i32;
-        let mut prevReal: T;
-        let mut tempReal: T;
-        let mut prevOBV: T;
-        prevOBV = inVolume[startIdx];
-        prevReal = inReal[startIdx];
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevReal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut prevOBV: T = T::ta_zero();
+        prevOBV = inVolume[(startIdx) as usize];
+        prevReal = inReal[(startIdx) as usize];
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = inReal[i];
+            tempReal = inReal[(i) as usize];
             if tempReal > prevReal {
-                prevOBV += inVolume[i];
+                prevOBV += inVolume[(i) as usize];
             } else if tempReal < prevReal {
-                prevOBV -= inVolume[i];
+                prevOBV -= inVolume[(i) as usize];
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevOBV;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevOBV;
             prevReal = tempReal;
         }
+        i = (endIdx as usize) + 1;
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -155,24 +156,25 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let i: i32;
-        let outIdx: i32;
-        let mut prevReal: T;
-        let mut tempReal: T;
-        let mut prevOBV: T;
-        prevOBV = *inVolume.get_unchecked(startIdx);
-        prevReal = *inReal.get_unchecked(startIdx);
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevReal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut prevOBV: T = T::ta_zero();
+        prevOBV = (*inVolume.get_unchecked((startIdx) as usize));
+        prevReal = (*inReal.get_unchecked((startIdx) as usize));
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = *inReal.get_unchecked(i);
+            tempReal = (*inReal.get_unchecked((i) as usize));
             if tempReal > prevReal {
-                prevOBV += *inVolume.get_unchecked(i);
+                prevOBV += (*inVolume.get_unchecked((i) as usize));
             } else if tempReal < prevReal {
-                prevOBV -= *inVolume.get_unchecked(i);
+                prevOBV -= (*inVolume.get_unchecked((i) as usize));
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevOBV;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevOBV;
             prevReal = tempReal;
         }
+        i = (endIdx as usize) + 1;
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;

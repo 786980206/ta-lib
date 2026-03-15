@@ -54,11 +54,11 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 20, range: 2..=100000)
-    pub fn accbands_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn accbands_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 20;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         return self.sma_lookback(optInTimePeriod);
     }
@@ -127,17 +127,17 @@ impl Core {
         outRealMiddleBand: &mut [T],
         outRealLowerBand: &mut [T],
     ) -> RetCode {
-        let mut retCode: RetCode;
-        let tempBuffer1: Vec<T>;
-        let tempBuffer2: Vec<T>;
-        let outBegIdxDummy: i32;
-        let outNbElementDummy: i32;
-        let i: i32;
-        let j: i32;
-        let outputSize: i32;
-        let bufferSize: i32;
-        let lookbackTotal: i32;
-        let mut tempReal: T;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempBuffer1: Vec<T> = Vec::new();
+        let mut tempBuffer2: Vec<T> = Vec::new();
+        let mut outBegIdxDummy: usize = 0_usize;
+        let mut outNbElementDummy: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outputSize: usize = 0_usize;
+        let mut bufferSize: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -149,40 +149,38 @@ impl Core {
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
-        // for( j = 0;
-i = startIdx - lookbackTotal; i <= endIdx; i += 1;
-j += 1 )
+        tempBuffer1 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        tempBuffer2 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
         j = 0;
-i = startIdx - lookbackTotal;
+        i = startIdx - lookbackTotal;
         while i <= endIdx {
-            tempReal = inHigh[i] + inLow[i];
-            if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                tempReal = 4 * (inHigh[i] - inLow[i]) / tempReal;
-                tempBuffer1[j] = inHigh[i] * (1 + tempReal);
-                tempBuffer2[j] = inLow[i] * (1 - tempReal);
+            tempReal = inHigh[(i) as usize] + inLow[(i) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                tempReal = T::ta_from_i32(4) * (inHigh[(i) as usize] - inLow[(i) as usize]) / tempReal;
+                tempBuffer1[(j) as usize] = inHigh[(i) as usize] * (T::ta_from_i32(1) + tempReal);
+                tempBuffer2[(j) as usize] = inLow[(i) as usize] * (T::ta_from_i32(1) - tempReal);
             } else {
-                tempBuffer1[j] = inHigh[i];
-                tempBuffer2[j] = inLow[i];
+                tempBuffer1[(j) as usize] = inHigh[(i) as usize];
+                tempBuffer2[(j) as usize] = inLow[(i) as usize];
             }
             i += 1;
-j += 1;
+            j += 1;
         }
-        retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
@@ -241,17 +239,17 @@ j += 1;
         outRealMiddleBand: &mut [T],
         outRealLowerBand: &mut [T],
     ) -> RetCode {
-        let mut retCode: RetCode;
-        let tempBuffer1: Vec<T>;
-        let tempBuffer2: Vec<T>;
-        let outBegIdxDummy: i32;
-        let outNbElementDummy: i32;
-        let i: i32;
-        let j: i32;
-        let outputSize: i32;
-        let bufferSize: i32;
-        let lookbackTotal: i32;
-        let mut tempReal: T;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempBuffer1: Vec<T> = Vec::new();
+        let mut tempBuffer2: Vec<T> = Vec::new();
+        let mut outBegIdxDummy: usize = 0_usize;
+        let mut outNbElementDummy: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outputSize: usize = 0_usize;
+        let mut bufferSize: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -263,40 +261,38 @@ j += 1;
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        tempBuffer1 = vec![T::default(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::default(); (bufferSize * 1) as usize];
-        // for( j = 0;
-i = startIdx - lookbackTotal; i <= endIdx; i += 1;
-j += 1 )
+        tempBuffer1 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        tempBuffer2 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
         j = 0;
-i = startIdx - lookbackTotal;
+        i = startIdx - lookbackTotal;
         while i <= endIdx {
-            tempReal = *inHigh.get_unchecked(i) + *inLow.get_unchecked(i);
-            if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                tempReal = 4 * (*inHigh.get_unchecked(i) - *inLow.get_unchecked(i)) / tempReal;
-                *tempBuffer1.get_unchecked_mut(j) = *inHigh.get_unchecked(i) * (1 + tempReal);
-                *tempBuffer2.get_unchecked_mut(j) = *inLow.get_unchecked(i) * (1 - tempReal);
+            tempReal = (*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                tempReal = T::ta_from_i32(4) * ((*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize))) / tempReal;
+                (*tempBuffer1.get_unchecked_mut((j) as usize)) = (*inHigh.get_unchecked((i) as usize)) * (T::ta_from_i32(1) + tempReal);
+                (*tempBuffer2.get_unchecked_mut((j) as usize)) = (*inLow.get_unchecked((i) as usize)) * (T::ta_from_i32(1) - tempReal);
             } else {
-                *tempBuffer1.get_unchecked_mut(j) = *inHigh.get_unchecked(i);
-                *tempBuffer2.get_unchecked_mut(j) = *inLow.get_unchecked(i);
+                (*tempBuffer1.get_unchecked_mut((j) as usize)) = (*inHigh.get_unchecked((i) as usize));
+                (*tempBuffer2.get_unchecked_mut((j) as usize)) = (*inLow.get_unchecked((i) as usize));
             }
             i += 1;
-j += 1;
+            j += 1;
         }
-        retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.sma_unguarded(0, bufferSize - 1, tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || ((outNbElementDummy) as i32) != outputSize {
+        retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
+        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

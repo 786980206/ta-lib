@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn sum_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn sum_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Summation
     ///
@@ -111,13 +111,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: T;
-        let mut tempReal: T;
-        let i: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let lookbackTotal: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut periodTotal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -126,20 +126,20 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal = 0;
+        periodTotal = T::ta_from_i32(0 as i32);
         trailingIdx = startIdx - lookbackTotal;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += inReal[{ let _v = i; i += 1; _v }];
+                periodTotal += inReal[({ let _v = i; i += 1; _v }) as usize];
             }
         }
         outIdx = 0;
         loop {
-            periodTotal += inReal[{ let _v = i; i += 1; _v }];
+            periodTotal += inReal[({ let _v = i; i += 1; _v }) as usize];
             tempReal = periodTotal;
-            periodTotal -= inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal;
+            periodTotal -= inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = tempReal;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;
@@ -184,13 +184,13 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: T;
-        let mut tempReal: T;
-        let i: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let lookbackTotal: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut periodTotal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -199,20 +199,20 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal = 0;
+        periodTotal = T::ta_from_i32(0 as i32);
         trailingIdx = startIdx - lookbackTotal;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += *inReal.get_unchecked({ let _v = i; i += 1; _v });
+                periodTotal += (*inReal.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
             }
         }
         outIdx = 0;
         loop {
-            periodTotal += *inReal.get_unchecked({ let _v = i; i += 1; _v });
+            periodTotal += (*inReal.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
             tempReal = periodTotal;
-            periodTotal -= *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = tempReal;
+            periodTotal -= (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = tempReal;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;

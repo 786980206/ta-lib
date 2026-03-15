@@ -55,16 +55,16 @@ impl Core {
     ///
     /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
     /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
-    pub fn ppo_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32, mut optInMAType: i32) -> i32 {
+    pub fn ppo_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
             optInFastPeriod = 12;
         } else if (((optInFastPeriod) as i32) < 2) || (((optInFastPeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInSlowPeriod) as i32) == (i32::MIN) {
             optInSlowPeriod = 26;
         } else if (((optInSlowPeriod) as i32) < 2) || (((optInSlowPeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         return self.ma_lookback((optInSlowPeriod).max(optInFastPeriod), optInMAType);
     }
@@ -129,41 +129,39 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let tempBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let mut tempReal: T;
-        let mut tempInteger: i32;
-        let outBegIdx1: i32;
-        let outNbElement1: i32;
-        let outBegIdx2: i32;
-        let outNbElement2: i32;
-        let i: i32;
-        let j: i32;
-        tempBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempInteger: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement2: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
-            tempInteger = optInSlowPeriod;
+            tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
-            optInFastPeriod = tempInteger;
+            optInFastPeriod = (tempInteger) as i32;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
         if retCode == RetCode::Success {
-            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
             if retCode == RetCode::Success {
                 tempInteger = outBegIdx1 - outBegIdx2;
-                // for( i = 0;
-j = tempInteger; i < outNbElement1; i += 1;
-j += 1 )
+                // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
                 i = 0;
-j = tempInteger;
+                j = tempInteger;
                 while i < outNbElement1 {
-                    tempReal = outReal[i];
-                    if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                        outReal[i] = (tempBuffer[j] - tempReal) / tempReal * T::ta_from_f64(100.0);
+                    tempReal = outReal[(i) as usize];
+                    if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                        outReal[(i) as usize] = (tempBuffer[(j) as usize] - tempReal) / tempReal * T::ta_from_f64(100.0);
                     } else {
-                        outReal[i] = T::ta_from_f64(0.0);
+                        outReal[(i) as usize] = T::ta_from_f64(0.0);
                     }
                     i += 1;
-j += 1;
+                    j += 1;
                 }
                 (*outBegIdx) = outBegIdx1;
                 (*outNBElement) = outNbElement1;
@@ -220,41 +218,39 @@ j += 1;
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let tempBuffer: Vec<T>;
-        let mut retCode: RetCode;
-        let mut tempReal: T;
-        let mut tempInteger: i32;
-        let outBegIdx1: i32;
-        let outNbElement1: i32;
-        let outBegIdx2: i32;
-        let outNbElement2: i32;
-        let i: i32;
-        let j: i32;
-        tempBuffer = vec![T::default(); ((endIdx - startIdx + 1) * 1) as usize];
+        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempInteger: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement2: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
-            tempInteger = optInSlowPeriod;
+            tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
-            optInFastPeriod = tempInteger;
+            optInFastPeriod = (tempInteger) as i32;
         }
-        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
         if retCode == RetCode::Success {
-            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
             if retCode == RetCode::Success {
                 tempInteger = outBegIdx1 - outBegIdx2;
-                // for( i = 0;
-j = tempInteger; i < outNbElement1; i += 1;
-j += 1 )
+                // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
                 i = 0;
-j = tempInteger;
+                j = tempInteger;
                 while i < outNbElement1 {
-                    tempReal = *outReal.get_unchecked(i);
-                    if !(0 - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                        *outReal.get_unchecked_mut(i) = (*tempBuffer.get_unchecked(j) - tempReal) / tempReal * T::ta_from_f64(100.0);
+                    tempReal = (*outReal.get_unchecked((i) as usize));
+                    if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
+                        (*outReal.get_unchecked_mut((i) as usize)) = ((*tempBuffer.get_unchecked((j) as usize)) - tempReal) / tempReal * T::ta_from_f64(100.0);
                     } else {
-                        *outReal.get_unchecked_mut(i) = T::ta_from_f64(0.0);
+                        (*outReal.get_unchecked_mut((i) as usize)) = T::ta_from_f64(0.0);
                     }
                     i += 1;
-j += 1;
+                    j += 1;
                 }
                 (*outBegIdx) = outBegIdx1;
                 (*outNBElement) = outNbElement1;

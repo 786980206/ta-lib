@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn bop_lookback(&self) -> i32 {
-        return 0;
+    pub fn bop_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Balance Of Power
     ///
@@ -108,18 +108,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        let mut tempReal: T;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = inHigh[i] - inLow[i];
+            tempReal = inHigh[(i) as usize] - inLow[(i) as usize];
             if tempReal < T::ta_from_f64(0.00000001) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (inClose[i] - inOpen[i]) / tempReal;
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (inClose[(i) as usize] - inOpen[(i) as usize]) / tempReal;
             }
         }
+        i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
@@ -163,18 +164,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        let mut tempReal: T;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = *inHigh.get_unchecked(i) - *inLow.get_unchecked(i);
+            tempReal = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
             if tempReal < T::ta_from_f64(0.00000001) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (*inClose.get_unchecked(i) - *inOpen.get_unchecked(i)) / tempReal;
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))) / tempReal;
             }
         }
+        i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;

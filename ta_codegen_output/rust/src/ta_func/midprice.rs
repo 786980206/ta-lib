@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn midprice_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn midprice_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Midpoint Price over period
     ///
@@ -115,15 +115,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let i: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -136,20 +136,21 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = inLow[trailingIdx];
-            highest = inHigh[trailingIdx];
+            lowest = inLow[(trailingIdx) as usize];
+            highest = inHigh[(trailingIdx) as usize];
             trailingIdx += 1;
             for i in (trailingIdx as usize)..=(today as usize) {
-                tmp = inLow[i];
+                tmp = inLow[(i) as usize];
                 if tmp < lowest {
                     lowest = tmp;
                 }
-                tmp = inHigh[i];
+                tmp = inHigh[(i) as usize];
                 if tmp > highest {
                     highest = tmp;
                 }
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (highest + lowest) / T::ta_from_f64(2.0);
+            i = (today as usize) + 1;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (highest + lowest) / T::ta_from_f64(2.0);
             today += 1;
         }
         (*outBegIdx) = startIdx;
@@ -197,15 +198,15 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let outIdx: i32;
-        let nbInitialElementNeeded: i32;
-        let mut trailingIdx: i32;
-        let mut today: i32;
-        let i: i32;
-        nbInitialElementNeeded = optInTimePeriod - 1;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -218,20 +219,21 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = *inLow.get_unchecked(trailingIdx);
-            highest = *inHigh.get_unchecked(trailingIdx);
+            lowest = (*inLow.get_unchecked((trailingIdx) as usize));
+            highest = (*inHigh.get_unchecked((trailingIdx) as usize));
             trailingIdx += 1;
             for i in (trailingIdx as usize)..=(today as usize) {
-                tmp = *inLow.get_unchecked(i);
+                tmp = (*inLow.get_unchecked((i) as usize));
                 if tmp < lowest {
                     lowest = tmp;
                 }
-                tmp = *inHigh.get_unchecked(i);
+                tmp = (*inHigh.get_unchecked((i) as usize));
                 if tmp > highest {
                     highest = tmp;
                 }
             }
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (highest + lowest) / T::ta_from_f64(2.0);
+            i = (today as usize) + 1;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (highest + lowest) / T::ta_from_f64(2.0);
             today += 1;
         }
         (*outBegIdx) = startIdx;

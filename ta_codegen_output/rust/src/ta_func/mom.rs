@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 10, range: 1..=100000)
-    pub fn mom_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn mom_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 10;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod;
+        return (optInTimePeriod) as usize;
     }
     /// Momentum
     ///
@@ -111,11 +111,11 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let inIdx: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut inIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -124,9 +124,9 @@ impl Core {
         }
         outIdx = 0;
         inIdx = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = inReal[({ let _v = inIdx; inIdx += 1; _v }) as usize] - inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
@@ -170,11 +170,11 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let inIdx: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut inIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -183,9 +183,9 @@ impl Core {
         }
         outIdx = 0;
         inIdx = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = *inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v }) - *inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (*inReal.get_unchecked(({ let _v = inIdx; inIdx += 1; _v }) as usize)) - (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;

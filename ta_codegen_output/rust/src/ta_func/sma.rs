@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn sma_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn sma_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Simple Moving Average
     ///
@@ -111,12 +111,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: T;
-        let mut tempReal: T;
-        let mut i: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
+        let mut periodTotal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -131,18 +131,18 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += T::ta_from_f64((inReal[i]).ta_to_f64());
+                periodTotal += T::ta_from_f64((inReal[(i) as usize]).ta_to_f64());
                 i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += T::ta_from_f64((inReal[i]).ta_to_f64());
+            periodTotal += T::ta_from_f64((inReal[(i) as usize]).ta_to_f64());
             i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= T::ta_from_f64((inReal[trailingIdx]).ta_to_f64());
+            periodTotal -= T::ta_from_f64((inReal[(trailingIdx) as usize]).ta_to_f64());
             trailingIdx = trailingIdx + 1;
-            outReal[outIdx] = tempReal / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            outReal[(outIdx) as usize] = tempReal / (T::ta_from_i32(optInTimePeriod));
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;
@@ -187,12 +187,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut periodTotal: T;
-        let mut tempReal: T;
-        let mut i: usize;
-        let mut outIdx: usize;
-        let mut trailingIdx: usize;
-        let lookbackTotal: usize;
+        let mut periodTotal: T = T::ta_zero();
+        let mut tempReal: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -207,18 +207,18 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += T::ta_from_f64((*inReal.get_unchecked(i)).ta_to_f64());
+                periodTotal += T::ta_from_f64(((*inReal.get_unchecked((i) as usize))).ta_to_f64());
                 i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += T::ta_from_f64((*inReal.get_unchecked(i)).ta_to_f64());
+            periodTotal += T::ta_from_f64(((*inReal.get_unchecked((i) as usize))).ta_to_f64());
             i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= T::ta_from_f64((*inReal.get_unchecked(trailingIdx)).ta_to_f64());
+            periodTotal -= T::ta_from_f64(((*inReal.get_unchecked((trailingIdx) as usize))).ta_to_f64());
             trailingIdx = trailingIdx + 1;
-            *outReal.get_unchecked_mut(outIdx) = tempReal / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = tempReal / (T::ta_from_i32(optInTimePeriod));
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;

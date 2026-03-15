@@ -84,6 +84,11 @@ pub trait TaFloat:
     fn ta_log10(self) -> Self;
     /// Exponential (e^self).
     fn ta_exp(self) -> Self;
+
+    /// Minimum of two values.
+    fn min(self, other: Self) -> Self;
+    /// Maximum of two values.
+    fn max(self, other: Self) -> Self;
 }
 
 macro_rules! impl_ta_float {
@@ -117,6 +122,9 @@ macro_rules! impl_ta_float {
             #[inline(always)] fn ta_ln(self) -> Self { <$t>::ln(self) }
             #[inline(always)] fn ta_log10(self) -> Self { <$t>::log10(self) }
             #[inline(always)] fn ta_exp(self) -> Self { <$t>::exp(self) }
+
+            #[inline(always)] fn min(self, other: Self) -> Self { <$t>::min(self, other) }
+            #[inline(always)] fn max(self, other: Self) -> Self { <$t>::max(self, other) }
         }
     };
 }

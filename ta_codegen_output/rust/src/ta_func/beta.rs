@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
-    pub fn beta_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn beta_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod;
+        return (optInTimePeriod) as usize;
     }
     /// Beta
     ///
@@ -115,22 +115,22 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut S_xx: T;
-        let mut S_xy: T;
-        let mut S_x: T;
-        let mut S_y: T;
-        let mut last_price_x: T;
-        let mut last_price_y: T;
-        let mut trailing_last_price_x: T;
-        let mut trailing_last_price_y: T;
-        let mut tmp_real: T;
-        let mut x: T;
-        let mut y: T;
-        let mut n: T;
-        let i: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let nbInitialElementNeeded: i32;
+        let mut S_xx: T = T::ta_zero();
+        let mut S_xy: T = T::ta_zero();
+        let mut S_x: T = T::ta_zero();
+        let mut S_y: T = T::ta_zero();
+        let mut last_price_x: T = T::ta_zero();
+        let mut last_price_y: T = T::ta_zero();
+        let mut trailing_last_price_x: T = T::ta_zero();
+        let mut trailing_last_price_y: T = T::ta_zero();
+        let mut tmp_real: T = T::ta_zero();
+        let mut x: T = T::ta_zero();
+        let mut y: T = T::ta_zero();
+        let mut n: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
         S_xx = T::ta_from_f64(0.0);
         S_xy = T::ta_from_f64(0.0);
         S_x = T::ta_from_f64(0.0);
@@ -140,7 +140,7 @@ impl Core {
         trailing_last_price_x = T::ta_from_f64(0.0);
         trailing_last_price_y = T::ta_from_f64(0.0);
         tmp_real = T::ta_from_f64(0.0);
-        nbInitialElementNeeded = optInTimePeriod;
+        nbInitialElementNeeded = (optInTimePeriod) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -150,21 +150,21 @@ impl Core {
             return RetCode::Success;
         }
         trailingIdx = startIdx - nbInitialElementNeeded;
-        trailing_last_price_x = inReal0[trailingIdx];
+        trailing_last_price_x = inReal0[(trailingIdx) as usize];
         last_price_x = trailing_last_price_x;
-        trailing_last_price_y = inReal1[trailingIdx];
+        trailing_last_price_y = inReal1[(trailingIdx) as usize];
         last_price_y = trailing_last_price_y;
         i = { trailingIdx += 1; trailingIdx };
         while i < startIdx {
-            tmp_real = inReal0[i];
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal0[(i) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             last_price_x = tmp_real;
-            tmp_real = inReal1[{ let _v = i; i += 1; _v }];
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal1[({ let _v = i; i += 1; _v }) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
@@ -176,17 +176,17 @@ impl Core {
             S_y += y;
         }
         outIdx = 0;
-        n = T::ta_from_f64((optInTimePeriod).ta_to_f64());
+        n = T::ta_from_i32(optInTimePeriod);
         loop {
-            tmp_real = inReal0[i];
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal0[(i) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             last_price_x = tmp_real;
-            tmp_real = inReal1[{ let _v = i; i += 1; _v }];
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal1[({ let _v = i; i += 1; _v }) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
@@ -196,25 +196,25 @@ impl Core {
             S_xy += x * y;
             S_x += x;
             S_y += y;
-            tmp_real = inReal0[trailingIdx];
-            if !(0 - T::ta_from_f64(0.00000001) < trailing_last_price_x && trailing_last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal0[(trailingIdx) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < trailing_last_price_x && trailing_last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             trailing_last_price_x = tmp_real;
-            tmp_real = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            if !(0 - T::ta_from_f64(0.00000001) < trailing_last_price_y && trailing_last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = inReal1[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < trailing_last_price_y && trailing_last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
             }
             trailing_last_price_y = tmp_real;
             tmp_real = n * S_xx - S_x * S_x;
-            if !(0 - T::ta_from_f64(0.00000001) < tmp_real && tmp_real < T::ta_from_f64(0.00000001)) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (n * S_xy - S_x * S_y) / tmp_real;
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tmp_real && tmp_real < T::ta_from_f64(0.00000001)) {
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (n * S_xy - S_x * S_y) / tmp_real;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
             S_xx -= x * x;
             S_xy -= x * y;
@@ -267,22 +267,22 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut S_xx: T;
-        let mut S_xy: T;
-        let mut S_x: T;
-        let mut S_y: T;
-        let mut last_price_x: T;
-        let mut last_price_y: T;
-        let mut trailing_last_price_x: T;
-        let mut trailing_last_price_y: T;
-        let mut tmp_real: T;
-        let mut x: T;
-        let mut y: T;
-        let mut n: T;
-        let i: i32;
-        let outIdx: i32;
-        let trailingIdx: i32;
-        let nbInitialElementNeeded: i32;
+        let mut S_xx: T = T::ta_zero();
+        let mut S_xy: T = T::ta_zero();
+        let mut S_x: T = T::ta_zero();
+        let mut S_y: T = T::ta_zero();
+        let mut last_price_x: T = T::ta_zero();
+        let mut last_price_y: T = T::ta_zero();
+        let mut trailing_last_price_x: T = T::ta_zero();
+        let mut trailing_last_price_y: T = T::ta_zero();
+        let mut tmp_real: T = T::ta_zero();
+        let mut x: T = T::ta_zero();
+        let mut y: T = T::ta_zero();
+        let mut n: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
         S_xx = T::ta_from_f64(0.0);
         S_xy = T::ta_from_f64(0.0);
         S_x = T::ta_from_f64(0.0);
@@ -292,7 +292,7 @@ impl Core {
         trailing_last_price_x = T::ta_from_f64(0.0);
         trailing_last_price_y = T::ta_from_f64(0.0);
         tmp_real = T::ta_from_f64(0.0);
-        nbInitialElementNeeded = optInTimePeriod;
+        nbInitialElementNeeded = (optInTimePeriod) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;
         }
@@ -302,21 +302,21 @@ impl Core {
             return RetCode::Success;
         }
         trailingIdx = startIdx - nbInitialElementNeeded;
-        trailing_last_price_x = *inReal0.get_unchecked(trailingIdx);
+        trailing_last_price_x = (*inReal0.get_unchecked((trailingIdx) as usize));
         last_price_x = trailing_last_price_x;
-        trailing_last_price_y = *inReal1.get_unchecked(trailingIdx);
+        trailing_last_price_y = (*inReal1.get_unchecked((trailingIdx) as usize));
         last_price_y = trailing_last_price_y;
         i = { trailingIdx += 1; trailingIdx };
         while i < startIdx {
-            tmp_real = *inReal0.get_unchecked(i);
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal0.get_unchecked((i) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             last_price_x = tmp_real;
-            tmp_real = *inReal1.get_unchecked({ let _v = i; i += 1; _v });
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal1.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
@@ -328,17 +328,17 @@ impl Core {
             S_y += y;
         }
         outIdx = 0;
-        n = T::ta_from_f64((optInTimePeriod).ta_to_f64());
+        n = T::ta_from_i32(optInTimePeriod);
         loop {
-            tmp_real = *inReal0.get_unchecked(i);
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal0.get_unchecked((i) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_x && last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             last_price_x = tmp_real;
-            tmp_real = *inReal1.get_unchecked({ let _v = i; i += 1; _v });
-            if !(0 - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal1.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < last_price_y && last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
@@ -348,25 +348,25 @@ impl Core {
             S_xy += x * y;
             S_x += x;
             S_y += y;
-            tmp_real = *inReal0.get_unchecked(trailingIdx);
-            if !(0 - T::ta_from_f64(0.00000001) < trailing_last_price_x && trailing_last_price_x < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal0.get_unchecked((trailingIdx) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < trailing_last_price_x && trailing_last_price_x < T::ta_from_f64(0.00000001)) {
                 x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
             } else {
                 x = T::ta_from_f64(0.0);
             }
             trailing_last_price_x = tmp_real;
-            tmp_real = *inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v });
-            if !(0 - T::ta_from_f64(0.00000001) < trailing_last_price_y && trailing_last_price_y < T::ta_from_f64(0.00000001)) {
+            tmp_real = (*inReal1.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < trailing_last_price_y && trailing_last_price_y < T::ta_from_f64(0.00000001)) {
                 y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
             } else {
                 y = T::ta_from_f64(0.0);
             }
             trailing_last_price_y = tmp_real;
             tmp_real = n * S_xx - S_x * S_x;
-            if !(0 - T::ta_from_f64(0.00000001) < tmp_real && tmp_real < T::ta_from_f64(0.00000001)) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (n * S_xy - S_x * S_y) / tmp_real;
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tmp_real && tmp_real < T::ta_from_f64(0.00000001)) {
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (n * S_xy - S_x * S_y) / tmp_real;
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
             S_xx -= x * x;
             S_xy -= x * y;

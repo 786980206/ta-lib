@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn aroonosc_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn aroonosc_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod;
+        return (optInTimePeriod) as usize;
     }
     /// Aroon Oscillator
     ///
@@ -115,19 +115,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let factor: T;
-        let mut aroon: T;
-        let mut outIdx: i32;
-        let mut trailingIdx: i32;
-        let mut lowestIdx: i32;
-        let mut highestIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut factor: T = T::ta_zero();
+        let mut aroon: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut highestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -136,47 +136,47 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         lowestIdx = 0 - 1;
         highestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         highest = T::ta_from_f64(0.0);
-        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_i32(optInTimePeriod));
         while today <= endIdx {
-            tmp = inLow[today];
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = inLow[lowestIdx];
-                i = lowestIdx;
+            tmp = inLow[(today) as usize];
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inLow[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inLow[i];
+                    tmp = inLow[(i) as usize];
                     if tmp <= lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            tmp = inHigh[today];
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = inHigh[highestIdx];
-                i = highestIdx;
+            tmp = inHigh[(today) as usize];
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = inHigh[(highestIdx) as usize];
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inHigh[i];
+                    tmp = inHigh[(i) as usize];
                     if tmp >= highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
             } else if tmp >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmp;
             }
-            aroon = factor * (highestIdx - lowestIdx);
-            outReal[outIdx] = aroon;
+            aroon = factor * T::ta_from_i32((highestIdx - lowestIdx));
+            outReal[(outIdx) as usize] = aroon;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;
@@ -226,19 +226,19 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut lowest: T;
-        let mut highest: T;
-        let mut tmp: T;
-        let factor: T;
-        let mut aroon: T;
-        let mut outIdx: i32;
-        let mut trailingIdx: i32;
-        let mut lowestIdx: i32;
-        let mut highestIdx: i32;
-        let mut today: i32;
-        let mut i: i32;
-        if startIdx < optInTimePeriod {
-            startIdx = optInTimePeriod;
+        let mut lowest: T = T::ta_zero();
+        let mut highest: T = T::ta_zero();
+        let mut tmp: T = T::ta_zero();
+        let mut factor: T = T::ta_zero();
+        let mut aroon: T = T::ta_zero();
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut highestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
         }
         if startIdx > endIdx {
             (*outBegIdx) = 0;
@@ -247,47 +247,47 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        trailingIdx = startIdx - optInTimePeriod;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
         lowestIdx = 0 - 1;
         highestIdx = 0 - 1;
         lowest = T::ta_from_f64(0.0);
         highest = T::ta_from_f64(0.0);
-        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_i32(optInTimePeriod));
         while today <= endIdx {
-            tmp = *inLow.get_unchecked(today);
-            if lowestIdx < trailingIdx {
-                lowestIdx = trailingIdx;
-                lowest = *inLow.get_unchecked(lowestIdx);
-                i = lowestIdx;
+            tmp = (*inLow.get_unchecked((today) as usize));
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = (*inLow.get_unchecked((lowestIdx) as usize));
+                i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = *inLow.get_unchecked(i);
+                    tmp = (*inLow.get_unchecked((i) as usize));
                     if tmp <= lowest {
-                        lowestIdx = i;
+                        lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
             } else if tmp <= lowest {
-                lowestIdx = today;
+                lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            tmp = *inHigh.get_unchecked(today);
-            if highestIdx < trailingIdx {
-                highestIdx = trailingIdx;
-                highest = *inHigh.get_unchecked(highestIdx);
-                i = highestIdx;
+            tmp = (*inHigh.get_unchecked((today) as usize));
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = (*inHigh.get_unchecked((highestIdx) as usize));
+                i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = *inHigh.get_unchecked(i);
+                    tmp = (*inHigh.get_unchecked((i) as usize));
                     if tmp >= highest {
-                        highestIdx = i;
+                        highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
             } else if tmp >= highest {
-                highestIdx = today;
+                highestIdx = (today) as i32;
                 highest = tmp;
             }
-            aroon = factor * (highestIdx - lowestIdx);
-            *outReal.get_unchecked_mut(outIdx) = aroon;
+            aroon = factor * T::ta_from_i32((highestIdx - lowestIdx));
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = aroon;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

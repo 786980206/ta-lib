@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn linearreg_intercept_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn linearreg_intercept_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Linear Regression Intercept
     ///
@@ -111,17 +111,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let mut today: i32;
-        let lookbackTotal: i32;
-        let SumX: T;
-        let mut SumXY: T;
-        let mut SumY: T;
-        let SumXSqr: T;
-        let Divisor: T;
-        let mut m: T;
-        let i: i32;
-        let mut tempValue1: T;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut SumX: T = T::ta_zero();
+        let mut SumXY: T = T::ta_zero();
+        let mut SumY: T = T::ta_zero();
+        let mut SumXSqr: T = T::ta_zero();
+        let mut Divisor: T = T::ta_zero();
+        let mut m: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut tempValue1: T = T::ta_zero();
         lookbackTotal = self.linearreg_intercept_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -133,22 +133,21 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        SumX = optInTimePeriod * (optInTimePeriod - 1) * T::ta_from_f64(0.5);
-        SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
-        Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+        SumX = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1)) * T::ta_from_f64(0.5);
+        SumXSqr = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6);
+        Divisor = SumX * SumX - T::ta_from_i32(optInTimePeriod) * SumXSqr;
         while today <= endIdx {
-            SumXY = 0;
-            SumY = 0;
-            // for( i = optInTimePeriod; { let _v = i; i -= 1; _v } != 0;  )
-            i = optInTimePeriod;
+            SumXY = T::ta_from_i32(0 as i32);
+            SumY = T::ta_from_i32(0 as i32);
+            // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
+            i = (optInTimePeriod) as usize;
             while { let _v = i; i -= 1; _v } != 0 {
-                tempValue1 = inReal[today - i];
+                tempValue1 = inReal[(today - i) as usize];
                 SumY += tempValue1;
-                SumXY += (T::ta_from_f64((i).ta_to_f64())) * tempValue1;
-                ;
+                SumXY += (T::ta_from_i32((i) as i32)) * tempValue1;
             }
-            m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (SumY - m * SumX) / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            m = (T::ta_from_i32(optInTimePeriod) * SumXY - SumX * SumY) / Divisor;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (SumY - m * SumX) / (T::ta_from_i32(optInTimePeriod));
             today += 1;
         }
         (*outBegIdx) = startIdx;
@@ -193,17 +192,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let mut today: i32;
-        let lookbackTotal: i32;
-        let SumX: T;
-        let mut SumXY: T;
-        let mut SumY: T;
-        let SumXSqr: T;
-        let Divisor: T;
-        let mut m: T;
-        let i: i32;
-        let mut tempValue1: T;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut SumX: T = T::ta_zero();
+        let mut SumXY: T = T::ta_zero();
+        let mut SumY: T = T::ta_zero();
+        let mut SumXSqr: T = T::ta_zero();
+        let mut Divisor: T = T::ta_zero();
+        let mut m: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut tempValue1: T = T::ta_zero();
         lookbackTotal = self.linearreg_intercept_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -215,22 +214,21 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        SumX = optInTimePeriod * (optInTimePeriod - 1) * T::ta_from_f64(0.5);
-        SumXSqr = optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6;
-        Divisor = SumX * SumX - optInTimePeriod * SumXSqr;
+        SumX = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1)) * T::ta_from_f64(0.5);
+        SumXSqr = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6);
+        Divisor = SumX * SumX - T::ta_from_i32(optInTimePeriod) * SumXSqr;
         while today <= endIdx {
-            SumXY = 0;
-            SumY = 0;
-            // for( i = optInTimePeriod; { let _v = i; i -= 1; _v } != 0;  )
-            i = optInTimePeriod;
+            SumXY = T::ta_from_i32(0 as i32);
+            SumY = T::ta_from_i32(0 as i32);
+            // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
+            i = (optInTimePeriod) as usize;
             while { let _v = i; i -= 1; _v } != 0 {
-                tempValue1 = *inReal.get_unchecked(today - i);
+                tempValue1 = (*inReal.get_unchecked((today - i) as usize));
                 SumY += tempValue1;
-                SumXY += (T::ta_from_f64((i).ta_to_f64())) * tempValue1;
-                ;
+                SumXY += (T::ta_from_i32((i) as i32)) * tempValue1;
             }
-            m = (optInTimePeriod * SumXY - SumX * SumY) / Divisor;
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = (SumY - m * SumX) / (T::ta_from_f64((optInTimePeriod).ta_to_f64()));
+            m = (T::ta_from_i32(optInTimePeriod) * SumXY - SumX * SumY) / Divisor;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (SumY - m * SumX) / (T::ta_from_i32(optInTimePeriod));
             today += 1;
         }
         (*outBegIdx) = startIdx;

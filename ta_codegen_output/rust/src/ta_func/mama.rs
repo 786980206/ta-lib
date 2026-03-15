@@ -55,8 +55,8 @@ impl Core {
     ///
     /// * `optInFastLimit` - Number of period (default: 0, range: 0..=0)
     /// * `optInSlowLimit` - Number of period (default: 0, range: 0..=0)
-    pub fn mama_lookback(&self, mut optInFastLimit: f64, mut optInSlowLimit: f64) -> i32 {
-        return 32 + self.unstable_period[FuncUnstId::Mama as usize];
+    pub fn mama_lookback(&self, mut optInFastLimit: f64, mut optInSlowLimit: f64) -> usize {
+        return (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
     }
     /// MESA Adaptive Moving Average
     ///
@@ -110,70 +110,70 @@ impl Core {
         outMAMA: &mut [T],
         outFAMA: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        let lookbackTotal: i32;
-        let mut today: i32;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut adjustedPrevPeriod: T;
-        let mut period: T;
-        let trailingWMAIdx: i32;
-        let mut periodWMASum: T;
-        let mut periodWMASub: T;
-        let mut trailingWMAValue: T;
-        let mut smoothedValue: T;
-        let a: T;
-        let b: T;
-        let mut hilbertTempReal: T;
-        let mut hilbertIdx: i32;
-        let mut detrender_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender: T;
-        let mut prev_detrender_Odd: T;
-        let mut prev_detrender_Even: T;
-        let mut prev_detrender_input_Odd: T;
-        let mut prev_detrender_input_Even: T;
-        let mut Q1_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1: T;
-        let mut prev_Q1_Odd: T;
-        let mut prev_Q1_Even: T;
-        let mut prev_Q1_input_Odd: T;
-        let mut prev_Q1_input_Even: T;
-        let mut jI_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI: T;
-        let mut prev_jI_Odd: T;
-        let mut prev_jI_Even: T;
-        let mut prev_jI_input_Odd: T;
-        let mut prev_jI_input_Even: T;
-        let mut jQ_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ: T;
-        let mut prev_jQ_Odd: T;
-        let mut prev_jQ_Even: T;
-        let mut prev_jQ_input_Odd: T;
-        let mut prev_jQ_input_Even: T;
-        let mut Q2: T;
-        let mut I2: T;
-        let mut prevQ2: T;
-        let mut prevI2: T;
-        let mut Re: T;
-        let mut Im: T;
-        let mut I1ForOddPrev2: T;
-        let mut I1ForOddPrev3: T;
-        let mut I1ForEvenPrev2: T;
-        let mut I1ForEvenPrev3: T;
-        let rad2Deg: T;
-        let mut mama: T;
-        let mut fama: T;
-        let mut todayValue: T;
-        let mut prevPhase: T;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut adjustedPrevPeriod: T = T::ta_zero();
+        let mut period: T = T::ta_zero();
+        let mut trailingWMAIdx: usize = 0_usize;
+        let mut periodWMASum: T = T::ta_zero();
+        let mut periodWMASub: T = T::ta_zero();
+        let mut trailingWMAValue: T = T::ta_zero();
+        let mut smoothedValue: T = T::ta_zero();
+        let mut a: T = T::ta_zero();
+        let mut b: T = T::ta_zero();
+        let mut hilbertTempReal: T = T::ta_zero();
+        let mut hilbertIdx: usize = 0_usize;
+        let mut detrender_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut detrender_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut detrender: T = T::ta_zero();
+        let mut prev_detrender_Odd: T = T::ta_zero();
+        let mut prev_detrender_Even: T = T::ta_zero();
+        let mut prev_detrender_input_Odd: T = T::ta_zero();
+        let mut prev_detrender_input_Even: T = T::ta_zero();
+        let mut Q1_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut Q1_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut Q1: T = T::ta_zero();
+        let mut prev_Q1_Odd: T = T::ta_zero();
+        let mut prev_Q1_Even: T = T::ta_zero();
+        let mut prev_Q1_input_Odd: T = T::ta_zero();
+        let mut prev_Q1_input_Even: T = T::ta_zero();
+        let mut jI_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jI_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jI: T = T::ta_zero();
+        let mut prev_jI_Odd: T = T::ta_zero();
+        let mut prev_jI_Even: T = T::ta_zero();
+        let mut prev_jI_input_Odd: T = T::ta_zero();
+        let mut prev_jI_input_Even: T = T::ta_zero();
+        let mut jQ_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jQ_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jQ: T = T::ta_zero();
+        let mut prev_jQ_Odd: T = T::ta_zero();
+        let mut prev_jQ_Even: T = T::ta_zero();
+        let mut prev_jQ_input_Odd: T = T::ta_zero();
+        let mut prev_jQ_input_Even: T = T::ta_zero();
+        let mut Q2: T = T::ta_zero();
+        let mut I2: T = T::ta_zero();
+        let mut prevQ2: T = T::ta_zero();
+        let mut prevI2: T = T::ta_zero();
+        let mut Re: T = T::ta_zero();
+        let mut Im: T = T::ta_zero();
+        let mut I1ForOddPrev2: T = T::ta_zero();
+        let mut I1ForOddPrev3: T = T::ta_zero();
+        let mut I1ForEvenPrev2: T = T::ta_zero();
+        let mut I1ForEvenPrev3: T = T::ta_zero();
+        let mut rad2Deg: T = T::ta_zero();
+        let mut mama: T = T::ta_zero();
+        let mut fama: T = T::ta_zero();
+        let mut todayValue: T = T::ta_zero();
+        let mut prevPhase: T = T::ta_zero();
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
-        rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * 1.ta_atan());
-        lookbackTotal = 32 + self.unstable_period[FuncUnstId::Mama as usize];
+        rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * T::ta_from_i32(1).ta_atan());
+        lookbackTotal = (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -185,23 +185,23 @@ impl Core {
         (*outBegIdx) = startIdx;
         trailingWMAIdx = startIdx - lookbackTotal;
         today = trailingWMAIdx;
-        tempReal = inReal[{ let _v = today; today += 1; _v }];
+        tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
         periodWMASub = tempReal;
         periodWMASum = tempReal;
-        tempReal = inReal[{ let _v = today; today += 1; _v }];
+        tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
         periodWMASub += tempReal;
         periodWMASum += tempReal * T::ta_from_f64(2.0);
-        tempReal = inReal[{ let _v = today; today += 1; _v }];
+        tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
         periodWMASub += tempReal;
         periodWMASum += tempReal * T::ta_from_f64(3.0);
         trailingWMAValue = T::ta_from_f64(0.0);
         i = 9;
         loop {
-            tempReal = inReal[{ let _v = today; today += 1; _v }];
+            tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
             periodWMASub += tempReal;
             periodWMASub -= trailingWMAValue;
             periodWMASum += tempReal * T::ta_from_f64(4.0);
-            trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
+            trailingWMAValue = inReal[({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }) as usize];
             smoothedValue = periodWMASum * T::ta_from_f64(0.1);
             periodWMASum -= periodWMASub;
             if !({ i -= 1; i } != 0) { break; }
@@ -222,17 +222,17 @@ impl Core {
         prevPhase = T::ta_from_f64(0.0);
         while today <= endIdx {
             adjustedPrevPeriod = T::ta_from_f64(0.075) * period + T::ta_from_f64(0.54);
-            todayValue = inReal[today];
+            todayValue = inReal[(today) as usize];
             periodWMASub += todayValue;
             periodWMASub -= trailingWMAValue;
             periodWMASum += todayValue * T::ta_from_f64(4.0);
-            trailingWMAValue = inReal[{ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }];
+            trailingWMAValue = inReal[({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }) as usize];
             smoothedValue = periodWMASum * T::ta_from_f64(0.1);
             periodWMASum -= periodWMASub;
             if today % 2 == 0 {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0 - detrender_Even[hilbertIdx];
-                detrender_Even[hilbertIdx] = hilbertTempReal;
+                detrender = T::ta_from_i32(0) - detrender_Even[(hilbertIdx) as usize];
+                detrender_Even[(hilbertIdx) as usize] = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Even;
                 prev_detrender_Even = b * prev_detrender_input_Even;
@@ -240,8 +240,8 @@ impl Core {
                 prev_detrender_input_Even = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0 - Q1_Even[hilbertIdx];
-                Q1_Even[hilbertIdx] = hilbertTempReal;
+                Q1 = T::ta_from_i32(0) - Q1_Even[(hilbertIdx) as usize];
+                Q1_Even[(hilbertIdx) as usize] = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Even;
                 prev_Q1_Even = b * prev_Q1_input_Even;
@@ -249,8 +249,8 @@ impl Core {
                 prev_Q1_input_Even = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForEvenPrev3;
-                jI = 0 - jI_Even[hilbertIdx];
-                jI_Even[hilbertIdx] = hilbertTempReal;
+                jI = T::ta_from_i32(0) - jI_Even[(hilbertIdx) as usize];
+                jI_Even[(hilbertIdx) as usize] = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Even;
                 prev_jI_Even = b * prev_jI_input_Even;
@@ -258,8 +258,8 @@ impl Core {
                 prev_jI_input_Even = I1ForEvenPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0 - jQ_Even[hilbertIdx];
-                jQ_Even[hilbertIdx] = hilbertTempReal;
+                jQ = T::ta_from_i32(0) - jQ_Even[(hilbertIdx) as usize];
+                jQ_Even[(hilbertIdx) as usize] = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Even;
                 prev_jQ_Even = b * prev_jQ_input_Even;
@@ -274,14 +274,14 @@ impl Core {
                 I1ForOddPrev3 = I1ForOddPrev2;
                 I1ForOddPrev2 = detrender;
                 if I1ForEvenPrev3 != T::ta_from_f64(0.0) {
-                    tempReal2 = Q1 / I1ForEvenPrev3.ta_atan() * rad2Deg;
+                    tempReal2 = (Q1 / I1ForEvenPrev3).ta_atan() * rad2Deg;
                 } else {
                     tempReal2 = T::ta_from_f64(0.0);
                 }
             } else {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0 - detrender_Odd[hilbertIdx];
-                detrender_Odd[hilbertIdx] = hilbertTempReal;
+                detrender = T::ta_from_i32(0) - detrender_Odd[(hilbertIdx) as usize];
+                detrender_Odd[(hilbertIdx) as usize] = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Odd;
                 prev_detrender_Odd = b * prev_detrender_input_Odd;
@@ -289,8 +289,8 @@ impl Core {
                 prev_detrender_input_Odd = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0 - Q1_Odd[hilbertIdx];
-                Q1_Odd[hilbertIdx] = hilbertTempReal;
+                Q1 = T::ta_from_i32(0) - Q1_Odd[(hilbertIdx) as usize];
+                Q1_Odd[(hilbertIdx) as usize] = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Odd;
                 prev_Q1_Odd = b * prev_Q1_input_Odd;
@@ -298,8 +298,8 @@ impl Core {
                 prev_Q1_input_Odd = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForOddPrev3;
-                jI = 0 - jI_Odd[hilbertIdx];
-                jI_Odd[hilbertIdx] = hilbertTempReal;
+                jI = T::ta_from_i32(0) - jI_Odd[(hilbertIdx) as usize];
+                jI_Odd[(hilbertIdx) as usize] = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Odd;
                 prev_jI_Odd = b * prev_jI_input_Odd;
@@ -307,8 +307,8 @@ impl Core {
                 prev_jI_input_Odd = I1ForOddPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0 - jQ_Odd[hilbertIdx];
-                jQ_Odd[hilbertIdx] = hilbertTempReal;
+                jQ = T::ta_from_i32(0) - jQ_Odd[(hilbertIdx) as usize];
+                jQ_Odd[(hilbertIdx) as usize] = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Odd;
                 prev_jQ_Odd = b * prev_jQ_input_Odd;
@@ -320,7 +320,7 @@ impl Core {
                 I1ForEvenPrev3 = I1ForEvenPrev2;
                 I1ForEvenPrev2 = detrender;
                 if I1ForOddPrev3 != T::ta_from_f64(0.0) {
-                    tempReal2 = Q1 / I1ForOddPrev3.ta_atan() * rad2Deg;
+                    tempReal2 = (Q1 / I1ForOddPrev3).ta_atan() * rad2Deg;
                 } else {
                     tempReal2 = T::ta_from_f64(0.0);
                 }
@@ -338,12 +338,12 @@ impl Core {
             } else {
                 tempReal = T::ta_from_f64(optInFastLimit);
             }
-            mama = tempReal * todayValue + (1 - tempReal) * mama;
+            mama = tempReal * todayValue + (T::ta_from_i32(1) - tempReal) * mama;
             tempReal *= T::ta_from_f64(0.5);
-            fama = tempReal * mama + (1 - tempReal) * fama;
+            fama = tempReal * mama + (T::ta_from_i32(1) - tempReal) * fama;
             if today >= startIdx {
-                outMAMA[outIdx] = mama;
-                outFAMA[{ let _v = outIdx; outIdx += 1; _v }] = fama;
+                outMAMA[(outIdx) as usize] = mama;
+                outFAMA[({ let _v = outIdx; outIdx += 1; _v }) as usize] = fama;
             }
             Re = T::ta_from_f64(0.2) * (I2 * prevI2 + Q2 * prevQ2) + T::ta_from_f64(0.8) * Re;
             Im = T::ta_from_f64(0.2) * (I2 * prevQ2 - Q2 * prevI2) + T::ta_from_f64(0.8) * Im;
@@ -351,7 +351,7 @@ impl Core {
             prevI2 = I2;
             tempReal = period;
             if Im != T::ta_from_f64(0.0) && Re != T::ta_from_f64(0.0) {
-                period = T::ta_from_f64(360.0) / (Im / Re.ta_atan() * rad2Deg);
+                period = T::ta_from_f64(360.0) / ((Im / Re).ta_atan() * rad2Deg);
             }
             tempReal2 = T::ta_from_f64(1.5) * tempReal;
             if period > tempReal2 {
@@ -361,10 +361,10 @@ impl Core {
             if period < tempReal2 {
                 period = tempReal2;
             }
-            if period < 6 {
-                period = 6;
-            } else if period > 50 {
-                period = 50;
+            if period < T::ta_from_i32(6) {
+                period = T::ta_from_i32(6 as i32);
+            } else if period > T::ta_from_i32(50) {
+                period = T::ta_from_i32(50 as i32);
             }
             period = T::ta_from_f64(0.2) * period + T::ta_from_f64(0.8) * tempReal;
             today += 1;
@@ -411,70 +411,70 @@ impl Core {
         outMAMA: &mut [T],
         outFAMA: &mut [T],
     ) -> RetCode {
-        let outIdx: i32;
-        let i: i32;
-        let lookbackTotal: i32;
-        let mut today: i32;
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut adjustedPrevPeriod: T;
-        let mut period: T;
-        let trailingWMAIdx: i32;
-        let mut periodWMASum: T;
-        let mut periodWMASub: T;
-        let mut trailingWMAValue: T;
-        let mut smoothedValue: T;
-        let a: T;
-        let b: T;
-        let mut hilbertTempReal: T;
-        let mut hilbertIdx: i32;
-        let mut detrender_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut detrender: T;
-        let mut prev_detrender_Odd: T;
-        let mut prev_detrender_Even: T;
-        let mut prev_detrender_input_Odd: T;
-        let mut prev_detrender_input_Even: T;
-        let mut Q1_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut Q1: T;
-        let mut prev_Q1_Odd: T;
-        let mut prev_Q1_Even: T;
-        let mut prev_Q1_input_Odd: T;
-        let mut prev_Q1_input_Even: T;
-        let mut jI_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jI: T;
-        let mut prev_jI_Odd: T;
-        let mut prev_jI_Even: T;
-        let mut prev_jI_input_Odd: T;
-        let mut prev_jI_input_Even: T;
-        let mut jQ_Odd: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ_Even: [T; 3 as usize] = [T::zero(); 3 as usize];
-        let mut jQ: T;
-        let mut prev_jQ_Odd: T;
-        let mut prev_jQ_Even: T;
-        let mut prev_jQ_input_Odd: T;
-        let mut prev_jQ_input_Even: T;
-        let mut Q2: T;
-        let mut I2: T;
-        let mut prevQ2: T;
-        let mut prevI2: T;
-        let mut Re: T;
-        let mut Im: T;
-        let mut I1ForOddPrev2: T;
-        let mut I1ForOddPrev3: T;
-        let mut I1ForEvenPrev2: T;
-        let mut I1ForEvenPrev3: T;
-        let rad2Deg: T;
-        let mut mama: T;
-        let mut fama: T;
-        let mut todayValue: T;
-        let mut prevPhase: T;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut adjustedPrevPeriod: T = T::ta_zero();
+        let mut period: T = T::ta_zero();
+        let mut trailingWMAIdx: usize = 0_usize;
+        let mut periodWMASum: T = T::ta_zero();
+        let mut periodWMASub: T = T::ta_zero();
+        let mut trailingWMAValue: T = T::ta_zero();
+        let mut smoothedValue: T = T::ta_zero();
+        let mut a: T = T::ta_zero();
+        let mut b: T = T::ta_zero();
+        let mut hilbertTempReal: T = T::ta_zero();
+        let mut hilbertIdx: usize = 0_usize;
+        let mut detrender_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut detrender_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut detrender: T = T::ta_zero();
+        let mut prev_detrender_Odd: T = T::ta_zero();
+        let mut prev_detrender_Even: T = T::ta_zero();
+        let mut prev_detrender_input_Odd: T = T::ta_zero();
+        let mut prev_detrender_input_Even: T = T::ta_zero();
+        let mut Q1_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut Q1_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut Q1: T = T::ta_zero();
+        let mut prev_Q1_Odd: T = T::ta_zero();
+        let mut prev_Q1_Even: T = T::ta_zero();
+        let mut prev_Q1_input_Odd: T = T::ta_zero();
+        let mut prev_Q1_input_Even: T = T::ta_zero();
+        let mut jI_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jI_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jI: T = T::ta_zero();
+        let mut prev_jI_Odd: T = T::ta_zero();
+        let mut prev_jI_Even: T = T::ta_zero();
+        let mut prev_jI_input_Odd: T = T::ta_zero();
+        let mut prev_jI_input_Even: T = T::ta_zero();
+        let mut jQ_Odd: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jQ_Even: [T; 3 as usize] = [T::ta_zero(); 3 as usize];
+        let mut jQ: T = T::ta_zero();
+        let mut prev_jQ_Odd: T = T::ta_zero();
+        let mut prev_jQ_Even: T = T::ta_zero();
+        let mut prev_jQ_input_Odd: T = T::ta_zero();
+        let mut prev_jQ_input_Even: T = T::ta_zero();
+        let mut Q2: T = T::ta_zero();
+        let mut I2: T = T::ta_zero();
+        let mut prevQ2: T = T::ta_zero();
+        let mut prevI2: T = T::ta_zero();
+        let mut Re: T = T::ta_zero();
+        let mut Im: T = T::ta_zero();
+        let mut I1ForOddPrev2: T = T::ta_zero();
+        let mut I1ForOddPrev3: T = T::ta_zero();
+        let mut I1ForEvenPrev2: T = T::ta_zero();
+        let mut I1ForEvenPrev3: T = T::ta_zero();
+        let mut rad2Deg: T = T::ta_zero();
+        let mut mama: T = T::ta_zero();
+        let mut fama: T = T::ta_zero();
+        let mut todayValue: T = T::ta_zero();
+        let mut prevPhase: T = T::ta_zero();
         a = T::ta_from_f64(0.0962);
         b = T::ta_from_f64(0.5769);
-        rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * 1.ta_atan());
-        lookbackTotal = 32 + self.unstable_period[FuncUnstId::Mama as usize];
+        rad2Deg = T::ta_from_f64(180.0) / (T::ta_from_f64(4.0) * T::ta_from_i32(1).ta_atan());
+        lookbackTotal = (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -486,23 +486,23 @@ impl Core {
         (*outBegIdx) = startIdx;
         trailingWMAIdx = startIdx - lookbackTotal;
         today = trailingWMAIdx;
-        tempReal = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+        tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
         periodWMASub = tempReal;
         periodWMASum = tempReal;
-        tempReal = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+        tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
         periodWMASub += tempReal;
         periodWMASum += tempReal * T::ta_from_f64(2.0);
-        tempReal = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+        tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
         periodWMASub += tempReal;
         periodWMASum += tempReal * T::ta_from_f64(3.0);
         trailingWMAValue = T::ta_from_f64(0.0);
         i = 9;
         loop {
-            tempReal = *inReal.get_unchecked({ let _v = today; today += 1; _v });
+            tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
             periodWMASub += tempReal;
             periodWMASub -= trailingWMAValue;
             periodWMASum += tempReal * T::ta_from_f64(4.0);
-            trailingWMAValue = *inReal.get_unchecked({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
+            trailingWMAValue = (*inReal.get_unchecked(({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }) as usize));
             smoothedValue = periodWMASum * T::ta_from_f64(0.1);
             periodWMASum -= periodWMASub;
             if !({ i -= 1; i } != 0) { break; }
@@ -523,17 +523,17 @@ impl Core {
         prevPhase = T::ta_from_f64(0.0);
         while today <= endIdx {
             adjustedPrevPeriod = T::ta_from_f64(0.075) * period + T::ta_from_f64(0.54);
-            todayValue = *inReal.get_unchecked(today);
+            todayValue = (*inReal.get_unchecked((today) as usize));
             periodWMASub += todayValue;
             periodWMASub -= trailingWMAValue;
             periodWMASum += todayValue * T::ta_from_f64(4.0);
-            trailingWMAValue = *inReal.get_unchecked({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
+            trailingWMAValue = (*inReal.get_unchecked(({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }) as usize));
             smoothedValue = periodWMASum * T::ta_from_f64(0.1);
             periodWMASum -= periodWMASub;
             if today % 2 == 0 {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0 - *detrender_Even.get_unchecked(hilbertIdx);
-                *detrender_Even.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                detrender = T::ta_from_i32(0) - (*detrender_Even.get_unchecked((hilbertIdx) as usize));
+                (*detrender_Even.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Even;
                 prev_detrender_Even = b * prev_detrender_input_Even;
@@ -541,8 +541,8 @@ impl Core {
                 prev_detrender_input_Even = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0 - *Q1_Even.get_unchecked(hilbertIdx);
-                *Q1_Even.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                Q1 = T::ta_from_i32(0) - (*Q1_Even.get_unchecked((hilbertIdx) as usize));
+                (*Q1_Even.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Even;
                 prev_Q1_Even = b * prev_Q1_input_Even;
@@ -550,8 +550,8 @@ impl Core {
                 prev_Q1_input_Even = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForEvenPrev3;
-                jI = 0 - *jI_Even.get_unchecked(hilbertIdx);
-                *jI_Even.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                jI = T::ta_from_i32(0) - (*jI_Even.get_unchecked((hilbertIdx) as usize));
+                (*jI_Even.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Even;
                 prev_jI_Even = b * prev_jI_input_Even;
@@ -559,8 +559,8 @@ impl Core {
                 prev_jI_input_Even = I1ForEvenPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0 - *jQ_Even.get_unchecked(hilbertIdx);
-                *jQ_Even.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                jQ = T::ta_from_i32(0) - (*jQ_Even.get_unchecked((hilbertIdx) as usize));
+                (*jQ_Even.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Even;
                 prev_jQ_Even = b * prev_jQ_input_Even;
@@ -575,14 +575,14 @@ impl Core {
                 I1ForOddPrev3 = I1ForOddPrev2;
                 I1ForOddPrev2 = detrender;
                 if I1ForEvenPrev3 != T::ta_from_f64(0.0) {
-                    tempReal2 = Q1 / I1ForEvenPrev3.ta_atan() * rad2Deg;
+                    tempReal2 = (Q1 / I1ForEvenPrev3).ta_atan() * rad2Deg;
                 } else {
                     tempReal2 = T::ta_from_f64(0.0);
                 }
             } else {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0 - *detrender_Odd.get_unchecked(hilbertIdx);
-                *detrender_Odd.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                detrender = T::ta_from_i32(0) - (*detrender_Odd.get_unchecked((hilbertIdx) as usize));
+                (*detrender_Odd.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Odd;
                 prev_detrender_Odd = b * prev_detrender_input_Odd;
@@ -590,8 +590,8 @@ impl Core {
                 prev_detrender_input_Odd = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0 - *Q1_Odd.get_unchecked(hilbertIdx);
-                *Q1_Odd.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                Q1 = T::ta_from_i32(0) - (*Q1_Odd.get_unchecked((hilbertIdx) as usize));
+                (*Q1_Odd.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Odd;
                 prev_Q1_Odd = b * prev_Q1_input_Odd;
@@ -599,8 +599,8 @@ impl Core {
                 prev_Q1_input_Odd = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForOddPrev3;
-                jI = 0 - *jI_Odd.get_unchecked(hilbertIdx);
-                *jI_Odd.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                jI = T::ta_from_i32(0) - (*jI_Odd.get_unchecked((hilbertIdx) as usize));
+                (*jI_Odd.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Odd;
                 prev_jI_Odd = b * prev_jI_input_Odd;
@@ -608,8 +608,8 @@ impl Core {
                 prev_jI_input_Odd = I1ForOddPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0 - *jQ_Odd.get_unchecked(hilbertIdx);
-                *jQ_Odd.get_unchecked_mut(hilbertIdx) = hilbertTempReal;
+                jQ = T::ta_from_i32(0) - (*jQ_Odd.get_unchecked((hilbertIdx) as usize));
+                (*jQ_Odd.get_unchecked_mut((hilbertIdx) as usize)) = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Odd;
                 prev_jQ_Odd = b * prev_jQ_input_Odd;
@@ -621,7 +621,7 @@ impl Core {
                 I1ForEvenPrev3 = I1ForEvenPrev2;
                 I1ForEvenPrev2 = detrender;
                 if I1ForOddPrev3 != T::ta_from_f64(0.0) {
-                    tempReal2 = Q1 / I1ForOddPrev3.ta_atan() * rad2Deg;
+                    tempReal2 = (Q1 / I1ForOddPrev3).ta_atan() * rad2Deg;
                 } else {
                     tempReal2 = T::ta_from_f64(0.0);
                 }
@@ -639,12 +639,12 @@ impl Core {
             } else {
                 tempReal = T::ta_from_f64(optInFastLimit);
             }
-            mama = tempReal * todayValue + (1 - tempReal) * mama;
+            mama = tempReal * todayValue + (T::ta_from_i32(1) - tempReal) * mama;
             tempReal *= T::ta_from_f64(0.5);
-            fama = tempReal * mama + (1 - tempReal) * fama;
+            fama = tempReal * mama + (T::ta_from_i32(1) - tempReal) * fama;
             if today >= startIdx {
-                *outMAMA.get_unchecked_mut(outIdx) = mama;
-                *outFAMA.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = fama;
+                (*outMAMA.get_unchecked_mut((outIdx) as usize)) = mama;
+                (*outFAMA.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = fama;
             }
             Re = T::ta_from_f64(0.2) * (I2 * prevI2 + Q2 * prevQ2) + T::ta_from_f64(0.8) * Re;
             Im = T::ta_from_f64(0.2) * (I2 * prevQ2 - Q2 * prevI2) + T::ta_from_f64(0.8) * Im;
@@ -652,7 +652,7 @@ impl Core {
             prevI2 = I2;
             tempReal = period;
             if Im != T::ta_from_f64(0.0) && Re != T::ta_from_f64(0.0) {
-                period = T::ta_from_f64(360.0) / (Im / Re.ta_atan() * rad2Deg);
+                period = T::ta_from_f64(360.0) / ((Im / Re).ta_atan() * rad2Deg);
             }
             tempReal2 = T::ta_from_f64(1.5) * tempReal;
             if period > tempReal2 {
@@ -662,10 +662,10 @@ impl Core {
             if period < tempReal2 {
                 period = tempReal2;
             }
-            if period < 6 {
-                period = 6;
-            } else if period > 50 {
-                period = 50;
+            if period < T::ta_from_i32(6) {
+                period = T::ta_from_i32(6 as i32);
+            } else if period > T::ta_from_i32(50) {
+                period = T::ta_from_i32(50 as i32);
             }
             period = T::ta_from_f64(0.2) * period + T::ta_from_f64(0.8) * tempReal;
             today += 1;

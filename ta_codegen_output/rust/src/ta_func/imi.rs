@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn imi_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn imi_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod + self.unstable_period[FuncUnstId::Imi as usize] - 1;
+        return (optInTimePeriod + self.unstable_period[FuncUnstId::Imi as usize] - 1) as usize;
     }
     /// Intraday Momentum Index
     ///
@@ -115,8 +115,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let lookback: i32;
-        let mut outIdx: i32;
+        let mut lookback: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
         outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {
@@ -129,14 +129,20 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         while startIdx <= endIdx {
+            let mut upsum: T = T::ta_from_f64(0.0);
+            let mut downsum: T = T::ta_from_f64(0.0);
+            let mut i: usize = 0_usize;
             for i in (startIdx - lookback as usize)..=(startIdx as usize) {
+                let mut close: T = inClose[(i) as usize];
+                let mut open: T = inOpen[(i) as usize];
                 if close > open {
                     upsum += close - open;
                 } else {
                     downsum += open - close;
                 }
-                outReal[outIdx] = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
+                outReal[(outIdx) as usize] = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
             }
+            i = (startIdx as usize) + 1;
             startIdx += 1;
             outIdx += 1;
         }
@@ -184,8 +190,8 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let lookback: i32;
-        let mut outIdx: i32;
+        let mut lookback: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
         outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {
@@ -198,14 +204,20 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         while startIdx <= endIdx {
+            let mut upsum: T = T::ta_from_f64(0.0);
+            let mut downsum: T = T::ta_from_f64(0.0);
+            let mut i: usize = 0_usize;
             for i in (startIdx - lookback as usize)..=(startIdx as usize) {
+                let mut close: T = (*inClose.get_unchecked((i) as usize));
+                let mut open: T = (*inOpen.get_unchecked((i) as usize));
                 if close > open {
                     upsum += close - open;
                 } else {
                     downsum += open - close;
                 }
-                *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
+                (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
             }
+            i = (startIdx as usize) + 1;
             startIdx += 1;
             outIdx += 1;
         }

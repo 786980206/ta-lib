@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-    pub fn cci_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn cci_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1;
+        return (optInTimePeriod - 1) as usize;
     }
     /// Commodity Channel Index
     ///
@@ -119,17 +119,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut theAverage: T;
-        let mut lastValue: T;
-        let mut i: i32;
-        let j: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let mut circBuffer: [T; 30 as usize] = [T::zero(); 30 as usize];
-        let mut circBuffer_Idx: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut theAverage: T = T::ta_zero();
+        let mut lastValue: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut circBuffer: [T; 30 as usize] = [T::ta_zero(); 30 as usize];
+        let mut circBuffer_Idx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -139,45 +139,45 @@ impl Core {
             return RetCode::Success;
         }
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(T::default());
+            circBuffer[_si.._si + _n].fill(T::ta_zero());
         };
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3;
+                circBuffer[(circBuffer_Idx) as usize] = (inHigh[(i) as usize] + inLow[(i) as usize] + inClose[(i) as usize]) / T::ta_from_i32(3);
                 i += 1;
-                circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+                circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         outIdx = 0;
         loop {
-            lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3;
-            circBuffer[circBuffer_Idx] = lastValue;
-            theAverage = 0;
-            // for( j = 0; j < optInTimePeriod; j += 1 )
+            lastValue = (inHigh[(i) as usize] + inLow[(i) as usize] + inClose[(i) as usize]) / T::ta_from_i32(3);
+            circBuffer[(circBuffer_Idx) as usize] = lastValue;
+            theAverage = T::ta_from_i32(0 as i32);
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
-            while j < optInTimePeriod {
-                theAverage += circBuffer[j];
+            while j < (optInTimePeriod) as usize {
+                theAverage += circBuffer[(j) as usize];
                 j += 1;
             }
-            theAverage /= optInTimePeriod;
-            tempReal2 = 0;
-            // for( j = 0; j < optInTimePeriod; j += 1 )
+            theAverage /= T::ta_from_i32(optInTimePeriod);
+            tempReal2 = T::ta_from_i32(0 as i32);
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
-            while j < optInTimePeriod {
-                tempReal2 += circBuffer[j] - theAverage.ta_abs();
+            while j < (optInTimePeriod) as usize {
+                tempReal2 += (circBuffer[(j) as usize] - theAverage).ta_abs();
                 j += 1;
             }
             tempReal = lastValue - theAverage;
             if tempReal != T::ta_from_f64(0.0) && tempReal2 != T::ta_from_f64(0.0) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / optInTimePeriod));
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / T::ta_from_i32(optInTimePeriod)));
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = T::ta_from_f64(0.0);
+                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
             }
-            circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+            circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             i += 1;
             if !(i <= endIdx) { break; }
         }
@@ -229,17 +229,17 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: T;
-        let mut tempReal2: T;
-        let mut theAverage: T;
-        let mut lastValue: T;
-        let mut i: i32;
-        let j: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        let mut circBuffer: [T; 30 as usize] = [T::zero(); 30 as usize];
-        let mut circBuffer_Idx: i32;
-        lookbackTotal = optInTimePeriod - 1;
+        let mut tempReal: T = T::ta_zero();
+        let mut tempReal2: T = T::ta_zero();
+        let mut theAverage: T = T::ta_zero();
+        let mut lastValue: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut circBuffer: [T; 30 as usize] = [T::ta_zero(); 30 as usize];
+        let mut circBuffer_Idx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
         }
@@ -249,45 +249,45 @@ impl Core {
             return RetCode::Success;
         }
         {
-            let _n = (optInTimePeriod * 1) as usize;
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(T::default());
+            circBuffer[_si.._si + _n].fill(T::ta_zero());
         };
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                *circBuffer.get_unchecked_mut(circBuffer_Idx) = (*inHigh.get_unchecked(i) + *inLow.get_unchecked(i) + *inClose.get_unchecked(i)) / 3;
+                (*circBuffer.get_unchecked_mut((circBuffer_Idx) as usize)) = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize)) + (*inClose.get_unchecked((i) as usize))) / T::ta_from_i32(3);
                 i += 1;
-                circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+                circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         outIdx = 0;
         loop {
-            lastValue = (*inHigh.get_unchecked(i) + *inLow.get_unchecked(i) + *inClose.get_unchecked(i)) / 3;
-            *circBuffer.get_unchecked_mut(circBuffer_Idx) = lastValue;
-            theAverage = 0;
-            // for( j = 0; j < optInTimePeriod; j += 1 )
+            lastValue = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize)) + (*inClose.get_unchecked((i) as usize))) / T::ta_from_i32(3);
+            (*circBuffer.get_unchecked_mut((circBuffer_Idx) as usize)) = lastValue;
+            theAverage = T::ta_from_i32(0 as i32);
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
-            while j < optInTimePeriod {
-                theAverage += *circBuffer.get_unchecked(j);
+            while j < (optInTimePeriod) as usize {
+                theAverage += (*circBuffer.get_unchecked((j) as usize));
                 j += 1;
             }
-            theAverage /= optInTimePeriod;
-            tempReal2 = 0;
-            // for( j = 0; j < optInTimePeriod; j += 1 )
+            theAverage /= T::ta_from_i32(optInTimePeriod);
+            tempReal2 = T::ta_from_i32(0 as i32);
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
-            while j < optInTimePeriod {
-                tempReal2 += *circBuffer.get_unchecked(j) - theAverage.ta_abs();
+            while j < (optInTimePeriod) as usize {
+                tempReal2 += ((*circBuffer.get_unchecked((j) as usize)) - theAverage).ta_abs();
                 j += 1;
             }
             tempReal = lastValue - theAverage;
             if tempReal != T::ta_from_f64(0.0) && tempReal2 != T::ta_from_f64(0.0) {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / optInTimePeriod));
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / T::ta_from_i32(optInTimePeriod)));
             } else {
-                *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
             }
-            circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+            circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             i += 1;
             if !(i <= endIdx) { break; }
         }

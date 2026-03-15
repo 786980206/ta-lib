@@ -171,7 +171,9 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     // Pre-scan for sentinel variables (assigned -1) — these must be i32, not usize
     let mut sentinel_vars = std::collections::HashSet::new();
     collect_sentinel_vars(&func.body, &mut sentinel_vars);
-    // Remove sentinel vars from index_vars — they're i32, not usize
+    // Also detect integer variables that participate in signed arithmetic (< 0, 0 - N)
+    collect_signed_int_vars(&func.body, &index_vars, &mut sentinel_vars);
+    // Remove sentinel/signed vars from index_vars — they're i32, not usize
     for sv in &sentinel_vars {
         index_vars.remove(sv);
     }
@@ -795,6 +797,122 @@ fn is_negative_one(expr: &Expr) -> bool {
     )
 }
 
+/// Check if an expression can produce a negative integer value.
+/// Catches: `0 - N`, `-N` literal, `X * (... ? 1 : (0-N))`, ternary with negative branch.
+fn expr_can_be_negative(expr: &Expr) -> bool {
+    match expr {
+        // 0 - N is negative
+        Expr::BinOp(left, BinOp::Sub, _right) => {
+            matches!(left.as_ref(), Expr::IntLiteral(0))
+        }
+        // Multiplication where either side can be negative
+        Expr::BinOp(left, BinOp::Mul, right) => {
+            expr_can_be_negative(left) || expr_can_be_negative(right)
+        }
+        // Addition where either side can be negative
+        Expr::BinOp(left, BinOp::Add, right) => {
+            expr_can_be_negative(left) || expr_can_be_negative(right)
+        }
+        // Ternary: if either branch can be negative
+        Expr::Ternary(_, then_e, else_e) => {
+            expr_can_be_negative(then_e) || expr_can_be_negative(else_e)
+        }
+        // Negative integer literal
+        Expr::IntLiteral(n) if *n < 0 => true,
+        _ => false,
+    }
+}
+
+/// Check if a condition compares an integer variable against 0 using `< 0`
+/// (vacuously false for unsigned types, indicating the variable must be signed).
+/// Only considers variables known to be integer-typed (in `int_vars`).
+fn condition_implies_signed(
+    condition: &Expr,
+    int_vars: &std::collections::HashSet<String>,
+    signed_vars: &mut std::collections::HashSet<String>,
+) {
+    match condition {
+        // var < 0 (only meaningful for signed types — always false for usize)
+        Expr::BinOp(left, BinOp::Less, right) => {
+            if let Expr::Var(name) = left.as_ref() {
+                if matches!(right.as_ref(), Expr::IntLiteral(0)) && int_vars.contains(name) {
+                    signed_vars.insert(name.clone());
+                }
+            }
+        }
+        // Boolean AND / OR: recurse into both sides
+        Expr::BinOp(left, BinOp::And, right) | Expr::BinOp(left, BinOp::Or, right) => {
+            condition_implies_signed(left, int_vars, signed_vars);
+            condition_implies_signed(right, int_vars, signed_vars);
+        }
+        Expr::Not(inner) => {
+            condition_implies_signed(inner, int_vars, signed_vars);
+        }
+        _ => {}
+    }
+}
+
+/// Scan function body for integer variables that require signed (i32) representation.
+/// Only considers variables known to be integer-typed (in `int_vars`).
+/// Extends `signed_vars` with variables assigned potentially-negative values or
+/// compared with `< 0`.
+fn collect_signed_int_vars(
+    body: &[Statement],
+    int_vars: &std::collections::HashSet<String>,
+    signed_vars: &mut std::collections::HashSet<String>,
+) {
+    for stmt in body {
+        match stmt {
+            // Variable initialized with a negative expression
+            Statement::VarDecl {
+                var_type: VarType::Integer | VarType::Index,
+                name,
+                init: Some(init),
+            } if expr_can_be_negative(init) => {
+                signed_vars.insert(name.clone());
+            }
+            // Integer variable assigned a negative expression
+            Statement::Assign { target: Expr::Var(name), value, .. }
+                if int_vars.contains(name) && expr_can_be_negative(value) =>
+            {
+                signed_vars.insert(name.clone());
+            }
+            // Condition checking `var < 0` (only on integer vars)
+            Statement::If { condition, then_body, else_body, .. } => {
+                condition_implies_signed(condition, int_vars, signed_vars);
+                collect_signed_int_vars(then_body, int_vars, signed_vars);
+                collect_signed_int_vars(else_body, int_vars, signed_vars);
+            }
+            Statement::While { condition, body: inner, .. } => {
+                condition_implies_signed(condition, int_vars, signed_vars);
+                collect_signed_int_vars(inner, int_vars, signed_vars);
+            }
+            Statement::DoWhile { condition, body: inner, .. } => {
+                condition_implies_signed(condition, int_vars, signed_vars);
+                collect_signed_int_vars(inner, int_vars, signed_vars);
+            }
+            Statement::For { body: inner, .. } => {
+                collect_signed_int_vars(inner, int_vars, signed_vars);
+            }
+            Statement::ForC { init, condition, body: inner, .. } => {
+                condition_implies_signed(condition, int_vars, signed_vars);
+                collect_signed_int_vars(&[init.as_ref().clone()], int_vars, signed_vars);
+                collect_signed_int_vars(inner, int_vars, signed_vars);
+            }
+            Statement::Block { body: block_body } => {
+                collect_signed_int_vars(block_body, int_vars, signed_vars);
+            }
+            Statement::Switch { cases, default, .. } => {
+                for (_, case_body) in cases {
+                    collect_signed_int_vars(case_body, int_vars, signed_vars);
+                }
+                collect_signed_int_vars(default, int_vars, signed_vars);
+            }
+            _ => {}
+        }
+    }
+}
+
 /// Pre-scan function body for variables assigned negative values (sentinel pattern).
 fn collect_sentinel_vars(
     body: &[Statement],
@@ -1048,6 +1166,18 @@ fn extract_init_value<'a>(stmt: &'a Statement, var_name: &str) -> Option<&'a Exp
     None
 }
 
+/// Extract the variable name from an init statement (handles Block wrapping too).
+fn extract_init_var(stmt: &Statement) -> Option<String> {
+    match stmt {
+        Statement::Assign {
+            target: Expr::Var(name),
+            ..
+        } => Some(name.clone()),
+        Statement::Block { body } if body.len() == 1 => extract_init_var(&body[0]),
+        _ => None,
+    }
+}
+
 /// Returns `true` if `stmt` is `var_name = var_name + 1` (simple increment by 1).
 fn is_simple_increment(stmt: &Statement, var_name: &str) -> bool {
     if let Statement::Assign {
@@ -1067,6 +1197,40 @@ fn is_simple_increment(stmt: &Statement, var_name: &str) -> bool {
     }
     false
 }
+
+/// Returns `true` if `stmt` is `var_name = var_name - 1` or `--var_name` (simple decrement by 1).
+fn is_simple_decrement(stmt: &Statement, var_name: &str) -> bool {
+    match stmt {
+        Statement::Assign {
+            target: Expr::Var(tname),
+            value: Expr::BinOp(left, BinOp::Sub, right),
+            ..
+        } => {
+            if tname != var_name {
+                return false;
+            }
+            if let Expr::Var(lname) = left.as_ref() {
+                if lname == var_name {
+                    return matches!(right.as_ref(), Expr::IntLiteral(1));
+                }
+            }
+            false
+        }
+        // Pre-decrement: for(...; ...; --var)
+        Statement::Assign {
+            target: Expr::Var(tname),
+            value: Expr::PreDecrement(inner),
+            ..
+        } => {
+            if let Expr::Var(vname) = inner.as_ref() {
+                return tname == var_name && vname == var_name;
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
 
 /// Render hoisted block-inline helpers as Rust code (temp var decl + body).
 #[allow(clippy::too_many_arguments)]
@@ -1201,7 +1365,7 @@ pub fn render_statement(
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
-        Statement::VarDecl { var_type, name, .. } => {
+        Statement::VarDecl { var_type, name, init } => {
             // VarDecl at function top-level is handled by the separate declaration pass.
             // VarDecl inside blocks/loops/ifs needs inline declaration.
             // We always emit here; the top-level pass skips VarDecls to avoid duplicates.
@@ -1235,19 +1399,25 @@ pub fn render_statement(
                     return format!("{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n");
                 }
             };
-            let default_val = match var_type {
-                VarType::Real => {
-                    if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+            // Use init expression if available, otherwise fall back to type default
+            let init_str = if let Some(init_expr) = init {
+                render_expr(init_expr, ctx, opt_real_params, registry, helpers)
+            } else {
+                match var_type {
+                    VarType::Real => {
+                        if ctx.generic { "T::ta_zero()" } else { "0.0_f64" }
+                    }
+                    VarType::Integer | VarType::Index => {
+                        if is_sentinel { "0_i32" } else { "0_usize" }
+                    }
+                    VarType::RetCodeType => "RetCode::Success",
+                    VarType::RealPointer => "Vec::new()",
+                    VarType::IntPointer => "Vec::new()",
+                    VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                 }
-                VarType::Integer | VarType::Index => {
-                    if is_sentinel { "0_i32" } else { "0_usize" }
-                }
-                VarType::RetCodeType => "RetCode::Success",
-                VarType::RealPointer => "Vec::new()",
-                VarType::IntPointer => "Vec::new()",
-                VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
+                .to_string()
             };
-            format!("{pad}let mut {name}: {rust_type} = {default_val};\n")
+            format!("{pad}let mut {name}: {rust_type} = {init_str};\n")
         }
         Statement::Block { body: block_body } => {
             let mut out = String::new();
@@ -1329,7 +1499,65 @@ pub fn render_statement(
                                 ));
                             }
                             out.push_str(&format!("{pad}}}\n"));
+                            // In C, after for(i=start; i<=end; i++), i == end+1.
+                            // Rust's for-in leaves the variable at the last iteration value.
+                            // Fixup so downstream code sees the same post-loop value.
+                            out.push_str(&format!(
+                                "{pad}{iter_name} = ({end_str} as usize) + 1;\n"
+                            ));
                             return out;
+                        }
+                    }
+                }
+            }
+            // Countdown loop: for(v = start; v >= bound; v--) with usize
+            // The `v -= 1` from `bound` wraps to usize::MAX, causing OOB.
+            // Emit a loop-with-break pattern:
+            //   v = start; loop { body; if v == bound { break; } v -= 1; }
+            if let Some(iter_name) = extract_init_var(init) {
+                if is_simple_decrement(update, &iter_name) {
+                    if let Expr::BinOp(cond_left, BinOp::GreaterEq, cond_right) = condition {
+                        if let Expr::Var(cname) = cond_left.as_ref() {
+                            if cname == &iter_name {
+                                if let Some(start_expr) = extract_init_value(init, &iter_name) {
+                                    let start_str = render_expr(
+                                        start_expr, ctx, opt_real_params, registry, helpers,
+                                    );
+                                    let bound_str = render_expr(
+                                        cond_right, ctx, opt_real_params, registry, helpers,
+                                    );
+                                    let mut out = format!(
+                                        "{pad}// for( {iter_name} = {start_str}; \
+                                         {iter_name} >= {bound_str}; {iter_name} -= 1 )\n"
+                                    );
+                                    out.push_str(&format!("{pad}{iter_name} = {start_str};\n"));
+                                    out.push_str(&format!("{pad}loop {{\n"));
+                                    for s in for_body {
+                                        out.push_str(&render_statement(
+                                            s,
+                                            indent + 4,
+                                            ctx,
+                                            for_loop_vars,
+                                            var_inits,
+                                            output_names,
+                                            opt_real_params,
+                                            enums,
+                                            registry,
+                                            helpers,
+                                            inline_counter,
+                                        ));
+                                    }
+                                    let inner_pad = " ".repeat(indent + 4);
+                                    out.push_str(&format!(
+                                        "{inner_pad}if {iter_name} == {bound_str} {{ break; }}\n"
+                                    ));
+                                    out.push_str(&format!(
+                                        "{inner_pad}{iter_name} -= 1;\n"
+                                    ));
+                                    out.push_str(&format!("{pad}}}\n"));
+                                    return out;
+                                }
+                            }
                         }
                     }
                 }
@@ -2957,7 +3185,14 @@ fn render_func_call(
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {
-            return render_expr(&inlined_expr, ctx, opt_real_params, registry, helpers);
+            let rendered = render_expr(&inlined_expr, ctx, opt_real_params, registry, helpers);
+            // Wrap inlined BinOp in parens to preserve precedence when the
+            // FuncCall sits inside a higher-precedence operator (e.g., `f(a,b) / 2`
+            // where f inlines to `a - b` must become `(a - b) / 2`).
+            if matches!(inlined_expr, Expr::BinOp(_, _, _)) {
+                return format!("({rendered})");
+            }
+            return rendered;
         }
         // Multi-statement helpers: Task 10 will handle
     }

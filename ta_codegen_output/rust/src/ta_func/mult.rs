@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    pub fn mult_lookback(&self) -> i32 {
-        return 0;
+    pub fn mult_lookback(&self) -> usize {
+        return (0) as usize;
     }
     /// Vector Arithmetic Mult
     ///
@@ -100,12 +100,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut outIdx: i32;
-        let mut i: i32;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
         outIdx = 0;
         i = startIdx;
         while i <= endIdx {
-            outReal[outIdx] = T::ta_from_f64((inReal0[i] * inReal1[i]).ta_to_f64());
+            outReal[(outIdx) as usize] = T::ta_from_f64((inReal0[(i) as usize] * inReal1[(i) as usize]).ta_to_f64());
             outIdx += 1;
             i += 1;
         }
@@ -146,12 +146,12 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut outIdx: i32;
-        let mut i: i32;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
         outIdx = 0;
         i = startIdx;
         while i <= endIdx {
-            *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64((*inReal0.get_unchecked(i) * *inReal1.get_unchecked(i)).ta_to_f64());
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(((*inReal0.get_unchecked((i) as usize)) * (*inReal1.get_unchecked((i) as usize))).ta_to_f64());
             outIdx += 1;
             i += 1;
         }

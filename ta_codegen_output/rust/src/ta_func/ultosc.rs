@@ -56,25 +56,25 @@ impl Core {
     /// * `optInTimePeriod1` - Number of period (default: 7, range: 1..=100000)
     /// * `optInTimePeriod2` - Number of period (default: 14, range: 1..=100000)
     /// * `optInTimePeriod3` - Number of period (default: 28, range: 1..=100000)
-    pub fn ultosc_lookback(&self, mut optInTimePeriod1: i32, mut optInTimePeriod2: i32, mut optInTimePeriod3: i32) -> i32 {
+    pub fn ultosc_lookback(&self, mut optInTimePeriod1: i32, mut optInTimePeriod2: i32, mut optInTimePeriod3: i32) -> usize {
         if ((optInTimePeriod1) as i32) == (i32::MIN) {
             optInTimePeriod1 = 7;
         } else if (((optInTimePeriod1) as i32) < 1) || (((optInTimePeriod1) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInTimePeriod2) as i32) == (i32::MIN) {
             optInTimePeriod2 = 14;
         } else if (((optInTimePeriod2) as i32) < 1) || (((optInTimePeriod2) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
         if ((optInTimePeriod3) as i32) == (i32::MIN) {
             optInTimePeriod3 = 28;
         } else if (((optInTimePeriod3) as i32) < 1) || (((optInTimePeriod3) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        let maxPeriod: i32;
-        maxPeriod = ((optInTimePeriod1).max(optInTimePeriod2)).max(optInTimePeriod3);
-        return self.sma_lookback(maxPeriod) + 1;
+        let mut maxPeriod: usize = 0_usize;
+        maxPeriod = (((optInTimePeriod1).max(optInTimePeriod2)).max(optInTimePeriod3)) as usize;
+        return (self.sma_lookback((maxPeriod) as i32) + 1) as usize;
     }
     /// Ultimate Oscillator
     ///
@@ -151,41 +151,41 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut a1Total: T;
-        let mut a2Total: T;
-        let mut a3Total: T;
-        let mut b1Total: T;
-        let mut b2Total: T;
-        let mut b3Total: T;
-        let mut trueLow: T;
-        let mut trueRange: T;
-        let mut closeMinusTrueLow: T;
-        let mut tempDouble: T;
-        let mut output: T;
-        let mut tempHT: T;
-        let mut tempLT: T;
-        let mut tempCY: T;
-        let lookbackTotal: i32;
-        let mut longestPeriod: i32;
-        let mut longestIndex: i32;
-        let i: i32;
-        let j: i32;
-        let mut today: i32;
-        let mut outIdx: i32;
-        let mut trailingIdx1: i32;
-        let mut trailingIdx2: i32;
-        let mut trailingIdx3: i32;
+        let mut a1Total: T = T::ta_zero();
+        let mut a2Total: T = T::ta_zero();
+        let mut a3Total: T = T::ta_zero();
+        let mut b1Total: T = T::ta_zero();
+        let mut b2Total: T = T::ta_zero();
+        let mut b3Total: T = T::ta_zero();
+        let mut trueLow: T = T::ta_zero();
+        let mut trueRange: T = T::ta_zero();
+        let mut closeMinusTrueLow: T = T::ta_zero();
+        let mut tempDouble: T = T::ta_zero();
+        let mut output: T = T::ta_zero();
+        let mut tempHT: T = T::ta_zero();
+        let mut tempLT: T = T::ta_zero();
+        let mut tempCY: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut longestPeriod: usize = 0_usize;
+        let mut longestIndex: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx1: usize = 0_usize;
+        let mut trailingIdx2: usize = 0_usize;
+        let mut trailingIdx3: usize = 0_usize;
         let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        periods[0] = optInTimePeriod1;
-        periods[1] = optInTimePeriod2;
-        periods[2] = optInTimePeriod3;
-        usedFlag[0] = 0;
-        usedFlag[1] = 0;
-        usedFlag[2] = 0;
+        periods[(0) as usize] = optInTimePeriod1;
+        periods[(1) as usize] = optInTimePeriod2;
+        periods[(2) as usize] = optInTimePeriod3;
+        usedFlag[(0) as usize] = 0;
+        usedFlag[(1) as usize] = 0;
+        usedFlag[(2) as usize] = 0;
         // for( i = 0; i < 3; i += 1 )
         i = 0;
         while i < 3 {
@@ -194,19 +194,19 @@ impl Core {
             // for( j = 0; j < 3; j += 1 )
             j = 0;
             while j < 3 {
-                if usedFlag[j] == 0 && periods[j] > longestPeriod {
-                    longestPeriod = periods[j];
+                if usedFlag[(j) as usize] == 0 && (periods[(j) as usize]) as usize > longestPeriod {
+                    longestPeriod = (periods[(j) as usize]) as usize;
                     longestIndex = j;
                 }
                 j += 1;
             }
-            usedFlag[longestIndex] = 1;
-            sortedPeriods[i] = longestPeriod;
+            usedFlag[(longestIndex) as usize] = 1;
+            sortedPeriods[(i) as usize] = (longestPeriod) as i32;
             i += 1;
         }
-        optInTimePeriod1 = sortedPeriods[2];
-        optInTimePeriod2 = sortedPeriods[1];
-        optInTimePeriod3 = sortedPeriods[0];
+        optInTimePeriod1 = sortedPeriods[(2) as usize];
+        optInTimePeriod2 = sortedPeriods[(1) as usize];
+        optInTimePeriod3 = sortedPeriods[(0) as usize];
         lookbackTotal = self.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -214,22 +214,22 @@ impl Core {
         if startIdx > endIdx {
             return RetCode::Success;
         }
-        a1Total = 0;
-        b1Total = 0;
-        // for( i = startIdx - optInTimePeriod1 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod1 + 1;
+        a1Total = T::ta_from_i32(0 as i32);
+        b1Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod1) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod1) as usize + 1;
         while i < startIdx {
-            tempLT = inLow[i];
-            tempHT = inHigh[i];
-            tempCY = inClose[i - 1];
+            tempLT = inLow[(i) as usize];
+            tempHT = inHigh[(i) as usize];
+            tempCY = inClose[(i - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[i] - trueLow;
+            closeMinusTrueLow = inClose[(i) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -237,22 +237,22 @@ impl Core {
             b1Total += trueRange;
             i += 1;
         }
-        a2Total = 0;
-        b2Total = 0;
-        // for( i = startIdx - optInTimePeriod2 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod2 + 1;
+        a2Total = T::ta_from_i32(0 as i32);
+        b2Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod2) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod2) as usize + 1;
         while i < startIdx {
-            tempLT = inLow[i];
-            tempHT = inHigh[i];
-            tempCY = inClose[i - 1];
+            tempLT = inLow[(i) as usize];
+            tempHT = inHigh[(i) as usize];
+            tempCY = inClose[(i - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[i] - trueLow;
+            closeMinusTrueLow = inClose[(i) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -260,22 +260,22 @@ impl Core {
             b2Total += trueRange;
             i += 1;
         }
-        a3Total = 0;
-        b3Total = 0;
-        // for( i = startIdx - optInTimePeriod3 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod3 + 1;
+        a3Total = T::ta_from_i32(0 as i32);
+        b3Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod3) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod3) as usize + 1;
         while i < startIdx {
-            tempLT = inLow[i];
-            tempHT = inHigh[i];
-            tempCY = inClose[i - 1];
+            tempLT = inLow[(i) as usize];
+            tempHT = inHigh[(i) as usize];
+            tempCY = inClose[(i - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[i] - trueLow;
+            closeMinusTrueLow = inClose[(i) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -285,21 +285,21 @@ impl Core {
         }
         today = startIdx;
         outIdx = 0;
-        trailingIdx1 = today - optInTimePeriod1 + 1;
-        trailingIdx2 = today - optInTimePeriod2 + 1;
-        trailingIdx3 = today - optInTimePeriod3 + 1;
+        trailingIdx1 = today - (optInTimePeriod1) as usize + 1;
+        trailingIdx2 = today - (optInTimePeriod2) as usize + 1;
+        trailingIdx3 = today - (optInTimePeriod3) as usize + 1;
         while today <= endIdx {
-            tempLT = inLow[today];
-            tempHT = inHigh[today];
-            tempCY = inClose[today - 1];
+            tempLT = inLow[(today) as usize];
+            tempHT = inHigh[(today) as usize];
+            tempCY = inClose[(today - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[today] - trueLow;
+            closeMinusTrueLow = inClose[(today) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -310,64 +310,64 @@ impl Core {
             b2Total += trueRange;
             b3Total += trueRange;
             output = T::ta_from_f64(0.0);
-            if !(0 - T::ta_from_f64(0.00000001) < b1Total && b1Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b1Total && b1Total < T::ta_from_f64(0.00000001)) {
                 output += T::ta_from_f64(4.0) * (a1Total / b1Total);
             }
-            if !(0 - T::ta_from_f64(0.00000001) < b2Total && b2Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b2Total && b2Total < T::ta_from_f64(0.00000001)) {
                 output += T::ta_from_f64(2.0) * (a2Total / b2Total);
             }
-            if !(0 - T::ta_from_f64(0.00000001) < b3Total && b3Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b3Total && b3Total < T::ta_from_f64(0.00000001)) {
                 output += a3Total / b3Total;
             }
-            tempLT = inLow[trailingIdx1];
-            tempHT = inHigh[trailingIdx1];
-            tempCY = inClose[trailingIdx1 - 1];
+            tempLT = inLow[(trailingIdx1) as usize];
+            tempHT = inHigh[(trailingIdx1) as usize];
+            tempCY = inClose[(trailingIdx1 - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[trailingIdx1] - trueLow;
+            closeMinusTrueLow = inClose[(trailingIdx1) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
-            tempLT = inLow[trailingIdx2];
-            tempHT = inHigh[trailingIdx2];
-            tempCY = inClose[trailingIdx2 - 1];
+            tempLT = inLow[(trailingIdx2) as usize];
+            tempHT = inHigh[(trailingIdx2) as usize];
+            tempCY = inClose[(trailingIdx2 - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[trailingIdx2] - trueLow;
+            closeMinusTrueLow = inClose[(trailingIdx2) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
-            tempLT = inLow[trailingIdx3];
-            tempHT = inHigh[trailingIdx3];
-            tempCY = inClose[trailingIdx3 - 1];
+            tempLT = inLow[(trailingIdx3) as usize];
+            tempHT = inHigh[(trailingIdx3) as usize];
+            tempCY = inClose[(trailingIdx3 - 1) as usize];
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = inClose[trailingIdx3] - trueLow;
+            closeMinusTrueLow = inClose[(trailingIdx3) as usize] - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
-            outReal[outIdx] = T::ta_from_f64(100.0) * (output / T::ta_from_f64(7.0));
+            outReal[(outIdx) as usize] = T::ta_from_f64(100.0) * (output / T::ta_from_f64(7.0));
             outIdx += 1;
             today += 1;
             trailingIdx1 += 1;
@@ -438,41 +438,41 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut a1Total: T;
-        let mut a2Total: T;
-        let mut a3Total: T;
-        let mut b1Total: T;
-        let mut b2Total: T;
-        let mut b3Total: T;
-        let mut trueLow: T;
-        let mut trueRange: T;
-        let mut closeMinusTrueLow: T;
-        let mut tempDouble: T;
-        let mut output: T;
-        let mut tempHT: T;
-        let mut tempLT: T;
-        let mut tempCY: T;
-        let lookbackTotal: i32;
-        let mut longestPeriod: i32;
-        let mut longestIndex: i32;
-        let i: i32;
-        let j: i32;
-        let mut today: i32;
-        let mut outIdx: i32;
-        let mut trailingIdx1: i32;
-        let mut trailingIdx2: i32;
-        let mut trailingIdx3: i32;
+        let mut a1Total: T = T::ta_zero();
+        let mut a2Total: T = T::ta_zero();
+        let mut a3Total: T = T::ta_zero();
+        let mut b1Total: T = T::ta_zero();
+        let mut b2Total: T = T::ta_zero();
+        let mut b3Total: T = T::ta_zero();
+        let mut trueLow: T = T::ta_zero();
+        let mut trueRange: T = T::ta_zero();
+        let mut closeMinusTrueLow: T = T::ta_zero();
+        let mut tempDouble: T = T::ta_zero();
+        let mut output: T = T::ta_zero();
+        let mut tempHT: T = T::ta_zero();
+        let mut tempLT: T = T::ta_zero();
+        let mut tempCY: T = T::ta_zero();
+        let mut lookbackTotal: usize = 0_usize;
+        let mut longestPeriod: usize = 0_usize;
+        let mut longestIndex: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx1: usize = 0_usize;
+        let mut trailingIdx2: usize = 0_usize;
+        let mut trailingIdx3: usize = 0_usize;
         let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        *periods.get_unchecked_mut(0) = optInTimePeriod1;
-        *periods.get_unchecked_mut(1) = optInTimePeriod2;
-        *periods.get_unchecked_mut(2) = optInTimePeriod3;
-        *usedFlag.get_unchecked_mut(0) = 0;
-        *usedFlag.get_unchecked_mut(1) = 0;
-        *usedFlag.get_unchecked_mut(2) = 0;
+        (*periods.get_unchecked_mut((0) as usize)) = optInTimePeriod1;
+        (*periods.get_unchecked_mut((1) as usize)) = optInTimePeriod2;
+        (*periods.get_unchecked_mut((2) as usize)) = optInTimePeriod3;
+        (*usedFlag.get_unchecked_mut((0) as usize)) = 0;
+        (*usedFlag.get_unchecked_mut((1) as usize)) = 0;
+        (*usedFlag.get_unchecked_mut((2) as usize)) = 0;
         // for( i = 0; i < 3; i += 1 )
         i = 0;
         while i < 3 {
@@ -481,19 +481,19 @@ impl Core {
             // for( j = 0; j < 3; j += 1 )
             j = 0;
             while j < 3 {
-                if *usedFlag.get_unchecked(j) == 0 && *periods.get_unchecked(j) > longestPeriod {
-                    longestPeriod = *periods.get_unchecked(j);
+                if (*usedFlag.get_unchecked((j) as usize)) == 0 && ((*periods.get_unchecked((j) as usize))) as usize > longestPeriod {
+                    longestPeriod = ((*periods.get_unchecked((j) as usize))) as usize;
                     longestIndex = j;
                 }
                 j += 1;
             }
-            *usedFlag.get_unchecked_mut(longestIndex) = 1;
-            *sortedPeriods.get_unchecked_mut(i) = longestPeriod;
+            (*usedFlag.get_unchecked_mut((longestIndex) as usize)) = 1;
+            (*sortedPeriods.get_unchecked_mut((i) as usize)) = (longestPeriod) as i32;
             i += 1;
         }
-        optInTimePeriod1 = *sortedPeriods.get_unchecked(2);
-        optInTimePeriod2 = *sortedPeriods.get_unchecked(1);
-        optInTimePeriod3 = *sortedPeriods.get_unchecked(0);
+        optInTimePeriod1 = (*sortedPeriods.get_unchecked((2) as usize));
+        optInTimePeriod2 = (*sortedPeriods.get_unchecked((1) as usize));
+        optInTimePeriod3 = (*sortedPeriods.get_unchecked((0) as usize));
         lookbackTotal = self.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -501,22 +501,22 @@ impl Core {
         if startIdx > endIdx {
             return RetCode::Success;
         }
-        a1Total = 0;
-        b1Total = 0;
-        // for( i = startIdx - optInTimePeriod1 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod1 + 1;
+        a1Total = T::ta_from_i32(0 as i32);
+        b1Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod1) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod1) as usize + 1;
         while i < startIdx {
-            tempLT = *inLow.get_unchecked(i);
-            tempHT = *inHigh.get_unchecked(i);
-            tempCY = *inClose.get_unchecked(i - 1);
+            tempLT = (*inLow.get_unchecked((i) as usize));
+            tempHT = (*inHigh.get_unchecked((i) as usize));
+            tempCY = (*inClose.get_unchecked((i - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(i) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((i) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -524,22 +524,22 @@ impl Core {
             b1Total += trueRange;
             i += 1;
         }
-        a2Total = 0;
-        b2Total = 0;
-        // for( i = startIdx - optInTimePeriod2 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod2 + 1;
+        a2Total = T::ta_from_i32(0 as i32);
+        b2Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod2) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod2) as usize + 1;
         while i < startIdx {
-            tempLT = *inLow.get_unchecked(i);
-            tempHT = *inHigh.get_unchecked(i);
-            tempCY = *inClose.get_unchecked(i - 1);
+            tempLT = (*inLow.get_unchecked((i) as usize));
+            tempHT = (*inHigh.get_unchecked((i) as usize));
+            tempCY = (*inClose.get_unchecked((i - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(i) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((i) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -547,22 +547,22 @@ impl Core {
             b2Total += trueRange;
             i += 1;
         }
-        a3Total = 0;
-        b3Total = 0;
-        // for( i = startIdx - optInTimePeriod3 + 1; i < startIdx; i += 1 )
-        i = startIdx - optInTimePeriod3 + 1;
+        a3Total = T::ta_from_i32(0 as i32);
+        b3Total = T::ta_from_i32(0 as i32);
+        // for( i = startIdx - (optInTimePeriod3) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod3) as usize + 1;
         while i < startIdx {
-            tempLT = *inLow.get_unchecked(i);
-            tempHT = *inHigh.get_unchecked(i);
-            tempCY = *inClose.get_unchecked(i - 1);
+            tempLT = (*inLow.get_unchecked((i) as usize));
+            tempHT = (*inHigh.get_unchecked((i) as usize));
+            tempCY = (*inClose.get_unchecked((i - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(i) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((i) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -572,21 +572,21 @@ impl Core {
         }
         today = startIdx;
         outIdx = 0;
-        trailingIdx1 = today - optInTimePeriod1 + 1;
-        trailingIdx2 = today - optInTimePeriod2 + 1;
-        trailingIdx3 = today - optInTimePeriod3 + 1;
+        trailingIdx1 = today - (optInTimePeriod1) as usize + 1;
+        trailingIdx2 = today - (optInTimePeriod2) as usize + 1;
+        trailingIdx3 = today - (optInTimePeriod3) as usize + 1;
         while today <= endIdx {
-            tempLT = *inLow.get_unchecked(today);
-            tempHT = *inHigh.get_unchecked(today);
-            tempCY = *inClose.get_unchecked(today - 1);
+            tempLT = (*inLow.get_unchecked((today) as usize));
+            tempHT = (*inHigh.get_unchecked((today) as usize));
+            tempCY = (*inClose.get_unchecked((today - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(today) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((today) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
@@ -597,64 +597,64 @@ impl Core {
             b2Total += trueRange;
             b3Total += trueRange;
             output = T::ta_from_f64(0.0);
-            if !(0 - T::ta_from_f64(0.00000001) < b1Total && b1Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b1Total && b1Total < T::ta_from_f64(0.00000001)) {
                 output += T::ta_from_f64(4.0) * (a1Total / b1Total);
             }
-            if !(0 - T::ta_from_f64(0.00000001) < b2Total && b2Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b2Total && b2Total < T::ta_from_f64(0.00000001)) {
                 output += T::ta_from_f64(2.0) * (a2Total / b2Total);
             }
-            if !(0 - T::ta_from_f64(0.00000001) < b3Total && b3Total < T::ta_from_f64(0.00000001)) {
+            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < b3Total && b3Total < T::ta_from_f64(0.00000001)) {
                 output += a3Total / b3Total;
             }
-            tempLT = *inLow.get_unchecked(trailingIdx1);
-            tempHT = *inHigh.get_unchecked(trailingIdx1);
-            tempCY = *inClose.get_unchecked(trailingIdx1 - 1);
+            tempLT = (*inLow.get_unchecked((trailingIdx1) as usize));
+            tempHT = (*inHigh.get_unchecked((trailingIdx1) as usize));
+            tempCY = (*inClose.get_unchecked((trailingIdx1 - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(trailingIdx1) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((trailingIdx1) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
-            tempLT = *inLow.get_unchecked(trailingIdx2);
-            tempHT = *inHigh.get_unchecked(trailingIdx2);
-            tempCY = *inClose.get_unchecked(trailingIdx2 - 1);
+            tempLT = (*inLow.get_unchecked((trailingIdx2) as usize));
+            tempHT = (*inHigh.get_unchecked((trailingIdx2) as usize));
+            tempCY = (*inClose.get_unchecked((trailingIdx2 - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(trailingIdx2) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((trailingIdx2) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
-            tempLT = *inLow.get_unchecked(trailingIdx3);
-            tempHT = *inHigh.get_unchecked(trailingIdx3);
-            tempCY = *inClose.get_unchecked(trailingIdx3 - 1);
+            tempLT = (*inLow.get_unchecked((trailingIdx3) as usize));
+            tempHT = (*inHigh.get_unchecked((trailingIdx3) as usize));
+            tempCY = (*inClose.get_unchecked((trailingIdx3 - 1) as usize));
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = *inClose.get_unchecked(trailingIdx3) - trueLow;
+            closeMinusTrueLow = (*inClose.get_unchecked((trailingIdx3) as usize)) - trueLow;
             trueRange = tempHT - tempLT;
-            tempDouble = tempCY - tempHT.ta_abs();
+            tempDouble = (tempCY - tempHT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
-            tempDouble = tempCY - tempLT.ta_abs();
+            tempDouble = (tempCY - tempLT).ta_abs();
             if tempDouble > trueRange {
                 trueRange = tempDouble;
             }
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
-            *outReal.get_unchecked_mut(outIdx) = T::ta_from_f64(100.0) * (output / T::ta_from_f64(7.0));
+            (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(100.0) * (output / T::ta_from_f64(7.0));
             outIdx += 1;
             today += 1;
             trailingIdx1 += 1;

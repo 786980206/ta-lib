@@ -54,13 +54,13 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
-    pub fn ema_lookback(&self, mut optInTimePeriod: i32) -> i32 {
+    pub fn ema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return -1;
+            return usize::MAX;
         }
-        return optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize];
+        return (optInTimePeriod - 1 + self.unstable_period[FuncUnstId::Ema as usize]) as usize;
     }
     /// Exponential Moving Average
     ///
@@ -111,14 +111,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: T;
-        let mut prevMA: T;
-        let optInK_1: T;
-        let i: i32;
-        let mut today: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
+        let mut tempReal: T = T::ta_zero();
+        let mut prevMA: T = T::ta_zero();
+        let mut optInK_1: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_i32(optInTimePeriod + 1));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -131,24 +131,24 @@ impl Core {
         (*outBegIdx) = startIdx;
         if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
-            i = optInTimePeriod;
+            i = (optInTimePeriod) as usize;
             tempReal = T::ta_from_f64(0.0);
             while { let _v = i; i -= 1; _v } > 0 {
-                tempReal += inReal[{ let _v = today; today += 1; _v }];
+                tempReal += inReal[({ let _v = today; today += 1; _v }) as usize];
             }
-            prevMA = tempReal / optInTimePeriod;
+            prevMA = tempReal / T::ta_from_i32(optInTimePeriod);
         } else {
-            prevMA = inReal[0];
+            prevMA = inReal[(0) as usize];
             today = 1;
         }
         while today <= startIdx {
-            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * optInK_1 + prevMA;
+            prevMA = (inReal[({ let _v = today; today += 1; _v }) as usize] - prevMA) * optInK_1 + prevMA;
         }
-        outReal[0] = prevMA;
+        outReal[(0) as usize] = prevMA;
         outIdx = 1;
         while today <= endIdx {
-            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * optInK_1 + prevMA;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevMA;
+            prevMA = (inReal[({ let _v = today; today += 1; _v }) as usize] - prevMA) * optInK_1 + prevMA;
+            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -191,14 +191,14 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [T],
     ) -> RetCode {
-        let mut tempReal: T;
-        let mut prevMA: T;
-        let optInK_1: T;
-        let i: i32;
-        let mut today: i32;
-        let outIdx: i32;
-        let lookbackTotal: i32;
-        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_f64((optInTimePeriod + 1).ta_to_f64()));
+        let mut tempReal: T = T::ta_zero();
+        let mut prevMA: T = T::ta_zero();
+        let mut optInK_1: T = T::ta_zero();
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        optInK_1 = T::ta_from_f64(2.0) / (T::ta_from_i32(optInTimePeriod + 1));
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -211,24 +211,24 @@ impl Core {
         (*outBegIdx) = startIdx;
         if self.compatibility == Compatibility::Default {
             today = startIdx - lookbackTotal;
-            i = optInTimePeriod;
+            i = (optInTimePeriod) as usize;
             tempReal = T::ta_from_f64(0.0);
             while { let _v = i; i -= 1; _v } > 0 {
-                tempReal += *inReal.get_unchecked({ let _v = today; today += 1; _v });
+                tempReal += (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
             }
-            prevMA = tempReal / optInTimePeriod;
+            prevMA = tempReal / T::ta_from_i32(optInTimePeriod);
         } else {
-            prevMA = *inReal.get_unchecked(0);
+            prevMA = (*inReal.get_unchecked((0) as usize));
             today = 1;
         }
         while today <= startIdx {
-            prevMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevMA) * optInK_1 + prevMA;
+            prevMA = ((*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) - prevMA) * optInK_1 + prevMA;
         }
-        *outReal.get_unchecked_mut(0) = prevMA;
+        (*outReal.get_unchecked_mut((0) as usize)) = prevMA;
         outIdx = 1;
         while today <= endIdx {
-            prevMA = (*inReal.get_unchecked({ let _v = today; today += 1; _v }) - prevMA) * optInK_1 + prevMA;
-            *outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v }) = prevMA;
+            prevMA = ((*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) - prevMA) * optInK_1 + prevMA;
+            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
