@@ -1823,7 +1823,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     s.push_str("use serde_json::{self, Value};\n");
     s.push_str("use std::io::{self, BufRead, Write};\n");
     s.push_str("use std::time::Instant;\n");
-    s.push_str("use ta_lib::{Core, RetCode, FuncUnstId, Compatibility, TaFloat};\n\n");
+    s.push_str("use ta_lib::{Core, RetCode, FuncUnstId, Compatibility};\n\n");
 
     // Helper: parse f64 array from JSON value
     s.push_str("fn parse_f64_array(val: &Value) -> Vec<f64> {\n");
@@ -1976,7 +1976,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
 
         // Call the unchecked variant (no bounds checks, no param validation — server handles that)
         s.push_str(&format!(
-            "            let rc = unsafe {{ core.{fn_name}_unguarded_unchecked::<f64>(\n"
+            "            let rc = unsafe {{ core.{fn_name}_unguarded_unchecked(\n"
         ));
         s.push_str("                startIdx, endIdx,\n");
 
