@@ -95,3 +95,4 @@ rust/target
 # Git worktrees
 .worktrees/
 ta_codegen_output/rust/target/
+.claude/worktrees

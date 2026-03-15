@@ -152,13 +152,17 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     // Guarded: validates params, delegates to unguarded
     out.push_str(&gen_guarded_func(func, &snake, enums, registry, helpers));
 
-    // Collect variable type info from function body for type inference
+    // Build a temporary FuncDef with unguarded_body as its body for the unguarded variant
+    let mut unguarded_func = func.clone();
+    unguarded_func.body = func.unguarded_body.clone();
+
+    // Collect variable type info from unguarded body for type inference
     let mut index_vars = std::collections::HashSet::new();
     let mut real_vars = std::collections::HashSet::new();
     let mut vec_vars = std::collections::HashSet::new();
     let mut real_array_vars = std::collections::HashSet::new();
     let mut int_vec_vars = std::collections::HashSet::new();
-    collect_var_types(&func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars, &mut int_vec_vars);
+    collect_var_types(&unguarded_func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars, &mut int_vec_vars);
     // Also add parameter names
     index_vars.insert("startIdx".to_string());
     index_vars.insert("endIdx".to_string());
@@ -167,9 +171,9 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
 
     // Pre-scan for sentinel variables (assigned -1) — these must be i32, not usize
     let mut sentinel_vars = std::collections::HashSet::new();
-    collect_sentinel_vars(&func.body, &mut sentinel_vars);
+    collect_sentinel_vars(&unguarded_func.body, &mut sentinel_vars);
     // Also detect integer variables that participate in signed arithmetic (< 0, 0 - N)
-    collect_signed_int_vars(&func.body, &index_vars, &mut sentinel_vars);
+    collect_signed_int_vars(&unguarded_func.body, &index_vars, &mut sentinel_vars);
     // Remove sentinel/signed vars from index_vars — they're i32, not usize
     for sv in &sentinel_vars {
         index_vars.remove(sv);
@@ -181,27 +185,8 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         .map(|o| o.name.clone())
         .collect();
 
-    // Unguarded: real algorithm, bounds-checked array access
-    let safe_ctx = RustRenderCtx {
-        unchecked: false,
-        index_vars: index_vars.clone(),
-        real_vars: real_vars.clone(),
-        vec_vars: vec_vars.clone(),
-        real_array_vars: real_array_vars.clone(),
-        int_output_names: int_output_set.clone(),
-        int_vec_vars: int_vec_vars.clone(),
-        is_lookback: false,
-        sentinel_vars: sentinel_vars.clone(),
-    };
-    out.push_str(&gen_unguarded_func(
-        func, &snake, &safe_ctx, enums, registry, helpers,
-    ));
-
-    // Unchecked: validates params, delegates to unguarded_unchecked
-    out.push_str(&gen_unchecked_func(func, &snake, enums, registry, helpers));
-
-    // Unguarded unchecked: real algorithm, unchecked array access
-    let unsafe_ctx = RustRenderCtx {
+    // Unguarded: real algorithm, get_unchecked array access, extra params
+    let ctx = RustRenderCtx {
         unchecked: true,
         index_vars,
         real_vars,
@@ -213,9 +198,9 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         sentinel_vars,
     };
     out.push_str(&gen_unguarded_func(
-        func,
+        &unguarded_func,
         &snake,
-        &unsafe_ctx,
+        &ctx,
         enums,
         registry,
         helpers,
@@ -382,22 +367,56 @@ fn gen_guarded_func(
         out.push_str(&gen_opt_param_validation(opt, "        ", false));
     }
 
-    // Delegate to unguarded function
-    out.push_str(&format!("        return self.{snake}_unguarded(\n"));
-    out.push_str("            startIdx,\n");
-    out.push_str("            endIdx,\n");
-    for input in &func.inputs {
-        out.push_str(&format!("            {},\n", input.name));
+    if func.has_explicit_unguarded {
+        // The guarded body already contains delegation to _unguarded with extra params.
+        // Render it directly (it includes pre-computation + delegation call).
+        // Build a RustRenderCtx for bounds-checked rendering
+        let mut g_index_vars = std::collections::HashSet::new();
+        let mut g_real_vars = std::collections::HashSet::new();
+        let mut g_vec_vars = std::collections::HashSet::new();
+        let mut g_real_array_vars = std::collections::HashSet::new();
+        let mut g_int_vec_vars = std::collections::HashSet::new();
+        collect_var_types(&func.body, &mut g_index_vars, &mut g_real_vars, &mut g_vec_vars, &mut g_real_array_vars, &mut g_int_vec_vars);
+        g_index_vars.insert("startIdx".to_string());
+        g_index_vars.insert("endIdx".to_string());
+        let mut g_sentinel_vars = std::collections::HashSet::new();
+        collect_sentinel_vars(&func.body, &mut g_sentinel_vars);
+        let g_int_output_set: std::collections::HashSet<String> = func.outputs.iter()
+            .filter(|o| o.param_type == ParamType::Integer)
+            .map(|o| o.name.clone())
+            .collect();
+        let g_ctx = RustRenderCtx {
+            unchecked: false,
+            index_vars: g_index_vars,
+            real_vars: g_real_vars,
+            vec_vars: g_vec_vars,
+            real_array_vars: g_real_array_vars,
+            int_output_names: g_int_output_set,
+            int_vec_vars: g_int_vec_vars,
+            is_lookback: false,
+            sentinel_vars: g_sentinel_vars,
+        };
+        for stmt in &func.body {
+            out.push_str(&render_statement(stmt, "        ", &g_ctx, func, enums, registry, helpers));
+        }
+    } else {
+        // Auto-generated: delegate to unguarded with same params (no extra params)
+        out.push_str(&format!("        return self.{snake}_unguarded(\n"));
+        out.push_str("            startIdx,\n");
+        out.push_str("            endIdx,\n");
+        for input in &func.inputs {
+            out.push_str(&format!("            {},\n", input.name));
+        }
+        for opt in &func.optional_inputs {
+            out.push_str(&format!("            {},\n", opt.name));
+        }
+        out.push_str("            outBegIdx,\n");
+        out.push_str("            outNBElement,\n");
+        for output in &func.outputs {
+            out.push_str(&format!("            {},\n", output.name));
+        }
+        out.push_str("        );\n");
     }
-    for opt in &func.optional_inputs {
-        out.push_str(&format!("            {},\n", opt.name));
-    }
-    out.push_str("            outBegIdx,\n");
-    out.push_str("            outNBElement,\n");
-    for output in &func.outputs {
-        out.push_str(&format!("            {},\n", output.name));
-    }
-    out.push_str("        );\n");
     out.push_str("    }\n");
 
     out
@@ -416,23 +435,23 @@ fn gen_unguarded_func(
     helpers: &HelperRegistry,
 ) -> String {
     let mut out = String::new();
-    let func_name = if ctx.unchecked {
-        format!("{snake}_unguarded_unchecked")
-    } else {
-        format!("{snake}_unguarded")
-    };
-    let visibility = if ctx.unchecked {
-        "pub unsafe fn"
-    } else {
-        "pub fn"
-    };
+    let func_name = format!("{snake}_unguarded");
 
-    // Function signature
-    out.push_str(&format!("    {visibility} {func_name}(\n"));
+    // Function signature — always pub fn (unsafe is contained internally)
+    out.push_str(&format!("    pub fn {func_name}(\n"));
     out.push_str("        &self,\n");
     out.push_str("        mut startIdx: usize,\n");
     out.push_str("        endIdx: usize,\n");
     out.push_str(&gen_generic_params(func));
+    // Extra unguarded params (e.g., EMA's k factor)
+    for (param_name, c_type) in &func.unguarded_extra_params {
+        let rust_type = match c_type.as_str() {
+            "double" => "f64",
+            "int" => "i32",
+            _ => "f64",
+        };
+        out.push_str(&format!("        {param_name}: {rust_type},\n"));
+    }
     out.push_str("        outBegIdx: &mut usize,\n");
     out.push_str("        outNBElement: &mut usize,\n");
     out.push_str(&gen_generic_output_params(func));
@@ -615,57 +634,7 @@ fn gen_unguarded_func(
     out
 }
 
-/// Generate the unchecked function: validates params, delegates to `{snake}_unguarded_unchecked`.
-fn gen_unchecked_func(
-    func: &FuncDef,
-    snake: &str,
-    _enums: &HashMap<String, EnumDef>,
-    _registry: &Registry,
-    _helpers: &HelperRegistry,
-) -> String {
-    let mut out = String::new();
-
-    out.push_str(&format!(
-        "    pub unsafe fn {snake}_unchecked(\n"
-    ));
-    out.push_str("        &self,\n");
-    out.push_str("        startIdx: usize,\n");
-    out.push_str("        endIdx: usize,\n");
-    out.push_str(&gen_generic_params(func));
-    out.push_str("        outBegIdx: &mut usize,\n");
-    out.push_str("        outNBElement: &mut usize,\n");
-    out.push_str(&gen_generic_output_params(func));
-    out.push_str("    ) -> RetCode {\n");
-
-    out.push_str("        if endIdx < startIdx {\n");
-    out.push_str("            return RetCode::OutOfRangeStartIndex;\n");
-    out.push_str("        }\n");
-
-    for opt in &func.optional_inputs {
-        out.push_str(&gen_opt_param_validation(opt, "        ", false));
-    }
-
-    out.push_str(&format!(
-        "        return self.{snake}_unguarded_unchecked(\n"
-    ));
-    out.push_str("            startIdx,\n");
-    out.push_str("            endIdx,\n");
-    for input in &func.inputs {
-        out.push_str(&format!("            {},\n", input.name));
-    }
-    for opt in &func.optional_inputs {
-        out.push_str(&format!("            {},\n", opt.name));
-    }
-    out.push_str("            outBegIdx,\n");
-    out.push_str("            outNBElement,\n");
-    for output in &func.outputs {
-        out.push_str(&format!("            {},\n", output.name));
-    }
-    out.push_str("        );\n");
-    out.push_str("    }\n");
-
-    out
-}
+// gen_unchecked_func removed — folded into unguarded variant
 
 /// Generate generic input parameter declarations for a function signature.
 fn gen_generic_params(func: &FuncDef) -> String {

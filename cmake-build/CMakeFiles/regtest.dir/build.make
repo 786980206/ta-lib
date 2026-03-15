@@ -67,8 +67,8 @@ include CMakeFiles/regtest.dir/compiler_depend.make
 include CMakeFiles/regtest.dir/progress.make
 
 CMakeFiles/regtest:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/chadfurman/projects/ta-lib/cmake-build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Running cross-language regression tests (C codegen)"
-	/opt/homebrew/bin/cmake -E chdir /Users/chadfurman/projects/ta-lib/bin ./ta_regtest --codegen --language=c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/chadfurman/projects/ta-lib/cmake-build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Running cross-language regression tests (C, Java, .NET, Rust)"
+	/opt/homebrew/bin/cmake -E chdir /Users/chadfurman/projects/ta-lib/bin ./ta_regtest --codegen --language=c,java,dotnet,rust
 
 CMakeFiles/regtest.dir/codegen:
 .PHONY : CMakeFiles/regtest.dir/codegen

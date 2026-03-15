@@ -67,8 +67,8 @@ include CMakeFiles/regtest-only.dir/compiler_depend.make
 include CMakeFiles/regtest-only.dir/progress.make
 
 CMakeFiles/regtest-only:
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/chadfurman/projects/ta-lib/cmake-build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Running codegen-only regression tests (C codegen, skip C reference)"
-	/opt/homebrew/bin/cmake -E chdir /Users/chadfurman/projects/ta-lib/bin ./ta_regtest --codegen-only --language=c
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --blue --bold --progress-dir=/Users/chadfurman/projects/ta-lib/cmake-build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_1) "Running codegen-only regression tests (skip C reference)"
+	/opt/homebrew/bin/cmake -E chdir /Users/chadfurman/projects/ta-lib/bin ./ta_regtest --codegen-only --language=c,java,dotnet,rust
 
 CMakeFiles/regtest-only.dir/codegen:
 .PHONY : CMakeFiles/regtest-only.dir/codegen

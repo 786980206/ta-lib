@@ -1974,9 +1974,9 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         // Timing
         s.push_str("            let start_time = Instant::now();\n");
 
-        // Call the unchecked variant (no bounds checks, no param validation — server handles that)
+        // Call the unguarded variant (no bounds checks, no param validation — server handles that)
         s.push_str(&format!(
-            "            let rc = unsafe {{ core.{fn_name}_unguarded_unchecked(\n"
+            "            let rc = core.{fn_name}_unguarded(\n"
         ));
         s.push_str("                startIdx, endIdx,\n");
 
@@ -2004,7 +2004,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(",\n");
-        s.push_str("            ) };\n");
+        s.push_str("            );\n");
 
         // Calculate elapsed
         s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64;\n");

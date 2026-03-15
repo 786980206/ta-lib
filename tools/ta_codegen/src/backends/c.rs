@@ -176,6 +176,13 @@ fn gen_func(
         params.push(format!("{} {}", c_type, opt.name));
     }
 
+    // Extra unguarded params (e.g., EMA's k factor) — only on Logic variant
+    if logic {
+        for (param_name, c_type) in &func.unguarded_extra_params {
+            params.push(format!("{} {}", c_type, param_name));
+        }
+    }
+
     // Output scalars (always present)
     params.push("int          *outBegIdx".to_string());
     params.push("int          *outNBElement".to_string());
@@ -202,15 +209,18 @@ fn gen_func(
     // Function body
     out.push_str("{\n");
 
+    // Use unguarded_body for Logic variant, body for guarded
+    let body = if logic { &func.unguarded_body } else { &func.body };
+
     // Declare local variables from body (deduplicated)
     let mut declared_vars: Vec<String> = Vec::new();
-    for stmt in &func.body {
+    for stmt in body {
         emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
     // Return statements are handled by body rendering; skip has no standalone decls.
 
     // Emit candle settings unpacking (only for referenced settings)
-    let candle_used = detect_candle_settings(&func.body);
+    let candle_used = detect_candle_settings(body);
     if !candle_used.is_empty() {
         out.push_str(&emit_c_unpacking(&candle_used, 3));
     }
@@ -232,10 +242,10 @@ fn gen_func(
     // A VarDecl with init is only hoisted if it's the first occurrence of that name.
     // Duplicate VarDecls (same name, second or later occurrence) are rendered inline.
     let mut first_seen_names: Vec<String> = Vec::new();
-    collect_first_seen_var_names(&func.body, &mut first_seen_names);
+    collect_first_seen_var_names(body, &mut first_seen_names);
 
     // Emit hoisted VarDecl initializations (first-occurrence only)
-    for stmt in &func.body {
+    for stmt in body {
         if let Statement::VarDecl {
             name,
             init: Some(init),
@@ -271,7 +281,7 @@ fn gen_func(
     // First-occurrence VarDecls (with or without init) are skipped.
     // Duplicate VarDecls with init are rendered as plain assignments in their natural position.
     let mut body_seen: Vec<String> = Vec::new();
-    for stmt in &func.body {
+    for stmt in body {
         match stmt {
             Statement::VarDecl { name, init, .. } => {
                 if body_seen.contains(name) {
