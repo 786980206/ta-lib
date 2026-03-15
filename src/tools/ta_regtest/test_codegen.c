@@ -539,8 +539,15 @@ static void compare_codegen_output_generic(
     if( timingVal )
     {
         long long serverNs = strtoll(timingVal, NULL, 10);
+        if( outputNb == 0 && serverNs == 0 )
+            fprintf(stderr, "DEBUG timing_ns=0 for TA_%s, raw='%.20s'\n", p->funcInfo->name, timingVal);
         p->server_total_ns += serverNs;
         p->timing_count++;
+    }
+    else if( outputNb == 0 )
+    {
+        /* Debug: show first 120 chars of response when timing_ns is missing */
+        fprintf(stderr, "DEBUG no timing_ns for TA_%s: %.120s\n", p->funcInfo->name, p->responseBuf);
     }
 }
 

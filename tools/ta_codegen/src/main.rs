@@ -569,7 +569,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     // This handles forward declarations (e.g., MA calls SMA/EMA/WMA).
     let mut unity_src = String::new();
     unity_src.push_str("/* Unity build for shared library */\n");
-    unity_src.push_str("#include \"ta_func.h\"\n");
+    unity_src.push_str("#include \"ta_func.h\"\n\n");
 
     let mut c_names: Vec<String> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&c_dir) {

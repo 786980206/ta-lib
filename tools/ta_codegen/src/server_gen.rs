@@ -298,7 +298,7 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     s.push_str("#define TA_FUNC_UNST_NONE 99\n");
     s.push_str("int ta_unstable_period[TA_FUNC_UNST_ALL];\n");
     s.push_str("#define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]\n");
-    s.push_str("void TA_SetUnstablePeriod(int id, int period) {\n");
+    s.push_str("__attribute__((used)) void TA_SetUnstablePeriod(int id, int period) {\n");
     s.push_str("    if (id >= 0 && id < TA_FUNC_UNST_ALL) ta_unstable_period[id] = period;\n");
     s.push_str("}\n\n");
 
@@ -357,8 +357,10 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     s.push_str("#define TA_IS_ZERO(v) ((-(0.00000001)) < (v) && (v) < (0.00000001))\n");
     s.push_str("#define TA_IS_ZERO_OR_NEG(v) ((v) < (0.00000001))\n\n");
 
-    // Array operations
+    // Standard library includes
+    s.push_str("#include <stdlib.h>\n");
     s.push_str("#include <string.h>\n");
+    s.push_str("#include <math.h>\n");
     s.push_str("#define ARRAY_MEMMOVE(dst, dstIdx, src, srcIdx, count) \\\n");
     s.push_str("    memmove(&(dst)[dstIdx], &(src)[srcIdx], (count) * sizeof(double))\n");
     s.push_str("#define ARRAY_MEMMOVEMIX(dst, dstIdx, src, srcIdx, count) \\\n");
