@@ -3373,23 +3373,29 @@ fn render_func_call(
             "/* memset: bad args */".to_string()
         }
     } else if fname == "ta_candlerange" && args.len() == 5 {
-        // Emit runtime method call — rangeType is configurable, cannot constant-propagate.
-        let rendered_args: Vec<String> = args
-            .iter()
+        // Inline the full method body — all branches present, no constant propagation.
+        // ta_candlerange(rangeType, open, high, low, close)
+        let r: Vec<String> = args.iter()
             .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
+        let (rt, open, high, low, close) = (&r[0], &r[1], &r[2], &r[3], &r[4]);
         format!(
-            "self.ta_candlerange({}, {}, {}, {}, {})",
-            rendered_args[0], rendered_args[1], rendered_args[2],
-            rendered_args[3], rendered_args[4]
+            "(match {rt} {{ 0 => ({close} - {open}).abs(), 1 => {high} - {low}, _ => {high} - {low} - ({close} - {open}).abs() }})"
         )
     } else if fname == "ta_candleaverage" && args.len() == 8 {
-        // Emit runtime method call — rangeType is configurable, cannot constant-propagate.
-        let rendered_args: Vec<String> = args
-            .iter()
+        // Inline the full method body — all branches present, no constant propagation.
+        // ta_candleaverage(rangeType, avgPeriod, factor, sum, open, high, low, close)
+        let r: Vec<String> = args.iter()
             .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
-        format!("self.ta_candleaverage({})", rendered_args.join(", "))
+        let (rt, ap, factor, sum) = (&r[0], &r[1], &r[2], &r[3]);
+        let (open, high, low, close) = (&r[4], &r[5], &r[6], &r[7]);
+        format!(
+            "{{ let _cr = match {rt} {{ 0 => ({close} - {open}).abs(), 1 => {high} - {low}, _ => {high} - {low} - ({close} - {open}).abs() }}; \
+             let _avg = if {ap} != 0 {{ ({sum}) / ({ap} as f64) }} else {{ _cr }}; \
+             let _div = if {rt} == 2 {{ 2.0 }} else {{ 1.0 }}; \
+             ({factor}) * _avg / _div }}"
+        )
     } else if registry.contains(fname) {
         let rust_name = format!("{fname}_unguarded");
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
