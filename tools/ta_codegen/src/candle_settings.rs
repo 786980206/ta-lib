@@ -196,7 +196,7 @@ pub fn emit_c_unpacking(settings: &BTreeSet<String>, indent: usize) -> String {
 
 /// Emit Rust unpacking lines for the given candle settings.
 ///
-/// ```rust
+/// ```rust,ignore
 /// #[allow(non_snake_case)]
 /// let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
 /// ```

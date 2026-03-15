@@ -184,7 +184,7 @@ fn gen_lookback(
         }
 
         out.push_str(&format!(
-            "    pub fn {}_lookback(&self, {}) -> i32 {{\n",
+            "    pub fn {}_lookback(&self, {}) -> usize {{\n",
             snake,
             params.join(", ")
         ));
@@ -210,7 +210,7 @@ fn gen_lookback(
             }
         }
     } else {
-        out.push_str(&format!("    pub fn {snake}_lookback(&self) -> i32 {{\n"));
+        out.push_str(&format!("    pub fn {snake}_lookback(&self) -> usize {{\n"));
         match &func.lookback {
             Some(LookbackExpr::Literal(n)) => {
                 out.push_str(&format!("        return {n};\n"));
@@ -394,7 +394,7 @@ fn gen_unguarded_func(
             let needs_mut = total_assigns > 1;
             match var_type {
                 VarType::RealArray(size) => {
-                    let elem = if ctx.generic { "T::zero()" } else { "0.0_f64" };
+                    let elem = if ctx.generic { "T::ta_zero()" } else { "0.0_f64" };
                     let ty = if ctx.generic { "T" } else { "f64" };
                     out.push_str(&format!(
                         "        let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n"
@@ -410,8 +410,7 @@ fn gen_unguarded_func(
                         VarType::Real => {
                             if ctx.generic { "T" } else { "f64" }
                         }
-                        VarType::Integer => "i32",
-                        VarType::Index => "usize",
+                        VarType::Integer | VarType::Index => "usize",
                         VarType::RetCodeType => "RetCode",
                         VarType::RealPointer => {
                             if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
@@ -613,7 +612,7 @@ fn gen_opt_param_validation(opt: &OptInput, pad: &str, is_lookback: bool) -> Str
 
             if let Some((lo, hi)) = opt.range {
                 let err_return = if is_lookback {
-                    "return -1;"
+                    "return usize::MAX;"
                 } else {
                     "return RetCode::BadParam;"
                 };
@@ -661,7 +660,12 @@ fn count_assignments_inner(name: &str, body: &[Statement], in_loop: bool) -> usi
             } => {
                 count += count_assignments_inner(name, while_body, true);
             }
-            Statement::For { body: for_body, .. } | Statement::ForC { body: for_body, .. } => {
+            Statement::For { body: for_body, .. } => {
+                count += count_assignments_inner(name, for_body, true);
+            }
+            Statement::ForC { init, update, body: for_body, .. } => {
+                count += count_assignments_inner(name, &[init.as_ref().clone()], in_loop);
+                count += count_assignments_inner(name, &[update.as_ref().clone()], true);
                 count += count_assignments_inner(name, for_body, true);
             }
             Statement::Block { body: block_body } => {
@@ -818,7 +822,7 @@ fn render_hoisted_blocks(
     for (temp_name, var_type, body) in hoisted {
         let decl_line = match var_type {
             VarType::RealArray(size) => {
-                let elem = if ctx.generic { "T::zero()" } else { "0.0_f64" };
+                let elem = if ctx.generic { "T::ta_zero()" } else { "0.0_f64" };
                 let ty = if ctx.generic { "T" } else { "f64" };
                 format!("{pad}let mut {temp_name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n")
             }
@@ -830,8 +834,7 @@ fn render_hoisted_blocks(
                     VarType::Real => {
                         if ctx.generic { "T" } else { "f64" }
                     }
-                    VarType::Integer => "i32",
-                    VarType::Index => "usize",
+                    VarType::Integer | VarType::Index => "usize",
                     VarType::RetCodeType => "RetCode",
                     VarType::RealPointer => {
                         if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
@@ -843,6 +846,38 @@ fn render_hoisted_blocks(
             }
         };
         out.push_str(&decl_line);
+        // Emit VarDecl statements from the hoisted body (these are local vars
+        // of the helper function that need inline declaration)
+        for stmt in body {
+            if let Statement::VarDecl { var_type: vt, name, .. } = stmt {
+                let local_type = match vt {
+                    VarType::Real => {
+                        if ctx.generic { "T" } else { "f64" }
+                    }
+                    VarType::Integer | VarType::Index => "usize",
+                    VarType::RetCodeType => "RetCode",
+                    VarType::RealPointer => {
+                        if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+                    }
+                    VarType::IntPointer => "Vec<i32>",
+                    VarType::RealArray(size) => {
+                        out.push_str(&format!(
+                            "{pad}let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n",
+                            ty = if ctx.generic { "T" } else { "f64" },
+                            elem = if ctx.generic { "T::ta_zero()" } else { "0.0_f64" },
+                        ));
+                        continue;
+                    }
+                    VarType::IntArray(size) => {
+                        out.push_str(&format!(
+                            "{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n"
+                        ));
+                        continue;
+                    }
+                };
+                out.push_str(&format!("{pad}let mut {name}: {local_type};\n"));
+            }
+        }
         for stmt in body {
             out.push_str(&render_statement(
                 stmt,
@@ -878,7 +913,38 @@ pub fn render_statement(
 ) -> String {
     let pad = " ".repeat(indent);
     match stmt {
-        Statement::VarDecl { .. } => String::new(),
+        Statement::VarDecl { var_type, name, .. } => {
+            // VarDecl at function top-level is handled by the separate declaration pass.
+            // VarDecl inside blocks/loops/ifs needs inline declaration.
+            // We always emit here; the top-level pass skips VarDecls to avoid duplicates.
+            // The top-level code pre-emits declarations for all body-level VarDecls,
+            // so if this VarDecl is at top level, this is a no-op duplicate that will
+            // be filtered by the caller. For nested VarDecls (inside blocks), this is needed.
+            if indent <= 8 {
+                // Top-level VarDecl already handled
+                return String::new();
+            }
+            let rust_type = match var_type {
+                VarType::Real => {
+                    if ctx.generic { "T" } else { "f64" }
+                }
+                VarType::Integer | VarType::Index => "usize",
+                VarType::RetCodeType => "RetCode",
+                VarType::RealPointer => {
+                    if ctx.generic { "Vec<T>" } else { "Vec<f64>" }
+                }
+                VarType::IntPointer => "Vec<i32>",
+                VarType::RealArray(size) => {
+                    let elem = if ctx.generic { "T::ta_zero()" } else { "0.0_f64" };
+                    let ty = if ctx.generic { "T" } else { "f64" };
+                    return format!("{pad}let mut {name}: [{ty}; {size} as usize] = [{elem}; {size} as usize];\n");
+                }
+                VarType::IntArray(size) => {
+                    return format!("{pad}let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n");
+                }
+            };
+            format!("{pad}let mut {name}: {rust_type};\n")
+        }
         Statement::Block { body: block_body } => {
             let mut out = String::new();
             for s in block_body {
@@ -965,46 +1031,57 @@ pub fn render_statement(
                 }
             }
             // Generic fallback: init; while cond { body; update; }
-            let init_str = render_statement(
-                init,
-                0,
-                ctx,
-                for_loop_vars,
-                var_inits,
-                output_names,
-                opt_real_params,
-                enums,
-                registry,
-                helpers,
-            inline_counter,
-            );
-            let init_trimmed = init_str.trim().trim_end_matches(';');
-            let update_str = render_statement(
-                update,
-                0,
-                ctx,
-                for_loop_vars,
-                var_inits,
-                output_names,
-                opt_real_params,
-                enums,
-                registry,
-                helpers,
-            inline_counter,
-            );
-            let update_trimmed = update_str.trim().trim_end_matches(';');
+            // Collect init statements (may be a Block with multiple assigns)
+            let init_stmts = match init.as_ref() {
+                Statement::Block { body: block_body } => block_body.clone(),
+                other => vec![other.clone()],
+            };
+            // Collect update statements (may be a Block with multiple assigns)
+            let update_stmts = match update.as_ref() {
+                Statement::Block { body: block_body } => block_body.clone(),
+                other => vec![other.clone()],
+            };
+            let cond_str =
+                render_expr(condition, ctx, opt_real_params, registry, helpers);
+            // Build single-line comment summarizing the original C for loop
+            let init_parts: Vec<String> = init_stmts
+                .iter()
+                .map(|s| {
+                    render_statement(
+                        s, 0, ctx, for_loop_vars, var_inits, output_names,
+                        opt_real_params, enums, registry, helpers, inline_counter,
+                    )
+                    .trim()
+                    .trim_end_matches(';')
+                    .to_string()
+                })
+                .collect();
+            let update_parts: Vec<String> = update_stmts
+                .iter()
+                .map(|s| {
+                    render_statement(
+                        s, 0, ctx, for_loop_vars, var_inits, output_names,
+                        opt_real_params, enums, registry, helpers, inline_counter,
+                    )
+                    .trim()
+                    .trim_end_matches(';')
+                    .to_string()
+                })
+                .collect();
             let mut out = format!(
-                "{}// for( {}; {}; {} )\n",
-                pad,
-                init_trimmed,
-                render_expr(condition, ctx, opt_real_params, registry, helpers),
-                update_trimmed
+                "{pad}// for( {}; {cond_str}; {} )\n",
+                init_parts.join(", "),
+                update_parts.join(", "),
             );
-            out.push_str(&format!("{pad}{init_trimmed};\n"));
+            // Emit init statements
+            for s in &init_stmts {
+                out.push_str(&render_statement(
+                    s, indent, ctx, for_loop_vars, var_inits, output_names,
+                    opt_real_params, enums, registry, helpers, inline_counter,
+                ));
+            }
             out.push_str(&format!(
-                "{}while {} {{\n",
-                pad,
-                render_expr(condition, ctx, opt_real_params, registry, helpers)
+                "{pad}while {cond_str} {{\n"
             ));
             for s in for_body {
                 out.push_str(&render_statement(
@@ -1021,7 +1098,13 @@ pub fn render_statement(
                 inline_counter,
                 ));
             }
-            out.push_str(&format!("{pad}    {update_trimmed};\n"));
+            // Emit update statements inside the while body
+            for s in &update_stmts {
+                out.push_str(&render_statement(
+                    s, indent + 4, ctx, for_loop_vars, var_inits, output_names,
+                    opt_real_params, enums, registry, helpers, inline_counter,
+                ));
+            }
             out.push_str(&format!("{pad}}}\n"));
             out
         }
@@ -1393,9 +1476,9 @@ fn render_assign_target(
         }
         Expr::Var(name) => name.clone(),
         Expr::ArrayAccess(name, idx) => {
-            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry, helpers);
+            let idx_rendered = render_index_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
-                format!("*{name}.get_unchecked_mut({idx_rendered})")
+                format!("(*{name}.get_unchecked_mut({idx_rendered}))")
             } else {
                 format!("{name}[{idx_rendered}]")
             }
@@ -1446,6 +1529,23 @@ fn render_binop_operand(
             } else {
                 render_expr(expr, ctx, opt_real_params, registry, helpers)
             }
+        }
+        Expr::Ternary(_, _, _) if matches!(parent_op, BinOp::And | BinOp::Or) => {
+            // Ternary producing integer 1/0 used in boolean context needs != 0
+            let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+            format!("({rendered} != 0)")
+        }
+        Expr::FuncCall(fname, args) if matches!(parent_op, BinOp::And | BinOp::Or) => {
+            // Check if this is a helper function that inlines to a ternary returning 1/0
+            if let Some(helper) = helpers.get(fname) {
+                if let Some(inlined) = try_inline_expr(helper, args) {
+                    if matches!(inlined, Expr::Ternary(_, _, _)) {
+                        let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+                        return format!("({rendered} != 0)");
+                    }
+                }
+            }
+            render_expr(expr, ctx, opt_real_params, registry, helpers)
         }
         Expr::Literal(_)
         | Expr::IntLiteral(_)
@@ -1518,6 +1618,15 @@ fn render_expr(
             "SUCCESS" => "RetCode::Success".to_string(),
             "ALLOC_ERR" => "RetCode::AllocErr".to_string(),
             "INTERNAL_ERROR" => "RetCode::InternalError".to_string(),
+            "TA_MAType_SMA" => "0".to_string(),
+            "TA_MAType_EMA" => "1".to_string(),
+            "TA_MAType_WMA" => "2".to_string(),
+            "TA_MAType_DEMA" => "3".to_string(),
+            "TA_MAType_TEMA" => "4".to_string(),
+            "TA_MAType_TRIMA" => "5".to_string(),
+            "TA_MAType_KAMA" => "6".to_string(),
+            "TA_MAType_MAMA" => "7".to_string(),
+            "TA_MAType_T3" => "8".to_string(),
             _ => {
                 if ctx.generic && opt_real_params.contains(name) {
                     format!("T::ta_from_f64({name})")
@@ -1527,9 +1636,9 @@ fn render_expr(
             }
         },
         Expr::ArrayAccess(name, idx) => {
-            let idx_rendered = render_expr(idx, ctx, opt_real_params, registry, helpers);
+            let idx_rendered = render_index_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
-                format!("*{name}.get_unchecked({idx_rendered})")
+                format!("(*{name}.get_unchecked({idx_rendered}))")
             } else {
                 format!("{name}[{idx_rendered}]")
             }
@@ -1555,28 +1664,88 @@ fn render_expr(
                 BinOp::Shr => " >> ",
                 BinOp::Shl => " << ",
             };
-            let left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
-            let right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
+            let is_arithmetic = matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod);
+            let mut left_str = render_binop_operand(left, op, true, ctx, opt_real_params, registry, helpers);
+            let mut right_str = render_binop_operand(right, op, false, ctx, opt_real_params, registry, helpers);
+            if is_arithmetic {
+                let left_is_float = expr_is_float_typed(left);
+                let right_is_float = expr_is_float_typed(right);
+                let left_is_i32 = expr_is_i32_typed(left);
+                let right_is_i32 = expr_is_i32_typed(right);
+                let left_is_int_lit = matches!(left.as_ref(), Expr::IntLiteral(_));
+                let right_is_int_lit = matches!(right.as_ref(), Expr::IntLiteral(_));
+
+                if ctx.generic {
+                    // Wrap IntLiterals with T::ta_from_i32() when doing arithmetic with T-typed expressions
+                    if left_is_int_lit && right_is_float {
+                        if let Expr::IntLiteral(v) = left.as_ref() {
+                            left_str = format!("T::ta_from_i32({v})");
+                        }
+                    }
+                    if right_is_int_lit && left_is_float {
+                        if let Expr::IntLiteral(v) = right.as_ref() {
+                            right_str = format!("T::ta_from_i32({v})");
+                        }
+                    }
+                    // Wrap i32 variables with T::ta_from_i32() when doing arithmetic with T-typed expressions
+                    if left_is_i32 && right_is_float && !left_is_int_lit {
+                        left_str = format!("T::ta_from_i32({left_str})");
+                    }
+                    if right_is_i32 && left_is_float && !right_is_int_lit {
+                        right_str = format!("T::ta_from_i32({right_str})");
+                    }
+                }
+                // Cast i32 operands to usize when mixed with usize-typed operands (not float)
+                let left_is_usize = !left_is_i32 && !left_is_float && !left_is_int_lit;
+                let right_is_usize = !right_is_i32 && !right_is_float && !right_is_int_lit;
+                if left_is_i32 && right_is_usize {
+                    left_str = format!("({left_str}) as usize");
+                }
+                if right_is_i32 && left_is_usize {
+                    right_str = format!("({right_str}) as usize");
+                }
+            }
+            // For comparison operators, cast i32 to usize when mixed (not float)
+            if matches!(op, BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq | BinOp::Eq | BinOp::NotEq) {
+                let left_is_i32 = expr_is_i32_typed(left);
+                let right_is_i32 = expr_is_i32_typed(right);
+                if left_is_i32 && !right_is_i32 && !expr_is_float_typed(right) {
+                    left_str = format!("({left_str}) as usize");
+                }
+                if right_is_i32 && !left_is_i32 && !expr_is_float_typed(left) {
+                    right_str = format!("({right_str}) as usize");
+                }
+            }
             format!("{left_str}{op_str}{right_str}")
         }
         Expr::Cast(var_type, inner) => {
             if ctx.generic && *var_type == VarType::Real {
                 if expr_is_integer(inner) {
-                    format!(
-                        "T::ta_from_i32({})",
-                        render_expr(inner, ctx, opt_real_params, registry, helpers)
-                    )
+                    let rendered = render_expr(inner, ctx, opt_real_params, registry, helpers);
+                    // optIn* params are i32, other integer-typed vars are usize after our mapping
+                    if expr_is_i32_typed(inner) || matches!(inner.as_ref(), Expr::IntLiteral(_)) {
+                        format!("T::ta_from_i32({rendered})")
+                    } else {
+                        format!("T::ta_from_i32(({rendered}) as i32)")
+                    }
                 } else {
                     format!(
                         "T::ta_from_f64(({}).ta_to_f64())",
                         render_expr(inner, ctx, opt_real_params, registry, helpers)
                     )
                 }
+            } else if ctx.generic && matches!(var_type, VarType::Integer | VarType::Index)
+                && expr_is_float_typed(inner)
+            {
+                // T -> usize requires going through f64 first
+                format!(
+                    "({}).ta_to_f64() as usize",
+                    render_expr(inner, ctx, opt_real_params, registry, helpers)
+                )
             } else {
                 let rust_type = match var_type {
                     VarType::Real => "f64",
-                    VarType::Integer => "i32",
-                    VarType::Index => "usize",
+                    VarType::Integer | VarType::Index => "usize",
                     VarType::RetCodeType => "RetCode",
                     VarType::RealPointer | VarType::IntPointer => "/* ptr cast */",
                     VarType::RealArray(_) | VarType::IntArray(_) => "/* array cast */",
@@ -1624,11 +1793,106 @@ fn render_expr(
 }
 
 /// Check if an expression is clearly integer-typed (for Cast optimization in generic mode).
+/// When true, `T::ta_from_i32(expr as i32)` will be used instead of `T::ta_from_f64(expr.ta_to_f64())`.
 fn expr_is_integer(expr: &Expr) -> bool {
-    matches!(
-        expr,
-        Expr::IntLiteral(_) | Expr::Cast(VarType::Integer | VarType::Index, _)
-    )
+    match expr {
+        Expr::IntLiteral(_) => true,
+        Expr::Var(name) => {
+            name.starts_with("optIn") || name.ends_with("_avgPeriod")
+                || name.ends_with("_rangeType")
+        }
+        Expr::Cast(VarType::Integer | VarType::Index, _) => true,
+        Expr::BinOp(left, _, right) => expr_is_integer(left) && expr_is_integer(right),
+        _ => false,
+    }
+}
+
+/// Check if an expression is likely T-typed (float/Real) in generic context.
+/// Used to decide whether an IntLiteral should be wrapped with `T::ta_from_i32()`.
+/// Conservative: only returns true when there's strong evidence the expression produces T.
+fn expr_is_float_typed(expr: &Expr) -> bool {
+    match expr {
+        Expr::Literal(_) => true,
+        Expr::Var(name) => {
+            // Only match known float-typed variable patterns.
+            // Exclude anything that could be an integer/index variable.
+            name.starts_with("temp") || name.starts_with("prev")
+                || name.starts_with("sum") || name.starts_with("diff")
+                || name.ends_with("PeriodTotal")
+                || name == "k" || name == "k1"
+                || name.starts_with("factor") || name.ends_with("_factor")
+                || name.starts_with("_true_range")
+                || name.starts_with("_candlerange")
+                || name.starts_with("_periodTotal")
+                || name.starts_with("_meanValue")
+                || name.starts_with("_tempReal")
+        }
+        Expr::ArrayAccess(name, _) => {
+            // Real arrays: input arrays, temp buffers, output Real arrays
+            name.starts_with("in") || name.starts_with("temp")
+                || (name.starts_with("out") && !name.contains("Int") && !name.contains("integer"))
+                || name.contains("_Odd") || name.contains("_Even")
+                || name.starts_with("detrender") || name.starts_with("Q1")
+                || name.starts_with("jI") || name.starts_with("jQ")
+        }
+        Expr::FuncCall(name, _) => {
+            // Math functions and ta_ methods return T
+            name.starts_with("ta_") || name.contains("_from_")
+                || matches!(name.as_str(),
+                    "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan"
+                    | "exp" | "log" | "log10" | "ceil" | "floor" | "abs" | "fabs"
+                    | "cosh" | "sinh" | "tanh" | "max" | "fmax" | "min" | "fmin"
+                    | "IS_ZERO" | "PER_TO_K"
+                )
+        }
+        Expr::BinOp(left, op, right) => {
+            matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div)
+                && (expr_is_float_typed(left) || expr_is_float_typed(right))
+        }
+        Expr::Cast(VarType::Real, _) => true,
+        Expr::Ternary(_, then_expr, _) => expr_is_float_typed(then_expr),
+        _ => false,
+    }
+}
+
+/// Check if an expression is likely i32-typed (optIn params, unstable_period access, etc.)
+fn expr_is_i32_typed(expr: &Expr) -> bool {
+    match expr {
+        Expr::Var(name) => {
+            name.starts_with("optIn") || name.ends_with("_avgPeriod")
+                || name.ends_with("_rangeType")
+        }
+        Expr::FuncCall(name, _) => {
+            name == "UNSTABLE_PERIOD"
+        }
+        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) => {
+            expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
+                || expr_is_i32_typed(right) && matches!(left.as_ref(), Expr::IntLiteral(_))
+        }
+        Expr::Cast(VarType::Integer, _) => true,
+        _ => false,
+    }
+}
+
+/// Check if an expression is already usize-typed (to avoid redundant `as usize` casts).
+fn expr_is_usize(expr: &Expr) -> bool {
+    matches!(expr, Expr::Cast(VarType::Index | VarType::Integer, _))
+}
+
+/// Render an array index expression, adding `as usize` when needed.
+fn render_index_expr(
+    idx: &Expr,
+    ctx: &RustRenderCtx,
+    opt_real_params: &[String],
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    let rendered = render_expr(idx, ctx, opt_real_params, registry, helpers);
+    if expr_is_usize(idx) {
+        rendered
+    } else {
+        format!("({rendered}) as usize")
+    }
 }
 
 /// Render a complex lookback body (`LookbackExpr::Code`) into Rust code.
@@ -1663,8 +1927,7 @@ fn render_lookback_code(
                 _ => {
                     let rust_type = match var_type {
                         VarType::Real => "f64",
-                        VarType::Integer => "i32",
-                        VarType::Index => "usize",
+                        VarType::Integer | VarType::Index => "usize",
                         VarType::RetCodeType => "RetCode",
                         VarType::RealPointer => "Vec<f64>",
                         VarType::IntPointer => "Vec<i32>",
@@ -1711,12 +1974,32 @@ fn render_lookback_code(
 }
 
 fn to_pascal_case(s: &str) -> String {
-    let lower = s.to_lowercase();
-    let mut chars = lower.chars();
-    match chars.next() {
-        None => String::new(),
-        Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+    // Direct mapping for known FuncUnstId names
+    match s {
+        "HT_DCPERIOD" => return "HtDcPeriod".to_string(),
+        "HT_DCPHASE" => return "HtDcPhase".to_string(),
+        "HT_PHASOR" => return "HtPhasor".to_string(),
+        "HT_SINE" => return "HtSine".to_string(),
+        "HT_TRENDLINE" => return "HtTrendline".to_string(),
+        "HT_TRENDMODE" => return "HtTrendMode".to_string(),
+        "MINUS_DI" => return "MinusDI".to_string(),
+        "MINUS_DM" => return "MinusDM".to_string(),
+        "PLUS_DI" => return "PlusDI".to_string(),
+        "PLUS_DM" => return "PlusDM".to_string(),
+        "STOCH_RSI" | "STOCHRSI" => return "StochRsi".to_string(),
+        _ => {}
     }
+    s.split('_')
+        .filter(|part| !part.is_empty())
+        .map(|part| {
+            let lower = part.to_lowercase();
+            let mut chars = lower.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect()
 }
 
 /// Known math functions that map to `TaFloat` trait methods (generic) or `f64` methods (concrete).
@@ -1755,15 +2038,12 @@ fn decompose_rust_array_ref(
     helpers: &HelperRegistry,
 ) -> (String, String) {
     match expr {
-        Expr::AddressOf(inner) => match inner.as_ref() {
-            Expr::ArrayAccess(name, offset) => {
-                let off = render_expr(offset, ctx, opt_real_params, registry, helpers);
-                (name.clone(), off)
-            }
-            _ => {
-                let s = render_expr(expr, ctx, opt_real_params, registry, helpers);
-                (s, "0".to_string())
-            }
+        Expr::AddressOf(inner) => if let Expr::ArrayAccess(name, offset) = inner.as_ref() {
+            let off = render_index_expr(offset, ctx, opt_real_params, registry, helpers);
+            (name.clone(), off)
+        } else {
+            let s = render_expr(expr, ctx, opt_real_params, registry, helpers);
+            (s, "0".to_string())
         },
         Expr::Var(name) => (name.clone(), "0".to_string()),
         _ => {
@@ -1876,14 +2156,17 @@ fn render_func_call(
             if ctx.generic {
                 let method = if fname == "fabs" || fname == "ABS" {
                     "ta_abs".to_string()
+                } else if fname == "log" {
+                    "ta_ln".to_string()
                 } else {
                     format!("ta_{fname}")
                 };
                 return format!("{x}.{method}()");
             }
-            // Concrete (non-generic) path: use f64 method call syntax; fabs/ABS -> abs
+            // Concrete (non-generic) path: use f64 method call syntax; fabs/ABS -> abs, log -> ln
             let method = match fname {
                 "fabs" | "ABS" => "abs",
+                "log" => "ln",
                 other => other,
             };
             return format!("({x}).{method}()");
@@ -1901,7 +2184,7 @@ fn render_func_call(
                 Some("int") => format!("vec![0_i32; ({size}) as usize]"),
                 _ => {
                     if ctx.generic {
-                        format!("vec![T::default(); ({size}) as usize]")
+                        format!("vec![T::ta_zero(); ({size}) as usize]")
                     } else {
                         format!("vec![0.0_f64; ({size}) as usize]")
                     }
@@ -1941,7 +2224,7 @@ fn render_func_call(
                 Some("int") => "0_i32".to_string(),
                 _ => {
                     if ctx.generic {
-                        "T::default()".to_string()
+                        "T::ta_zero()".to_string()
                     } else {
                         "0.0_f64".to_string()
                     }
@@ -1956,6 +2239,12 @@ fn render_func_call(
         } else {
             "/* memset: bad args */".to_string()
         }
+    } else if fname == "ta_candleaverage" || fname == "ta_candlerange" {
+        let rendered_args: Vec<String> = args
+            .iter()
+            .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
+            .collect();
+        format!("self.{}({})", fname, rendered_args.join(", "))
     } else if registry.contains(fname) {
         let rust_name = if ctx.generic {
             format!("{fname}_unguarded")
