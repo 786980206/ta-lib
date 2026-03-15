@@ -65,7 +65,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -247,7 +247,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -435,7 +435,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -617,7 +617,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {

@@ -172,7 +172,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_INT_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -183,7 +183,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -324,7 +324,7 @@ TA_LIB_API TA_RetCode TA_STOCH_Logic( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_INT_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -335,7 +335,7 @@ TA_LIB_API TA_RetCode TA_STOCH_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -483,7 +483,7 @@ TA_RetCode TA_S_STOCH( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_INT_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -494,7 +494,7 @@ TA_RetCode TA_S_STOCH( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -635,7 +635,7 @@ TA_RetCode TA_S_STOCH_Logic( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_INT_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -646,7 +646,7 @@ TA_RetCode TA_S_STOCH_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {

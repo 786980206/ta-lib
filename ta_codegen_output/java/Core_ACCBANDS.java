@@ -57,19 +57,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -126,19 +126,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -201,19 +201,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -270,19 +270,19 @@
             tempBuffer2[j] = inLow[i];
          }
       }
-      retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+      retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+      retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
       if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;

@@ -112,7 +112,7 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_INT_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -208,7 +208,7 @@ TA_LIB_API TA_RetCode TA_MAVP_Logic( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_INT_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -311,7 +311,7 @@ TA_RetCode TA_S_MAVP( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_INT_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -407,7 +407,7 @@ TA_RetCode TA_S_MAVP_Logic( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_INT_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);

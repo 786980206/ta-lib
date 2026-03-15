@@ -108,53 +108,6 @@ impl Core {
         let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inHigh[i] + inLow[i] + inClose[i]) / 3.0) as f64);
-        }
-        i = (endIdx as usize) + 1;
-        (*outNBElement) = outIdx;
-        (*outBegIdx) = startIdx;
-        return RetCode::Success;
-    }
-    pub unsafe fn typprice_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inHigh: &[f64],
-        inLow: &[f64],
-        inClose: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        return self.typprice_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn typprice_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inHigh: &[f64],
-        inLow: &[f64],
-        inClose: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        let mut outIdx: usize = 0_usize;
-        let mut i: usize = 0_usize;
-        outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
             (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3.0) as f64);
         }
         i = (endIdx as usize) + 1;

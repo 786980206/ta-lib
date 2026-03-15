@@ -78,16 +78,16 @@ TA_LIB_API TA_RetCode TA_ATR( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_INT_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_INT_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_INT_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
@@ -153,16 +153,16 @@ TA_LIB_API TA_RetCode TA_ATR_Logic( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_INT_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_INT_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_INT_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
@@ -235,16 +235,16 @@ TA_RetCode TA_S_ATR( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_INT_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_INT_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_INT_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
@@ -310,16 +310,16 @@ TA_RetCode TA_S_ATR_Logic( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_INT_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_INT_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_INT_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);

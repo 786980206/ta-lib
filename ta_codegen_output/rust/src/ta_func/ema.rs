@@ -91,15 +91,7 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.ema_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        return ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
     }
     pub fn ema_unguarded(
         &self,
@@ -107,98 +99,17 @@ impl Core {
         endIdx: usize,
         inReal: &[f64],
         mut optInTimePeriod: i32,
+        optInK_1: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
         let mut tempReal: f64 = 0.0_f64;
         let mut prevMA: f64 = 0.0_f64;
-        let mut optInK_1: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        optInK_1 = 2.0 / ((optInTimePeriod + 1) as f64);
-        lookbackTotal = self.ema_lookback(optInTimePeriod);
-        if startIdx < lookbackTotal {
-            startIdx = lookbackTotal;
-        }
-        if startIdx > endIdx {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return RetCode::Success;
-        }
-        (*outBegIdx) = startIdx;
-        if self.compatibility == Compatibility::Default {
-            today = startIdx - lookbackTotal;
-            i = (optInTimePeriod) as usize;
-            tempReal = 0.0;
-            while { let _v = i; i -= 1; _v } > 0 {
-                tempReal += inReal[{ let _v = today; today += 1; _v }];
-            }
-            prevMA = tempReal / ((optInTimePeriod) as f64);
-        } else {
-            prevMA = inReal[0];
-            today = 1;
-        }
-        while today <= startIdx {
-            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * ((optInK_1) as f64) + prevMA;
-        }
-        outReal[0] = prevMA;
-        outIdx = 1;
-        while today <= endIdx {
-            prevMA = (inReal[{ let _v = today; today += 1; _v }] - prevMA) * ((optInK_1) as f64) + prevMA;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevMA;
-        }
-        (*outNBElement) = outIdx;
-        return RetCode::Success;
-    }
-    pub unsafe fn ema_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInTimePeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        if ((optInTimePeriod) as i32) == (i32::MIN) {
-            optInTimePeriod = 30;
-        } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
-            return RetCode::BadParam;
-        }
-        return self.ema_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn ema_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInTimePeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        let mut tempReal: f64 = 0.0_f64;
-        let mut prevMA: f64 = 0.0_f64;
-        let mut optInK_1: f64 = 0.0_f64;
-        let mut i: usize = 0_usize;
-        let mut today: usize = 0_usize;
-        let mut outIdx: usize = 0_usize;
-        let mut lookbackTotal: usize = 0_usize;
-        optInK_1 = 2.0 / ((optInTimePeriod + 1) as f64);
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

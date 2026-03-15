@@ -121,52 +121,6 @@ impl Core {
     ) -> RetCode {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
     }
-    pub unsafe fn macdfix_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInSignalPeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outMACD: &mut [f64],
-        outMACDSignal: &mut [f64],
-        outMACDHist: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        if ((optInSignalPeriod) as i32) == (i32::MIN) {
-            optInSignalPeriod = 9;
-        } else if (((optInSignalPeriod) as i32) < 1) || (((optInSignalPeriod) as i32) > 100000) {
-            return RetCode::BadParam;
-        }
-        return self.macdfix_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inReal,
-            optInSignalPeriod,
-            outBegIdx,
-            outNBElement,
-            outMACD,
-            outMACDSignal,
-            outMACDHist,
-        );
-    }
-    pub unsafe fn macdfix_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInSignalPeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outMACD: &mut [f64],
-        outMACDSignal: &mut [f64],
-        outMACDHist: &mut [f64],
-    ) -> RetCode {
-        return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
-    }
 }
 /* Generated */
 

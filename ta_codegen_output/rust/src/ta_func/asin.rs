@@ -102,50 +102,6 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            outReal[outIdx] = (((inReal[i]).asin()) as f64);
-            i += 1;
-            outIdx += 1;
-        }
-        (*outNBElement) = outIdx;
-        (*outBegIdx) = startIdx;
-        return RetCode::Success;
-    }
-    pub unsafe fn asin_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        return self.asin_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inReal,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn asin_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        let mut outIdx: usize = 0_usize;
-        let mut i: usize = 0_usize;
-        // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
-        i = startIdx;
-        outIdx = 0;
-        while i <= endIdx {
             (*outReal.get_unchecked_mut(outIdx)) = ((((*inReal.get_unchecked(i))).asin()) as f64);
             i += 1;
             outIdx += 1;

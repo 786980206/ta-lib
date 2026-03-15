@@ -45,7 +45,7 @@
       if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
          return RetCode.BadParam ;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+      retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
@@ -83,7 +83,7 @@
             }
          }
       } else {
-         retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+         retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;
@@ -167,7 +167,7 @@
       if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
          return RetCode.BadParam ;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+      retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
@@ -205,7 +205,7 @@
             }
          }
       } else {
-         retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+         retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;
@@ -295,7 +295,7 @@
       if( (false||false) ) {
          return RetCode.BadParam ;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+      retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
@@ -333,7 +333,7 @@
             }
          }
       } else {
-         retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+         retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;
@@ -417,7 +417,7 @@
       if( (false||false) ) {
          return RetCode.BadParam ;
       }
-      retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+      retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
       if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
          outNBElement.value = 0;
          return retCode ;
@@ -455,7 +455,7 @@
             }
          }
       } else {
-         retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+         retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
          if( (retCode!=RetCode.Success) ) {
             outNBElement.value = 0;
             return retCode ;

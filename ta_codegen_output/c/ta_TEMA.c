@@ -89,7 +89,7 @@ TA_LIB_API TA_RetCode TA_TEMA( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       free(firstEMA);
@@ -101,14 +101,14 @@ TA_LIB_API TA_RetCode TA_TEMA( int    startIdx,
       free(firstEMA);
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       free(firstEMA);
       free(secondEMA);
       return retCode;
    }
-   retCode = TA_INT_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
+   retCode = TA_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
    if( ((retCode!=TA_SUCCESS)||(thirdEMANbElement==0)) )
    {
       free(firstEMA);
@@ -174,7 +174,7 @@ TA_LIB_API TA_RetCode TA_TEMA_Logic( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       free(firstEMA);
@@ -186,14 +186,14 @@ TA_LIB_API TA_RetCode TA_TEMA_Logic( int    startIdx,
       free(firstEMA);
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       free(firstEMA);
       free(secondEMA);
       return retCode;
    }
-   retCode = TA_INT_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
+   retCode = TA_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
    if( ((retCode!=TA_SUCCESS)||(thirdEMANbElement==0)) )
    {
       free(firstEMA);
@@ -266,7 +266,7 @@ TA_RetCode TA_S_TEMA( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       free(firstEMA);
@@ -278,14 +278,14 @@ TA_RetCode TA_S_TEMA( int    startIdx,
       free(firstEMA);
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       free(firstEMA);
       free(secondEMA);
       return retCode;
    }
-   retCode = TA_INT_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
+   retCode = TA_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
    if( ((retCode!=TA_SUCCESS)||(thirdEMANbElement==0)) )
    {
       free(firstEMA);
@@ -351,7 +351,7 @@ TA_RetCode TA_S_TEMA_Logic( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_EMA((startIdx-(lookbackEMA*2)),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       free(firstEMA);
@@ -363,14 +363,14 @@ TA_RetCode TA_S_TEMA_Logic( int    startIdx,
       free(firstEMA);
       return TA_ALLOC_ERR;
    }
-   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       free(firstEMA);
       free(secondEMA);
       return retCode;
    }
-   retCode = TA_INT_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
+   retCode = TA_EMA(0,(secondEMANbElement-1),secondEMA,optInTimePeriod,&thirdEMABegIdx,&thirdEMANbElement,outReal);
    if( ((retCode!=TA_SUCCESS)||(thirdEMANbElement==0)) )
    {
       free(firstEMA);

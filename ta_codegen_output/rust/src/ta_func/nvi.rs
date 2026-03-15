@@ -104,43 +104,6 @@ impl Core {
         (*outNBElement) = 0;
         return RetCode::Success;
     }
-    pub unsafe fn nvi_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inClose: &[f64],
-        inVolume: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        return self.nvi_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inClose,
-            inVolume,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn nvi_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inClose: &[f64],
-        inVolume: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        (*outBegIdx) = 0;
-        (*outNBElement) = 0;
-        return RetCode::Success;
-    }
 }
 /* Generated */
 

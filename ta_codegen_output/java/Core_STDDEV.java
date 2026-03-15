@@ -22,7 +22,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -59,7 +59,7 @@
       int i = 0;
       RetCode retCode;
       double tempReal = 0;
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -102,7 +102,7 @@
       if( (endIdx < 0) || (endIdx < startIdx)) {
          return RetCode.OutOfRangeEndIndex ;
       }
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -139,7 +139,7 @@
       int i = 0;
       RetCode retCode;
       double tempReal = 0;
-      retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+      retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }

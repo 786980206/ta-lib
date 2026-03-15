@@ -30,6 +30,8 @@
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
+      double slowK = 0;
+      double fastK = 0;
       int lookbackTotal = 0;
       int lookbackSignal = 0;
       int i = 0;
@@ -46,9 +48,15 @@
       }
       if( (optInSlowPeriod==0) ) {
          optInSlowPeriod = 26;
+         slowK = 0.075;
+      } else {
+         slowK = (2.0/((double)(optInSlowPeriod+1)));
       }
       if( (optInFastPeriod==0) ) {
          optInFastPeriod = 12;
+         fastK = 0.15;
+      } else {
+         fastK = (2.0/((double)(optInFastPeriod+1)));
       }
       lookbackSignal = emaLookback(optInSignalPeriod);
       lookbackTotal = lookbackSignal;
@@ -65,13 +73,13 @@
       fastEMABuffer = new double[(int)((tempInteger*1))];
       slowEMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -86,7 +94,7 @@
          fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
       }
       System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -119,6 +127,8 @@
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
+      double slowK = 0;
+      double fastK = 0;
       int lookbackTotal = 0;
       int lookbackSignal = 0;
       int i = 0;
@@ -129,9 +139,15 @@
       }
       if( (optInSlowPeriod==0) ) {
          optInSlowPeriod = 26;
+         slowK = 0.075;
+      } else {
+         slowK = (2.0/((double)(optInSlowPeriod+1)));
       }
       if( (optInFastPeriod==0) ) {
          optInFastPeriod = 12;
+         fastK = 0.15;
+      } else {
+         fastK = (2.0/((double)(optInFastPeriod+1)));
       }
       lookbackSignal = emaLookback(optInSignalPeriod);
       lookbackTotal = lookbackSignal;
@@ -148,13 +164,13 @@
       fastEMABuffer = new double[(int)((tempInteger*1))];
       slowEMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -169,7 +185,7 @@
          fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
       }
       System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -202,6 +218,8 @@
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
+      double slowK = 0;
+      double fastK = 0;
       int lookbackTotal = 0;
       int lookbackSignal = 0;
       int i = 0;
@@ -218,9 +236,15 @@
       }
       if( (optInSlowPeriod==0) ) {
          optInSlowPeriod = 26;
+         slowK = 0.075;
+      } else {
+         slowK = (2.0/((double)(optInSlowPeriod+1)));
       }
       if( (optInFastPeriod==0) ) {
          optInFastPeriod = 12;
+         fastK = 0.15;
+      } else {
+         fastK = (2.0/((double)(optInFastPeriod+1)));
       }
       lookbackSignal = emaLookback(optInSignalPeriod);
       lookbackTotal = lookbackSignal;
@@ -237,13 +261,13 @@
       fastEMABuffer = new double[(int)((tempInteger*1))];
       slowEMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -258,7 +282,7 @@
          fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
       }
       System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -291,6 +315,8 @@
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
+      double slowK = 0;
+      double fastK = 0;
       int lookbackTotal = 0;
       int lookbackSignal = 0;
       int i = 0;
@@ -301,9 +327,15 @@
       }
       if( (optInSlowPeriod==0) ) {
          optInSlowPeriod = 26;
+         slowK = 0.075;
+      } else {
+         slowK = (2.0/((double)(optInSlowPeriod+1)));
       }
       if( (optInFastPeriod==0) ) {
          optInFastPeriod = 12;
+         fastK = 0.15;
+      } else {
+         fastK = (2.0/((double)(optInFastPeriod+1)));
       }
       lookbackSignal = emaLookback(optInSignalPeriod);
       lookbackTotal = lookbackSignal;
@@ -320,13 +352,13 @@
       fastEMABuffer = new double[(int)((tempInteger*1))];
       slowEMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+      retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -341,7 +373,7 @@
          fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
       }
       System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;

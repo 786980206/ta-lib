@@ -47,16 +47,16 @@
       }
       tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
       firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          return retCode ;
       }
-      retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
       if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
          return retCode ;
       }
@@ -106,16 +106,16 @@
       }
       tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
       firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          return retCode ;
       }
-      retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
       if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
          return retCode ;
       }
@@ -171,16 +171,16 @@
       }
       tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
       firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          return retCode ;
       }
-      retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
       if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
          return retCode ;
       }
@@ -230,16 +230,16 @@
       }
       tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
       firstEMA = new double[(int)((tempInt*1))];
-      retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          return retCode ;
       }
-      retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+      retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
       if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
          return retCode ;
       }

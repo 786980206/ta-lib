@@ -111,7 +111,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
          tempBuffer2[j] = inLow[i];
       }
    }
-   retCode = TA_INT_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
+   retCode = TA_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -120,7 +120,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -129,7 +129,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
@@ -211,7 +211,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
          tempBuffer2[j] = inLow[i];
       }
    }
-   retCode = TA_INT_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
+   retCode = TA_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -220,7 +220,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -229,7 +229,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
@@ -318,7 +318,7 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
          tempBuffer2[j] = inLow[i];
       }
    }
-   retCode = TA_INT_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
+   retCode = TA_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -327,7 +327,7 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -336,7 +336,7 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
@@ -418,7 +418,7 @@ TA_RetCode TA_S_ACCBANDS_Logic( int    startIdx,
          tempBuffer2[j] = inLow[i];
       }
    }
-   retCode = TA_INT_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
+   retCode = TA_SMA(startIdx,endIdx,inClose,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealMiddleBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -427,7 +427,7 @@ TA_RetCode TA_S_ACCBANDS_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer1,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealUpperBand);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )
    {
       free(tempBuffer1);
@@ -436,7 +436,7 @@ TA_RetCode TA_S_ACCBANDS_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
+   retCode = TA_SMA(0,(bufferSize-1),tempBuffer2,optInTimePeriod,&outBegIdxDummy,&outNbElementDummy,outRealLowerBand);
    free(tempBuffer1);
    free(tempBuffer2);
    if( ((retCode!=TA_SUCCESS)||(((int)outNbElementDummy)!=outputSize)) )

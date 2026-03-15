@@ -126,65 +126,6 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }]) as f64);
-        }
-        (*outNBElement) = outIdx;
-        (*outBegIdx) = startIdx;
-        return RetCode::Success;
-    }
-    pub unsafe fn mom_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInTimePeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        if ((optInTimePeriod) as i32) == (i32::MIN) {
-            optInTimePeriod = 10;
-        } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
-            return RetCode::BadParam;
-        }
-        return self.mom_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn mom_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        mut optInTimePeriod: i32,
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        let mut inIdx: usize = 0_usize;
-        let mut outIdx: usize = 0_usize;
-        let mut trailingIdx: usize = 0_usize;
-        if startIdx < (optInTimePeriod) as usize {
-            startIdx = (optInTimePeriod) as usize;
-        }
-        if startIdx > endIdx {
-            (*outBegIdx) = 0;
-            (*outNBElement) = 0;
-            return RetCode::Success;
-        }
-        outIdx = 0;
-        inIdx = startIdx;
-        trailingIdx = startIdx - (optInTimePeriod) as usize;
-        while inIdx <= endIdx {
             (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v })) - (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }))) as f64);
         }
         (*outNBElement) = outIdx;

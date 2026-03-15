@@ -85,7 +85,7 @@ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_INT_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -263,7 +263,7 @@ TA_LIB_API TA_RetCode TA_SAR_Logic( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_INT_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -448,7 +448,7 @@ TA_RetCode TA_S_SAR( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_INT_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -626,7 +626,7 @@ TA_RetCode TA_S_SAR_Logic( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_INT_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;

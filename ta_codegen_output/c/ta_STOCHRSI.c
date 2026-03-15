@@ -85,7 +85,7 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
    *outBegIdx= startIdx;
    tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
    tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_INT_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   retCode = TA_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
    {
       free(tempRSIBuffer);
@@ -93,7 +93,7 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
@@ -144,7 +144,7 @@ TA_LIB_API TA_RetCode TA_STOCHRSI_Logic( int    startIdx,
    *outBegIdx= startIdx;
    tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
    tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_INT_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   retCode = TA_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
    {
       free(tempRSIBuffer);
@@ -152,7 +152,7 @@ TA_LIB_API TA_RetCode TA_STOCHRSI_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
@@ -210,7 +210,7 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
    *outBegIdx= startIdx;
    tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
    tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_INT_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   retCode = TA_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
    {
       free(tempRSIBuffer);
@@ -218,7 +218,7 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
@@ -269,7 +269,7 @@ TA_RetCode TA_S_STOCHRSI_Logic( int    startIdx,
    *outBegIdx= startIdx;
    tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
    tempRSIBuffer = malloc((tempArraySize*sizeof(double)));
-   retCode = TA_INT_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
+   retCode = TA_RSI((startIdx-lookbackSTOCHF),endIdx,inReal,optInTimePeriod,&outBegIdx1,&outNbElement1,tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(outNbElement1==0)) )
    {
       free(tempRSIBuffer);
@@ -277,7 +277,7 @@ TA_RetCode TA_S_STOCHRSI_Logic( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_INT_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
+   retCode = TA_STOCHF(0,(tempArraySize-1),tempRSIBuffer,tempRSIBuffer,tempRSIBuffer,optInFastK_Period,optInFastD_Period,optInFastD_MAType,&outBegIdx2,outNBElement,outFastK,outFastD);
    free(tempRSIBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {

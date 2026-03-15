@@ -105,62 +105,6 @@ impl Core {
         let mut prevReal: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
         let mut prevOBV: f64 = 0.0_f64;
-        prevOBV = inVolume[startIdx];
-        prevReal = inReal[startIdx];
-        outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = inReal[i];
-            if tempReal > prevReal {
-                prevOBV += inVolume[i];
-            } else if tempReal < prevReal {
-                prevOBV -= inVolume[i];
-            }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevOBV;
-            prevReal = tempReal;
-        }
-        i = (endIdx as usize) + 1;
-        (*outBegIdx) = startIdx;
-        (*outNBElement) = outIdx;
-        return RetCode::Success;
-    }
-    pub unsafe fn obv_unchecked(
-        &self,
-        startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        inVolume: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        if endIdx < startIdx {
-            return RetCode::OutOfRangeStartIndex;
-        }
-        return self.obv_unguarded_unchecked(
-            startIdx,
-            endIdx,
-            inReal,
-            inVolume,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
-    }
-    pub unsafe fn obv_unguarded_unchecked(
-        &self,
-        mut startIdx: usize,
-        endIdx: usize,
-        inReal: &[f64],
-        inVolume: &[f64],
-        outBegIdx: &mut usize,
-        outNBElement: &mut usize,
-        outReal: &mut [f64],
-    ) -> RetCode {
-        let mut i: usize = 0_usize;
-        let mut outIdx: usize = 0_usize;
-        let mut prevReal: f64 = 0.0_f64;
-        let mut tempReal: f64 = 0.0_f64;
-        let mut prevOBV: f64 = 0.0_f64;
         prevOBV = (*inVolume.get_unchecked(startIdx));
         prevReal = (*inReal.get_unchecked(startIdx));
         outIdx = 0;
