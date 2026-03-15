@@ -20,7 +20,7 @@ def run_regtest(languages=None):
 def parse_results(output):
     """Parse ta_regtest output into structured data with timing."""
     results = {}
-    columns = []  # column headers from the timing table
+    columns = []
 
     in_table = False
     for line in output.split("\n"):
@@ -29,7 +29,6 @@ def parse_results(output):
             continue
 
         if not in_table:
-            # Catch failures before the table
             if "CODEGEN FAILED" in line or "CODEGEN MISMATCH" in line:
                 m = re.match(r'\s*(\w+)\s+', line.strip())
                 if m:
@@ -38,11 +37,9 @@ def parse_results(output):
                         results[func] = {"status": "FAIL", "c_ref": None, "timings": {}}
             continue
 
-        # Parse header line to get column order
         if line.startswith("Function"):
-            # "Function                C-ref      Rust         C      Java      .NET"
             parts = line.split()
-            columns = parts[2:]  # skip "Function" and "C-ref"
+            columns = parts[2:]
             continue
 
         if line.startswith("=") or not line.strip():
@@ -50,8 +47,6 @@ def parse_results(output):
         if "All" in line and "passed" in line:
             break
 
-        # Parse data line
-        # "SMA                       1.0     0.7ok     2.0ok    30.9ok    40.8ok"
         clean = line.strip()
         m = re.match(r'(\w+)\s+(.*)', clean)
         if not m:
@@ -61,7 +56,6 @@ def parse_results(output):
             continue
 
         rest = m.group(2)
-        # Extract all numbers (ignoring "ok" suffix and spinner chars)
         values = [float(x) for x in re.findall(r'([\d.]+)', rest)]
 
         entry = {"status": "PASS", "c_ref": None, "timings": {}}
@@ -75,6 +69,31 @@ def parse_results(output):
     return results, columns
 
 
+def fmt_us(val):
+    """Format microseconds nicely."""
+    if val is None:
+        return "—"
+    if val == 0:
+        return "<0.1"
+    if val < 0.1:
+        return f"{val:.2f}"
+    if val < 10:
+        return f"{val:.1f}"
+    return f"{val:.0f}"
+
+
+def fmt_ratio(val, ref):
+    """Format speed ratio."""
+    if val is None or ref is None or ref == 0 or val == 0:
+        return "—"
+    ratio = val / ref
+    if ratio > 1.1:
+        return f"{ratio:.1f}× slower"
+    if ratio < 0.9:
+        return f"{1/ratio:.1f}× faster"
+    return "≈ same"
+
+
 def generate_report(languages="c,java,dotnet,rust"):
     """Generate markdown report."""
     lang_display = {"C": "C", "Java": "Java", ".NET": ".NET", "Rust": "Rust"}
@@ -83,7 +102,6 @@ def generate_report(languages="c,java,dotnet,rust"):
     output = run_regtest(languages)
     results, columns = parse_results(output)
 
-    # Get git info
     try:
         sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"],
                              capture_output=True, text=True).stdout.strip()
@@ -93,78 +111,91 @@ def generate_report(languages="c,java,dotnet,rust"):
     total = len(results)
     all_pass = all(f["status"] == "PASS" for f in results.values())
 
-    # Compute averages per language
-    c_ref_vals = [f["c_ref"] for f in results.values() if f["c_ref"] is not None]
+    c_ref_vals = [f["c_ref"] for f in results.values() if f["c_ref"] is not None and f["c_ref"] > 0]
     c_ref_avg = sum(c_ref_vals) / len(c_ref_vals) if c_ref_vals else 0
 
     col_avgs = {}
     col_pass = {}
     for col in columns:
         vals = [f["timings"].get(col) for f in results.values()
-                if f["timings"].get(col) is not None]
+                if f["timings"].get(col) is not None and f["timings"].get(col) > 0]
         col_avgs[col] = sum(vals) / len(vals) if vals else 0
         col_pass[col] = sum(1 for f in results.values() if f["status"] == "PASS")
 
     lines = []
     lines.append("# ta_regtest Cross-Language Report")
     lines.append("")
-    lines.append(f"**Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}")
-    lines.append(f"**Git:** `{sha}`")
-    lines.append(f"**Indicators:** {total}")
-    lines.append(f"**Status:** {'ALL PASSING' if all_pass else 'FAILURES DETECTED'}")
+    lines.append(f"> **Date:** {datetime.now().strftime('%Y-%m-%d %H:%M')}  ")
+    lines.append(f"> **Git:** `{sha}`  ")
+    lines.append(f"> **Indicators:** {total}  ")
+    lines.append(f"> **Status:** {'✅ ALL PASSING' if all_pass else '❌ FAILURES DETECTED'}")
     lines.append("")
 
-    # Summary table
+    # ── Summary ──
     lines.append("## Summary")
     lines.append("")
-    lines.append("| Language | Pass | Fail | Avg (us/call) | vs C-ref |")
-    lines.append("|----------|------|------|---------------|----------|")
-    lines.append(f"| **C-ref** | {total} | 0 | {c_ref_avg:.1f} | - |")
+
+    # Build summary table with Unicode box drawing
+    sum_headers = ["Language", "Pass", "Fail", "Avg (μs)", "vs C-ref"]
+    sum_widths = [10, 6, 6, 10, 16]
+
+    def hline(widths, left, mid, right, fill="─"):
+        return left + mid.join(fill * w for w in widths) + right
+
+    def row(cells, widths):
+        parts = []
+        for cell, w in zip(cells, widths):
+            parts.append(f" {cell:<{w-1}}")
+        return "│" + "│".join(parts) + "│"
+
+    lines.append("```")
+    lines.append(hline(sum_widths, "┌", "┬", "┐"))
+    lines.append(row(sum_headers, sum_widths))
+    lines.append(hline(sum_widths, "├", "┼", "┤"))
+
+    # C-ref row
+    lines.append(row(["C-ref", str(total), "0", fmt_us(c_ref_avg), "baseline"], sum_widths))
+
     for col in columns:
         name = lang_display.get(col, col)
         p = col_pass.get(col, 0)
         f = total - p
         avg = col_avgs.get(col, 0)
-        if avg > 0 and c_ref_avg > 0:
-            ratio = avg / c_ref_avg
-            if ratio > 1.1:
-                vs = f"{ratio:.1f}x slower"
-            elif ratio < 0.9:
-                vs = f"{1/ratio:.1f}x faster"
-            else:
-                vs = "~same"
-        else:
-            vs = "-"
-        lines.append(f"| **{name}** | {p} | {f} | {avg:.1f} | {vs} |")
+        vs = fmt_ratio(avg, c_ref_avg) if avg > 0 else "—"
+        lines.append(row([name, str(p), str(f), fmt_us(avg), vs], sum_widths))
+
+    lines.append(hline(sum_widths, "└", "┴", "┘"))
+    lines.append("```")
     lines.append("")
 
-    # Detailed table with timing
-    lines.append("## Results (timing in us/call)")
+    # ── Detailed Results ──
+    lines.append("## Results (μs/call)")
     lines.append("")
-    header = "| Function | C-ref |"
-    sep = "|----------|------:|"
-    for col in columns:
-        header += f" {lang_display.get(col, col)} |"
-        sep += "------:|"
-    lines.append(header)
-    lines.append(sep)
+
+    col_widths = [20, 7] + [7] * len(columns)
+    headers = ["Function", "C-ref"] + [lang_display.get(c, c) for c in columns]
+
+    lines.append("```")
+    lines.append(hline(col_widths, "┌", "┬", "┐"))
+    lines.append(row(headers, col_widths))
+    lines.append(hline(col_widths, "├", "┼", "┤"))
 
     for func in sorted(results.keys()):
         data = results[func]
-        c_ref = f"{data['c_ref']:.1f}" if data["c_ref"] is not None else "-"
-        row = f"| {func} | {c_ref} |"
+        cells = [func, fmt_us(data["c_ref"])]
         for col in columns:
             if data["status"] == "FAIL":
-                row += " **FAIL** |"
+                cells.append("FAIL")
             elif col in data["timings"]:
-                t = data["timings"][col]
-                row += f" {t:.1f} |"
+                cells.append(fmt_us(data["timings"][col]))
             else:
-                row += " - |"
-        lines.append(row)
+                cells.append("—")
+        lines.append(row(cells, col_widths))
 
+    lines.append(hline(col_widths, "└", "┴", "┘"))
+    lines.append("```")
     lines.append("")
-    lines.append(f"*Generated by `regtest-report.py` on {datetime.now().strftime('%Y-%m-%d %H:%M')}*")
+    lines.append(f"*Generated by `regtest-report.py` — {datetime.now().strftime('%Y-%m-%d %H:%M')}*")
     return "\n".join(lines)
 
 
