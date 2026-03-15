@@ -18,14 +18,28 @@ pub fn generate(
     let mut out = String::new();
     out.push_str(&gen_header(func));
     out.push_str(&gen_lookback(func, enums, registry, helpers));
-    out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
-    out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic (unguarded)
-    out.push_str(&format!(
-        "#define TA_INT_{} TA_{}_Logic\n\n",
-        func.name, func.name
-    ));
-    out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
-    out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic (unguarded)
+
+    // For functions with explicit unguarded (extra params), emit Logic BEFORE guarded
+    // so the C compiler knows the Logic signature when guarded body calls TA_INT_*.
+    if func.has_explicit_unguarded {
+        out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
+        out.push_str(&format!(
+            "#define TA_INT_{} TA_{}_Logic\n\n",
+            func.name, func.name
+        ));
+        out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
+        out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
+        out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
+    } else {
+        out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
+        out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
+        out.push_str(&format!(
+            "#define TA_INT_{} TA_{}_Logic\n\n",
+            func.name, func.name
+        ));
+        out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
+        out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
+    }
     out
 }
 

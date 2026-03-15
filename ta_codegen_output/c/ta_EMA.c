@@ -40,27 +40,6 @@ TA_LIB_API int TA_EMA_Lookback( int optInTimePeriod )
    return ((optInTimePeriod-1)+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_EMA,Ema));
 }
 
-TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
-                              int    endIdx,
-                              const double inReal[],
-                              int optInTimePeriod,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outReal[] )
-{
-   double optInK_1;
-
-   if( startIdx < 0 )
-      return TA_OUT_OF_RANGE_START_INDEX;
-   if( (endIdx < 0) || (endIdx < startIdx) )
-      return TA_OUT_OF_RANGE_END_INDEX;
-
-   optInK_1 = (2.0/((double)(optInTimePeriod+1)));
-   return TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
-
-   return TA_SUCCESS;
-}
-
 TA_LIB_API TA_RetCode TA_EMA_Logic( int    startIdx,
                                     int    endIdx,
                                     const double inReal[],
@@ -123,13 +102,13 @@ TA_LIB_API TA_RetCode TA_EMA_Logic( int    startIdx,
 
 #define TA_INT_EMA TA_EMA_Logic
 
-TA_RetCode TA_S_EMA( int    startIdx,
-                     int    endIdx,
-                     const float inReal[],
-                     int optInTimePeriod,
-                     int          *outBegIdx,
-                     int          *outNBElement,
-                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
+                              int    endIdx,
+                              const double inReal[],
+                              int optInTimePeriod,
+                              int          *outBegIdx,
+                              int          *outNBElement,
+                              double        outReal[] )
 {
    double optInK_1;
 
@@ -200,6 +179,27 @@ TA_RetCode TA_S_EMA_Logic( int    startIdx,
    }
    *outNBElement= outIdx;
    return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
+TA_RetCode TA_S_EMA( int    startIdx,
+                     int    endIdx,
+                     const float inReal[],
+                     int optInTimePeriod,
+                     int          *outBegIdx,
+                     int          *outNBElement,
+                     double        outReal[] )
+{
+   double optInK_1;
+
+   if( startIdx < 0 )
+      return TA_OUT_OF_RANGE_START_INDEX;
+   if( (endIdx < 0) || (endIdx < startIdx) )
+      return TA_OUT_OF_RANGE_END_INDEX;
+
+   optInK_1 = (2.0/((double)(optInTimePeriod+1)));
+   return TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
 
    return TA_SUCCESS;
 }

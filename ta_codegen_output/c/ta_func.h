@@ -475,7 +475,7 @@ extern TA_RetCode TA_DX_Logic(int startIdx, int endIdx, const double inHigh[], c
 #define TA_INT_DX TA_DX_Logic
 extern int TA_EMA_Lookback(int optInTimePeriod);
 extern TA_RetCode TA_EMA(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[]);
-extern TA_RetCode TA_EMA_Logic(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, int *outBegIdx, int *outNBElement, double outReal[]);
+extern TA_RetCode TA_EMA_Logic(int startIdx, int endIdx, const double inReal[], int optInTimePeriod, double optInK_1, int *outBegIdx, int *outNBElement, double outReal[]);
 #define TA_INT_EMA TA_EMA_Logic
 extern int TA_EXP_Lookback(void);
 extern TA_RetCode TA_EXP(int startIdx, int endIdx, const double inReal[], int *outBegIdx, int *outNBElement, double outReal[]);

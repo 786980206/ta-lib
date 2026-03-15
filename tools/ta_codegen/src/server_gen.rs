@@ -391,8 +391,16 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         s.push_str(&format!(
             "extern TA_RetCode TA_{upper}({full_params});\n"
         ));
+        // Logic variant may have extra params (e.g., EMA's k factor)
+        let mut logic_params = full_params.clone();
+        for (pname, ptype) in &func.unguarded_extra_params {
+            // Insert extra params before the output params (before *outBegIdx)
+            if let Some(pos) = logic_params.find("int *outBegIdx") {
+                logic_params.insert_str(pos, &format!("{ptype} {pname}, "));
+            }
+        }
         s.push_str(&format!(
-            "extern TA_RetCode TA_{upper}_Logic({full_params});\n"
+            "extern TA_RetCode TA_{upper}_Logic({logic_params});\n"
         ));
         s.push_str(&format!("#define TA_INT_{upper} TA_{upper}_Logic\n"));
     }
