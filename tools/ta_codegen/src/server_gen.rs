@@ -416,7 +416,10 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     s.push_str("#include <stdlib.h>\n");
     s.push_str("#include <string.h>\n");
     s.push_str("#include <math.h>\n");
-    s.push_str("#include <time.h>\n\n");
+    s.push_str("#include <time.h>\n");
+    s.push_str("#ifdef __APPLE__\n");
+    s.push_str("#include <mach/mach_time.h>\n");
+    s.push_str("#endif\n\n");
 
     // Include generated function implementations.
     // Order matters: functions that are called by others must come first.
@@ -540,11 +543,20 @@ static int json_write_int_array(char *buf, int buf_size,
 }
 
 static long get_nanotime(void) {
+#ifdef __APPLE__
+    /* mach_absolute_time has ~42ns resolution on Apple Silicon;
+       clock_gettime(CLOCK_MONOTONIC) only has 1000ns resolution on macOS. */
+    static mach_timebase_info_data_t info = {0, 0};
+    if( info.denom == 0 ) mach_timebase_info(&info);
+    uint64_t t = mach_absolute_time();
+    return (long)(t * info.numer / info.denom);
+#else
     struct timespec ts;
     if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 ) {
         return (long)ts.tv_sec * 1000000000LL + (long)ts.tv_nsec;
     }
     return 0;
+#endif
 }
 
 "#
@@ -1947,9 +1959,9 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         // Timing
         s.push_str("            let start_time = Instant::now();\n");
 
-        // Call the function
+        // Call the unchecked variant (no bounds checks, no param validation — server handles that)
         s.push_str(&format!(
-            "            let rc = core.{fn_name}::<f64>(\n"
+            "            let rc = unsafe {{ core.{fn_name}_unguarded_unchecked::<f64>(\n"
         ));
         s.push_str("                startIdx, endIdx,\n");
 
@@ -1977,7 +1989,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(",\n");
-        s.push_str("            );\n");
+        s.push_str("            ) };\n");
 
         // Calculate elapsed
         s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64;\n");
