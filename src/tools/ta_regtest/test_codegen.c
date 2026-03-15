@@ -13,6 +13,7 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#include <limits.h>
 #ifdef __APPLE__
 #include <mach/mach_time.h>
 #endif
@@ -1153,6 +1154,171 @@ static void write_timing_report(const char *filepath)
     fclose(f);
 }
 
+/* ---- Markdown report writer ---- */
+
+static void fmt_ns(char *buf, int buf_size, double ns)
+{
+    if( ns <= 0 )      snprintf(buf, buf_size, "<42");
+    else if( ns < 100 ) snprintf(buf, buf_size, "%.0f", ns);
+    else               snprintf(buf, buf_size, "%.0f", ns);
+}
+
+static void fmt_ratio(char *buf, int buf_size, double val, double ref)
+{
+    if( val <= 0 || ref <= 0 ) { snprintf(buf, buf_size, "\xe2\x80\x94"); return; }
+    double ratio = val / ref;
+    if( ratio > 1.1 )      snprintf(buf, buf_size, "%.1f\xc3\x97 slower", ratio);
+    else if( ratio < 0.9 ) snprintf(buf, buf_size, "%.1f\xc3\x97 faster", 1.0/ratio);
+    else                    snprintf(buf, buf_size, "\xe2\x89\x88 same");
+}
+
+static void write_markdown_report(const char *filepath, const char *languageFilter)
+{
+    if( g_numTimingResults == 0 ) return;
+
+    FILE *f = fopen(filepath, "w");
+    if( !f ) return;
+
+    /* Collect which languages to include */
+    int showLang[NUM_LANGUAGES];
+    int numShown = 0;
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        showLang[li] = language_matches_filter(languageFilter, ALL_LANGUAGES[li].name);
+        if( showLang[li] ) numShown++;
+    }
+
+    /* Git SHA */
+    char gitSha[64] = "unknown";
+    FILE *git = popen("git rev-parse --short HEAD 2>/dev/null", "r");
+    if( git ) { fgets(gitSha, sizeof(gitSha), git); pclose(git); }
+    char *nl = strchr(gitSha, '\n');
+    if( nl ) *nl = '\0';
+
+    /* Timestamp */
+    time_t now = time(NULL);
+    char timestamp[64];
+    strftime(timestamp, sizeof(timestamp), "%Y-%m-%d %H:%M", localtime(&now));
+
+    /* Count pass/fail per language + averages */
+    int total = g_numTimingResults;
+    int langPass[NUM_LANGUAGES];
+    double langSum[NUM_LANGUAGES];
+    int langMeasured[NUM_LANGUAGES];
+    memset(langPass, 0, sizeof(langPass));
+    memset(langSum, 0, sizeof(langSum));
+    memset(langMeasured, 0, sizeof(langMeasured));
+
+    double cRefSum = 0; int cRefCount = 0;
+    for( int ri = 0; ri < g_numTimingResults; ri++ ) {
+        FuncTimingResult *r = &g_timingResults[ri];
+        if( r->c_ref_ns > 0 ) { cRefSum += r->c_ref_ns; cRefCount++; }
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+            if( r->langs[li].tested == 1 ) langPass[li]++;
+            if( r->langs[li].tested == 1 && r->langs[li].avg_ns > 0 ) {
+                langSum[li] += r->langs[li].avg_ns;
+                langMeasured[li]++;
+            }
+        }
+    }
+    double cRefAvg = cRefCount > 0 ? cRefSum / cRefCount : 0;
+
+    /* Header */
+    fprintf(f, "# ta_regtest Cross-Language Report\n\n");
+    fprintf(f, "> **Date:** %s  \n", timestamp);
+    fprintf(f, "> **Git:** `%s`  \n", gitSha);
+    fprintf(f, "> **Indicators:** %d  \n", total);
+
+    int allPass = 1;
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( showLang[li] && langPass[li] < total ) allPass = 0;
+    }
+    fprintf(f, "> **Status:** %s\n\n",
+            allPass ? "\xe2\x9c\x85 ALL PASSING" : "\xe2\x9d\x8c FAILURES DETECTED");
+
+    /* Summary table */
+    fprintf(f, "## Summary\n\n```\n");
+    fprintf(f, "\xe2\x94\x8c\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\x90\n");
+
+    fprintf(f, "\xe2\x94\x82 %-9s\xe2\x94\x82 %-5s\xe2\x94\x82 %-5s\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+            "Language", "Pass", "Fail", "Avg (ns)", "vs C-ref");
+
+    fprintf(f, "\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xa4\n");
+
+    /* C-ref row */
+    {
+        char avg[32]; fmt_ns(avg, sizeof(avg), cRefAvg);
+        fprintf(f, "\xe2\x94\x82 %-9s\xe2\x94\x82 %-5d\xe2\x94\x82 %-5d\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+                "C-ref", total, 0, avg, "baseline");
+    }
+
+    /* Per-language rows */
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( !showLang[li] ) continue;
+        double avg = langMeasured[li] > 0 ? langSum[li] / langMeasured[li] : 0;
+        char avgStr[32], vsStr[32];
+        if( langMeasured[li] < total / 2 ) {
+            fmt_ns(avgStr, sizeof(avgStr), avg);
+            char tmp[16]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
+            strncpy(avgStr, tmp, sizeof(avgStr));
+            snprintf(vsStr, sizeof(vsStr), "*%d/%d measured", langMeasured[li], total);
+        } else {
+            fmt_ns(avgStr, sizeof(avgStr), avg);
+            fmt_ratio(vsStr, sizeof(vsStr), avg, cRefAvg);
+        }
+        int fail = total - langPass[li];
+        fprintf(f, "\xe2\x94\x82 %-9s\xe2\x94\x82 %-5d\xe2\x94\x82 %-5d\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+                ALL_LANGUAGES[li].display, langPass[li], fail, avgStr, vsStr);
+    }
+
+    fprintf(f, "\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+            "\xe2\x94\x98\n");
+    fprintf(f, "```\n\n");
+
+    /* Detailed per-function table */
+    fprintf(f, "## Results (ns/call)\n\n");
+    fprintf(f, "| Function |  C-ref |");
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+        if( showLang[li] ) fprintf(f, " %s |", ALL_LANGUAGES[li].display);
+    fprintf(f, "\n|----------|--------|");
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+        if( showLang[li] ) fprintf(f, "--------|");
+    fprintf(f, "\n");
+
+    for( int ri = 0; ri < g_numTimingResults; ri++ ) {
+        FuncTimingResult *r = &g_timingResults[ri];
+        char cref[32]; fmt_ns(cref, sizeof(cref), r->c_ref_ns);
+        fprintf(f, "| %-8s | %6s |", r->funcName, cref);
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+            if( !showLang[li] ) continue;
+            if( r->langs[li].tested == -1 )
+                fprintf(f, " FAIL   |");
+            else if( r->langs[li].tested == 1 ) {
+                char t[32]; fmt_ns(t, sizeof(t), r->langs[li].avg_ns);
+                fprintf(f, " %6s |", t);
+            } else
+                fprintf(f, "     \xe2\x80\x94 |");
+        }
+        fprintf(f, "\n");
+    }
+
+    fprintf(f, "\n*Generated by ta_regtest — %s*\n", timestamp);
+    fclose(f);
+}
+
 ErrorNumber test_codegen(const TA_History *history,
                          const char *languageFilter,
                          const char *functionFilter)
@@ -1191,7 +1357,96 @@ ErrorNumber test_codegen(const TA_History *history,
     printf("All %d language(s) passed codegen verification\n", langsTested);
     printf("=============================================\n");
 
+    /* Write report files */
     write_timing_report("ta_regtest_timing.jsonl");
+    write_markdown_report("ta_regtest_report.md", languageFilter);
+
+    /* Print absolute paths */
+    {
+        char jsonl_path[PATH_MAX];
+        char md_path[PATH_MAX];
+        if( realpath("ta_regtest_timing.jsonl", jsonl_path) )
+            printf("\nJSONL: %s\n", jsonl_path);
+        else
+            printf("\nJSONL: ta_regtest_timing.jsonl\n");
+        if( realpath("ta_regtest_report.md", md_path) )
+            printf("Report: %s\n", md_path);
+        else
+            printf("Report: ta_regtest_report.md\n");
+    }
+
+    /* Print summary chart to stdout */
+    {
+        int total = g_numTimingResults;
+        double cRefSum = 0; int cRefCount = 0;
+        int langPass[NUM_LANGUAGES];
+        double langSum[NUM_LANGUAGES];
+        int langMeasured[NUM_LANGUAGES];
+        memset(langPass, 0, sizeof(langPass));
+        memset(langSum, 0, sizeof(langSum));
+        memset(langMeasured, 0, sizeof(langMeasured));
+
+        for( int ri = 0; ri < g_numTimingResults; ri++ ) {
+            FuncTimingResult *r = &g_timingResults[ri];
+            if( r->c_ref_ns > 0 ) { cRefSum += r->c_ref_ns; cRefCount++; }
+            for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+                if( r->langs[li].tested == 1 ) langPass[li]++;
+                if( r->langs[li].tested == 1 && r->langs[li].avg_ns > 0 ) {
+                    langSum[li] += r->langs[li].avg_ns;
+                    langMeasured[li]++;
+                }
+            }
+        }
+        double cRefAvg = cRefCount > 0 ? cRefSum / cRefCount : 0;
+
+        printf("\n\xe2\x94\x8c\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xac\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\x90\n");
+        printf("\xe2\x94\x82 %-9s\xe2\x94\x82 %-5s\xe2\x94\x82 %-5s\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+               "Language", "Pass", "Fail", "Avg (ns)", "vs C-ref");
+        printf("\xe2\x94\x9c\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xbc\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xa4\n");
+
+        /* C-ref row */
+        {
+            char avg[32]; fmt_ns(avg, sizeof(avg), cRefAvg);
+            printf("\xe2\x94\x82 %-9s\xe2\x94\x82 %-5d\xe2\x94\x82 %-5d\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+                   "C-ref", total, 0, avg, "baseline");
+        }
+
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+            if( !language_matches_filter(languageFilter, ALL_LANGUAGES[li].name) )
+                continue;
+            double avg = langMeasured[li] > 0 ? langSum[li] / langMeasured[li] : 0;
+            char avgStr[32], vsStr[32];
+            if( langMeasured[li] < total / 2 ) {
+                fmt_ns(avgStr, sizeof(avgStr), avg);
+                char tmp[16]; snprintf(tmp, sizeof(tmp), "~%s*", avgStr);
+                strncpy(avgStr, tmp, sizeof(avgStr));
+                snprintf(vsStr, sizeof(vsStr), "*%d/%d measured", langMeasured[li], total);
+            } else {
+                fmt_ns(avgStr, sizeof(avgStr), avg);
+                fmt_ratio(vsStr, sizeof(vsStr), avg, cRefAvg);
+            }
+            int fail = total - langPass[li];
+            printf("\xe2\x94\x82 %-9s\xe2\x94\x82 %-5d\xe2\x94\x82 %-5d\xe2\x94\x82 %-11s\xe2\x94\x82 %-15s\xe2\x94\x82\n",
+                   ALL_LANGUAGES[li].display, langPass[li], fail, avgStr, vsStr);
+        }
+
+        printf("\xe2\x94\x94\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\xb4\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80\xe2\x94\x80"
+               "\xe2\x94\x98\n");
+    }
 
     return TA_TEST_PASS;
 }
