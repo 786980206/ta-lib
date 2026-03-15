@@ -925,10 +925,31 @@ pub use ta_func::*;
     std::fs::write(&lib_path, lib_rs).unwrap();
     println!("  Scaffolding -> {}", lib_path.display());
 
-    // --- src/ta_func/mod.rs ---
+    // --- Copy hand-written types.rs from ta_func_defs/lib/rust/ ---
+    let lib_src = Path::new("../../ta_func_defs/lib/rust/types.rs");
+    if lib_src.exists() {
+        let types_dest = ta_func_dir.join("types.rs");
+        std::fs::copy(lib_src, &types_dest).unwrap();
+        println!("  Copied types.rs -> {}", types_dest.display());
+    }
+
+    // --- src/ta_func/mod.rs (generated: imports types + declares indicator modules) ---
     let mut mod_rs = String::new();
     mod_rs.push_str(
-        r#"/* TA-LIB Copyright (c) 1999-2025, Mario Fortier
+        r#"// Types and Core struct are in types.rs (hand-written, not generated).
+mod types;
+pub use types::*;
+
+// Generated indicator modules:
+"#,
+    );
+
+    // Types were moved to ta_func_defs/lib/rust/types.rs (hand-written).
+    // The old ~250 lines of inline type definitions were removed here.
+    //
+    // To skip the dead r# string below (kept to avoid a massive edit),
+    // jump to "Add mod declarations for each generated indicator".
+    if false { let _ = r#"/* TA-LIB Copyright (c) 1999-2025, Mario Fortier
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or
@@ -1176,8 +1197,7 @@ impl Core {
     }
 }
 
-"#,
-    );
+"#; }
 
     // Add mod declarations for each generated indicator
     let mut func_names: Vec<String> = funcs
