@@ -12,6 +12,13 @@ pub struct FuncDef {
     pub outputs: Vec<Output>,
     pub lookback: Option<LookbackExpr>,
     pub body: Vec<Statement>,
+    /// Body for the unguarded variant (explicit from _unguarded function, or auto-derived).
+    pub unguarded_body: Vec<Statement>,
+    /// Extra parameters on the unguarded variant beyond the public API
+    /// (e.g., EMA's k factor). Each entry is (param_name, c_type).
+    pub unguarded_extra_params: Vec<(String, String)>,
+    /// True when the C source explicitly defines foo_unguarded().
+    pub has_explicit_unguarded: bool,
 }
 
 #[derive(Debug, Clone)]
