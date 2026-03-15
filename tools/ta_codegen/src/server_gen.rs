@@ -254,130 +254,15 @@ fn opt_input_to_c_param(opt: &OptInput) -> String {
 /// expect, without pulling in the full TA-Lib headers.
 pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
-    s.push_str("/* Auto-generated ta_func.h stub for standalone server compilation. */\n");
+    s.push_str("/* ta_func.h — Generated header for standalone compilation.\n");
+    s.push_str(" * Types come from ta_lib_types.h (hand-written).\n");
+    s.push_str(" * Forward declarations are auto-generated per indicator.\n");
+    s.push_str(" */\n");
     s.push_str("#ifndef TA_FUNC_H\n");
     s.push_str("#define TA_FUNC_H\n\n");
-    s.push_str("typedef int TA_RetCode;\n");
-    s.push_str("typedef double TA_Real;\n");
-    s.push_str("typedef int TA_Integer;\n");
-    s.push_str("#define TA_SUCCESS 0\n");
-    s.push_str("#define TA_BAD_PARAM 2\n");
-    s.push_str("#define TA_OUT_OF_RANGE_START_INDEX 12\n");
-    s.push_str("#define TA_OUT_OF_RANGE_END_INDEX 13\n");
-    s.push_str("#define TA_ALLOC_ERR 3\n");
-    s.push_str("#define TA_LIB_API\n\n");
 
-    // Cross-language macro stubs for standalone compilation
-
-    // Unstable period: backed by a global array, settable via JSON-RPC
-    s.push_str("#define TA_FUNC_UNST_ADX 0\n");
-    s.push_str("#define TA_FUNC_UNST_ADXR 1\n");
-    s.push_str("#define TA_FUNC_UNST_ATR 2\n");
-    s.push_str("#define TA_FUNC_UNST_CMO 3\n");
-    s.push_str("#define TA_FUNC_UNST_DX 4\n");
-    s.push_str("#define TA_FUNC_UNST_EMA 5\n");
-    s.push_str("#define TA_FUNC_UNST_HT_DCPERIOD 6\n");
-    s.push_str("#define TA_FUNC_UNST_HT_DCPHASE 7\n");
-    s.push_str("#define TA_FUNC_UNST_HT_PHASOR 8\n");
-    s.push_str("#define TA_FUNC_UNST_HT_SINE 9\n");
-    s.push_str("#define TA_FUNC_UNST_HT_TRENDLINE 10\n");
-    s.push_str("#define TA_FUNC_UNST_HT_TRENDMODE 11\n");
-    s.push_str("#define TA_FUNC_UNST_IMI 12\n");
-    s.push_str("#define TA_FUNC_UNST_KAMA 13\n");
-    s.push_str("#define TA_FUNC_UNST_MAMA 14\n");
-    s.push_str("#define TA_FUNC_UNST_MFI 15\n");
-    s.push_str("#define TA_FUNC_UNST_MINUS_DI 16\n");
-    s.push_str("#define TA_FUNC_UNST_MINUS_DM 17\n");
-    s.push_str("#define TA_FUNC_UNST_NATR 18\n");
-    s.push_str("#define TA_FUNC_UNST_PLUS_DI 19\n");
-    s.push_str("#define TA_FUNC_UNST_PLUS_DM 20\n");
-    s.push_str("#define TA_FUNC_UNST_RSI 21\n");
-    s.push_str("#define TA_FUNC_UNST_STOCHRSI 22\n");
-    s.push_str("#define TA_FUNC_UNST_T3 23\n");
-    s.push_str("#define TA_FUNC_UNST_ALL 24\n");
-    s.push_str("#define TA_FUNC_UNST_NONE 99\n");
-    s.push_str("int ta_unstable_period[TA_FUNC_UNST_ALL];\n");
-    s.push_str("#define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]\n");
-    s.push_str("__attribute__((used)) void TA_SetUnstablePeriod(int id, int period) {\n");
-    s.push_str("    if (id >= 0 && id < TA_FUNC_UNST_ALL) ta_unstable_period[id] = period;\n");
-    s.push_str("}\n\n");
-
-    // Compatibility mode: always default
-    s.push_str("#define TA_GLOBALS_COMPATIBILITY 0\n");
-    s.push_str("#define TA_COMPATIBILITY_DEFAULT 0\n");
-    s.push_str("#define TA_COMPATIBILITY_METASTOCK 1\n");
-    s.push_str("#define ENUM_VALUE(type, c_val, rust_val) (c_val)\n\n");
-
-    // Candle settings infrastructure
-    s.push_str("/* Candle settings types */\n");
-    s.push_str("typedef int TA_RangeType;\n");
-    s.push_str("#define TA_RangeType_RealBody 0\n");
-    s.push_str("#define TA_RangeType_HighLow  1\n");
-    s.push_str("#define TA_RangeType_Shadows  2\n\n");
-    s.push_str("typedef int TA_CandleSettingType;\n");
-    s.push_str("#define TA_BodyLong         0\n");
-    s.push_str("#define TA_BodyVeryLong     1\n");
-    s.push_str("#define TA_BodyShort        2\n");
-    s.push_str("#define TA_BodyDoji         3\n");
-    s.push_str("#define TA_ShadowLong       4\n");
-    s.push_str("#define TA_ShadowVeryLong   5\n");
-    s.push_str("#define TA_ShadowShort      6\n");
-    s.push_str("#define TA_ShadowVeryShort  7\n");
-    s.push_str("#define TA_Near             8\n");
-    s.push_str("#define TA_Far              9\n");
-    s.push_str("#define TA_Equal           10\n");
-    s.push_str("#define TA_AllCandleSettings 11\n\n");
-    s.push_str("typedef struct {\n");
-    s.push_str("    TA_CandleSettingType settingType;\n");
-    s.push_str("    TA_RangeType rangeType;\n");
-    s.push_str("    int avgPeriod;\n");
-    s.push_str("    double factor;\n");
-    s.push_str("} TA_CandleSetting;\n\n");
-    s.push_str("typedef struct {\n");
-    s.push_str("    TA_CandleSetting candleSettings[TA_AllCandleSettings];\n");
-    s.push_str("} TA_GlobalsType;\n\n");
-    s.push_str("static TA_GlobalsType ta_globals_data = {\n");
-    s.push_str("    .candleSettings = {\n");
-    s.push_str("        { TA_BodyLong,        TA_RangeType_RealBody, 10, 1.0 },\n");
-    s.push_str("        { TA_BodyVeryLong,    TA_RangeType_RealBody, 10, 3.0 },\n");
-    s.push_str("        { TA_BodyShort,       TA_RangeType_RealBody, 10, 1.0 },\n");
-    s.push_str("        { TA_BodyDoji,        TA_RangeType_HighLow,  10, 0.1 },\n");
-    s.push_str("        { TA_ShadowLong,      TA_RangeType_RealBody,  0, 1.0 },\n");
-    s.push_str("        { TA_ShadowVeryLong,  TA_RangeType_RealBody,  0, 2.0 },\n");
-    s.push_str("        { TA_ShadowShort,     TA_RangeType_Shadows,  10, 1.0 },\n");
-    s.push_str("        { TA_ShadowVeryShort, TA_RangeType_HighLow,  10, 0.1 },\n");
-    s.push_str("        { TA_Near,            TA_RangeType_HighLow,   5, 0.2 },\n");
-    s.push_str("        { TA_Far,             TA_RangeType_HighLow,   5, 0.6 },\n");
-    s.push_str("        { TA_Equal,           TA_RangeType_HighLow,   5, 0.05 },\n");
-    s.push_str("    }\n");
-    s.push_str("};\n");
-    s.push_str("static TA_GlobalsType *TA_Globals = &ta_globals_data;\n\n");
-
-    // Epsilon comparison
-    s.push_str("#define TA_IS_ZERO(v) ((-(0.00000001)) < (v) && (v) < (0.00000001))\n");
-    s.push_str("#define TA_IS_ZERO_OR_NEG(v) ((v) < (0.00000001))\n\n");
-
-    // Standard library includes
-    s.push_str("#include <stdlib.h>\n");
-    s.push_str("#include <string.h>\n");
-    s.push_str("#include <math.h>\n");
-    s.push_str("#define ARRAY_MEMMOVE(dst, dstIdx, src, srcIdx, count) \\\n");
-    s.push_str("    memmove(&(dst)[dstIdx], &(src)[srcIdx], (count) * sizeof(double))\n");
-    s.push_str("#define ARRAY_MEMMOVEMIX(dst, dstIdx, src, srcIdx, count) \\\n");
-    s.push_str("    do { for(int _i=0; _i<(count); _i++) (dst)[(dstIdx)+_i] = (double)(src)[(srcIdx)+_i]; } while(0)\n\n");
-
-    // Enum types used by generated functions (e.g., MA dispatch)
-    s.push_str("typedef int TA_MAType;\n");
-    s.push_str("#define TA_MAType_SMA   0\n");
-    s.push_str("#define TA_MAType_EMA   1\n");
-    s.push_str("#define TA_MAType_WMA   2\n");
-    s.push_str("#define TA_MAType_DEMA  3\n");
-    s.push_str("#define TA_MAType_TEMA  4\n");
-    s.push_str("#define TA_MAType_TRIMA 5\n");
-    s.push_str("#define TA_MAType_KAMA  6\n");
-    s.push_str("#define TA_MAType_MAMA  7\n");
-    s.push_str("#define TA_MAType_T3    8\n");
-    s.push_str("#define ENUM_CASE(type, c_val, pascal_val) (c_val)\n\n");
+    // Include hand-written types
+    s.push_str("#include \"ta_lib_types.h\"\n\n");
 
     // Forward declarations for all indicators — prevents "implicit declaration" errors
     // in the unity build when an early-alphabet function (e.g. ACCBANDS) calls a

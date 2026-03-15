@@ -172,6 +172,18 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         let out_base = Path::new("../../ta_codegen_output");
         generate_rust_crate_scaffolding(out_base, &generated_funcs);
     }
+
+    // Copy hand-written C library types when C is one of the backends
+    if backends_to_run.contains(&"c") {
+        let c_types_src = Path::new("../../ta_func_defs/lib/c/ta_lib_types.h");
+        let c_dir = Path::new("../../ta_codegen_output/c");
+        std::fs::create_dir_all(c_dir).unwrap();
+        if c_types_src.exists() {
+            let dest = c_dir.join("ta_lib_types.h");
+            std::fs::copy(c_types_src, &dest).unwrap();
+            println!("  Copied ta_lib_types.h -> {}", dest.display());
+        }
+    }
 }
 
 fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
