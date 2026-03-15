@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn min<T: TaFloat>(
+    pub fn min(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,18 +101,18 @@ impl Core {
             outReal,
         );
     }
-    pub fn min_unguarded<T: TaFloat>(
+    pub fn min_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -132,15 +132,15 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         lowestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         while today <= endIdx {
-            tmp = inReal[(today) as usize];
+            tmp = inReal[today];
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = inReal[(lowestIdx) as usize];
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inReal[(i) as usize];
+                    tmp = inReal[i];
                     if tmp < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -150,7 +150,7 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = lowest;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = lowest;
             trailingIdx += 1;
             today += 1;
         }
@@ -158,15 +158,15 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn min_unchecked<T: TaFloat>(
+    pub unsafe fn min_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -186,18 +186,18 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn min_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn min_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -217,15 +217,15 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         lowestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         while today <= endIdx {
-            tmp = (*inReal.get_unchecked((today) as usize));
+            tmp = (*inReal.get_unchecked(today));
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = (*inReal.get_unchecked((lowestIdx) as usize));
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inReal.get_unchecked((i) as usize));
+                    tmp = (*inReal.get_unchecked(i));
                     if tmp < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -235,7 +235,7 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = lowest;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = lowest;
             trailingIdx += 1;
             today += 1;
         }

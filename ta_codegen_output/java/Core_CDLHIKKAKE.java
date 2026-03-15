@@ -14,11 +14,11 @@
                               MInteger outNBElement,
                               int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
-      int patternIdx;
-      int patternResult;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int patternIdx = 0;
+      int patternResult = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -75,11 +75,11 @@
                                    MInteger outNBElement,
                                    int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
-      int patternIdx;
-      int patternResult;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int patternIdx = 0;
+      int patternResult = 0;
       lookbackTotal = cdlhikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -130,11 +130,11 @@
                               MInteger outNBElement,
                               int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
-      int patternIdx;
-      int patternResult;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int patternIdx = 0;
+      int patternResult = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -191,11 +191,11 @@
                                    MInteger outNBElement,
                                    int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
-      int patternIdx;
-      int patternResult;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int patternIdx = 0;
+      int patternResult = 0;
       lookbackTotal = cdlhikkakeLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

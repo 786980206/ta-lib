@@ -87,14 +87,14 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outInteger` - Output values
-    pub fn cdlrickshawman<T: TaFloat>(
+    pub fn cdlrickshawman(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -114,21 +114,21 @@ impl Core {
             outInteger,
         );
     }
-    pub fn cdlrickshawman_unguarded<T: TaFloat>(
+    pub fn cdlrickshawman_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut BodyDojiPeriodTotal: T = T::ta_zero();
-        let mut ShadowLongPeriodTotal: T = T::ta_zero();
-        let mut NearPeriodTotal: T = T::ta_zero();
+        let mut BodyDojiPeriodTotal: f64 = 0.0_f64;
+        let mut ShadowLongPeriodTotal: f64 = 0.0_f64;
+        let mut NearPeriodTotal: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut BodyDojiTrailingIdx: usize = 0_usize;
@@ -162,27 +162,27 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        BodyDojiPeriodTotal = T::ta_from_i32(0 as i32);
+        BodyDojiPeriodTotal = 0.0;
         BodyDojiTrailingIdx = startIdx - (BodyDoji_avgPeriod) as usize;
-        ShadowLongPeriodTotal = T::ta_from_i32(0 as i32);
+        ShadowLongPeriodTotal = 0.0;
         ShadowLongTrailingIdx = startIdx - (ShadowLong_avgPeriod) as usize;
-        NearPeriodTotal = T::ta_from_i32(0 as i32);
+        NearPeriodTotal = 0.0;
         NearTrailingIdx = startIdx - (Near_avgPeriod) as usize;
         i = BodyDojiTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_0: T;
+            let mut _candlerange_0: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_0 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_0 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_0 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_0 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_0 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_0 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_0 = T::ta_from_f64(0.0);
+                    _candlerange_0 = 0.0;
                 }
             }
             BodyDojiPeriodTotal += _candlerange_0;
@@ -190,19 +190,19 @@ impl Core {
         }
         i = ShadowLongTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_1: T;
+            let mut _candlerange_1: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_1 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_1 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_1 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_1 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_1 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_1 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_1 = T::ta_from_f64(0.0);
+                    _candlerange_1 = 0.0;
                 }
             }
             ShadowLongPeriodTotal += _candlerange_1;
@@ -210,19 +210,19 @@ impl Core {
         }
         i = NearTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_2: T;
+            let mut _candlerange_2: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_2 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_2 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_2 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_2 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_2 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_2 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_2 = T::ta_from_f64(0.0);
+                    _candlerange_2 = 0.0;
                 }
             }
             NearPeriodTotal += _candlerange_2;
@@ -230,101 +230,101 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            if (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs() <= self.ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[(i) as usize], inHigh[(i) as usize], inLow[(i) as usize], inClose[(i) as usize]) && (if inClose[(i) as usize] >= inOpen[(i) as usize] { inOpen[(i) as usize] } else { inClose[(i) as usize] } - inLow[(i) as usize]) > self.ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, inOpen[(i) as usize], inHigh[(i) as usize], inLow[(i) as usize], inClose[(i) as usize]) && (inHigh[(i) as usize] - if inClose[(i) as usize] >= inOpen[(i) as usize] { inClose[(i) as usize] } else { inOpen[(i) as usize] }) > self.ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, inOpen[(i) as usize], inHigh[(i) as usize], inLow[(i) as usize], inClose[(i) as usize]) && ((inOpen[(i) as usize]).min(inClose[(i) as usize]) <= inLow[(i) as usize] + (inHigh[(i) as usize] - inLow[(i) as usize]) / T::ta_from_i32(2) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[(i) as usize], inHigh[(i) as usize], inLow[(i) as usize], inClose[(i) as usize]) && (inOpen[(i) as usize]).max(inClose[(i) as usize]) >= inLow[(i) as usize] + (inHigh[(i) as usize] - inLow[(i) as usize]) / T::ta_from_i32(2) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[(i) as usize], inHigh[(i) as usize], inLow[(i) as usize], inClose[(i) as usize])) {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 100;
+            if (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) > { let _cr = match ShadowLong_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if ShadowLong_avgPeriod != 0 { (ShadowLongPeriodTotal) / (ShadowLong_avgPeriod as f64) } else { _cr }; let _div = if ShadowLong_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowLong_factor) * _avg / _div } && (inHigh[i] - (if inClose[i] >= inOpen[i] { inClose[i] } else { inOpen[i] })) > { let _cr = match ShadowLong_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if ShadowLong_avgPeriod != 0 { (ShadowLongPeriodTotal) / (ShadowLong_avgPeriod as f64) } else { _cr }; let _div = if ShadowLong_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowLong_factor) * _avg / _div } && ((inOpen[i]).min(inClose[i]) <= inLow[i] + (inHigh[i] - inLow[i]) / 2_f64 + { let _cr = match Near_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && (inOpen[i]).max(inClose[i]) >= inLow[i] + (inHigh[i] - inLow[i]) / 2_f64 - { let _cr = match Near_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div }) {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 100;
             } else {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 0;
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
             }
-            let mut _candlerange_3: T;
+            let mut _candlerange_3: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_3 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_3 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_3 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_3 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_3 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_3 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_3 = T::ta_from_f64(0.0);
+                    _candlerange_3 = 0.0;
                 }
             }
-            let mut _candlerange_4: T;
+            let mut _candlerange_4: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_4 = (inClose[(BodyDojiTrailingIdx) as usize] - inOpen[(BodyDojiTrailingIdx) as usize]).ta_abs();
+                    _candlerange_4 = (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]).abs();
                 }
                 1 => {
-                    _candlerange_4 = inHigh[(BodyDojiTrailingIdx) as usize] - inLow[(BodyDojiTrailingIdx) as usize];
+                    _candlerange_4 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx];
                 }
                 2 => {
-                    _candlerange_4 = inHigh[(BodyDojiTrailingIdx) as usize] - inLow[(BodyDojiTrailingIdx) as usize] - (inClose[(BodyDojiTrailingIdx) as usize] - inOpen[(BodyDojiTrailingIdx) as usize]).ta_abs();
+                    _candlerange_4 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx] - (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]).abs();
                 }
                 _ => {
-                    _candlerange_4 = T::ta_from_f64(0.0);
+                    _candlerange_4 = 0.0;
                 }
             }
             BodyDojiPeriodTotal += _candlerange_3 - _candlerange_4;
-            let mut _candlerange_5: T;
+            let mut _candlerange_5: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_5 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_5 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_5 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_5 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_5 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_5 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_5 = T::ta_from_f64(0.0);
+                    _candlerange_5 = 0.0;
                 }
             }
-            let mut _candlerange_6: T;
+            let mut _candlerange_6: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_6 = (inClose[(ShadowLongTrailingIdx) as usize] - inOpen[(ShadowLongTrailingIdx) as usize]).ta_abs();
+                    _candlerange_6 = (inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx]).abs();
                 }
                 1 => {
-                    _candlerange_6 = inHigh[(ShadowLongTrailingIdx) as usize] - inLow[(ShadowLongTrailingIdx) as usize];
+                    _candlerange_6 = inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx];
                 }
                 2 => {
-                    _candlerange_6 = inHigh[(ShadowLongTrailingIdx) as usize] - inLow[(ShadowLongTrailingIdx) as usize] - (inClose[(ShadowLongTrailingIdx) as usize] - inOpen[(ShadowLongTrailingIdx) as usize]).ta_abs();
+                    _candlerange_6 = inHigh[ShadowLongTrailingIdx] - inLow[ShadowLongTrailingIdx] - (inClose[ShadowLongTrailingIdx] - inOpen[ShadowLongTrailingIdx]).abs();
                 }
                 _ => {
-                    _candlerange_6 = T::ta_from_f64(0.0);
+                    _candlerange_6 = 0.0;
                 }
             }
             ShadowLongPeriodTotal += _candlerange_5 - _candlerange_6;
-            let mut _candlerange_7: T;
+            let mut _candlerange_7: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_7 = (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_7 = (inClose[i] - inOpen[i]).abs();
                 }
                 1 => {
-                    _candlerange_7 = inHigh[(i) as usize] - inLow[(i) as usize];
+                    _candlerange_7 = inHigh[i] - inLow[i];
                 }
                 2 => {
-                    _candlerange_7 = inHigh[(i) as usize] - inLow[(i) as usize] - (inClose[(i) as usize] - inOpen[(i) as usize]).ta_abs();
+                    _candlerange_7 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
                 }
                 _ => {
-                    _candlerange_7 = T::ta_from_f64(0.0);
+                    _candlerange_7 = 0.0;
                 }
             }
-            let mut _candlerange_8: T;
+            let mut _candlerange_8: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_8 = (inClose[(NearTrailingIdx) as usize] - inOpen[(NearTrailingIdx) as usize]).ta_abs();
+                    _candlerange_8 = (inClose[NearTrailingIdx] - inOpen[NearTrailingIdx]).abs();
                 }
                 1 => {
-                    _candlerange_8 = inHigh[(NearTrailingIdx) as usize] - inLow[(NearTrailingIdx) as usize];
+                    _candlerange_8 = inHigh[NearTrailingIdx] - inLow[NearTrailingIdx];
                 }
                 2 => {
-                    _candlerange_8 = inHigh[(NearTrailingIdx) as usize] - inLow[(NearTrailingIdx) as usize] - (inClose[(NearTrailingIdx) as usize] - inOpen[(NearTrailingIdx) as usize]).ta_abs();
+                    _candlerange_8 = inHigh[NearTrailingIdx] - inLow[NearTrailingIdx] - (inClose[NearTrailingIdx] - inOpen[NearTrailingIdx]).abs();
                 }
                 _ => {
-                    _candlerange_8 = T::ta_from_f64(0.0);
+                    _candlerange_8 = 0.0;
                 }
             }
             NearPeriodTotal += _candlerange_7 - _candlerange_8;
@@ -338,14 +338,14 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn cdlrickshawman_unchecked<T: TaFloat>(
+    pub unsafe fn cdlrickshawman_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -365,21 +365,21 @@ impl Core {
             outInteger,
         );
     }
-    pub unsafe fn cdlrickshawman_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn cdlrickshawman_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut BodyDojiPeriodTotal: T = T::ta_zero();
-        let mut ShadowLongPeriodTotal: T = T::ta_zero();
-        let mut NearPeriodTotal: T = T::ta_zero();
+        let mut BodyDojiPeriodTotal: f64 = 0.0_f64;
+        let mut ShadowLongPeriodTotal: f64 = 0.0_f64;
+        let mut NearPeriodTotal: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut BodyDojiTrailingIdx: usize = 0_usize;
@@ -413,27 +413,27 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        BodyDojiPeriodTotal = T::ta_from_i32(0 as i32);
+        BodyDojiPeriodTotal = 0.0;
         BodyDojiTrailingIdx = startIdx - (BodyDoji_avgPeriod) as usize;
-        ShadowLongPeriodTotal = T::ta_from_i32(0 as i32);
+        ShadowLongPeriodTotal = 0.0;
         ShadowLongTrailingIdx = startIdx - (ShadowLong_avgPeriod) as usize;
-        NearPeriodTotal = T::ta_from_i32(0 as i32);
+        NearPeriodTotal = 0.0;
         NearTrailingIdx = startIdx - (Near_avgPeriod) as usize;
         i = BodyDojiTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_0: T;
+            let mut _candlerange_0: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_0 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_0 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_0 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_0 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_0 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_0 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_0 = T::ta_from_f64(0.0);
+                    _candlerange_0 = 0.0;
                 }
             }
             BodyDojiPeriodTotal += _candlerange_0;
@@ -441,19 +441,19 @@ impl Core {
         }
         i = ShadowLongTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_1: T;
+            let mut _candlerange_1: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_1 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_1 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_1 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_1 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_1 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_1 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_1 = T::ta_from_f64(0.0);
+                    _candlerange_1 = 0.0;
                 }
             }
             ShadowLongPeriodTotal += _candlerange_1;
@@ -461,19 +461,19 @@ impl Core {
         }
         i = NearTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_2: T;
+            let mut _candlerange_2: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_2 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_2 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_2 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_2 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_2 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_2 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_2 = T::ta_from_f64(0.0);
+                    _candlerange_2 = 0.0;
                 }
             }
             NearPeriodTotal += _candlerange_2;
@@ -481,101 +481,101 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            if ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs() <= self.ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, (*inOpen.get_unchecked((i) as usize)), (*inHigh.get_unchecked((i) as usize)), (*inLow.get_unchecked((i) as usize)), (*inClose.get_unchecked((i) as usize))) && (if (*inClose.get_unchecked((i) as usize)) >= (*inOpen.get_unchecked((i) as usize)) { (*inOpen.get_unchecked((i) as usize)) } else { (*inClose.get_unchecked((i) as usize)) } - (*inLow.get_unchecked((i) as usize))) > self.ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, (*inOpen.get_unchecked((i) as usize)), (*inHigh.get_unchecked((i) as usize)), (*inLow.get_unchecked((i) as usize)), (*inClose.get_unchecked((i) as usize))) && ((*inHigh.get_unchecked((i) as usize)) - if (*inClose.get_unchecked((i) as usize)) >= (*inOpen.get_unchecked((i) as usize)) { (*inClose.get_unchecked((i) as usize)) } else { (*inOpen.get_unchecked((i) as usize)) }) > self.ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, (*inOpen.get_unchecked((i) as usize)), (*inHigh.get_unchecked((i) as usize)), (*inLow.get_unchecked((i) as usize)), (*inClose.get_unchecked((i) as usize))) && (((*inOpen.get_unchecked((i) as usize))).min((*inClose.get_unchecked((i) as usize))) <= (*inLow.get_unchecked((i) as usize)) + ((*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize))) / T::ta_from_i32(2) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, (*inOpen.get_unchecked((i) as usize)), (*inHigh.get_unchecked((i) as usize)), (*inLow.get_unchecked((i) as usize)), (*inClose.get_unchecked((i) as usize))) && ((*inOpen.get_unchecked((i) as usize))).max((*inClose.get_unchecked((i) as usize))) >= (*inLow.get_unchecked((i) as usize)) + ((*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize))) / T::ta_from_i32(2) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, (*inOpen.get_unchecked((i) as usize)), (*inHigh.get_unchecked((i) as usize)), (*inLow.get_unchecked((i) as usize)), (*inClose.get_unchecked((i) as usize)))) {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 100;
+            if ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() <= { let _cr = match BodyDoji_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inOpen.get_unchecked(i)) } else { (*inClose.get_unchecked(i)) }) - (*inLow.get_unchecked(i))) > { let _cr = match ShadowLong_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if ShadowLong_avgPeriod != 0 { (ShadowLongPeriodTotal) / (ShadowLong_avgPeriod as f64) } else { _cr }; let _div = if ShadowLong_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowLong_factor) * _avg / _div } && ((*inHigh.get_unchecked(i)) - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inClose.get_unchecked(i)) } else { (*inOpen.get_unchecked(i)) })) > { let _cr = match ShadowLong_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if ShadowLong_avgPeriod != 0 { (ShadowLongPeriodTotal) / (ShadowLong_avgPeriod as f64) } else { _cr }; let _div = if ShadowLong_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowLong_factor) * _avg / _div } && (((*inOpen.get_unchecked(i))).min((*inClose.get_unchecked(i))) <= (*inLow.get_unchecked(i)) + ((*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i))) / 2_f64 + { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && ((*inOpen.get_unchecked(i))).max((*inClose.get_unchecked(i))) >= (*inLow.get_unchecked(i)) + ((*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i))) / 2_f64 - { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div }) {
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100;
             } else {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 0;
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
             }
-            let mut _candlerange_3: T;
+            let mut _candlerange_3: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_3 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_3 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_3 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_3 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_3 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_3 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_3 = T::ta_from_f64(0.0);
+                    _candlerange_3 = 0.0;
                 }
             }
-            let mut _candlerange_4: T;
+            let mut _candlerange_4: f64;
             match BodyDoji_rangeType {
                 0 => {
-                    _candlerange_4 = ((*inClose.get_unchecked((BodyDojiTrailingIdx) as usize)) - (*inOpen.get_unchecked((BodyDojiTrailingIdx) as usize))).ta_abs();
+                    _candlerange_4 = ((*inClose.get_unchecked(BodyDojiTrailingIdx)) - (*inOpen.get_unchecked(BodyDojiTrailingIdx))).abs();
                 }
                 1 => {
-                    _candlerange_4 = (*inHigh.get_unchecked((BodyDojiTrailingIdx) as usize)) - (*inLow.get_unchecked((BodyDojiTrailingIdx) as usize));
+                    _candlerange_4 = (*inHigh.get_unchecked(BodyDojiTrailingIdx)) - (*inLow.get_unchecked(BodyDojiTrailingIdx));
                 }
                 2 => {
-                    _candlerange_4 = (*inHigh.get_unchecked((BodyDojiTrailingIdx) as usize)) - (*inLow.get_unchecked((BodyDojiTrailingIdx) as usize)) - ((*inClose.get_unchecked((BodyDojiTrailingIdx) as usize)) - (*inOpen.get_unchecked((BodyDojiTrailingIdx) as usize))).ta_abs();
+                    _candlerange_4 = (*inHigh.get_unchecked(BodyDojiTrailingIdx)) - (*inLow.get_unchecked(BodyDojiTrailingIdx)) - ((*inClose.get_unchecked(BodyDojiTrailingIdx)) - (*inOpen.get_unchecked(BodyDojiTrailingIdx))).abs();
                 }
                 _ => {
-                    _candlerange_4 = T::ta_from_f64(0.0);
+                    _candlerange_4 = 0.0;
                 }
             }
             BodyDojiPeriodTotal += _candlerange_3 - _candlerange_4;
-            let mut _candlerange_5: T;
+            let mut _candlerange_5: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_5 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_5 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_5 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_5 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_5 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_5 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_5 = T::ta_from_f64(0.0);
+                    _candlerange_5 = 0.0;
                 }
             }
-            let mut _candlerange_6: T;
+            let mut _candlerange_6: f64;
             match ShadowLong_rangeType {
                 0 => {
-                    _candlerange_6 = ((*inClose.get_unchecked((ShadowLongTrailingIdx) as usize)) - (*inOpen.get_unchecked((ShadowLongTrailingIdx) as usize))).ta_abs();
+                    _candlerange_6 = ((*inClose.get_unchecked(ShadowLongTrailingIdx)) - (*inOpen.get_unchecked(ShadowLongTrailingIdx))).abs();
                 }
                 1 => {
-                    _candlerange_6 = (*inHigh.get_unchecked((ShadowLongTrailingIdx) as usize)) - (*inLow.get_unchecked((ShadowLongTrailingIdx) as usize));
+                    _candlerange_6 = (*inHigh.get_unchecked(ShadowLongTrailingIdx)) - (*inLow.get_unchecked(ShadowLongTrailingIdx));
                 }
                 2 => {
-                    _candlerange_6 = (*inHigh.get_unchecked((ShadowLongTrailingIdx) as usize)) - (*inLow.get_unchecked((ShadowLongTrailingIdx) as usize)) - ((*inClose.get_unchecked((ShadowLongTrailingIdx) as usize)) - (*inOpen.get_unchecked((ShadowLongTrailingIdx) as usize))).ta_abs();
+                    _candlerange_6 = (*inHigh.get_unchecked(ShadowLongTrailingIdx)) - (*inLow.get_unchecked(ShadowLongTrailingIdx)) - ((*inClose.get_unchecked(ShadowLongTrailingIdx)) - (*inOpen.get_unchecked(ShadowLongTrailingIdx))).abs();
                 }
                 _ => {
-                    _candlerange_6 = T::ta_from_f64(0.0);
+                    _candlerange_6 = 0.0;
                 }
             }
             ShadowLongPeriodTotal += _candlerange_5 - _candlerange_6;
-            let mut _candlerange_7: T;
+            let mut _candlerange_7: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_7 = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_7 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 1 => {
-                    _candlerange_7 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
+                    _candlerange_7 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
                 }
                 2 => {
-                    _candlerange_7 = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize)) - ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))).ta_abs();
+                    _candlerange_7 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
                 }
                 _ => {
-                    _candlerange_7 = T::ta_from_f64(0.0);
+                    _candlerange_7 = 0.0;
                 }
             }
-            let mut _candlerange_8: T;
+            let mut _candlerange_8: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_8 = ((*inClose.get_unchecked((NearTrailingIdx) as usize)) - (*inOpen.get_unchecked((NearTrailingIdx) as usize))).ta_abs();
+                    _candlerange_8 = ((*inClose.get_unchecked(NearTrailingIdx)) - (*inOpen.get_unchecked(NearTrailingIdx))).abs();
                 }
                 1 => {
-                    _candlerange_8 = (*inHigh.get_unchecked((NearTrailingIdx) as usize)) - (*inLow.get_unchecked((NearTrailingIdx) as usize));
+                    _candlerange_8 = (*inHigh.get_unchecked(NearTrailingIdx)) - (*inLow.get_unchecked(NearTrailingIdx));
                 }
                 2 => {
-                    _candlerange_8 = (*inHigh.get_unchecked((NearTrailingIdx) as usize)) - (*inLow.get_unchecked((NearTrailingIdx) as usize)) - ((*inClose.get_unchecked((NearTrailingIdx) as usize)) - (*inOpen.get_unchecked((NearTrailingIdx) as usize))).ta_abs();
+                    _candlerange_8 = (*inHigh.get_unchecked(NearTrailingIdx)) - (*inLow.get_unchecked(NearTrailingIdx)) - ((*inClose.get_unchecked(NearTrailingIdx)) - (*inOpen.get_unchecked(NearTrailingIdx))).abs();
                 }
                 _ => {
-                    _candlerange_8 = T::ta_from_f64(0.0);
+                    _candlerange_8 = 0.0;
                 }
             }
             NearPeriodTotal += _candlerange_7 - _candlerange_8;

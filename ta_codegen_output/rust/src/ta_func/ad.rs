@@ -69,17 +69,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn ad<T: TaFloat>(
+    pub fn ad(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -96,57 +96,57 @@ impl Core {
             outReal,
         );
     }
-    pub fn ad_unguarded<T: TaFloat>(
+    pub fn ad_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut nbBar: usize = 0_usize;
         let mut currentBar: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut high: T = T::ta_zero();
-        let mut low: T = T::ta_zero();
-        let mut close: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut ad: T = T::ta_zero();
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;
         currentBar = startIdx;
         outIdx = 0;
-        ad = T::ta_from_f64(0.0);
+        ad = 0.0;
         while nbBar != 0 {
-            high = inHigh[(currentBar) as usize];
-            low = inLow[(currentBar) as usize];
+            high = inHigh[currentBar];
+            low = inLow[currentBar];
             tmp = high - low;
-            close = inClose[(currentBar) as usize];
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[(currentBar) as usize]).ta_to_f64()));
+            close = inClose[currentBar];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[currentBar]) as f64);
             }
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = ad;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ad;
             currentBar += 1;
             nbBar -= 1;
         }
         return RetCode::Success;
     }
-    pub unsafe fn ad_unchecked<T: TaFloat>(
+    pub unsafe fn ad_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -163,41 +163,41 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn ad_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn ad_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut nbBar: usize = 0_usize;
         let mut currentBar: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut high: T = T::ta_zero();
-        let mut low: T = T::ta_zero();
-        let mut close: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut ad: T = T::ta_zero();
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;
         currentBar = startIdx;
         outIdx = 0;
-        ad = T::ta_from_f64(0.0);
+        ad = 0.0;
         while nbBar != 0 {
-            high = (*inHigh.get_unchecked((currentBar) as usize));
-            low = (*inLow.get_unchecked((currentBar) as usize));
+            high = (*inHigh.get_unchecked(currentBar));
+            low = (*inLow.get_unchecked(currentBar));
             tmp = high - low;
-            close = (*inClose.get_unchecked((currentBar) as usize));
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64(((*inVolume.get_unchecked((currentBar) as usize))).ta_to_f64()));
+            close = (*inClose.get_unchecked(currentBar));
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(currentBar))) as f64);
             }
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ad;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ad;
             currentBar += 1;
             nbBar -= 1;
         }

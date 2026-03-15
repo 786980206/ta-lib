@@ -66,14 +66,14 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn tan<T: TaFloat>(
+    pub fn tan(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -87,14 +87,14 @@ impl Core {
             outReal,
         );
     }
-    pub fn tan_unguarded<T: TaFloat>(
+    pub fn tan_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -102,7 +102,7 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            outReal[(outIdx) as usize] = inReal[(i) as usize].ta_tan();
+            outReal[outIdx] = (((inReal[i]).tan()) as f64);
             i += 1;
             outIdx += 1;
         }
@@ -110,14 +110,14 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn tan_unchecked<T: TaFloat>(
+    pub unsafe fn tan_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -131,14 +131,14 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn tan_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn tan_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -146,7 +146,7 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            (*outReal.get_unchecked_mut((outIdx) as usize)) = (*inReal.get_unchecked((i) as usize)).ta_tan();
+            (*outReal.get_unchecked_mut(outIdx)) = ((((*inReal.get_unchecked(i))).tan()) as f64);
             i += 1;
             outIdx += 1;
         }

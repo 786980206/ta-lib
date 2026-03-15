@@ -75,17 +75,17 @@ impl Core {
     /// * `outNBElement` - Number of valid output elements
     /// * `outAroonDown` - Output values
     /// * `outAroonUp` - Output values
-    pub fn aroon<T: TaFloat>(
+    pub fn aroon(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outAroonDown: &mut [T],
-        outAroonUp: &mut [T],
+        outAroonDown: &mut [f64],
+        outAroonUp: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -107,22 +107,22 @@ impl Core {
             outAroonUp,
         );
     }
-    pub fn aroon_unguarded<T: TaFloat>(
+    pub fn aroon_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outAroonDown: &mut [T],
-        outAroonUp: &mut [T],
+        outAroonDown: &mut [f64],
+        outAroonUp: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut factor: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut factor: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut lowestIdx: i32 = 0_i32;
@@ -142,17 +142,17 @@ impl Core {
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         lowestIdx = 0 - 1;
         highestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
-        highest = T::ta_from_f64(0.0);
-        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_i32(optInTimePeriod));
+        lowest = 0.0;
+        highest = 0.0;
+        factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
         while today <= endIdx {
-            tmp = inLow[(today) as usize];
+            tmp = inLow[today];
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = inLow[(lowestIdx) as usize];
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inLow[(i) as usize];
+                    tmp = inLow[i];
                     if tmp <= lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -162,13 +162,13 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            tmp = inHigh[(today) as usize];
+            tmp = inHigh[today];
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = inHigh[(highestIdx) as usize];
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inHigh[(i) as usize];
+                    tmp = inHigh[i];
                     if tmp >= highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -178,8 +178,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            outAroonUp[(outIdx) as usize] = factor * T::ta_from_i32((optInTimePeriod - ((today) as i32 - highestIdx)));
-            outAroonDown[(outIdx) as usize] = factor * T::ta_from_i32((optInTimePeriod - ((today) as i32 - lowestIdx)));
+            outAroonUp[outIdx] = factor * (((optInTimePeriod - ((today) as i32 - highestIdx))) as f64);
+            outAroonDown[outIdx] = factor * (((optInTimePeriod - ((today) as i32 - lowestIdx))) as f64);
             outIdx += 1;
             trailingIdx += 1;
             today += 1;
@@ -188,17 +188,17 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn aroon_unchecked<T: TaFloat>(
+    pub unsafe fn aroon_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outAroonDown: &mut [T],
-        outAroonUp: &mut [T],
+        outAroonDown: &mut [f64],
+        outAroonUp: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -220,22 +220,22 @@ impl Core {
             outAroonUp,
         );
     }
-    pub unsafe fn aroon_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn aroon_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outAroonDown: &mut [T],
-        outAroonUp: &mut [T],
+        outAroonDown: &mut [f64],
+        outAroonUp: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut factor: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut factor: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut lowestIdx: i32 = 0_i32;
@@ -255,17 +255,17 @@ impl Core {
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         lowestIdx = 0 - 1;
         highestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
-        highest = T::ta_from_f64(0.0);
-        factor = (T::ta_from_f64((T::ta_from_f64(100.0)).ta_to_f64())) / (T::ta_from_i32(optInTimePeriod));
+        lowest = 0.0;
+        highest = 0.0;
+        factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
         while today <= endIdx {
-            tmp = (*inLow.get_unchecked((today) as usize));
+            tmp = (*inLow.get_unchecked(today));
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = (*inLow.get_unchecked((lowestIdx) as usize));
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inLow.get_unchecked((i) as usize));
+                    tmp = (*inLow.get_unchecked(i));
                     if tmp <= lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -275,13 +275,13 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            tmp = (*inHigh.get_unchecked((today) as usize));
+            tmp = (*inHigh.get_unchecked(today));
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = (*inHigh.get_unchecked((highestIdx) as usize));
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inHigh.get_unchecked((i) as usize));
+                    tmp = (*inHigh.get_unchecked(i));
                     if tmp >= highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -291,8 +291,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            (*outAroonUp.get_unchecked_mut((outIdx) as usize)) = factor * T::ta_from_i32((optInTimePeriod - ((today) as i32 - highestIdx)));
-            (*outAroonDown.get_unchecked_mut((outIdx) as usize)) = factor * T::ta_from_i32((optInTimePeriod - ((today) as i32 - lowestIdx)));
+            (*outAroonUp.get_unchecked_mut(outIdx)) = factor * (((optInTimePeriod - ((today) as i32 - highestIdx))) as f64);
+            (*outAroonDown.get_unchecked_mut(outIdx)) = factor * (((optInTimePeriod - ((today) as i32 - lowestIdx))) as f64);
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

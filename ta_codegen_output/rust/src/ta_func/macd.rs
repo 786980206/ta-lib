@@ -95,19 +95,19 @@ impl Core {
     /// * `outMACD` - Output values
     /// * `outMACDSignal` - Output values
     /// * `outMACDHist` - Output values
-    pub fn macd<T: TaFloat>(
+    pub fn macd(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -141,22 +141,22 @@ impl Core {
             outMACDHist,
         );
     }
-    pub fn macd_unguarded<T: TaFloat>(
+    pub fn macd_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
-        let mut slowEMABuffer: Vec<T> = Vec::new();
-        let mut fastEMABuffer: Vec<T> = Vec::new();
+        let mut slowEMABuffer: Vec<f64> = Vec::new();
+        let mut fastEMABuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -189,8 +189,8 @@ impl Core {
             return RetCode::Success;
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        fastEMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
-        slowEMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
+        fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
         if retCode != RetCode::Success {
@@ -212,13 +212,13 @@ impl Core {
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
-            fastEMABuffer[(i) as usize] = fastEMABuffer[(i) as usize] - slowEMABuffer[(i) as usize];
+            fastEMABuffer[i] = fastEMABuffer[i] - slowEMABuffer[i];
             i += 1;
         }
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
-            let _si = ((lookbackSignal) as usize) as usize;
+            let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
         retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
@@ -230,26 +230,26 @@ impl Core {
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
-            outMACDHist[(i) as usize] = outMACD[(i) as usize] - outMACDSignal[(i) as usize];
+            outMACDHist[i] = ((outMACD[i] - outMACDSignal[i]) as f64);
             i += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
     }
-    pub unsafe fn macd_unchecked<T: TaFloat>(
+    pub unsafe fn macd_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -283,22 +283,22 @@ impl Core {
             outMACDHist,
         );
     }
-    pub unsafe fn macd_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn macd_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
-        let mut slowEMABuffer: Vec<T> = Vec::new();
-        let mut fastEMABuffer: Vec<T> = Vec::new();
+        let mut slowEMABuffer: Vec<f64> = Vec::new();
+        let mut fastEMABuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -331,8 +331,8 @@ impl Core {
             return RetCode::Success;
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        fastEMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
-        slowEMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
+        fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
         if retCode != RetCode::Success {
@@ -354,13 +354,13 @@ impl Core {
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
-            (*fastEMABuffer.get_unchecked_mut((i) as usize)) = (*fastEMABuffer.get_unchecked((i) as usize)) - (*slowEMABuffer.get_unchecked((i) as usize));
+            (*fastEMABuffer.get_unchecked_mut(i)) = (*fastEMABuffer.get_unchecked(i)) - (*slowEMABuffer.get_unchecked(i));
             i += 1;
         }
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
-            let _si = ((lookbackSignal) as usize) as usize;
+            let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
         retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
@@ -372,7 +372,7 @@ impl Core {
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
-            (*outMACDHist.get_unchecked_mut((i) as usize)) = (*outMACD.get_unchecked((i) as usize)) - (*outMACDSignal.get_unchecked((i) as usize));
+            (*outMACDHist.get_unchecked_mut(i)) = (((*outMACD.get_unchecked(i)) - (*outMACDSignal.get_unchecked(i))) as f64);
             i += 1;
         }
         (*outBegIdx) = startIdx;

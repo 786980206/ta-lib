@@ -19,11 +19,11 @@
                         double outReal[] )
    {
       double[] adx;
-      int adxrLookback;
-      int i;
-      int j;
-      int outIdx;
-      int nbElement;
+      int adxrLookback = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int nbElement = 0;
       RetCode retCode;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -67,11 +67,11 @@
                              double outReal[] )
    {
       double[] adx;
-      int adxrLookback;
-      int i;
-      int j;
-      int outIdx;
-      int nbElement;
+      int adxrLookback = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int nbElement = 0;
       RetCode retCode;
       adxrLookback = adxrLookback(optInTimePeriod);
       if( (startIdx<adxrLookback) ) {
@@ -109,11 +109,11 @@
                         double outReal[] )
    {
       double[] adx;
-      int adxrLookback;
-      int i;
-      int j;
-      int outIdx;
-      int nbElement;
+      int adxrLookback = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int nbElement = 0;
       RetCode retCode;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -157,11 +157,11 @@
                              double outReal[] )
    {
       double[] adx;
-      int adxrLookback;
-      int i;
-      int j;
-      int outIdx;
-      int nbElement;
+      int adxrLookback = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int nbElement = 0;
       RetCode retCode;
       adxrLookback = adxrLookback(optInTimePeriod);
       if( (startIdx<adxrLookback) ) {

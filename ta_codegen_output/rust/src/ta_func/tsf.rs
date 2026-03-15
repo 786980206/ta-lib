@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn tsf<T: TaFloat>(
+    pub fn tsf(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,28 +101,28 @@ impl Core {
             outReal,
         );
     }
-    pub fn tsf_unguarded<T: TaFloat>(
+    pub fn tsf_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut SumX: T = T::ta_zero();
-        let mut SumXY: T = T::ta_zero();
-        let mut SumY: T = T::ta_zero();
-        let mut SumXSqr: T = T::ta_zero();
-        let mut Divisor: T = T::ta_zero();
-        let mut m: T = T::ta_zero();
-        let mut b: T = T::ta_zero();
+        let mut SumX: f64 = 0.0_f64;
+        let mut SumXY: f64 = 0.0_f64;
+        let mut SumY: f64 = 0.0_f64;
+        let mut SumXSqr: f64 = 0.0_f64;
+        let mut Divisor: f64 = 0.0_f64;
+        let mut m: f64 = 0.0_f64;
+        let mut b: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
-        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue1: f64 = 0.0_f64;
         lookbackTotal = self.tsf_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -134,37 +134,37 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        SumX = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1)) * T::ta_from_f64(0.5);
-        SumXSqr = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6);
-        Divisor = SumX * SumX - T::ta_from_i32(optInTimePeriod) * SumXSqr;
+        SumX = ((optInTimePeriod * (optInTimePeriod - 1)) as f64) * 0.5;
+        SumXSqr = ((optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6) as f64);
+        Divisor = SumX * SumX - ((optInTimePeriod) as f64) * SumXSqr;
         while today <= endIdx {
-            SumXY = T::ta_from_i32(0 as i32);
-            SumY = T::ta_from_i32(0 as i32);
+            SumXY = 0.0;
+            SumY = 0.0;
             // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
             i = (optInTimePeriod) as usize;
             while { let _v = i; i -= 1; _v } != 0 {
-                tempValue1 = inReal[(today - i) as usize];
+                tempValue1 = inReal[today - i];
                 SumY += tempValue1;
-                SumXY += (T::ta_from_i32((i) as i32)) * tempValue1;
+                SumXY += ((i) as f64) * tempValue1;
             }
-            m = (T::ta_from_i32(optInTimePeriod) * SumXY - SumX * SumY) / Divisor;
-            b = (SumY - m * SumX) / (T::ta_from_i32(optInTimePeriod));
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = b + m * (T::ta_from_i32(optInTimePeriod));
+            m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
+            b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = b + m * ((optInTimePeriod) as f64);
             today += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn tsf_unchecked<T: TaFloat>(
+    pub unsafe fn tsf_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -184,28 +184,28 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn tsf_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn tsf_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut SumX: T = T::ta_zero();
-        let mut SumXY: T = T::ta_zero();
-        let mut SumY: T = T::ta_zero();
-        let mut SumXSqr: T = T::ta_zero();
-        let mut Divisor: T = T::ta_zero();
-        let mut m: T = T::ta_zero();
-        let mut b: T = T::ta_zero();
+        let mut SumX: f64 = 0.0_f64;
+        let mut SumXY: f64 = 0.0_f64;
+        let mut SumY: f64 = 0.0_f64;
+        let mut SumXSqr: f64 = 0.0_f64;
+        let mut Divisor: f64 = 0.0_f64;
+        let mut m: f64 = 0.0_f64;
+        let mut b: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
-        let mut tempValue1: T = T::ta_zero();
+        let mut tempValue1: f64 = 0.0_f64;
         lookbackTotal = self.tsf_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -217,22 +217,22 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx;
-        SumX = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1)) * T::ta_from_f64(0.5);
-        SumXSqr = T::ta_from_i32(optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6);
-        Divisor = SumX * SumX - T::ta_from_i32(optInTimePeriod) * SumXSqr;
+        SumX = ((optInTimePeriod * (optInTimePeriod - 1)) as f64) * 0.5;
+        SumXSqr = ((optInTimePeriod * (optInTimePeriod - 1) * (2 * optInTimePeriod - 1) / 6) as f64);
+        Divisor = SumX * SumX - ((optInTimePeriod) as f64) * SumXSqr;
         while today <= endIdx {
-            SumXY = T::ta_from_i32(0 as i32);
-            SumY = T::ta_from_i32(0 as i32);
+            SumXY = 0.0;
+            SumY = 0.0;
             // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
             i = (optInTimePeriod) as usize;
             while { let _v = i; i -= 1; _v } != 0 {
-                tempValue1 = (*inReal.get_unchecked((today - i) as usize));
+                tempValue1 = (*inReal.get_unchecked(today - i));
                 SumY += tempValue1;
-                SumXY += (T::ta_from_i32((i) as i32)) * tempValue1;
+                SumXY += ((i) as f64) * tempValue1;
             }
-            m = (T::ta_from_i32(optInTimePeriod) * SumXY - SumX * SumY) / Divisor;
-            b = (SumY - m * SumX) / (T::ta_from_i32(optInTimePeriod));
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = b + m * (T::ta_from_i32(optInTimePeriod));
+            m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
+            b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = b + m * ((optInTimePeriod) as f64);
             today += 1;
         }
         (*outBegIdx) = startIdx;

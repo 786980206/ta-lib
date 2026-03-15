@@ -20,9 +20,9 @@
    {
       double[] tempRSIBuffer;
       RetCode retCode;
-      int lookbackTotal;
-      int lookbackSTOCHF;
-      int tempArraySize;
+      int lookbackTotal = 0;
+      int lookbackSTOCHF = 0;
+      int tempArraySize = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement1 = new MInteger();
@@ -75,9 +75,9 @@
    {
       double[] tempRSIBuffer;
       RetCode retCode;
-      int lookbackTotal;
-      int lookbackSTOCHF;
-      int tempArraySize;
+      int lookbackTotal = 0;
+      int lookbackSTOCHF = 0;
+      int tempArraySize = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement1 = new MInteger();
@@ -124,9 +124,9 @@
    {
       double[] tempRSIBuffer;
       RetCode retCode;
-      int lookbackTotal;
-      int lookbackSTOCHF;
-      int tempArraySize;
+      int lookbackTotal = 0;
+      int lookbackSTOCHF = 0;
+      int tempArraySize = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement1 = new MInteger();
@@ -179,9 +179,9 @@
    {
       double[] tempRSIBuffer;
       RetCode retCode;
-      int lookbackTotal;
-      int lookbackSTOCHF;
-      int tempArraySize;
+      int lookbackTotal = 0;
+      int lookbackSTOCHF = 0;
+      int tempArraySize = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement1 = new MInteger();

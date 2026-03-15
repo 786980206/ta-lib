@@ -13,9 +13,9 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int i;
+      int i = 0;
       RetCode retCode;
-      double tempReal;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -56,9 +56,9 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int i;
+      int i = 0;
       RetCode retCode;
-      double tempReal;
+      double tempReal = 0;
       retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
@@ -93,9 +93,9 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int i;
+      int i = 0;
       RetCode retCode;
-      double tempReal;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -136,9 +136,9 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int i;
+      int i = 0;
       RetCode retCode;
-      double tempReal;
+      double tempReal = 0;
       retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;

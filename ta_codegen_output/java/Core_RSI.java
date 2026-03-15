@@ -17,17 +17,17 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int unstablePeriod;
-      int i;
-      double prevGain;
-      double prevLoss;
-      double prevValue;
-      double savePrevValue;
-      double tempValue1;
-      double tempValue2;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int unstablePeriod = 0;
+      int i = 0;
+      double prevGain = 0;
+      double prevLoss = 0;
+      double prevValue = 0;
+      double savePrevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -164,17 +164,17 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int unstablePeriod;
-      int i;
-      double prevGain;
-      double prevLoss;
-      double prevValue;
-      double savePrevValue;
-      double tempValue1;
-      double tempValue2;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int unstablePeriod = 0;
+      int i = 0;
+      double prevGain = 0;
+      double prevLoss = 0;
+      double prevValue = 0;
+      double savePrevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = ((int)rsiLookback(optInTimePeriod));
@@ -305,17 +305,17 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int unstablePeriod;
-      int i;
-      double prevGain;
-      double prevLoss;
-      double prevValue;
-      double savePrevValue;
-      double tempValue1;
-      double tempValue2;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int unstablePeriod = 0;
+      int i = 0;
+      double prevGain = 0;
+      double prevLoss = 0;
+      double prevValue = 0;
+      double savePrevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -452,17 +452,17 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int unstablePeriod;
-      int i;
-      double prevGain;
-      double prevLoss;
-      double prevValue;
-      double savePrevValue;
-      double tempValue1;
-      double tempValue2;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int unstablePeriod = 0;
+      int i = 0;
+      double prevGain = 0;
+      double prevLoss = 0;
+      double prevValue = 0;
+      double savePrevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
       outBegIdx.value = 0;
       outNBElement.value = 0;
       lookbackTotal = ((int)rsiLookback(optInTimePeriod));

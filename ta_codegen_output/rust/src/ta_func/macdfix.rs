@@ -75,17 +75,17 @@ impl Core {
     /// * `outMACD` - Output values
     /// * `outMACDSignal` - Output values
     /// * `outMACDHist` - Output values
-    pub fn macdfix<T: TaFloat>(
+    pub fn macdfix(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -107,31 +107,31 @@ impl Core {
             outMACDHist,
         );
     }
-    pub fn macdfix_unguarded<T: TaFloat>(
+    pub fn macdfix_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
     }
-    pub unsafe fn macdfix_unchecked<T: TaFloat>(
+    pub unsafe fn macdfix_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -153,17 +153,17 @@ impl Core {
             outMACDHist,
         );
     }
-    pub unsafe fn macdfix_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn macdfix_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInSignalPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
     }

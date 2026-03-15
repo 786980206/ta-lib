@@ -13,17 +13,17 @@
                                int outMinIdx[],
                                int outMaxIdx[] )
    {
-      double highest;
-      double lowest;
-      double tmpHigh;
-      double tmpLow;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
-      int lowestIdx;
+      double highest = 0;
+      double lowest = 0;
+      double tmpHigh = 0;
+      double tmpLow = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
+      int lowestIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -98,17 +98,17 @@
                                     int outMinIdx[],
                                     int outMaxIdx[] )
    {
-      double highest;
-      double lowest;
-      double tmpHigh;
-      double tmpLow;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
-      int lowestIdx;
+      double highest = 0;
+      double lowest = 0;
+      double tmpHigh = 0;
+      double tmpLow = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
+      int lowestIdx = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
@@ -177,17 +177,17 @@
                                int outMinIdx[],
                                int outMaxIdx[] )
    {
-      double highest;
-      double lowest;
-      double tmpHigh;
-      double tmpLow;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
-      int lowestIdx;
+      double highest = 0;
+      double lowest = 0;
+      double tmpHigh = 0;
+      double tmpLow = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
+      int lowestIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -262,17 +262,17 @@
                                     int outMinIdx[],
                                     int outMaxIdx[] )
    {
-      double highest;
-      double lowest;
-      double tmpHigh;
-      double tmpLow;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
-      int lowestIdx;
+      double highest = 0;
+      double lowest = 0;
+      double tmpHigh = 0;
+      double tmpLow = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
+      int lowestIdx = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;

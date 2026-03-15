@@ -12,19 +12,19 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      double constMax;
-      double constDiff;
-      double tempReal;
-      double tempReal2;
-      double sumROC1;
-      double periodROC;
-      double prevKAMA;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int trailingIdx;
-      double trailingValue;
+      double constMax = 0;
+      double constDiff = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double sumROC1 = 0;
+      double periodROC = 0;
+      double prevKAMA = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int trailingIdx = 0;
+      double trailingValue = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -113,19 +113,19 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      double constMax;
-      double constDiff;
-      double tempReal;
-      double tempReal2;
-      double sumROC1;
-      double periodROC;
-      double prevKAMA;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int trailingIdx;
-      double trailingValue;
+      double constMax = 0;
+      double constDiff = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double sumROC1 = 0;
+      double periodROC = 0;
+      double prevKAMA = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int trailingIdx = 0;
+      double trailingValue = 0;
       constMax = (2.0/(30.0+1.0));
       constDiff = ((2.0/(2.0+1.0))-constMax);
       outBegIdx.value = 0;
@@ -208,19 +208,19 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      double constMax;
-      double constDiff;
-      double tempReal;
-      double tempReal2;
-      double sumROC1;
-      double periodROC;
-      double prevKAMA;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int trailingIdx;
-      double trailingValue;
+      double constMax = 0;
+      double constDiff = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double sumROC1 = 0;
+      double periodROC = 0;
+      double prevKAMA = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int trailingIdx = 0;
+      double trailingValue = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -309,19 +309,19 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      double constMax;
-      double constDiff;
-      double tempReal;
-      double tempReal2;
-      double sumROC1;
-      double periodROC;
-      double prevKAMA;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int trailingIdx;
-      double trailingValue;
+      double constMax = 0;
+      double constDiff = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double sumROC1 = 0;
+      double periodROC = 0;
+      double prevKAMA = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int trailingIdx = 0;
+      double trailingValue = 0;
       constMax = (2.0/(30.0+1.0));
       constDiff = ((2.0/(2.0+1.0))-constMax);
       outBegIdx.value = 0;

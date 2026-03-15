@@ -18,11 +18,11 @@
       MInteger firstEMANbElement = new MInteger();
       MInteger secondEMABegIdx = new MInteger();
       MInteger secondEMANbElement = new MInteger();
-      int tempInt;
-      int outIdx;
-      int firstEMAIdx;
-      int lookbackTotal;
-      int lookbackEMA;
+      int tempInt = 0;
+      int outIdx = 0;
+      int firstEMAIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackEMA = 0;
       RetCode retCode;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -85,11 +85,11 @@
       MInteger firstEMANbElement = new MInteger();
       MInteger secondEMABegIdx = new MInteger();
       MInteger secondEMANbElement = new MInteger();
-      int tempInt;
-      int outIdx;
-      int firstEMAIdx;
-      int lookbackTotal;
-      int lookbackEMA;
+      int tempInt = 0;
+      int outIdx = 0;
+      int firstEMAIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackEMA = 0;
       RetCode retCode;
       outNBElement.value = 0;
       outBegIdx.value = 0;
@@ -146,11 +146,11 @@
       MInteger firstEMANbElement = new MInteger();
       MInteger secondEMABegIdx = new MInteger();
       MInteger secondEMANbElement = new MInteger();
-      int tempInt;
-      int outIdx;
-      int firstEMAIdx;
-      int lookbackTotal;
-      int lookbackEMA;
+      int tempInt = 0;
+      int outIdx = 0;
+      int firstEMAIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackEMA = 0;
       RetCode retCode;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -213,11 +213,11 @@
       MInteger firstEMANbElement = new MInteger();
       MInteger secondEMABegIdx = new MInteger();
       MInteger secondEMANbElement = new MInteger();
-      int tempInt;
-      int outIdx;
-      int firstEMAIdx;
-      int lookbackTotal;
-      int lookbackEMA;
+      int tempInt = 0;
+      int outIdx = 0;
+      int firstEMAIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackEMA = 0;
       RetCode retCode;
       outNBElement.value = 0;
       outBegIdx.value = 0;

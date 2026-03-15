@@ -52,9 +52,9 @@
    {
       double[] dummyBuffer;
       RetCode retCode;
-      int nbElement;
-      int outIdx;
-      int todayIdx;
+      int nbElement = 0;
+      int outIdx = 0;
+      int todayIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -117,9 +117,9 @@
    {
       double[] dummyBuffer;
       RetCode retCode;
-      int nbElement;
-      int outIdx;
-      int todayIdx;
+      int nbElement = 0;
+      int outIdx = 0;
+      int todayIdx = 0;
       if( (optInTimePeriod==1) ) {
          nbElement = ((endIdx-startIdx)+1);
          outNBElement.value = nbElement;
@@ -176,9 +176,9 @@
    {
       double[] dummyBuffer;
       RetCode retCode;
-      int nbElement;
-      int outIdx;
-      int todayIdx;
+      int nbElement = 0;
+      int outIdx = 0;
+      int todayIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -241,9 +241,9 @@
    {
       double[] dummyBuffer;
       RetCode retCode;
-      int nbElement;
-      int outIdx;
-      int todayIdx;
+      int nbElement = 0;
+      int outIdx = 0;
+      int todayIdx = 0;
       if( (optInTimePeriod==1) ) {
          nbElement = ((endIdx-startIdx)+1);
          outNBElement.value = nbElement;

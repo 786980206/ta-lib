@@ -21,18 +21,18 @@
                           double outReal[] )
    {
       RetCode retCode;
-      int isLong;
-      int todayIdx;
-      int outIdx;
+      int isLong = 0;
+      int todayIdx = 0;
+      int outIdx = 0;
       MInteger tempInt = new MInteger();
-      double newHigh;
-      double newLow;
-      double prevHigh;
-      double prevLow;
-      double afLong;
-      double afShort;
-      double ep;
-      double sar;
+      double newHigh = 0;
+      double newLow = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double afLong = 0;
+      double afShort = 0;
+      double ep = 0;
+      double sar = 0;
       double[] ep_temp = new double[1];
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -65,7 +65,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minus_dmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -209,18 +209,18 @@
                                double outReal[] )
    {
       RetCode retCode;
-      int isLong;
-      int todayIdx;
-      int outIdx;
+      int isLong = 0;
+      int todayIdx = 0;
+      int outIdx = 0;
       MInteger tempInt = new MInteger();
-      double newHigh;
-      double newLow;
-      double prevHigh;
-      double prevLow;
-      double afLong;
-      double afShort;
-      double ep;
-      double sar;
+      double newHigh = 0;
+      double newLow = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double afLong = 0;
+      double afShort = 0;
+      double ep = 0;
+      double sar = 0;
       double[] ep_temp = new double[1];
       if( (startIdx<1) ) {
          startIdx = 1;
@@ -247,7 +247,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minus_dmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -391,18 +391,18 @@
                           double outReal[] )
    {
       RetCode retCode;
-      int isLong;
-      int todayIdx;
-      int outIdx;
+      int isLong = 0;
+      int todayIdx = 0;
+      int outIdx = 0;
       MInteger tempInt = new MInteger();
-      double newHigh;
-      double newLow;
-      double prevHigh;
-      double prevLow;
-      double afLong;
-      double afShort;
-      double ep;
-      double sar;
+      double newHigh = 0;
+      double newLow = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double afLong = 0;
+      double afShort = 0;
+      double ep = 0;
+      double sar = 0;
       double[] ep_temp = new double[1];
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -435,7 +435,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minus_dmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {
@@ -579,18 +579,18 @@
                                double outReal[] )
    {
       RetCode retCode;
-      int isLong;
-      int todayIdx;
-      int outIdx;
+      int isLong = 0;
+      int todayIdx = 0;
+      int outIdx = 0;
       MInteger tempInt = new MInteger();
-      double newHigh;
-      double newLow;
-      double prevHigh;
-      double prevLow;
-      double afLong;
-      double afShort;
-      double ep;
-      double sar;
+      double newHigh = 0;
+      double newLow = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double afLong = 0;
+      double afShort = 0;
+      double ep = 0;
+      double sar = 0;
       double[] ep_temp = new double[1];
       if( (startIdx<1) ) {
          startIdx = 1;
@@ -617,7 +617,7 @@
          optInAccelerationShort = optInAccelerationMaxShort;
       }
       if( (optInStartValue==0) ) {
-         retCode = minus_dmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+         retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
          if( (ep_temp[0]>0) ) {
             isLong = 0;
          } else {

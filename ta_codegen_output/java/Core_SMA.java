@@ -12,12 +12,12 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double periodTotal;
-      double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
+      double periodTotal = 0;
+      double tempReal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -64,12 +64,12 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double periodTotal;
-      double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
+      double periodTotal = 0;
+      double tempReal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lookbackTotal = 0;
       lookbackTotal = ((int)(optInTimePeriod-1));
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -110,12 +110,12 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double periodTotal;
-      double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
+      double periodTotal = 0;
+      double tempReal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -162,12 +162,12 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double periodTotal;
-      double tempReal;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int lookbackTotal;
+      double periodTotal = 0;
+      double tempReal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lookbackTotal = 0;
       lookbackTotal = ((int)(optInTimePeriod-1));
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

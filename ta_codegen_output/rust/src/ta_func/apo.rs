@@ -80,17 +80,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn apo<T: TaFloat>(
+    pub fn apo(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -117,19 +117,19 @@ impl Core {
             outReal,
         );
     }
-    pub fn apo_unguarded<T: TaFloat>(
+    pub fn apo_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -138,7 +138,7 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
-        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -153,7 +153,7 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    outReal[(i) as usize] = tempBuffer[(j) as usize] - outReal[(i) as usize];
+                    outReal[i] = ((tempBuffer[j] - outReal[i]) as f64);
                     i += 1;
                     j += 1;
                 }
@@ -163,17 +163,17 @@ impl Core {
         }
         return retCode;
     }
-    pub unsafe fn apo_unchecked<T: TaFloat>(
+    pub unsafe fn apo_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -200,19 +200,19 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn apo_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn apo_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -221,7 +221,7 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
-        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -236,7 +236,7 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    (*outReal.get_unchecked_mut((i) as usize)) = (*tempBuffer.get_unchecked((j) as usize)) - (*outReal.get_unchecked((i) as usize));
+                    (*outReal.get_unchecked_mut(i)) = (((*tempBuffer.get_unchecked(j)) - (*outReal.get_unchecked(i))) as f64);
                     i += 1;
                     j += 1;
                 }

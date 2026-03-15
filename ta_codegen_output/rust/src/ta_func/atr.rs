@@ -75,17 +75,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn atr<T: TaFloat>(
+    pub fn atr(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -107,17 +107,17 @@ impl Core {
             outReal,
         );
     }
-    pub fn atr_unguarded<T: TaFloat>(
+    pub fn atr_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut retCode: RetCode = RetCode::Success;
         let mut outIdx: usize = 0_usize;
@@ -126,8 +126,8 @@ impl Core {
         let mut nbATR: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
-        let mut prevATR: T = T::ta_zero();
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut prevATR: f64 = 0.0_f64;
+        let mut tempBuffer: Vec<f64> = Vec::new();
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.atr_lookback(optInTimePeriod);
@@ -140,7 +140,7 @@ impl Core {
         if optInTimePeriod <= 1 {
             return self.trange_unguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
         }
-        tempBuffer = vec![T::ta_zero(); ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
         retCode = self.trange_unguarded(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
         if retCode != RetCode::Success {
             return retCode;
@@ -152,35 +152,35 @@ impl Core {
         today = (optInTimePeriod) as usize;
         outIdx = (self.unstable_period[FuncUnstId::Atr as usize]) as usize;
         while outIdx != 0 {
-            prevATR *= T::ta_from_i32(optInTimePeriod - 1);
-            prevATR += tempBuffer[({ let _v = today; today += 1; _v }) as usize];
-            prevATR /= T::ta_from_i32(optInTimePeriod);
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
+            prevATR /= ((optInTimePeriod) as f64);
             outIdx -= 1;
         }
         outIdx = 1;
-        outReal[(0) as usize] = prevATR;
+        outReal[0] = prevATR;
         nbATR = endIdx - startIdx + 1;
         while { nbATR -= 1; nbATR } != 0 {
-            prevATR *= T::ta_from_i32(optInTimePeriod - 1);
-            prevATR += tempBuffer[({ let _v = today; today += 1; _v }) as usize];
-            prevATR /= T::ta_from_i32(optInTimePeriod);
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevATR;
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
+            prevATR /= ((optInTimePeriod) as f64);
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevATR;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return retCode;
     }
-    pub unsafe fn atr_unchecked<T: TaFloat>(
+    pub unsafe fn atr_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -202,17 +202,17 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn atr_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn atr_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut retCode: RetCode = RetCode::Success;
         let mut outIdx: usize = 0_usize;
@@ -221,8 +221,8 @@ impl Core {
         let mut nbATR: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
-        let mut prevATR: T = T::ta_zero();
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut prevATR: f64 = 0.0_f64;
+        let mut tempBuffer: Vec<f64> = Vec::new();
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.atr_lookback(optInTimePeriod);
@@ -235,7 +235,7 @@ impl Core {
         if optInTimePeriod <= 1 {
             return self.trange_unguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
         }
-        tempBuffer = vec![T::ta_zero(); ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
         retCode = self.trange_unguarded(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
         if retCode != RetCode::Success {
             return retCode;
@@ -247,19 +247,19 @@ impl Core {
         today = (optInTimePeriod) as usize;
         outIdx = (self.unstable_period[FuncUnstId::Atr as usize]) as usize;
         while outIdx != 0 {
-            prevATR *= T::ta_from_i32(optInTimePeriod - 1);
-            prevATR += (*tempBuffer.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
-            prevATR /= T::ta_from_i32(optInTimePeriod);
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR /= ((optInTimePeriod) as f64);
             outIdx -= 1;
         }
         outIdx = 1;
-        (*outReal.get_unchecked_mut((0) as usize)) = prevATR;
+        (*outReal.get_unchecked_mut(0)) = prevATR;
         nbATR = endIdx - startIdx + 1;
         while { nbATR -= 1; nbATR } != 0 {
-            prevATR *= T::ta_from_i32(optInTimePeriod - 1);
-            prevATR += (*tempBuffer.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
-            prevATR /= T::ta_from_i32(optInTimePeriod);
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevATR;
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR /= ((optInTimePeriod) as f64);
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevATR;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

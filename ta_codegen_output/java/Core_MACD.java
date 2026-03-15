@@ -25,14 +25,14 @@
       double[] slowEMABuffer;
       double[] fastEMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int i;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -114,14 +114,14 @@
       double[] slowEMABuffer;
       double[] fastEMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int i;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int i = 0;
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
@@ -197,14 +197,14 @@
       double[] slowEMABuffer;
       double[] fastEMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int i;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -286,14 +286,14 @@
       double[] slowEMABuffer;
       double[] fastEMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int i;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int i = 0;
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;

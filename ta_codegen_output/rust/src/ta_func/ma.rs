@@ -109,16 +109,16 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn ma<T: TaFloat>(
+    pub fn ma(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -139,18 +139,18 @@ impl Core {
             outReal,
         );
     }
-    pub fn ma_unguarded<T: TaFloat>(
+    pub fn ma_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut dummyBuffer: Vec<T> = Vec::new();
+        let mut dummyBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElement: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -162,7 +162,7 @@ impl Core {
             todayIdx = startIdx;
             outIdx = 0;
             while outIdx < nbElement {
-                outReal[(outIdx) as usize] = inReal[(todayIdx) as usize];
+                outReal[outIdx] = ((inReal[todayIdx]) as f64);
                 outIdx += 1;
                 todayIdx += 1;
             }
@@ -192,7 +192,7 @@ impl Core {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
-                dummyBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+                dummyBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }
             8 => {
@@ -204,16 +204,16 @@ impl Core {
         }
         return retCode;
     }
-    pub unsafe fn ma_unchecked<T: TaFloat>(
+    pub unsafe fn ma_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -234,18 +234,18 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn ma_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn ma_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut dummyBuffer: Vec<T> = Vec::new();
+        let mut dummyBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElement: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -257,7 +257,7 @@ impl Core {
             todayIdx = startIdx;
             outIdx = 0;
             while outIdx < nbElement {
-                (*outReal.get_unchecked_mut((outIdx) as usize)) = (*inReal.get_unchecked((todayIdx) as usize));
+                (*outReal.get_unchecked_mut(outIdx)) = (((*inReal.get_unchecked(todayIdx))) as f64);
                 outIdx += 1;
                 todayIdx += 1;
             }
@@ -287,7 +287,7 @@ impl Core {
                 retCode = self.kama_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             7 => {
-                dummyBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+                dummyBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
                 retCode = self.mama_unguarded(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
             }
             8 => {

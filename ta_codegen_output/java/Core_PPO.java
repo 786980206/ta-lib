@@ -16,14 +16,14 @@
    {
       double[] tempBuffer;
       RetCode retCode;
-      double tempReal;
-      int tempInteger;
+      double tempReal = 0;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int i;
-      int j;
+      int i = 0;
+      int j = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -67,14 +67,14 @@
    {
       double[] tempBuffer;
       RetCode retCode;
-      double tempReal;
-      int tempInteger;
+      double tempReal = 0;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int i;
-      int j;
+      int i = 0;
+      int j = 0;
       tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;
@@ -112,14 +112,14 @@
    {
       double[] tempBuffer;
       RetCode retCode;
-      double tempReal;
-      int tempInteger;
+      double tempReal = 0;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int i;
-      int j;
+      int i = 0;
+      int j = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -163,14 +163,14 @@
    {
       double[] tempBuffer;
       RetCode retCode;
-      double tempReal;
-      int tempInteger;
+      double tempReal = 0;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int i;
-      int j;
+      int i = 0;
+      int j = 0;
       tempBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;

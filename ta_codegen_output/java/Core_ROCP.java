@@ -12,10 +12,10 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
-      double tempReal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -54,10 +54,10 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
-      double tempReal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      double tempReal = 0;
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
@@ -90,10 +90,10 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
-      double tempReal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -132,10 +132,10 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int trailingIdx;
-      double tempReal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      double tempReal = 0;
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }

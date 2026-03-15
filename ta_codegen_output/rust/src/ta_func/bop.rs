@@ -69,17 +69,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn bop<T: TaFloat>(
+    pub fn bop(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -96,28 +96,28 @@ impl Core {
             outReal,
         );
     }
-    pub fn bop_unguarded<T: TaFloat>(
+    pub fn bop_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = inHigh[(i) as usize] - inLow[(i) as usize];
-            if tempReal < T::ta_from_f64(0.00000001) {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
+            tempReal = inHigh[i] - inLow[i];
+            if tempReal < 0.00000001 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
             } else {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (inClose[(i) as usize] - inOpen[(i) as usize]) / tempReal;
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inClose[i] - inOpen[i]) / tempReal) as f64);
             }
         }
         i = (endIdx as usize) + 1;
@@ -125,17 +125,17 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn bop_unchecked<T: TaFloat>(
+    pub unsafe fn bop_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -152,28 +152,28 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn bop_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn bop_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = (*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize));
-            if tempReal < T::ta_from_f64(0.00000001) {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
+            tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
+            if tempReal < 0.00000001 {
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             } else {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ((*inClose.get_unchecked((i) as usize)) - (*inOpen.get_unchecked((i) as usize))) / tempReal;
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))) / tempReal) as f64);
             }
         }
         i = (endIdx as usize) + 1;

@@ -15,18 +15,18 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double posSumMF;
-      double negSumMF;
-      double prevValue;
-      double tempValue1;
-      double tempValue2;
-      int lookbackTotal;
-      int outIdx;
-      int i;
-      int today;
+      double posSumMF = 0;
+      double negSumMF = 0;
+      double prevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      int i = 0;
+      int today = 0;
       double[] mflow_positive = new double[50];
       double[] mflow_negative = new double[50];
-      int mflow_Idx;
+      int mflow_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -142,18 +142,18 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double posSumMF;
-      double negSumMF;
-      double prevValue;
-      double tempValue1;
-      double tempValue2;
-      int lookbackTotal;
-      int outIdx;
-      int i;
-      int today;
+      double posSumMF = 0;
+      double negSumMF = 0;
+      double prevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      int i = 0;
+      int today = 0;
       double[] mflow_positive = new double[50];
       double[] mflow_negative = new double[50];
-      int mflow_Idx;
+      int mflow_Idx = 0;
       mflow_Idx = 0;
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);
@@ -263,18 +263,18 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double posSumMF;
-      double negSumMF;
-      double prevValue;
-      double tempValue1;
-      double tempValue2;
-      int lookbackTotal;
-      int outIdx;
-      int i;
-      int today;
+      double posSumMF = 0;
+      double negSumMF = 0;
+      double prevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      int i = 0;
+      int today = 0;
       double[] mflow_positive = new double[50];
       double[] mflow_negative = new double[50];
-      int mflow_Idx;
+      int mflow_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -390,18 +390,18 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double posSumMF;
-      double negSumMF;
-      double prevValue;
-      double tempValue1;
-      double tempValue2;
-      int lookbackTotal;
-      int outIdx;
-      int i;
-      int today;
+      double posSumMF = 0;
+      double negSumMF = 0;
+      double prevValue = 0;
+      double tempValue1 = 0;
+      double tempValue2 = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      int i = 0;
+      int today = 0;
       double[] mflow_positive = new double[50];
       double[] mflow_negative = new double[50];
-      int mflow_Idx;
+      int mflow_Idx = 0;
       mflow_Idx = 0;
       java.util.Arrays.fill(mflow_positive, 0, (int)((optInTimePeriod*1)), 0.0);
       java.util.Arrays.fill(mflow_negative, 0, (int)((optInTimePeriod*1)), 0.0);

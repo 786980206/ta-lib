@@ -12,13 +12,13 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double prevMA;
-      double optInK_1;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double prevMA = 0;
+      double optInK_1 = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -68,13 +68,13 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double prevMA;
-      double optInK_1;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double prevMA = 0;
+      double optInK_1 = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       optInK_1 = (2.0/((double)(optInTimePeriod+1)));
       lookbackTotal = emaLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
@@ -118,13 +118,13 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double prevMA;
-      double optInK_1;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double prevMA = 0;
+      double optInK_1 = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -174,13 +174,13 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double prevMA;
-      double optInK_1;
-      int i;
-      int today;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double prevMA = 0;
+      double optInK_1 = 0;
+      int i = 0;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       optInK_1 = (2.0/((double)(optInTimePeriod+1)));
       lookbackTotal = emaLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {

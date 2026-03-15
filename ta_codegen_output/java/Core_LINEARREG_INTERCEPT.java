@@ -1,28 +1,28 @@
 /* Generated */
-   public int linearreg_interceptLookback( int optInTimePeriod )
+   public int linearregInterceptLookback( int optInTimePeriod )
    {
       return (optInTimePeriod-1) ;
 
    }
-   public RetCode linearreg_intercept( int startIdx,
-                                       int endIdx,
-                                       double inReal[],
-                                       int optInTimePeriod,
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       double outReal[] )
+   public RetCode linearregIntercept( int startIdx,
+                                      int endIdx,
+                                      double inReal[],
+                                      int optInTimePeriod,
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      int i = 0;
+      double tempValue1 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -59,25 +59,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearreg_interceptLogic( int startIdx,
-                                            int endIdx,
-                                            double inReal[],
-                                            int optInTimePeriod,
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            double outReal[] )
+   public RetCode linearregInterceptLogic( int startIdx,
+                                           int endIdx,
+                                           double inReal[],
+                                           int optInTimePeriod,
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      int i = 0;
+      double tempValue1 = 0;
       lookbackTotal = linearregInterceptLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -108,25 +108,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearreg_intercept( int startIdx,
-                                       int endIdx,
-                                       float inReal[],
-                                       int optInTimePeriod,
-                                       MInteger outBegIdx,
-                                       MInteger outNBElement,
-                                       double outReal[] )
+   public RetCode linearregIntercept( int startIdx,
+                                      int endIdx,
+                                      float inReal[],
+                                      int optInTimePeriod,
+                                      MInteger outBegIdx,
+                                      MInteger outNBElement,
+                                      double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      int i = 0;
+      double tempValue1 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -163,25 +163,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode linearreg_interceptLogic( int startIdx,
-                                            int endIdx,
-                                            float inReal[],
-                                            int optInTimePeriod,
-                                            MInteger outBegIdx,
-                                            MInteger outNBElement,
-                                            double outReal[] )
+   public RetCode linearregInterceptLogic( int startIdx,
+                                           int endIdx,
+                                           float inReal[],
+                                           int optInTimePeriod,
+                                           MInteger outBegIdx,
+                                           MInteger outNBElement,
+                                           double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      int i = 0;
+      double tempValue1 = 0;
       lookbackTotal = linearregInterceptLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

@@ -1,5 +1,5 @@
 /* Generated */
-   public int minus_diLookback( int optInTimePeriod )
+   public int minusDiLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
          return (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]) ;
@@ -8,29 +8,29 @@
       }
 
    }
-   public RetCode minus_di( int startIdx,
-                            int endIdx,
-                            double inHigh[],
-                            double inLow[],
-                            double inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode minusDi( int startIdx,
+                           int endIdx,
+                           double inHigh[],
+                           double inLow[],
+                           double inClose[],
+                           int optInTimePeriod,
+                           MInteger outBegIdx,
+                           MInteger outNBElement,
+                           double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double prevClose;
-      double prevMinusDM;
-      double prevTR;
-      double tempReal;
-      double tempReal2;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double prevClose = 0;
+      double prevMinusDM = 0;
+      double prevTR = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -197,29 +197,29 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minus_diLogic( int startIdx,
-                                 int endIdx,
-                                 double inHigh[],
-                                 double inLow[],
-                                 double inClose[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode minusDiLogic( int startIdx,
+                                int endIdx,
+                                double inHigh[],
+                                double inLow[],
+                                double inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double prevClose;
-      double prevMinusDM;
-      double prevTR;
-      double tempReal;
-      double tempReal2;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double prevClose = 0;
+      double prevMinusDM = 0;
+      double prevTR = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( (optInTimePeriod>1) ) {
          lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
       } else {
@@ -380,29 +380,29 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minus_di( int startIdx,
-                            int endIdx,
-                            float inHigh[],
-                            float inLow[],
-                            float inClose[],
-                            int optInTimePeriod,
-                            MInteger outBegIdx,
-                            MInteger outNBElement,
-                            double outReal[] )
+   public RetCode minusDi( int startIdx,
+                           int endIdx,
+                           float inHigh[],
+                           float inLow[],
+                           float inClose[],
+                           int optInTimePeriod,
+                           MInteger outBegIdx,
+                           MInteger outNBElement,
+                           double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double prevClose;
-      double prevMinusDM;
-      double prevTR;
-      double tempReal;
-      double tempReal2;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double prevClose = 0;
+      double prevMinusDM = 0;
+      double prevTR = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -569,29 +569,29 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode minus_diLogic( int startIdx,
-                                 int endIdx,
-                                 float inHigh[],
-                                 float inLow[],
-                                 float inClose[],
-                                 int optInTimePeriod,
-                                 MInteger outBegIdx,
-                                 MInteger outNBElement,
-                                 double outReal[] )
+   public RetCode minusDiLogic( int startIdx,
+                                int endIdx,
+                                float inHigh[],
+                                float inLow[],
+                                float inClose[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double prevClose;
-      double prevMinusDM;
-      double prevTR;
-      double tempReal;
-      double tempReal2;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double prevClose = 0;
+      double prevMinusDM = 0;
+      double prevTR = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( (optInTimePeriod>1) ) {
          lookbackTotal = (optInTimePeriod+this.unstablePeriod[FuncUnstId.MinusDI.ordinal()]);
       } else {

@@ -12,9 +12,9 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookback;
+      int today = 0;
+      int outIdx = 0;
+      int lookback = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -34,6 +34,9 @@
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {
+         double todaySum;
+         double todayDev;
+         int i;
          todaySum = 0.0;
          for( i = 0; (i<optInTimePeriod); i += 1 ) {
             todaySum += inReal[(today-i)];
@@ -57,9 +60,9 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookback;
+      int today = 0;
+      int outIdx = 0;
+      int lookback = 0;
       lookback = (optInTimePeriod-1);
       if( (startIdx<lookback) ) {
          startIdx = lookback;
@@ -73,6 +76,9 @@
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {
+         double todaySum;
+         double todayDev;
+         int i;
          todaySum = 0.0;
          for( i = 0; (i<optInTimePeriod); i += 1 ) {
             todaySum += inReal[(today-i)];
@@ -96,9 +102,9 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookback;
+      int today = 0;
+      int outIdx = 0;
+      int lookback = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -118,6 +124,9 @@
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {
+         double todaySum;
+         double todayDev;
+         int i;
          todaySum = 0.0;
          for( i = 0; (i<optInTimePeriod); i += 1 ) {
             todaySum += inReal[(today-i)];
@@ -141,9 +150,9 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookback;
+      int today = 0;
+      int outIdx = 0;
+      int lookback = 0;
       lookback = (optInTimePeriod-1);
       if( (startIdx<lookback) ) {
          startIdx = lookback;
@@ -157,6 +166,9 @@
       outBegIdx.value = today;
       outIdx = 0;
       while( (today<=endIdx) ) {
+         double todaySum;
+         double todayDev;
+         int i;
          todaySum = 0.0;
          for( i = 0; (i<optInTimePeriod); i += 1 ) {
             todaySum += inReal[(today-i)];

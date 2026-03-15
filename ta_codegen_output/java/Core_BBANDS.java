@@ -18,9 +18,9 @@
                           double outRealLowerBand[] )
    {
       RetCode retCode;
-      int i;
-      double tempReal;
-      double tempReal2;
+      int i = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
       double[] tempBuffer1;
       double[] tempBuffer2;
       if( startIdx < 0 ) {
@@ -146,9 +146,9 @@
                                double outRealLowerBand[] )
    {
       RetCode retCode;
-      int i;
-      double tempReal;
-      double tempReal2;
+      int i = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
       double[] tempBuffer1;
       double[] tempBuffer2;
       if( (inReal==outRealUpperBand) ) {
@@ -268,9 +268,9 @@
                           double outRealLowerBand[] )
    {
       RetCode retCode;
-      int i;
-      double tempReal;
-      double tempReal2;
+      int i = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
       double[] tempBuffer1;
       double[] tempBuffer2;
       if( startIdx < 0 ) {
@@ -396,9 +396,9 @@
                                double outRealLowerBand[] )
    {
       RetCode retCode;
-      int i;
-      double tempReal;
-      double tempReal2;
+      int i = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
       double[] tempBuffer1;
       double[] tempBuffer2;
       if( false ) {

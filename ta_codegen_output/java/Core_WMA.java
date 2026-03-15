@@ -12,16 +12,16 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int i;
-      int trailingIdx;
-      int divider;
-      double periodSum;
-      double periodSub;
-      double tempReal;
-      double trailingValue;
-      int lookbackTotal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int i = 0;
+      int trailingIdx = 0;
+      int divider = 0;
+      double periodSum = 0;
+      double periodSub = 0;
+      double tempReal = 0;
+      double trailingValue = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -78,16 +78,16 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int i;
-      int trailingIdx;
-      int divider;
-      double periodSum;
-      double periodSub;
-      double tempReal;
-      double trailingValue;
-      int lookbackTotal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int i = 0;
+      int trailingIdx = 0;
+      int divider = 0;
+      double periodSum = 0;
+      double periodSub = 0;
+      double tempReal = 0;
+      double trailingValue = 0;
+      int lookbackTotal = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -138,16 +138,16 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int i;
-      int trailingIdx;
-      int divider;
-      double periodSum;
-      double periodSub;
-      double tempReal;
-      double trailingValue;
-      int lookbackTotal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int i = 0;
+      int trailingIdx = 0;
+      int divider = 0;
+      double periodSum = 0;
+      double periodSub = 0;
+      double tempReal = 0;
+      double trailingValue = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -204,16 +204,16 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int inIdx;
-      int outIdx;
-      int i;
-      int trailingIdx;
-      int divider;
-      double periodSum;
-      double periodSub;
-      double tempReal;
-      double trailingValue;
-      int lookbackTotal;
+      int inIdx = 0;
+      int outIdx = 0;
+      int i = 0;
+      int trailingIdx = 0;
+      int divider = 0;
+      double periodSum = 0;
+      double periodSub = 0;
+      double tempReal = 0;
+      double trailingValue = 0;
+      int lookbackTotal = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

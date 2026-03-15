@@ -67,15 +67,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn pvi<T: TaFloat>(
+    pub fn pvi(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inClose: &[T],
-        inVolume: &[T],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -90,29 +90,29 @@ impl Core {
             outReal,
         );
     }
-    pub fn pvi_unguarded<T: TaFloat>(
+    pub fn pvi_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inClose: &[T],
-        inVolume: &[T],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         return RetCode::Success;
     }
-    pub unsafe fn pvi_unchecked<T: TaFloat>(
+    pub unsafe fn pvi_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inClose: &[T],
-        inVolume: &[T],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -127,15 +127,15 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn pvi_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn pvi_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inClose: &[T],
-        inVolume: &[T],
+        inClose: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;

@@ -77,19 +77,19 @@ impl Core {
     /// * `outRealUpperBand` - Output values
     /// * `outRealMiddleBand` - Output values
     /// * `outRealLowerBand` - Output values
-    pub fn accbands<T: TaFloat>(
+    pub fn accbands(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outRealUpperBand: &mut [T],
-        outRealMiddleBand: &mut [T],
-        outRealLowerBand: &mut [T],
+        outRealUpperBand: &mut [f64],
+        outRealMiddleBand: &mut [f64],
+        outRealLowerBand: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -113,23 +113,23 @@ impl Core {
             outRealLowerBand,
         );
     }
-    pub fn accbands_unguarded<T: TaFloat>(
+    pub fn accbands_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outRealUpperBand: &mut [T],
-        outRealMiddleBand: &mut [T],
-        outRealLowerBand: &mut [T],
+        outRealUpperBand: &mut [f64],
+        outRealMiddleBand: &mut [f64],
+        outRealLowerBand: &mut [f64],
     ) -> RetCode {
         let mut retCode: RetCode = RetCode::Success;
-        let mut tempBuffer1: Vec<T> = Vec::new();
-        let mut tempBuffer2: Vec<T> = Vec::new();
+        let mut tempBuffer1: Vec<f64> = Vec::new();
+        let mut tempBuffer2: Vec<f64> = Vec::new();
         let mut outBegIdxDummy: usize = 0_usize;
         let mut outNbElementDummy: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -137,7 +137,7 @@ impl Core {
         let mut outputSize: usize = 0_usize;
         let mut bufferSize: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -149,38 +149,38 @@ impl Core {
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        tempBuffer1 = vec![T::ta_zero(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        tempBuffer1 = vec![0.0_f64; (bufferSize * 1) as usize];
+        tempBuffer2 = vec![0.0_f64; (bufferSize * 1) as usize];
         // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
         j = 0;
         i = startIdx - lookbackTotal;
         while i <= endIdx {
-            tempReal = inHigh[(i) as usize] + inLow[(i) as usize];
-            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                tempReal = T::ta_from_i32(4) * (inHigh[(i) as usize] - inLow[(i) as usize]) / tempReal;
-                tempBuffer1[(j) as usize] = inHigh[(i) as usize] * (T::ta_from_i32(1) + tempReal);
-                tempBuffer2[(j) as usize] = inLow[(i) as usize] * (T::ta_from_i32(1) - tempReal);
+            tempReal = inHigh[i] + inLow[i];
+            if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                tempReal = 4_f64 * (inHigh[i] - inLow[i]) / tempReal;
+                tempBuffer1[j] = inHigh[i] * (1_f64 + tempReal);
+                tempBuffer2[j] = inLow[i] * (1_f64 - tempReal);
             } else {
-                tempBuffer1[(j) as usize] = inHigh[(i) as usize];
-                tempBuffer2[(j) as usize] = inLow[(i) as usize];
+                tempBuffer1[j] = inHigh[i];
+                tempBuffer2[j] = inLow[i];
             }
             i += 1;
             j += 1;
         }
         retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
@@ -189,19 +189,19 @@ impl Core {
         (*outNBElement) = outputSize;
         return RetCode::Success;
     }
-    pub unsafe fn accbands_unchecked<T: TaFloat>(
+    pub unsafe fn accbands_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outRealUpperBand: &mut [T],
-        outRealMiddleBand: &mut [T],
-        outRealLowerBand: &mut [T],
+        outRealUpperBand: &mut [f64],
+        outRealMiddleBand: &mut [f64],
+        outRealLowerBand: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -225,23 +225,23 @@ impl Core {
             outRealLowerBand,
         );
     }
-    pub unsafe fn accbands_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn accbands_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outRealUpperBand: &mut [T],
-        outRealMiddleBand: &mut [T],
-        outRealLowerBand: &mut [T],
+        outRealUpperBand: &mut [f64],
+        outRealMiddleBand: &mut [f64],
+        outRealLowerBand: &mut [f64],
     ) -> RetCode {
         let mut retCode: RetCode = RetCode::Success;
-        let mut tempBuffer1: Vec<T> = Vec::new();
-        let mut tempBuffer2: Vec<T> = Vec::new();
+        let mut tempBuffer1: Vec<f64> = Vec::new();
+        let mut tempBuffer2: Vec<f64> = Vec::new();
         let mut outBegIdxDummy: usize = 0_usize;
         let mut outNbElementDummy: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -249,7 +249,7 @@ impl Core {
         let mut outputSize: usize = 0_usize;
         let mut bufferSize: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -261,38 +261,38 @@ impl Core {
         }
         outputSize = endIdx - startIdx + 1;
         bufferSize = outputSize + lookbackTotal;
-        tempBuffer1 = vec![T::ta_zero(); (bufferSize * 1) as usize];
-        tempBuffer2 = vec![T::ta_zero(); (bufferSize * 1) as usize];
+        tempBuffer1 = vec![0.0_f64; (bufferSize * 1) as usize];
+        tempBuffer2 = vec![0.0_f64; (bufferSize * 1) as usize];
         // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
         j = 0;
         i = startIdx - lookbackTotal;
         while i <= endIdx {
-            tempReal = (*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize));
-            if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                tempReal = T::ta_from_i32(4) * ((*inHigh.get_unchecked((i) as usize)) - (*inLow.get_unchecked((i) as usize))) / tempReal;
-                (*tempBuffer1.get_unchecked_mut((j) as usize)) = (*inHigh.get_unchecked((i) as usize)) * (T::ta_from_i32(1) + tempReal);
-                (*tempBuffer2.get_unchecked_mut((j) as usize)) = (*inLow.get_unchecked((i) as usize)) * (T::ta_from_i32(1) - tempReal);
+            tempReal = (*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i));
+            if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                tempReal = 4_f64 * ((*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i))) / tempReal;
+                (*tempBuffer1.get_unchecked_mut(j)) = (*inHigh.get_unchecked(i)) * (1_f64 + tempReal);
+                (*tempBuffer2.get_unchecked_mut(j)) = (*inLow.get_unchecked(i)) * (1_f64 - tempReal);
             } else {
-                (*tempBuffer1.get_unchecked_mut((j) as usize)) = (*inHigh.get_unchecked((i) as usize));
-                (*tempBuffer2.get_unchecked_mut((j) as usize)) = (*inLow.get_unchecked((i) as usize));
+                (*tempBuffer1.get_unchecked_mut(j)) = (*inHigh.get_unchecked(i));
+                (*tempBuffer2.get_unchecked_mut(j)) = (*inLow.get_unchecked(i));
             }
             i += 1;
             j += 1;
         }
         retCode = self.sma_unguarded(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         retCode = self.sma_unguarded(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
-        if retCode != RetCode::Success || ((outNbElementDummy)) as usize != outputSize {
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

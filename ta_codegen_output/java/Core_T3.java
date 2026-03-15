@@ -13,23 +13,23 @@
                       MInteger outNBElement,
                       double outReal[] )
    {
-      int outIdx;
-      int lookbackTotal;
-      int today;
-      int i;
-      double k;
-      double one_minus_k;
-      double e1;
-      double e2;
-      double e3;
-      double e4;
-      double e5;
-      double e6;
-      double c1;
-      double c2;
-      double c3;
-      double c4;
-      double tempReal;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int i = 0;
+      double k = 0;
+      double one_minus_k = 0;
+      double e1 = 0;
+      double e2 = 0;
+      double e3 = 0;
+      double e4 = 0;
+      double e5 = 0;
+      double e6 = 0;
+      double c1 = 0;
+      double c2 = 0;
+      double c3 = 0;
+      double c4 = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -130,23 +130,23 @@
                            MInteger outNBElement,
                            double outReal[] )
    {
-      int outIdx;
-      int lookbackTotal;
-      int today;
-      int i;
-      double k;
-      double one_minus_k;
-      double e1;
-      double e2;
-      double e3;
-      double e4;
-      double e5;
-      double e6;
-      double c1;
-      double c2;
-      double c3;
-      double c4;
-      double tempReal;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int i = 0;
+      double k = 0;
+      double one_minus_k = 0;
+      double e1 = 0;
+      double e2 = 0;
+      double e3 = 0;
+      double e4 = 0;
+      double e5 = 0;
+      double e6 = 0;
+      double c1 = 0;
+      double c2 = 0;
+      double c3 = 0;
+      double c4 = 0;
+      double tempReal = 0;
       lookbackTotal = ((6*(optInTimePeriod-1))+this.unstablePeriod[FuncUnstId.T3.ordinal()]);
       if( (startIdx<=lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -241,23 +241,23 @@
                       MInteger outNBElement,
                       double outReal[] )
    {
-      int outIdx;
-      int lookbackTotal;
-      int today;
-      int i;
-      double k;
-      double one_minus_k;
-      double e1;
-      double e2;
-      double e3;
-      double e4;
-      double e5;
-      double e6;
-      double c1;
-      double c2;
-      double c3;
-      double c4;
-      double tempReal;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int i = 0;
+      double k = 0;
+      double one_minus_k = 0;
+      double e1 = 0;
+      double e2 = 0;
+      double e3 = 0;
+      double e4 = 0;
+      double e5 = 0;
+      double e6 = 0;
+      double c1 = 0;
+      double c2 = 0;
+      double c3 = 0;
+      double c4 = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -358,23 +358,23 @@
                            MInteger outNBElement,
                            double outReal[] )
    {
-      int outIdx;
-      int lookbackTotal;
-      int today;
-      int i;
-      double k;
-      double one_minus_k;
-      double e1;
-      double e2;
-      double e3;
-      double e4;
-      double e5;
-      double e6;
-      double c1;
-      double c2;
-      double c3;
-      double c4;
-      double tempReal;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int i = 0;
+      double k = 0;
+      double one_minus_k = 0;
+      double e1 = 0;
+      double e2 = 0;
+      double e3 = 0;
+      double e4 = 0;
+      double e5 = 0;
+      double e6 = 0;
+      double c1 = 0;
+      double c2 = 0;
+      double c3 = 0;
+      double c4 = 0;
+      double tempReal = 0;
       lookbackTotal = ((6*(optInTimePeriod-1))+this.unstablePeriod[FuncUnstId.T3.ordinal()]);
       if( (startIdx<=lookbackTotal) ) {
          startIdx = lookbackTotal;

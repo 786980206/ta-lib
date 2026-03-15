@@ -90,19 +90,19 @@ impl Core {
     /// * `outNBElement` - Number of valid output elements
     /// * `outFastK` - Output values
     /// * `outFastD` - Output values
-    pub fn stochrsi<T: TaFloat>(
+    pub fn stochrsi(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInFastK_Period: i32,
         mut optInFastD_Period: i32,
         mut optInFastD_MAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outFastK: &mut [T],
-        outFastD: &mut [T],
+        outFastK: &mut [f64],
+        outFastD: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -136,21 +136,21 @@ impl Core {
             outFastD,
         );
     }
-    pub fn stochrsi_unguarded<T: TaFloat>(
+    pub fn stochrsi_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInFastK_Period: i32,
         mut optInFastD_Period: i32,
         mut optInFastD_MAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outFastK: &mut [T],
-        outFastD: &mut [T],
+        outFastK: &mut [f64],
+        outFastD: &mut [f64],
     ) -> RetCode {
-        let mut tempRSIBuffer: Vec<T> = Vec::new();
+        let mut tempRSIBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSTOCHF: usize = 0_usize;
@@ -172,7 +172,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
-        tempRSIBuffer = vec![T::ta_zero(); (tempArraySize * 1) as usize];
+        tempRSIBuffer = vec![0.0_f64; (tempArraySize * 1) as usize];
         retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, &mut tempRSIBuffer[..]);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
@@ -180,26 +180,26 @@ impl Core {
             return retCode;
         }
         retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
         return RetCode::Success;
     }
-    pub unsafe fn stochrsi_unchecked<T: TaFloat>(
+    pub unsafe fn stochrsi_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInFastK_Period: i32,
         mut optInFastD_Period: i32,
         mut optInFastD_MAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outFastK: &mut [T],
-        outFastD: &mut [T],
+        outFastK: &mut [f64],
+        outFastD: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -233,21 +233,21 @@ impl Core {
             outFastD,
         );
     }
-    pub unsafe fn stochrsi_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn stochrsi_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInFastK_Period: i32,
         mut optInFastD_Period: i32,
         mut optInFastD_MAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outFastK: &mut [T],
-        outFastD: &mut [T],
+        outFastK: &mut [f64],
+        outFastD: &mut [f64],
     ) -> RetCode {
-        let mut tempRSIBuffer: Vec<T> = Vec::new();
+        let mut tempRSIBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSTOCHF: usize = 0_usize;
@@ -269,7 +269,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
-        tempRSIBuffer = vec![T::ta_zero(); (tempArraySize * 1) as usize];
+        tempRSIBuffer = vec![0.0_f64; (tempArraySize * 1) as usize];
         retCode = self.rsi_unguarded(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, &mut tempRSIBuffer[..]);
         if retCode != RetCode::Success || outNbElement1 == 0 {
             (*outBegIdx) = 0;
@@ -277,7 +277,7 @@ impl Core {
             return retCode;
         }
         retCode = self.stochf_unguarded(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
-        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;

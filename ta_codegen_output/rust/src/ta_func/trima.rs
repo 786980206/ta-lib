@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn trima<T: TaFloat>(
+    pub fn trima(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,27 +101,27 @@ impl Core {
             outReal,
         );
     }
-    pub fn trima_unguarded<T: TaFloat>(
+    pub fn trima_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut lookbackTotal: usize = 0_usize;
-        let mut numerator: T = T::ta_zero();
-        let mut numeratorSub: T = T::ta_zero();
-        let mut numeratorAdd: T = T::ta_zero();
+        let mut numerator: f64 = 0.0_f64;
+        let mut numeratorSub: f64 = 0.0_f64;
+        let mut numeratorAdd: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut todayIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut middleIdx: usize = 0_usize;
-        let mut factor: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
+        let mut factor: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -134,104 +134,104 @@ impl Core {
         outIdx = 0;
         if optInTimePeriod % 2 == 1 {
             i = (optInTimePeriod >> 1) as usize;
-            factor = T::ta_from_i32(((i + 1) * (i + 1)) as i32);
-            factor = T::ta_from_f64(1.0) / factor;
+            factor = (((i + 1) * (i + 1)) as f64);
+            factor = 1.0 / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i;
             todayIdx = middleIdx + i;
-            numerator = T::ta_from_f64(0.0);
-            numeratorSub = T::ta_from_f64(0.0);
+            numerator = 0.0;
+            numeratorSub = 0.0;
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = inReal[(i) as usize];
+                tempReal = inReal[i];
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
                 i -= 1;
             }
-            numeratorAdd = T::ta_from_f64(0.0);
+            numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = inReal[(i) as usize];
+                tempReal = inReal[i];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
+            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = inReal[({ let _v = middleIdx; middleIdx += 1; _v }) as usize];
+                tempReal = inReal[{ let _v = middleIdx; middleIdx += 1; _v }];
                 numeratorSub += tempReal;
                 numerator += numeratorAdd;
                 numeratorAdd -= tempReal;
-                tempReal = inReal[({ let _v = todayIdx; todayIdx += 1; _v }) as usize];
+                tempReal = inReal[{ let _v = todayIdx; todayIdx += 1; _v }];
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
+                tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
             }
         } else {
             i = (optInTimePeriod >> 1) as usize;
-            factor = T::ta_from_i32((i * (i + 1)) as i32);
-            factor = T::ta_from_f64(1.0) / factor;
+            factor = ((i * (i + 1)) as f64);
+            factor = 1.0 / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i - 1;
             todayIdx = middleIdx + i;
-            numerator = T::ta_from_f64(0.0);
-            numeratorSub = T::ta_from_f64(0.0);
+            numerator = 0.0;
+            numeratorSub = 0.0;
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = inReal[(i) as usize];
+                tempReal = inReal[i];
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
                 i -= 1;
             }
-            numeratorAdd = T::ta_from_f64(0.0);
+            numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = inReal[(i) as usize];
+                tempReal = inReal[i];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
+            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = inReal[({ let _v = middleIdx; middleIdx += 1; _v }) as usize];
+                tempReal = inReal[{ let _v = middleIdx; middleIdx += 1; _v }];
                 numeratorSub += tempReal;
                 numeratorAdd -= tempReal;
                 numerator += numeratorAdd;
-                tempReal = inReal[({ let _v = todayIdx; todayIdx += 1; _v }) as usize];
+                tempReal = inReal[{ let _v = todayIdx; todayIdx += 1; _v }];
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = numerator * factor;
+                tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
             }
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn trima_unchecked<T: TaFloat>(
+    pub unsafe fn trima_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -251,27 +251,27 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn trima_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn trima_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut lookbackTotal: usize = 0_usize;
-        let mut numerator: T = T::ta_zero();
-        let mut numeratorSub: T = T::ta_zero();
-        let mut numeratorAdd: T = T::ta_zero();
+        let mut numerator: f64 = 0.0_f64;
+        let mut numeratorSub: f64 = 0.0_f64;
+        let mut numeratorAdd: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut todayIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut middleIdx: usize = 0_usize;
-        let mut factor: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
+        let mut factor: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -284,89 +284,89 @@ impl Core {
         outIdx = 0;
         if optInTimePeriod % 2 == 1 {
             i = (optInTimePeriod >> 1) as usize;
-            factor = T::ta_from_i32(((i + 1) * (i + 1)) as i32);
-            factor = T::ta_from_f64(1.0) / factor;
+            factor = (((i + 1) * (i + 1)) as f64);
+            factor = 1.0 / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i;
             todayIdx = middleIdx + i;
-            numerator = T::ta_from_f64(0.0);
-            numeratorSub = T::ta_from_f64(0.0);
+            numerator = 0.0;
+            numeratorSub = 0.0;
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = (*inReal.get_unchecked((i) as usize));
+                tempReal = (*inReal.get_unchecked(i));
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
                 i -= 1;
             }
-            numeratorAdd = T::ta_from_f64(0.0);
+            numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = (*inReal.get_unchecked((i) as usize));
+                tempReal = (*inReal.get_unchecked(i));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
+            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = (*inReal.get_unchecked(({ let _v = middleIdx; middleIdx += 1; _v }) as usize));
+                tempReal = (*inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v }));
                 numeratorSub += tempReal;
                 numerator += numeratorAdd;
                 numeratorAdd -= tempReal;
-                tempReal = (*inReal.get_unchecked(({ let _v = todayIdx; todayIdx += 1; _v }) as usize));
+                tempReal = (*inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v }));
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
+                tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
             }
         } else {
             i = (optInTimePeriod >> 1) as usize;
-            factor = T::ta_from_i32((i * (i + 1)) as i32);
-            factor = T::ta_from_f64(1.0) / factor;
+            factor = ((i * (i + 1)) as f64);
+            factor = 1.0 / factor;
             trailingIdx = startIdx - lookbackTotal;
             middleIdx = trailingIdx + i - 1;
             todayIdx = middleIdx + i;
-            numerator = T::ta_from_f64(0.0);
-            numeratorSub = T::ta_from_f64(0.0);
+            numerator = 0.0;
+            numeratorSub = 0.0;
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = (*inReal.get_unchecked((i) as usize));
+                tempReal = (*inReal.get_unchecked(i));
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
                 i -= 1;
             }
-            numeratorAdd = T::ta_from_f64(0.0);
+            numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..=(todayIdx as usize) {
-                tempReal = (*inReal.get_unchecked((i) as usize));
+                tempReal = (*inReal.get_unchecked(i));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
+            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = (*inReal.get_unchecked(({ let _v = middleIdx; middleIdx += 1; _v }) as usize));
+                tempReal = (*inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v }));
                 numeratorSub += tempReal;
                 numeratorAdd -= tempReal;
                 numerator += numeratorAdd;
-                tempReal = (*inReal.get_unchecked(({ let _v = todayIdx; todayIdx += 1; _v }) as usize));
+                tempReal = (*inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v }));
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = numerator * factor;
+                tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
             }
         }
         (*outNBElement) = outIdx;

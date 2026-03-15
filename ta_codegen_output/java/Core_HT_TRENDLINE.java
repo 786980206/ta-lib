@@ -1,82 +1,82 @@
 /* Generated */
-   public int ht_trendlineLookback( )
+   public int htTrendlineLookback( )
    {
       return (63+this.unstablePeriod[FuncUnstId.HtTrendline.ordinal()]) ;
 
    }
-   public RetCode ht_trendline( int startIdx,
-                                int endIdx,
-                                double inReal[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode htTrendline( int startIdx,
+                               int endIdx,
+                               double inReal[],
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
-      int outIdx;
-      int i;
-      int lookbackTotal;
-      int today;
-      double tempReal;
-      double tempReal2;
-      double adjustedPrevPeriod;
-      double period;
-      int trailingWMAIdx;
-      double periodWMASum;
-      double periodWMASub;
-      double trailingWMAValue;
-      double smoothedValue;
-      double iTrend1;
-      double iTrend2;
-      double iTrend3;
-      double a;
-      double b;
-      double hilbertTempReal;
-      int hilbertIdx;
+      int outIdx = 0;
+      int i = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double adjustedPrevPeriod = 0;
+      double period = 0;
+      int trailingWMAIdx = 0;
+      double periodWMASum = 0;
+      double periodWMASub = 0;
+      double trailingWMAValue = 0;
+      double smoothedValue = 0;
+      double iTrend1 = 0;
+      double iTrend2 = 0;
+      double iTrend3 = 0;
+      double a = 0;
+      double b = 0;
+      double hilbertTempReal = 0;
+      int hilbertIdx = 0;
       double[] detrender_Odd = new double[3];
       double[] detrender_Even = new double[3];
-      double detrender;
-      double prev_detrender_Odd;
-      double prev_detrender_Even;
-      double prev_detrender_input_Odd;
-      double prev_detrender_input_Even;
+      double detrender = 0;
+      double prev_detrender_Odd = 0;
+      double prev_detrender_Even = 0;
+      double prev_detrender_input_Odd = 0;
+      double prev_detrender_input_Even = 0;
       double[] Q1_Odd = new double[3];
       double[] Q1_Even = new double[3];
-      double Q1;
-      double prev_Q1_Odd;
-      double prev_Q1_Even;
-      double prev_Q1_input_Odd;
-      double prev_Q1_input_Even;
+      double Q1 = 0;
+      double prev_Q1_Odd = 0;
+      double prev_Q1_Even = 0;
+      double prev_Q1_input_Odd = 0;
+      double prev_Q1_input_Even = 0;
       double[] jI_Odd = new double[3];
       double[] jI_Even = new double[3];
-      double jI;
-      double prev_jI_Odd;
-      double prev_jI_Even;
-      double prev_jI_input_Odd;
-      double prev_jI_input_Even;
+      double jI = 0;
+      double prev_jI_Odd = 0;
+      double prev_jI_Even = 0;
+      double prev_jI_input_Odd = 0;
+      double prev_jI_input_Even = 0;
       double[] jQ_Odd = new double[3];
       double[] jQ_Even = new double[3];
-      double jQ;
-      double prev_jQ_Odd;
-      double prev_jQ_Even;
-      double prev_jQ_input_Odd;
-      double prev_jQ_input_Even;
-      double Q2;
-      double I2;
-      double prevQ2;
-      double prevI2;
-      double Re;
-      double Im;
-      double I1ForOddPrev2;
-      double I1ForOddPrev3;
-      double I1ForEvenPrev2;
-      double I1ForEvenPrev3;
-      double rad2Deg;
-      double todayValue;
-      double smoothPeriod;
+      double jQ = 0;
+      double prev_jQ_Odd = 0;
+      double prev_jQ_Even = 0;
+      double prev_jQ_input_Odd = 0;
+      double prev_jQ_input_Even = 0;
+      double Q2 = 0;
+      double I2 = 0;
+      double prevQ2 = 0;
+      double prevI2 = 0;
+      double Re = 0;
+      double Im = 0;
+      double I1ForOddPrev2 = 0;
+      double I1ForOddPrev3 = 0;
+      double I1ForEvenPrev2 = 0;
+      double I1ForEvenPrev3 = 0;
+      double rad2Deg = 0;
+      double todayValue = 0;
+      double smoothPeriod = 0;
       double[] smoothPrice = new double[50];
-      int smoothPrice_Idx;
-      int idx;
-      int DCPeriodInt;
-      double DCPeriod;
+      int smoothPrice_Idx = 0;
+      int idx = 0;
+      int DCPeriodInt = 0;
+      double DCPeriod = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -324,79 +324,79 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode ht_trendlineLogic( int startIdx,
-                                     int endIdx,
-                                     double inReal[],
-                                     MInteger outBegIdx,
-                                     MInteger outNBElement,
-                                     double outReal[] )
+   public RetCode htTrendlineLogic( int startIdx,
+                                    int endIdx,
+                                    double inReal[],
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outReal[] )
    {
-      int outIdx;
-      int i;
-      int lookbackTotal;
-      int today;
-      double tempReal;
-      double tempReal2;
-      double adjustedPrevPeriod;
-      double period;
-      int trailingWMAIdx;
-      double periodWMASum;
-      double periodWMASub;
-      double trailingWMAValue;
-      double smoothedValue;
-      double iTrend1;
-      double iTrend2;
-      double iTrend3;
-      double a;
-      double b;
-      double hilbertTempReal;
-      int hilbertIdx;
+      int outIdx = 0;
+      int i = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double adjustedPrevPeriod = 0;
+      double period = 0;
+      int trailingWMAIdx = 0;
+      double periodWMASum = 0;
+      double periodWMASub = 0;
+      double trailingWMAValue = 0;
+      double smoothedValue = 0;
+      double iTrend1 = 0;
+      double iTrend2 = 0;
+      double iTrend3 = 0;
+      double a = 0;
+      double b = 0;
+      double hilbertTempReal = 0;
+      int hilbertIdx = 0;
       double[] detrender_Odd = new double[3];
       double[] detrender_Even = new double[3];
-      double detrender;
-      double prev_detrender_Odd;
-      double prev_detrender_Even;
-      double prev_detrender_input_Odd;
-      double prev_detrender_input_Even;
+      double detrender = 0;
+      double prev_detrender_Odd = 0;
+      double prev_detrender_Even = 0;
+      double prev_detrender_input_Odd = 0;
+      double prev_detrender_input_Even = 0;
       double[] Q1_Odd = new double[3];
       double[] Q1_Even = new double[3];
-      double Q1;
-      double prev_Q1_Odd;
-      double prev_Q1_Even;
-      double prev_Q1_input_Odd;
-      double prev_Q1_input_Even;
+      double Q1 = 0;
+      double prev_Q1_Odd = 0;
+      double prev_Q1_Even = 0;
+      double prev_Q1_input_Odd = 0;
+      double prev_Q1_input_Even = 0;
       double[] jI_Odd = new double[3];
       double[] jI_Even = new double[3];
-      double jI;
-      double prev_jI_Odd;
-      double prev_jI_Even;
-      double prev_jI_input_Odd;
-      double prev_jI_input_Even;
+      double jI = 0;
+      double prev_jI_Odd = 0;
+      double prev_jI_Even = 0;
+      double prev_jI_input_Odd = 0;
+      double prev_jI_input_Even = 0;
       double[] jQ_Odd = new double[3];
       double[] jQ_Even = new double[3];
-      double jQ;
-      double prev_jQ_Odd;
-      double prev_jQ_Even;
-      double prev_jQ_input_Odd;
-      double prev_jQ_input_Even;
-      double Q2;
-      double I2;
-      double prevQ2;
-      double prevI2;
-      double Re;
-      double Im;
-      double I1ForOddPrev2;
-      double I1ForOddPrev3;
-      double I1ForEvenPrev2;
-      double I1ForEvenPrev3;
-      double rad2Deg;
-      double todayValue;
-      double smoothPeriod;
+      double jQ = 0;
+      double prev_jQ_Odd = 0;
+      double prev_jQ_Even = 0;
+      double prev_jQ_input_Odd = 0;
+      double prev_jQ_input_Even = 0;
+      double Q2 = 0;
+      double I2 = 0;
+      double prevQ2 = 0;
+      double prevI2 = 0;
+      double Re = 0;
+      double Im = 0;
+      double I1ForOddPrev2 = 0;
+      double I1ForOddPrev3 = 0;
+      double I1ForEvenPrev2 = 0;
+      double I1ForEvenPrev3 = 0;
+      double rad2Deg = 0;
+      double todayValue = 0;
+      double smoothPeriod = 0;
       double[] smoothPrice = new double[50];
-      int smoothPrice_Idx;
-      int idx;
-      int DCPeriodInt;
-      double DCPeriod;
+      int smoothPrice_Idx = 0;
+      int idx = 0;
+      int DCPeriodInt = 0;
+      double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
       smoothPrice_Idx = 0;
@@ -638,79 +638,79 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode ht_trendline( int startIdx,
-                                int endIdx,
-                                float inReal[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode htTrendline( int startIdx,
+                               int endIdx,
+                               float inReal[],
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
-      int outIdx;
-      int i;
-      int lookbackTotal;
-      int today;
-      double tempReal;
-      double tempReal2;
-      double adjustedPrevPeriod;
-      double period;
-      int trailingWMAIdx;
-      double periodWMASum;
-      double periodWMASub;
-      double trailingWMAValue;
-      double smoothedValue;
-      double iTrend1;
-      double iTrend2;
-      double iTrend3;
-      double a;
-      double b;
-      double hilbertTempReal;
-      int hilbertIdx;
+      int outIdx = 0;
+      int i = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double adjustedPrevPeriod = 0;
+      double period = 0;
+      int trailingWMAIdx = 0;
+      double periodWMASum = 0;
+      double periodWMASub = 0;
+      double trailingWMAValue = 0;
+      double smoothedValue = 0;
+      double iTrend1 = 0;
+      double iTrend2 = 0;
+      double iTrend3 = 0;
+      double a = 0;
+      double b = 0;
+      double hilbertTempReal = 0;
+      int hilbertIdx = 0;
       double[] detrender_Odd = new double[3];
       double[] detrender_Even = new double[3];
-      double detrender;
-      double prev_detrender_Odd;
-      double prev_detrender_Even;
-      double prev_detrender_input_Odd;
-      double prev_detrender_input_Even;
+      double detrender = 0;
+      double prev_detrender_Odd = 0;
+      double prev_detrender_Even = 0;
+      double prev_detrender_input_Odd = 0;
+      double prev_detrender_input_Even = 0;
       double[] Q1_Odd = new double[3];
       double[] Q1_Even = new double[3];
-      double Q1;
-      double prev_Q1_Odd;
-      double prev_Q1_Even;
-      double prev_Q1_input_Odd;
-      double prev_Q1_input_Even;
+      double Q1 = 0;
+      double prev_Q1_Odd = 0;
+      double prev_Q1_Even = 0;
+      double prev_Q1_input_Odd = 0;
+      double prev_Q1_input_Even = 0;
       double[] jI_Odd = new double[3];
       double[] jI_Even = new double[3];
-      double jI;
-      double prev_jI_Odd;
-      double prev_jI_Even;
-      double prev_jI_input_Odd;
-      double prev_jI_input_Even;
+      double jI = 0;
+      double prev_jI_Odd = 0;
+      double prev_jI_Even = 0;
+      double prev_jI_input_Odd = 0;
+      double prev_jI_input_Even = 0;
       double[] jQ_Odd = new double[3];
       double[] jQ_Even = new double[3];
-      double jQ;
-      double prev_jQ_Odd;
-      double prev_jQ_Even;
-      double prev_jQ_input_Odd;
-      double prev_jQ_input_Even;
-      double Q2;
-      double I2;
-      double prevQ2;
-      double prevI2;
-      double Re;
-      double Im;
-      double I1ForOddPrev2;
-      double I1ForOddPrev3;
-      double I1ForEvenPrev2;
-      double I1ForEvenPrev3;
-      double rad2Deg;
-      double todayValue;
-      double smoothPeriod;
+      double jQ = 0;
+      double prev_jQ_Odd = 0;
+      double prev_jQ_Even = 0;
+      double prev_jQ_input_Odd = 0;
+      double prev_jQ_input_Even = 0;
+      double Q2 = 0;
+      double I2 = 0;
+      double prevQ2 = 0;
+      double prevI2 = 0;
+      double Re = 0;
+      double Im = 0;
+      double I1ForOddPrev2 = 0;
+      double I1ForOddPrev3 = 0;
+      double I1ForEvenPrev2 = 0;
+      double I1ForEvenPrev3 = 0;
+      double rad2Deg = 0;
+      double todayValue = 0;
+      double smoothPeriod = 0;
       double[] smoothPrice = new double[50];
-      int smoothPrice_Idx;
-      int idx;
-      int DCPeriodInt;
-      double DCPeriod;
+      int smoothPrice_Idx = 0;
+      int idx = 0;
+      int DCPeriodInt = 0;
+      double DCPeriod = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -958,79 +958,79 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode ht_trendlineLogic( int startIdx,
-                                     int endIdx,
-                                     float inReal[],
-                                     MInteger outBegIdx,
-                                     MInteger outNBElement,
-                                     double outReal[] )
+   public RetCode htTrendlineLogic( int startIdx,
+                                    int endIdx,
+                                    float inReal[],
+                                    MInteger outBegIdx,
+                                    MInteger outNBElement,
+                                    double outReal[] )
    {
-      int outIdx;
-      int i;
-      int lookbackTotal;
-      int today;
-      double tempReal;
-      double tempReal2;
-      double adjustedPrevPeriod;
-      double period;
-      int trailingWMAIdx;
-      double periodWMASum;
-      double periodWMASub;
-      double trailingWMAValue;
-      double smoothedValue;
-      double iTrend1;
-      double iTrend2;
-      double iTrend3;
-      double a;
-      double b;
-      double hilbertTempReal;
-      int hilbertIdx;
+      int outIdx = 0;
+      int i = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double adjustedPrevPeriod = 0;
+      double period = 0;
+      int trailingWMAIdx = 0;
+      double periodWMASum = 0;
+      double periodWMASub = 0;
+      double trailingWMAValue = 0;
+      double smoothedValue = 0;
+      double iTrend1 = 0;
+      double iTrend2 = 0;
+      double iTrend3 = 0;
+      double a = 0;
+      double b = 0;
+      double hilbertTempReal = 0;
+      int hilbertIdx = 0;
       double[] detrender_Odd = new double[3];
       double[] detrender_Even = new double[3];
-      double detrender;
-      double prev_detrender_Odd;
-      double prev_detrender_Even;
-      double prev_detrender_input_Odd;
-      double prev_detrender_input_Even;
+      double detrender = 0;
+      double prev_detrender_Odd = 0;
+      double prev_detrender_Even = 0;
+      double prev_detrender_input_Odd = 0;
+      double prev_detrender_input_Even = 0;
       double[] Q1_Odd = new double[3];
       double[] Q1_Even = new double[3];
-      double Q1;
-      double prev_Q1_Odd;
-      double prev_Q1_Even;
-      double prev_Q1_input_Odd;
-      double prev_Q1_input_Even;
+      double Q1 = 0;
+      double prev_Q1_Odd = 0;
+      double prev_Q1_Even = 0;
+      double prev_Q1_input_Odd = 0;
+      double prev_Q1_input_Even = 0;
       double[] jI_Odd = new double[3];
       double[] jI_Even = new double[3];
-      double jI;
-      double prev_jI_Odd;
-      double prev_jI_Even;
-      double prev_jI_input_Odd;
-      double prev_jI_input_Even;
+      double jI = 0;
+      double prev_jI_Odd = 0;
+      double prev_jI_Even = 0;
+      double prev_jI_input_Odd = 0;
+      double prev_jI_input_Even = 0;
       double[] jQ_Odd = new double[3];
       double[] jQ_Even = new double[3];
-      double jQ;
-      double prev_jQ_Odd;
-      double prev_jQ_Even;
-      double prev_jQ_input_Odd;
-      double prev_jQ_input_Even;
-      double Q2;
-      double I2;
-      double prevQ2;
-      double prevI2;
-      double Re;
-      double Im;
-      double I1ForOddPrev2;
-      double I1ForOddPrev3;
-      double I1ForEvenPrev2;
-      double I1ForEvenPrev3;
-      double rad2Deg;
-      double todayValue;
-      double smoothPeriod;
+      double jQ = 0;
+      double prev_jQ_Odd = 0;
+      double prev_jQ_Even = 0;
+      double prev_jQ_input_Odd = 0;
+      double prev_jQ_input_Even = 0;
+      double Q2 = 0;
+      double I2 = 0;
+      double prevQ2 = 0;
+      double prevI2 = 0;
+      double Re = 0;
+      double Im = 0;
+      double I1ForOddPrev2 = 0;
+      double I1ForOddPrev3 = 0;
+      double I1ForEvenPrev2 = 0;
+      double I1ForEvenPrev3 = 0;
+      double rad2Deg = 0;
+      double todayValue = 0;
+      double smoothPeriod = 0;
       double[] smoothPrice = new double[50];
-      int smoothPrice_Idx;
-      int idx;
-      int DCPeriodInt;
-      double DCPeriod;
+      int smoothPrice_Idx = 0;
+      int idx = 0;
+      int DCPeriodInt = 0;
+      double DCPeriod = 0;
       a = 0.0962;
       b = 0.5769;
       smoothPrice_Idx = 0;

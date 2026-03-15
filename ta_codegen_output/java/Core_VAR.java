@@ -13,15 +13,15 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double periodTotal1;
-      double periodTotal2;
-      double meanValue1;
-      double meanValue2;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double tempReal = 0;
+      double periodTotal1 = 0;
+      double periodTotal2 = 0;
+      double meanValue1 = 0;
+      double meanValue2 = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -76,15 +76,15 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double periodTotal1;
-      double periodTotal2;
-      double meanValue1;
-      double meanValue2;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double tempReal = 0;
+      double periodTotal1 = 0;
+      double periodTotal2 = 0;
+      double meanValue1 = 0;
+      double meanValue2 = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
@@ -133,15 +133,15 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double periodTotal1;
-      double periodTotal2;
-      double meanValue1;
-      double meanValue2;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double tempReal = 0;
+      double periodTotal1 = 0;
+      double periodTotal2 = 0;
+      double meanValue1 = 0;
+      double meanValue2 = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -196,15 +196,15 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double periodTotal1;
-      double periodTotal2;
-      double meanValue1;
-      double meanValue2;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double tempReal = 0;
+      double periodTotal1 = 0;
+      double periodTotal2 = 0;
+      double meanValue1 = 0;
+      double meanValue2 = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;

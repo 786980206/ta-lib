@@ -29,16 +29,16 @@
       double[] slowMABuffer;
       double[] fastMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int lookbackLargest;
-      int i;
-      int tempMAType;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int lookbackLargest = 0;
+      int i = 0;
+      MAType tempMAType;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -124,16 +124,16 @@
       double[] slowMABuffer;
       double[] fastMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int lookbackLargest;
-      int i;
-      int tempMAType;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int lookbackLargest = 0;
+      int i = 0;
+      MAType tempMAType;
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;
@@ -213,16 +213,16 @@
       double[] slowMABuffer;
       double[] fastMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int lookbackLargest;
-      int i;
-      int tempMAType;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int lookbackLargest = 0;
+      int i = 0;
+      MAType tempMAType;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -308,16 +308,16 @@
       double[] slowMABuffer;
       double[] fastMABuffer;
       RetCode retCode;
-      int tempInteger;
+      int tempInteger = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
       MInteger outBegIdx2 = new MInteger();
       MInteger outNbElement2 = new MInteger();
-      int lookbackTotal;
-      int lookbackSignal;
-      int lookbackLargest;
-      int i;
-      int tempMAType;
+      int lookbackTotal = 0;
+      int lookbackSignal = 0;
+      int lookbackLargest = 0;
+      int i = 0;
+      MAType tempMAType;
       if( (optInSlowPeriod<optInFastPeriod) ) {
          tempInteger = optInSlowPeriod;
          optInSlowPeriod = optInFastPeriod;

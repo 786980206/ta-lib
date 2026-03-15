@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn rocr100<T: TaFloat>(
+    pub fn rocr100(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,20 +101,20 @@ impl Core {
             outReal,
         );
     }
-    pub fn rocr100_unguarded<T: TaFloat>(
+    pub fn rocr100_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut inIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }
@@ -127,11 +127,11 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
-            if tempReal != T::ta_from_f64(0.0) {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = inReal[(inIdx) as usize] / tempReal * T::ta_from_f64(100.0);
+            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            if tempReal != 0.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[inIdx] / tempReal * 100.0) as f64);
             } else {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
             }
             inIdx += 1;
         }
@@ -139,15 +139,15 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn rocr100_unchecked<T: TaFloat>(
+    pub unsafe fn rocr100_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -167,20 +167,20 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn rocr100_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn rocr100_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut inIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }
@@ -193,11 +193,11 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
-            if tempReal != T::ta_from_f64(0.0) {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (*inReal.get_unchecked((inIdx) as usize)) / tempReal * T::ta_from_f64(100.0);
+            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            if tempReal != 0.0 {
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((*inReal.get_unchecked(inIdx)) / tempReal * 100.0) as f64);
             } else {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             }
             inIdx += 1;
         }

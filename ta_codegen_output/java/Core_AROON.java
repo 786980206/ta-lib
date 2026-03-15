@@ -14,16 +14,16 @@
                          double outAroonDown[],
                          double outAroonUp[] )
    {
-      double lowest;
-      double highest;
-      double tmp;
-      double factor;
-      int outIdx;
-      int trailingIdx;
-      int lowestIdx;
-      int highestIdx;
-      int today;
-      int i;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double factor = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int today = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -99,16 +99,16 @@
                               double outAroonDown[],
                               double outAroonUp[] )
    {
-      double lowest;
-      double highest;
-      double tmp;
-      double factor;
-      int outIdx;
-      int trailingIdx;
-      int lowestIdx;
-      int highestIdx;
-      int today;
-      int i;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double factor = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int today = 0;
+      int i = 0;
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }
@@ -178,16 +178,16 @@
                          double outAroonDown[],
                          double outAroonUp[] )
    {
-      double lowest;
-      double highest;
-      double tmp;
-      double factor;
-      int outIdx;
-      int trailingIdx;
-      int lowestIdx;
-      int highestIdx;
-      int today;
-      int i;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double factor = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int today = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -263,16 +263,16 @@
                               double outAroonDown[],
                               double outAroonUp[] )
    {
-      double lowest;
-      double highest;
-      double tmp;
-      double factor;
-      int outIdx;
-      int trailingIdx;
-      int lowestIdx;
-      int highestIdx;
-      int today;
-      int i;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double factor = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int today = 0;
+      int i = 0;
       if( (startIdx<optInTimePeriod) ) {
          startIdx = optInTimePeriod;
       }

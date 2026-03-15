@@ -74,16 +74,16 @@ impl Core {
     /// * `outNBElement` - Number of valid output elements
     /// * `outMin` - Output values
     /// * `outMax` - Output values
-    pub fn minmax<T: TaFloat>(
+    pub fn minmax(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMin: &mut [T],
-        outMax: &mut [T],
+        outMin: &mut [f64],
+        outMax: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -104,21 +104,21 @@ impl Core {
             outMax,
         );
     }
-    pub fn minmax_unguarded<T: TaFloat>(
+    pub fn minmax_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMin: &mut [T],
-        outMax: &mut [T],
+        outMin: &mut [f64],
+        outMax: &mut [f64],
     ) -> RetCode {
-        let mut highest: T = T::ta_zero();
-        let mut lowest: T = T::ta_zero();
-        let mut tmpHigh: T = T::ta_zero();
-        let mut tmpLow: T = T::ta_zero();
+        let mut highest: f64 = 0.0_f64;
+        let mut lowest: f64 = 0.0_f64;
+        let mut tmpHigh: f64 = 0.0_f64;
+        let mut tmpLow: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -139,18 +139,18 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
-        highest = T::ta_from_f64(0.0);
+        highest = 0.0;
         lowestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         while today <= endIdx {
-            tmpHigh = inReal[(today) as usize];
+            tmpHigh = inReal[today];
             tmpLow = tmpHigh;
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = inReal[(highestIdx) as usize];
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpHigh = inReal[(i) as usize];
+                    tmpHigh = inReal[i];
                     if tmpHigh > highest {
                         highestIdx = (i) as i32;
                         highest = tmpHigh;
@@ -165,7 +165,7 @@ impl Core {
                 lowest = inReal[(lowestIdx) as usize];
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpLow = inReal[(i) as usize];
+                    tmpLow = inReal[i];
                     if tmpLow < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmpLow;
@@ -175,8 +175,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmpLow;
             }
-            outMax[(outIdx) as usize] = highest;
-            outMin[(outIdx) as usize] = lowest;
+            outMax[outIdx] = highest;
+            outMin[outIdx] = lowest;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;
@@ -185,16 +185,16 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn minmax_unchecked<T: TaFloat>(
+    pub unsafe fn minmax_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMin: &mut [T],
-        outMax: &mut [T],
+        outMin: &mut [f64],
+        outMax: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -215,21 +215,21 @@ impl Core {
             outMax,
         );
     }
-    pub unsafe fn minmax_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn minmax_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMin: &mut [T],
-        outMax: &mut [T],
+        outMin: &mut [f64],
+        outMax: &mut [f64],
     ) -> RetCode {
-        let mut highest: T = T::ta_zero();
-        let mut lowest: T = T::ta_zero();
-        let mut tmpHigh: T = T::ta_zero();
-        let mut tmpLow: T = T::ta_zero();
+        let mut highest: f64 = 0.0_f64;
+        let mut lowest: f64 = 0.0_f64;
+        let mut tmpHigh: f64 = 0.0_f64;
+        let mut tmpLow: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -250,18 +250,18 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
-        highest = T::ta_from_f64(0.0);
+        highest = 0.0;
         lowestIdx = 0 - 1;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         while today <= endIdx {
-            tmpHigh = (*inReal.get_unchecked((today) as usize));
+            tmpHigh = (*inReal.get_unchecked(today));
             tmpLow = tmpHigh;
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = (*inReal.get_unchecked((highestIdx) as usize));
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpHigh = (*inReal.get_unchecked((i) as usize));
+                    tmpHigh = (*inReal.get_unchecked(i));
                     if tmpHigh > highest {
                         highestIdx = (i) as i32;
                         highest = tmpHigh;
@@ -276,7 +276,7 @@ impl Core {
                 lowest = (*inReal.get_unchecked((lowestIdx) as usize));
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpLow = (*inReal.get_unchecked((i) as usize));
+                    tmpLow = (*inReal.get_unchecked(i));
                     if tmpLow < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmpLow;
@@ -286,8 +286,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmpLow;
             }
-            (*outMax.get_unchecked_mut((outIdx) as usize)) = highest;
-            (*outMin.get_unchecked_mut((outIdx) as usize)) = lowest;
+            (*outMax.get_unchecked_mut(outIdx)) = highest;
+            (*outMin.get_unchecked_mut(outIdx)) = lowest;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

@@ -75,16 +75,16 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn t3<T: TaFloat>(
+    pub fn t3(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInVFactor: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -105,34 +105,34 @@ impl Core {
             outReal,
         );
     }
-    pub fn t3_unguarded<T: TaFloat>(
+    pub fn t3_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInVFactor: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
-        let mut k: T = T::ta_zero();
-        let mut one_minus_k: T = T::ta_zero();
-        let mut e1: T = T::ta_zero();
-        let mut e2: T = T::ta_zero();
-        let mut e3: T = T::ta_zero();
-        let mut e4: T = T::ta_zero();
-        let mut e5: T = T::ta_zero();
-        let mut e6: T = T::ta_zero();
-        let mut c1: T = T::ta_zero();
-        let mut c2: T = T::ta_zero();
-        let mut c3: T = T::ta_zero();
-        let mut c4: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
+        let mut k: f64 = 0.0_f64;
+        let mut one_minus_k: f64 = 0.0_f64;
+        let mut e1: f64 = 0.0_f64;
+        let mut e2: f64 = 0.0_f64;
+        let mut e3: f64 = 0.0_f64;
+        let mut e4: f64 = 0.0_f64;
+        let mut e5: f64 = 0.0_f64;
+        let mut e6: f64 = 0.0_f64;
+        let mut c1: f64 = 0.0_f64;
+        let mut c2: f64 = 0.0_f64;
+        let mut c3: f64 = 0.0_f64;
+        let mut c4: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
         if startIdx <= lookbackTotal {
             startIdx = lookbackTotal;
@@ -144,63 +144,63 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         today = startIdx - lookbackTotal;
-        k = T::ta_from_f64(2.0) / (T::ta_from_i32(optInTimePeriod) + T::ta_from_f64(1.0));
-        one_minus_k = T::ta_from_f64(1.0) - k;
-        tempReal = inReal[({ let _v = today; today += 1; _v }) as usize];
+        k = 2.0 / (((optInTimePeriod) as f64) + 1.0);
+        one_minus_k = 1.0 - k;
+        tempReal = inReal[{ let _v = today; today += 1; _v }];
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            tempReal += inReal[({ let _v = today; today += 1; _v }) as usize];
+            tempReal += inReal[{ let _v = today; today += 1; _v }];
             i -= 1;
         }
-        e1 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e1 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e1;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             tempReal += e1;
             i -= 1;
         }
-        e2 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e2 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e2;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             tempReal += e2;
             i -= 1;
         }
-        e3 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e3 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e3;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             tempReal += e3;
             i -= 1;
         }
-        e4 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e4 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e4;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             tempReal += e4;
             i -= 1;
         }
-        e5 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e5 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e5;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
@@ -208,44 +208,44 @@ impl Core {
             tempReal += e5;
             i -= 1;
         }
-        e6 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e6 = tempReal / ((optInTimePeriod) as f64);
         while today <= startIdx {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
         }
-        tempReal = T::ta_from_f64(optInVFactor) * T::ta_from_f64(optInVFactor);
-        c1 = T::ta_from_i32(0) - tempReal * T::ta_from_f64(optInVFactor);
-        c2 = T::ta_from_f64(3.0) * (tempReal - c1);
-        c3 = (T::ta_from_i32(0) - T::ta_from_f64(6.0)) * tempReal - T::ta_from_f64(3.0) * (T::ta_from_f64(optInVFactor) - c1);
-        c4 = T::ta_from_f64(1.0) + T::ta_from_f64(3.0) * T::ta_from_f64(optInVFactor) - c1 + T::ta_from_f64(3.0) * tempReal;
+        tempReal = optInVFactor * optInVFactor;
+        c1 = 0_f64 - tempReal * optInVFactor;
+        c2 = 3.0 * (tempReal - c1);
+        c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+        c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
         outIdx = 0;
-        outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        outReal[{ let _v = outIdx; outIdx += 1; _v }] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         while today <= endIdx {
-            e1 = k * inReal[({ let _v = today; today += 1; _v }) as usize] + one_minus_k * e1;
+            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn t3_unchecked<T: TaFloat>(
+    pub unsafe fn t3_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInVFactor: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -266,34 +266,34 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn t3_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn t3_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInVFactor: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
-        let mut k: T = T::ta_zero();
-        let mut one_minus_k: T = T::ta_zero();
-        let mut e1: T = T::ta_zero();
-        let mut e2: T = T::ta_zero();
-        let mut e3: T = T::ta_zero();
-        let mut e4: T = T::ta_zero();
-        let mut e5: T = T::ta_zero();
-        let mut e6: T = T::ta_zero();
-        let mut c1: T = T::ta_zero();
-        let mut c2: T = T::ta_zero();
-        let mut c3: T = T::ta_zero();
-        let mut c4: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
+        let mut k: f64 = 0.0_f64;
+        let mut one_minus_k: f64 = 0.0_f64;
+        let mut e1: f64 = 0.0_f64;
+        let mut e2: f64 = 0.0_f64;
+        let mut e3: f64 = 0.0_f64;
+        let mut e4: f64 = 0.0_f64;
+        let mut e5: f64 = 0.0_f64;
+        let mut e6: f64 = 0.0_f64;
+        let mut c1: f64 = 0.0_f64;
+        let mut c2: f64 = 0.0_f64;
+        let mut c3: f64 = 0.0_f64;
+        let mut c4: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
         lookbackTotal = (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
         if startIdx <= lookbackTotal {
             startIdx = lookbackTotal;
@@ -305,63 +305,63 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         today = startIdx - lookbackTotal;
-        k = T::ta_from_f64(2.0) / (T::ta_from_i32(optInTimePeriod) + T::ta_from_f64(1.0));
-        one_minus_k = T::ta_from_f64(1.0) - k;
-        tempReal = (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+        k = 2.0 / (((optInTimePeriod) as f64) + 1.0);
+        one_minus_k = 1.0 - k;
+        tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            tempReal += (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize));
+            tempReal += (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
             i -= 1;
         }
-        e1 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e1 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e1;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             tempReal += e1;
             i -= 1;
         }
-        e2 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e2 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e2;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             tempReal += e2;
             i -= 1;
         }
-        e3 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e3 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e3;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             tempReal += e3;
             i -= 1;
         }
-        e4 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e4 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e4;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             tempReal += e4;
             i -= 1;
         }
-        e5 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e5 = tempReal / ((optInTimePeriod) as f64);
         tempReal = e5;
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
@@ -369,30 +369,30 @@ impl Core {
             tempReal += e5;
             i -= 1;
         }
-        e6 = tempReal / T::ta_from_i32(optInTimePeriod);
+        e6 = tempReal / ((optInTimePeriod) as f64);
         while today <= startIdx {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
         }
-        tempReal = T::ta_from_f64(optInVFactor) * T::ta_from_f64(optInVFactor);
-        c1 = T::ta_from_i32(0) - tempReal * T::ta_from_f64(optInVFactor);
-        c2 = T::ta_from_f64(3.0) * (tempReal - c1);
-        c3 = (T::ta_from_i32(0) - T::ta_from_f64(6.0)) * tempReal - T::ta_from_f64(3.0) * (T::ta_from_f64(optInVFactor) - c1);
-        c4 = T::ta_from_f64(1.0) + T::ta_from_f64(3.0) * T::ta_from_f64(optInVFactor) - c1 + T::ta_from_f64(3.0) * tempReal;
+        tempReal = optInVFactor * optInVFactor;
+        c1 = 0_f64 - tempReal * optInVFactor;
+        c2 = 3.0 * (tempReal - c1);
+        c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
+        c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
         outIdx = 0;
-        (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         while today <= endIdx {
-            e1 = k * (*inReal.get_unchecked(({ let _v = today; today += 1; _v }) as usize)) + one_minus_k * e1;
+            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
             e3 = k * e2 + one_minus_k * e3;
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

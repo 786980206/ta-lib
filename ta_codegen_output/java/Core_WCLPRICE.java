@@ -13,8 +13,8 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int i;
+      int outIdx = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -38,8 +38,8 @@
                                  MInteger outNBElement,
                                  double outReal[] )
    {
-      int outIdx;
-      int i;
+      int outIdx = 0;
+      int i = 0;
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = (((inHigh[i]+inLow[i])+(inClose[i]*2.0))/4.0);
@@ -57,8 +57,8 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int i;
+      int outIdx = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -82,8 +82,8 @@
                                  MInteger outNBElement,
                                  double outReal[] )
    {
-      int outIdx;
-      int i;
+      int outIdx = 0;
+      int i = 0;
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          outReal[outIdx++] = (((inHigh[i]+inLow[i])+(inClose[i]*2.0))/4.0);

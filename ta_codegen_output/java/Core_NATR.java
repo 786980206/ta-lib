@@ -15,14 +15,14 @@
                         double outReal[] )
    {
       RetCode retCode;
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int nbATR;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int nbATR = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
-      double prevATR;
-      double tempValue;
+      double[] prevATR = new double[1];
+      double tempValue = 0;
       double[] tempBuffer;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -54,26 +54,26 @@
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Natr.ordinal()];
       while( (outIdx!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
       outIdx = 1;
       tempValue = inClose[today];
       if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-         outReal[0] = ((prevATR.value/tempValue)*100.0);
+         outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
       }
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-            outReal[outIdx] = ((prevATR.value/tempValue)*100.0);
+            outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
          }
@@ -94,14 +94,14 @@
                              double outReal[] )
    {
       RetCode retCode;
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int nbATR;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int nbATR = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
-      double prevATR;
-      double tempValue;
+      double[] prevATR = new double[1];
+      double tempValue = 0;
       double[] tempBuffer;
       outBegIdx.value = 0;
       outNBElement.value = 0;
@@ -127,26 +127,26 @@
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Natr.ordinal()];
       while( (outIdx!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
       outIdx = 1;
       tempValue = inClose[today];
       if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-         outReal[0] = ((prevATR.value/tempValue)*100.0);
+         outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
       }
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-            outReal[outIdx] = ((prevATR.value/tempValue)*100.0);
+            outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
          }
@@ -167,14 +167,14 @@
                         double outReal[] )
    {
       RetCode retCode;
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int nbATR;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int nbATR = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
-      double prevATR;
-      double tempValue;
+      double[] prevATR = new double[1];
+      double tempValue = 0;
       double[] tempBuffer;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
@@ -206,26 +206,26 @@
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Natr.ordinal()];
       while( (outIdx!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
       outIdx = 1;
       tempValue = inClose[today];
       if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-         outReal[0] = ((prevATR.value/tempValue)*100.0);
+         outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
       }
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-            outReal[outIdx] = ((prevATR.value/tempValue)*100.0);
+            outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
          }
@@ -246,14 +246,14 @@
                              double outReal[] )
    {
       RetCode retCode;
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      int nbATR;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      int nbATR = 0;
       MInteger outBegIdx1 = new MInteger();
       MInteger outNbElement1 = new MInteger();
-      double prevATR;
-      double tempValue;
+      double[] prevATR = new double[1];
+      double tempValue = 0;
       double[] tempBuffer;
       outBegIdx.value = 0;
       outNBElement.value = 0;
@@ -279,26 +279,26 @@
       today = optInTimePeriod;
       outIdx = this.unstablePeriod[FuncUnstId.Natr.ordinal()];
       while( (outIdx!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          outIdx -= 1;
       }
       outIdx = 1;
       tempValue = inClose[today];
       if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-         outReal[0] = ((prevATR.value/tempValue)*100.0);
+         outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
       }
       nbATR = ((endIdx-startIdx)+1);
       while( (--nbATR!=0) ) {
-         prevATR.value *= (optInTimePeriod-1);
-         prevATR.value += tempBuffer[today++];
-         prevATR.value /= optInTimePeriod;
+         prevATR[0] *= (optInTimePeriod-1);
+         prevATR[0] += tempBuffer[today++];
+         prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
-            outReal[outIdx] = ((prevATR.value/tempValue)*100.0);
+            outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
          }

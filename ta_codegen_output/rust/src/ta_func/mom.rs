@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn mom<T: TaFloat>(
+    pub fn mom(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,15 +101,15 @@ impl Core {
             outReal,
         );
     }
-    pub fn mom_unguarded<T: TaFloat>(
+    pub fn mom_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut inIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -126,21 +126,21 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = inReal[({ let _v = inIdx; inIdx += 1; _v }) as usize] - inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }]) as f64);
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn mom_unchecked<T: TaFloat>(
+    pub unsafe fn mom_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -160,15 +160,15 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn mom_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn mom_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut inIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -185,7 +185,7 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (*inReal.get_unchecked(({ let _v = inIdx; inIdx += 1; _v }) as usize)) - (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v })) - (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }))) as f64);
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;

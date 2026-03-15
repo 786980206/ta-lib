@@ -14,14 +14,14 @@
                       MInteger outNBElement,
                       double outReal[] )
    {
-      int nbBar;
-      int currentBar;
-      int outIdx;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double ad;
+      int nbBar = 0;
+      int currentBar = 0;
+      int outIdx = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double ad = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -58,14 +58,14 @@
                            MInteger outNBElement,
                            double outReal[] )
    {
-      int nbBar;
-      int currentBar;
-      int outIdx;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double ad;
+      int nbBar = 0;
+      int currentBar = 0;
+      int outIdx = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double ad = 0;
       nbBar = ((endIdx-startIdx)+1);
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;
@@ -96,14 +96,14 @@
                       MInteger outNBElement,
                       double outReal[] )
    {
-      int nbBar;
-      int currentBar;
-      int outIdx;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double ad;
+      int nbBar = 0;
+      int currentBar = 0;
+      int outIdx = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double ad = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -140,14 +140,14 @@
                            MInteger outNBElement,
                            double outReal[] )
    {
-      int nbBar;
-      int currentBar;
-      int outIdx;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double ad;
+      int nbBar = 0;
+      int currentBar = 0;
+      int outIdx = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double ad = 0;
       nbBar = ((endIdx-startIdx)+1);
       outNBElement.value = nbBar;
       outBegIdx.value = startIdx;

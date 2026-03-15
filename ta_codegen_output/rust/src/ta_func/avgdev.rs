@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn avgdev<T: TaFloat>(
+    pub fn avgdev(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,15 +101,15 @@ impl Core {
             outReal,
         );
     }
-    pub fn avgdev_unguarded<T: TaFloat>(
+    pub fn avgdev_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -127,39 +127,39 @@ impl Core {
         (*outBegIdx) = today;
         outIdx = 0;
         while today <= endIdx {
-            let mut todaySum: T = T::ta_zero();
-            let mut todayDev: T = T::ta_zero();
+            let mut todaySum: f64 = 0.0_f64;
+            let mut todayDev: f64 = 0.0_f64;
             let mut i: usize = 0_usize;
-            todaySum = T::ta_from_f64(0.0);
+            todaySum = 0.0;
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todaySum += inReal[(today - i) as usize];
+                todaySum += inReal[today - i];
                 i += 1;
             }
-            todayDev = T::ta_from_f64(0.0);
+            todayDev = 0.0;
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todayDev += (inReal[(today - i) as usize] - todaySum / T::ta_from_i32(optInTimePeriod)).ta_abs();
+                todayDev += (inReal[today - i] - todaySum / ((optInTimePeriod) as f64)).abs();
                 i += 1;
             }
-            outReal[(outIdx) as usize] = todayDev / T::ta_from_i32(optInTimePeriod);
+            outReal[outIdx] = todayDev / ((optInTimePeriod) as f64);
             outIdx += 1;
             today += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn avgdev_unchecked<T: TaFloat>(
+    pub unsafe fn avgdev_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -179,15 +179,15 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn avgdev_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn avgdev_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -205,24 +205,24 @@ impl Core {
         (*outBegIdx) = today;
         outIdx = 0;
         while today <= endIdx {
-            let mut todaySum: T = T::ta_zero();
-            let mut todayDev: T = T::ta_zero();
+            let mut todaySum: f64 = 0.0_f64;
+            let mut todayDev: f64 = 0.0_f64;
             let mut i: usize = 0_usize;
-            todaySum = T::ta_from_f64(0.0);
+            todaySum = 0.0;
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todaySum += (*inReal.get_unchecked((today - i) as usize));
+                todaySum += (*inReal.get_unchecked(today - i));
                 i += 1;
             }
-            todayDev = T::ta_from_f64(0.0);
+            todayDev = 0.0;
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todayDev += ((*inReal.get_unchecked((today - i) as usize)) - todaySum / T::ta_from_i32(optInTimePeriod)).ta_abs();
+                todayDev += ((*inReal.get_unchecked(today - i)) - todaySum / ((optInTimePeriod) as f64)).abs();
                 i += 1;
             }
-            (*outReal.get_unchecked_mut((outIdx) as usize)) = todayDev / T::ta_from_i32(optInTimePeriod);
+            (*outReal.get_unchecked_mut(outIdx)) = todayDev / ((optInTimePeriod) as f64);
             outIdx += 1;
             today += 1;
         }

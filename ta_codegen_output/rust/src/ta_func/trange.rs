@@ -68,16 +68,16 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn trange<T: TaFloat>(
+    pub fn trange(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -93,25 +93,25 @@ impl Core {
             outReal,
         );
     }
-    pub fn trange_unguarded<T: TaFloat>(
+    pub fn trange_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut val2: T = T::ta_zero();
-        let mut val3: T = T::ta_zero();
-        let mut greatest: T = T::ta_zero();
-        let mut tempCY: T = T::ta_zero();
-        let mut tempLT: T = T::ta_zero();
-        let mut tempHT: T = T::ta_zero();
+        let mut val2: f64 = 0.0_f64;
+        let mut val3: f64 = 0.0_f64;
+        let mut greatest: f64 = 0.0_f64;
+        let mut tempCY: f64 = 0.0_f64;
+        let mut tempLT: f64 = 0.0_f64;
+        let mut tempHT: f64 = 0.0_f64;
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -123,35 +123,35 @@ impl Core {
         outIdx = 0;
         today = startIdx;
         while today <= endIdx {
-            tempLT = inLow[(today) as usize];
-            tempHT = inHigh[(today) as usize];
-            tempCY = inClose[(today - 1) as usize];
+            tempLT = inLow[today];
+            tempHT = inHigh[today];
+            tempCY = inClose[today - 1];
             greatest = tempHT - tempLT;
-            val2 = (tempCY - tempHT).ta_abs();
+            val2 = (tempCY - tempHT).abs();
             if val2 > greatest {
                 greatest = val2;
             }
-            val3 = (tempCY - tempLT).ta_abs();
+            val3 = (tempCY - tempLT).abs();
             if val3 > greatest {
                 greatest = val3;
             }
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = greatest;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = greatest;
             today += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn trange_unchecked<T: TaFloat>(
+    pub unsafe fn trange_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -167,25 +167,25 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn trange_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn trange_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut val2: T = T::ta_zero();
-        let mut val3: T = T::ta_zero();
-        let mut greatest: T = T::ta_zero();
-        let mut tempCY: T = T::ta_zero();
-        let mut tempLT: T = T::ta_zero();
-        let mut tempHT: T = T::ta_zero();
+        let mut val2: f64 = 0.0_f64;
+        let mut val3: f64 = 0.0_f64;
+        let mut greatest: f64 = 0.0_f64;
+        let mut tempCY: f64 = 0.0_f64;
+        let mut tempLT: f64 = 0.0_f64;
+        let mut tempHT: f64 = 0.0_f64;
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -197,19 +197,19 @@ impl Core {
         outIdx = 0;
         today = startIdx;
         while today <= endIdx {
-            tempLT = (*inLow.get_unchecked((today) as usize));
-            tempHT = (*inHigh.get_unchecked((today) as usize));
-            tempCY = (*inClose.get_unchecked((today - 1) as usize));
+            tempLT = (*inLow.get_unchecked(today));
+            tempHT = (*inHigh.get_unchecked(today));
+            tempCY = (*inClose.get_unchecked(today - 1));
             greatest = tempHT - tempLT;
-            val2 = (tempCY - tempHT).ta_abs();
+            val2 = (tempCY - tempHT).abs();
             if val2 > greatest {
                 greatest = val2;
             }
-            val3 = (tempCY - tempLT).ta_abs();
+            val3 = (tempCY - tempLT).abs();
             if val3 > greatest {
                 greatest = val3;
             }
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = greatest;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = greatest;
             today += 1;
         }
         (*outNBElement) = outIdx;

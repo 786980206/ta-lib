@@ -80,17 +80,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn ppo<T: TaFloat>(
+    pub fn ppo(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -117,21 +117,21 @@ impl Core {
             outReal,
         );
     }
-    pub fn ppo_unguarded<T: TaFloat>(
+    pub fn ppo_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
@@ -139,7 +139,7 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
-        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -154,11 +154,11 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    tempReal = outReal[(i) as usize];
-                    if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                        outReal[(i) as usize] = (tempBuffer[(j) as usize] - tempReal) / tempReal * T::ta_from_f64(100.0);
+                    tempReal = outReal[i];
+                    if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                        outReal[i] = (((tempBuffer[j] - tempReal) / tempReal * 100.0) as f64);
                     } else {
-                        outReal[(i) as usize] = T::ta_from_f64(0.0);
+                        outReal[i] = 0.0;
                     }
                     i += 1;
                     j += 1;
@@ -169,17 +169,17 @@ impl Core {
         }
         return retCode;
     }
-    pub unsafe fn ppo_unchecked<T: TaFloat>(
+    pub unsafe fn ppo_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -206,21 +206,21 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn ppo_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn ppo_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
-        let mut tempReal: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
@@ -228,7 +228,7 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
-        tempBuffer = vec![T::ta_zero(); ((endIdx - startIdx + 1) * 1) as usize];
+        tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -243,11 +243,11 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    tempReal = (*outReal.get_unchecked((i) as usize));
-                    if !(T::ta_from_i32(0) - T::ta_from_f64(0.00000001) < tempReal && tempReal < T::ta_from_f64(0.00000001)) {
-                        (*outReal.get_unchecked_mut((i) as usize)) = ((*tempBuffer.get_unchecked((j) as usize)) - tempReal) / tempReal * T::ta_from_f64(100.0);
+                    tempReal = (*outReal.get_unchecked(i));
+                    if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                        (*outReal.get_unchecked_mut(i)) = ((((*tempBuffer.get_unchecked(j)) - tempReal) / tempReal * 100.0) as f64);
                     } else {
-                        (*outReal.get_unchecked_mut((i) as usize)) = T::ta_from_f64(0.0);
+                        (*outReal.get_unchecked_mut(i)) = 0.0;
                     }
                     i += 1;
                     j += 1;

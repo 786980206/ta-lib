@@ -13,8 +13,8 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int lookback;
-      int outIdx;
+      int lookback = 0;
+      int outIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -33,7 +33,12 @@
       }
       outBegIdx.value = startIdx;
       while( (startIdx<=endIdx) ) {
+         double upsum = 0.0;
+         double downsum = 0.0;
+         int i;
          for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+            double close = inClose[i];
+            double open = inOpen[i];
             if( (close>open) ) {
                upsum += (close-open);
             } else {
@@ -56,8 +61,8 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int lookback;
-      int outIdx;
+      int lookback = 0;
+      int outIdx = 0;
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
       if( (startIdx<lookback) ) {
@@ -70,7 +75,12 @@
       }
       outBegIdx.value = startIdx;
       while( (startIdx<=endIdx) ) {
+         double upsum = 0.0;
+         double downsum = 0.0;
+         int i;
          for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+            double close = inClose[i];
+            double open = inOpen[i];
             if( (close>open) ) {
                upsum += (close-open);
             } else {
@@ -93,8 +103,8 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int lookback;
-      int outIdx;
+      int lookback = 0;
+      int outIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -113,7 +123,12 @@
       }
       outBegIdx.value = startIdx;
       while( (startIdx<=endIdx) ) {
+         double upsum = 0.0;
+         double downsum = 0.0;
+         int i;
          for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+            double close = inClose[i];
+            double open = inOpen[i];
             if( (close>open) ) {
                upsum += (close-open);
             } else {
@@ -136,8 +151,8 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int lookback;
-      int outIdx;
+      int lookback = 0;
+      int outIdx = 0;
       outIdx = 0;
       lookback = imiLookback(optInTimePeriod);
       if( (startIdx<lookback) ) {
@@ -150,7 +165,12 @@
       }
       outBegIdx.value = startIdx;
       while( (startIdx<=endIdx) ) {
+         double upsum = 0.0;
+         double downsum = 0.0;
+         int i;
          for( i = (startIdx-lookback); (i<=startIdx); i += 1 ) {
+            double close = inClose[i];
+            double open = inOpen[i];
             if( (close>open) ) {
                upsum += (close-open);
             } else {

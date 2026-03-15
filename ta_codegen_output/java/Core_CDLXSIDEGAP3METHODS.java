@@ -14,9 +14,9 @@
                                        MInteger outNBElement,
                                        int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -56,9 +56,9 @@
                                             MInteger outNBElement,
                                             int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       lookbackTotal = cdlxsidegap3methodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -92,9 +92,9 @@
                                        MInteger outNBElement,
                                        int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -134,9 +134,9 @@
                                             MInteger outNBElement,
                                             int outInteger[] )
    {
-      int i;
-      int outIdx;
-      int lookbackTotal;
+      int i = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       lookbackTotal = cdlxsidegap3methodsLookback();
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

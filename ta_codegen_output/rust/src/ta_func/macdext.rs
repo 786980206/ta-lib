@@ -96,11 +96,11 @@ impl Core {
     /// * `outMACD` - Output values
     /// * `outMACDSignal` - Output values
     /// * `outMACDHist` - Output values
-    pub fn macdext<T: TaFloat>(
+    pub fn macdext(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInFastMAType: i32,
         mut optInSlowPeriod: i32,
@@ -109,9 +109,9 @@ impl Core {
         mut optInSignalMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -148,11 +148,11 @@ impl Core {
             outMACDHist,
         );
     }
-    pub fn macdext_unguarded<T: TaFloat>(
+    pub fn macdext_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInFastMAType: i32,
         mut optInSlowPeriod: i32,
@@ -161,12 +161,12 @@ impl Core {
         mut optInSignalMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
-        let mut slowMABuffer: Vec<T> = Vec::new();
-        let mut fastMABuffer: Vec<T> = Vec::new();
+        let mut slowMABuffer: Vec<f64> = Vec::new();
+        let mut fastMABuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -202,8 +202,8 @@ impl Core {
             return RetCode::Success;
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        fastMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
-        slowMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
+        fastMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        slowMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ma_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, &mut outBegIdx1, &mut outNbElement1, &mut slowMABuffer[..]);
         if retCode != RetCode::Success {
@@ -225,13 +225,13 @@ impl Core {
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
-            fastMABuffer[(i) as usize] = fastMABuffer[(i) as usize] - slowMABuffer[(i) as usize];
+            fastMABuffer[i] = fastMABuffer[i] - slowMABuffer[i];
             i += 1;
         }
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
-            let _si = ((lookbackSignal) as usize) as usize;
+            let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastMABuffer[_si.._si + _n]);
         };
         retCode = self.ma_unguarded(0, outNbElement1 - 1, &fastMABuffer, optInSignalPeriod, optInSignalMAType, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
@@ -243,18 +243,18 @@ impl Core {
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
-            outMACDHist[(i) as usize] = outMACD[(i) as usize] - outMACDSignal[(i) as usize];
+            outMACDHist[i] = ((outMACD[i] - outMACDSignal[i]) as f64);
             i += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
     }
-    pub unsafe fn macdext_unchecked<T: TaFloat>(
+    pub unsafe fn macdext_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInFastMAType: i32,
         mut optInSlowPeriod: i32,
@@ -263,9 +263,9 @@ impl Core {
         mut optInSignalMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -302,11 +302,11 @@ impl Core {
             outMACDHist,
         );
     }
-    pub unsafe fn macdext_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn macdext_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInFastPeriod: i32,
         mut optInFastMAType: i32,
         mut optInSlowPeriod: i32,
@@ -315,12 +315,12 @@ impl Core {
         mut optInSignalMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outMACD: &mut [T],
-        outMACDSignal: &mut [T],
-        outMACDHist: &mut [T],
+        outMACD: &mut [f64],
+        outMACDSignal: &mut [f64],
+        outMACDHist: &mut [f64],
     ) -> RetCode {
-        let mut slowMABuffer: Vec<T> = Vec::new();
-        let mut fastMABuffer: Vec<T> = Vec::new();
+        let mut slowMABuffer: Vec<f64> = Vec::new();
+        let mut fastMABuffer: Vec<f64> = Vec::new();
         let mut retCode: RetCode = RetCode::Success;
         let mut tempInteger: usize = 0_usize;
         let mut outBegIdx1: usize = 0_usize;
@@ -356,8 +356,8 @@ impl Core {
             return RetCode::Success;
         }
         tempInteger = endIdx - startIdx + 1 + lookbackSignal;
-        fastMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
-        slowMABuffer = vec![T::ta_zero(); (tempInteger * 1) as usize];
+        fastMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
+        slowMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
         retCode = self.ma_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, &mut outBegIdx1, &mut outNbElement1, &mut slowMABuffer[..]);
         if retCode != RetCode::Success {
@@ -379,13 +379,13 @@ impl Core {
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
-            (*fastMABuffer.get_unchecked_mut((i) as usize)) = (*fastMABuffer.get_unchecked((i) as usize)) - (*slowMABuffer.get_unchecked((i) as usize));
+            (*fastMABuffer.get_unchecked_mut(i)) = (*fastMABuffer.get_unchecked(i)) - (*slowMABuffer.get_unchecked(i));
             i += 1;
         }
         {
             let _n = ((endIdx - startIdx + 1) * 1) as usize;
             let _di = (0) as usize;
-            let _si = ((lookbackSignal) as usize) as usize;
+            let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastMABuffer[_si.._si + _n]);
         };
         retCode = self.ma_unguarded(0, outNbElement1 - 1, &fastMABuffer, optInSignalPeriod, optInSignalMAType, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
@@ -397,7 +397,7 @@ impl Core {
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
-            (*outMACDHist.get_unchecked_mut((i) as usize)) = (*outMACD.get_unchecked((i) as usize)) - (*outMACDSignal.get_unchecked((i) as usize));
+            (*outMACDHist.get_unchecked_mut(i)) = (((*outMACD.get_unchecked(i)) - (*outMACDSignal.get_unchecked(i))) as f64);
             i += 1;
         }
         (*outBegIdx) = startIdx;

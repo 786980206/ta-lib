@@ -40,7 +40,7 @@ typedef int TA_Integer;
 #define TA_FUNC_UNST_NONE 99
 int ta_unstable_period[TA_FUNC_UNST_ALL];
 #define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]
-void TA_SetUnstablePeriod(int id, int period) {
+__attribute__((used)) void TA_SetUnstablePeriod(int id, int period) {
     if (id >= 0 && id < TA_FUNC_UNST_ALL) ta_unstable_period[id] = period;
 }
 
@@ -100,7 +100,9 @@ static TA_GlobalsType *TA_Globals = &ta_globals_data;
 #define TA_IS_ZERO(v) ((-(0.00000001)) < (v) && (v) < (0.00000001))
 #define TA_IS_ZERO_OR_NEG(v) ((v) < (0.00000001))
 
+#include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #define ARRAY_MEMMOVE(dst, dstIdx, src, srcIdx, count) \
     memmove(&(dst)[dstIdx], &(src)[srcIdx], (count) * sizeof(double))
 #define ARRAY_MEMMOVEMIX(dst, dstIdx, src, srcIdx, count) \

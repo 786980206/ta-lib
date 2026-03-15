@@ -3671,8 +3671,8 @@ def handle_mama(params):
 def handle_mavp(params):
     start_idx = params.get('startIdx', 0)
     end_idx = params.get('endIdx', 0)
-    inReal = [float(x) for x in params.get('inReal', [])]
-    inPeriods = [float(x) for x in params.get('inPeriods', [])]
+    inReal0 = [float(x) for x in params.get('inReal0', [])]
+    inReal1 = [float(x) for x in params.get('inReal1', [])]
     optInMinPeriod = int(params.get('optInMinPeriod', 2))
     optInMaxPeriod = int(params.get('optInMaxPeriod', 30))
     optInMAType = int(params.get('optInMAType', 0))
@@ -3680,8 +3680,8 @@ def handle_mavp(params):
         start_ns = time.perf_counter_ns()
         result = ta_lib.TA_MAVP(
             start_idx, end_idx,
-            inReal,
-            inPeriods,
+            inReal0,
+            inReal1,
             optInMinPeriod,
             optInMaxPeriod,
             optInMAType,

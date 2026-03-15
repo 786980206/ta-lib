@@ -75,16 +75,16 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn var<T: TaFloat>(
+    pub fn var(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInNbDev: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -105,22 +105,22 @@ impl Core {
             outReal,
         );
     }
-    pub fn var_unguarded<T: TaFloat>(
+    pub fn var_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInNbDev: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempReal: T = T::ta_zero();
-        let mut periodTotal1: T = T::ta_zero();
-        let mut periodTotal2: T = T::ta_zero();
-        let mut meanValue1: T = T::ta_zero();
-        let mut meanValue2: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
+        let mut periodTotal1: f64 = 0.0_f64;
+        let mut periodTotal2: f64 = 0.0_f64;
+        let mut meanValue1: f64 = 0.0_f64;
+        let mut meanValue2: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -134,13 +134,13 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal1 = T::ta_from_i32(0 as i32);
-        periodTotal2 = T::ta_from_i32(0 as i32);
+        periodTotal1 = 0.0;
+        periodTotal2 = 0.0;
         trailingIdx = startIdx - nbInitialElementNeeded;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                tempReal = inReal[({ let _v = i; i += 1; _v }) as usize];
+                tempReal = inReal[{ let _v = i; i += 1; _v }];
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -148,33 +148,33 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            tempReal = inReal[({ let _v = i; i += 1; _v }) as usize];
+            tempReal = inReal[{ let _v = i; i += 1; _v }];
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
-            meanValue1 = periodTotal1 / T::ta_from_i32(optInTimePeriod);
-            meanValue2 = periodTotal2 / T::ta_from_i32(optInTimePeriod);
-            tempReal = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            meanValue1 = periodTotal1 / ((optInTimePeriod) as f64);
+            meanValue2 = periodTotal2 / ((optInTimePeriod) as f64);
+            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
             periodTotal2 -= tempReal;
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = meanValue2 - meanValue1 * meanValue1;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = meanValue2 - meanValue1 * meanValue1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn var_unchecked<T: TaFloat>(
+    pub unsafe fn var_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInNbDev: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -195,22 +195,22 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn var_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn var_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         mut optInNbDev: f64,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempReal: T = T::ta_zero();
-        let mut periodTotal1: T = T::ta_zero();
-        let mut periodTotal2: T = T::ta_zero();
-        let mut meanValue1: T = T::ta_zero();
-        let mut meanValue2: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
+        let mut periodTotal1: f64 = 0.0_f64;
+        let mut periodTotal2: f64 = 0.0_f64;
+        let mut meanValue1: f64 = 0.0_f64;
+        let mut meanValue2: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -224,13 +224,13 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        periodTotal1 = T::ta_from_i32(0 as i32);
-        periodTotal2 = T::ta_from_i32(0 as i32);
+        periodTotal1 = 0.0;
+        periodTotal2 = 0.0;
         trailingIdx = startIdx - nbInitialElementNeeded;
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                tempReal = (*inReal.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
+                tempReal = (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -238,17 +238,17 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            tempReal = (*inReal.get_unchecked(({ let _v = i; i += 1; _v }) as usize));
+            tempReal = (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
-            meanValue1 = periodTotal1 / T::ta_from_i32(optInTimePeriod);
-            meanValue2 = periodTotal2 / T::ta_from_i32(optInTimePeriod);
-            tempReal = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            meanValue1 = periodTotal1 / ((optInTimePeriod) as f64);
+            meanValue2 = periodTotal2 / ((optInTimePeriod) as f64);
+            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
             periodTotal2 -= tempReal;
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = meanValue2 - meanValue1 * meanValue1;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = meanValue2 - meanValue1 * meanValue1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;

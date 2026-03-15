@@ -69,14 +69,14 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outInteger` - Output values
-    pub fn cdlxsidegap3methods<T: TaFloat>(
+    pub fn cdlxsidegap3methods(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -96,14 +96,14 @@ impl Core {
             outInteger,
         );
     }
-    pub fn cdlxsidegap3methods_unguarded<T: TaFloat>(
+    pub fn cdlxsidegap3methods_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -123,10 +123,10 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } == if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } && if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } == 0 - if inClose[(i) as usize] >= inOpen[(i) as usize] { 1 } else { 0 - 1 } && inOpen[(i) as usize] < (inClose[(i - 1) as usize]).max(inOpen[(i - 1) as usize]) && inOpen[(i) as usize] > (inClose[(i - 1) as usize]).min(inOpen[(i - 1) as usize]) && inClose[(i) as usize] < (inClose[(i - 2) as usize]).max(inOpen[(i - 2) as usize]) && inClose[(i) as usize] > (inClose[(i - 2) as usize]).min(inOpen[(i - 2) as usize]) && (if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } == 1 && (if (inOpen[(i - 1) as usize]).min(inClose[(i - 1) as usize]) > (inOpen[(i - 2) as usize]).max(inClose[(i - 2) as usize]) { 1 } else { 0 } != 0) || (if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 }) as i32 == 0 - 1 && (if (inOpen[(i - 1) as usize]).max(inClose[(i - 1) as usize]) < (inOpen[(i - 2) as usize]).min(inClose[(i - 2) as usize]) { 1 } else { 0 } != 0)) {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } * 100) as i32;
+            if (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) && (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 0 - (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) && inOpen[i] < (inClose[i - 1]).max(inOpen[i - 1]) && inOpen[i] > (inClose[i - 1]).min(inOpen[i - 1]) && inClose[i] < (inClose[i - 2]).max(inOpen[i - 2]) && inClose[i] > (inClose[i - 2]).min(inOpen[i - 2]) && ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && ((if (inOpen[i - 1]).min(inClose[i - 1]) > (inOpen[i - 2]).max(inClose[i - 2]) { 1 } else { 0 }) != 0) || ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if (inOpen[i - 1]).max(inClose[i - 1]) < (inOpen[i - 2]).min(inClose[i - 2]) { 1 } else { 0 }) != 0)) {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) * 100) as i32;
             } else {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 0;
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }
@@ -135,14 +135,14 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn cdlxsidegap3methods_unchecked<T: TaFloat>(
+    pub unsafe fn cdlxsidegap3methods_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -162,14 +162,14 @@ impl Core {
             outInteger,
         );
     }
-    pub unsafe fn cdlxsidegap3methods_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn cdlxsidegap3methods_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -189,10 +189,10 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } == if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } && if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } == 0 - if (*inClose.get_unchecked((i) as usize)) >= (*inOpen.get_unchecked((i) as usize)) { 1 } else { 0 - 1 } && (*inOpen.get_unchecked((i) as usize)) < ((*inClose.get_unchecked((i - 1) as usize))).max((*inOpen.get_unchecked((i - 1) as usize))) && (*inOpen.get_unchecked((i) as usize)) > ((*inClose.get_unchecked((i - 1) as usize))).min((*inOpen.get_unchecked((i - 1) as usize))) && (*inClose.get_unchecked((i) as usize)) < ((*inClose.get_unchecked((i - 2) as usize))).max((*inOpen.get_unchecked((i - 2) as usize))) && (*inClose.get_unchecked((i) as usize)) > ((*inClose.get_unchecked((i - 2) as usize))).min((*inOpen.get_unchecked((i - 2) as usize))) && (if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } == 1 && (if ((*inOpen.get_unchecked((i - 1) as usize))).min((*inClose.get_unchecked((i - 1) as usize))) > ((*inOpen.get_unchecked((i - 2) as usize))).max((*inClose.get_unchecked((i - 2) as usize))) { 1 } else { 0 } != 0) || (if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 }) as i32 == 0 - 1 && (if ((*inOpen.get_unchecked((i - 1) as usize))).max((*inClose.get_unchecked((i - 1) as usize))) < ((*inOpen.get_unchecked((i - 2) as usize))).min((*inClose.get_unchecked((i - 2) as usize))) { 1 } else { 0 } != 0)) {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } * 100) as i32;
+            if (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 0 - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) && (*inOpen.get_unchecked(i)) < ((*inClose.get_unchecked(i - 1))).max((*inOpen.get_unchecked(i - 1))) && (*inOpen.get_unchecked(i)) > ((*inClose.get_unchecked(i - 1))).min((*inOpen.get_unchecked(i - 1))) && (*inClose.get_unchecked(i)) < ((*inClose.get_unchecked(i - 2))).max((*inOpen.get_unchecked(i - 2))) && (*inClose.get_unchecked(i)) > ((*inClose.get_unchecked(i - 2))).min((*inOpen.get_unchecked(i - 2))) && ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == 1 && ((if ((*inOpen.get_unchecked(i - 1))).min((*inClose.get_unchecked(i - 1))) > ((*inOpen.get_unchecked(i - 2))).max((*inClose.get_unchecked(i - 2))) { 1 } else { 0 }) != 0) || ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if ((*inOpen.get_unchecked(i - 1))).max((*inClose.get_unchecked(i - 1))) < ((*inOpen.get_unchecked(i - 2))).min((*inClose.get_unchecked(i - 2))) { 1 } else { 0 }) != 0)) {
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) * 100) as i32;
             } else {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 0;
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
             }
             i += 1;
             if !(i <= endIdx) { break; }

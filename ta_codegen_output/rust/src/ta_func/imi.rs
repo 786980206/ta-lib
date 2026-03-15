@@ -74,16 +74,16 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn imi<T: TaFloat>(
+    pub fn imi(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -104,16 +104,16 @@ impl Core {
             outReal,
         );
     }
-    pub fn imi_unguarded<T: TaFloat>(
+    pub fn imi_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut lookback: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -129,18 +129,18 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         while startIdx <= endIdx {
-            let mut upsum: T = T::ta_from_f64(0.0);
-            let mut downsum: T = T::ta_from_f64(0.0);
+            let mut upsum: f64 = 0.0;
+            let mut downsum: f64 = 0.0;
             let mut i: usize = 0_usize;
             for i in (startIdx - lookback as usize)..=(startIdx as usize) {
-                let mut close: T = inClose[(i) as usize];
-                let mut open: T = inOpen[(i) as usize];
+                let mut close: f64 = inClose[i];
+                let mut open: f64 = inOpen[i];
                 if close > open {
                     upsum += close - open;
                 } else {
                     downsum += open - close;
                 }
-                outReal[(outIdx) as usize] = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
+                outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
             }
             i = (startIdx as usize) + 1;
             startIdx += 1;
@@ -149,16 +149,16 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn imi_unchecked<T: TaFloat>(
+    pub unsafe fn imi_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -179,16 +179,16 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn imi_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn imi_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut lookback: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
@@ -204,18 +204,18 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         while startIdx <= endIdx {
-            let mut upsum: T = T::ta_from_f64(0.0);
-            let mut downsum: T = T::ta_from_f64(0.0);
+            let mut upsum: f64 = 0.0;
+            let mut downsum: f64 = 0.0;
             let mut i: usize = 0_usize;
             for i in (startIdx - lookback as usize)..=(startIdx as usize) {
-                let mut close: T = (*inClose.get_unchecked((i) as usize));
-                let mut open: T = (*inOpen.get_unchecked((i) as usize));
+                let mut close: f64 = (*inClose.get_unchecked(i));
+                let mut open: f64 = (*inOpen.get_unchecked(i));
                 if close > open {
                     upsum += close - open;
                 } else {
                     downsum += open - close;
                 }
-                (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(100.0) * (upsum / (upsum + downsum));
+                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (upsum / (upsum + downsum));
             }
             i = (startIdx as usize) + 1;
             startIdx += 1;

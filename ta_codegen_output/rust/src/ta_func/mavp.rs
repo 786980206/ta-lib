@@ -81,18 +81,18 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn mavp<T: TaFloat>(
+    pub fn mavp(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inPeriods: &[T],
+        inReal: &[f64],
+        inPeriods: &[f64],
         mut optInMinPeriod: i32,
         mut optInMaxPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -120,18 +120,18 @@ impl Core {
             outReal,
         );
     }
-    pub fn mavp_unguarded<T: TaFloat>(
+    pub fn mavp_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inPeriods: &[T],
+        inReal: &[f64],
+        inPeriods: &[f64],
         mut optInMinPeriod: i32,
         mut optInMaxPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
@@ -140,7 +140,7 @@ impl Core {
         let mut tempInt: usize = 0_usize;
         let mut curPeriod: usize = 0_usize;
         let mut localPeriodArray: Vec<i32> = Vec::new();
-        let mut localOutputArray: Vec<T> = Vec::new();
+        let mut localOutputArray: Vec<f64> = Vec::new();
         let mut localBegIdx: usize = 0_usize;
         let mut localNbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
@@ -164,24 +164,24 @@ impl Core {
             return RetCode::Success;
         }
         outputSize = endIdx - tempInt + 1;
-        localOutputArray = vec![T::ta_zero(); (outputSize * 1) as usize];
+        localOutputArray = vec![0.0_f64; (outputSize * 1) as usize];
         localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            tempInt = ((inPeriods[(startIdx + i) as usize]).ta_to_f64() as i32) as usize;
+            tempInt = ((inPeriods[startIdx + i]) as usize) as usize;
             if tempInt < (optInMinPeriod) as usize {
                 tempInt = (optInMinPeriod) as usize;
             } else if tempInt > (optInMaxPeriod) as usize {
                 tempInt = (optInMaxPeriod) as usize;
             }
-            localPeriodArray[(i) as usize] = (tempInt) as i32;
+            localPeriodArray[i] = (tempInt) as i32;
             i += 1;
         }
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            curPeriod = (localPeriodArray[(i) as usize]) as usize;
+            curPeriod = (localPeriodArray[i]) as usize;
             if curPeriod != 0 {
                 retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
@@ -189,13 +189,13 @@ impl Core {
                     (*outNBElement) = 0;
                     return retCode;
                 }
-                outReal[(i) as usize] = localOutputArray[(i) as usize];
+                outReal[i] = ((localOutputArray[i]) as f64);
                 // for( j = i + 1; j < outputSize; j += 1 )
                 j = i + 1;
                 while j < outputSize {
-                    if (localPeriodArray[(j) as usize]) as usize == curPeriod {
-                        localPeriodArray[(j) as usize] = 0;
-                        outReal[(j) as usize] = localOutputArray[(j) as usize];
+                    if (localPeriodArray[j]) as usize == curPeriod {
+                        localPeriodArray[j] = 0;
+                        outReal[j] = ((localOutputArray[j]) as f64);
                     }
                     j += 1;
                 }
@@ -206,18 +206,18 @@ impl Core {
         (*outNBElement) = outputSize;
         return RetCode::Success;
     }
-    pub unsafe fn mavp_unchecked<T: TaFloat>(
+    pub unsafe fn mavp_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inPeriods: &[T],
+        inReal: &[f64],
+        inPeriods: &[f64],
         mut optInMinPeriod: i32,
         mut optInMaxPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -245,18 +245,18 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn mavp_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn mavp_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inPeriods: &[T],
+        inReal: &[f64],
+        inPeriods: &[f64],
         mut optInMinPeriod: i32,
         mut optInMaxPeriod: i32,
         mut optInMAType: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
@@ -265,7 +265,7 @@ impl Core {
         let mut tempInt: usize = 0_usize;
         let mut curPeriod: usize = 0_usize;
         let mut localPeriodArray: Vec<i32> = Vec::new();
-        let mut localOutputArray: Vec<T> = Vec::new();
+        let mut localOutputArray: Vec<f64> = Vec::new();
         let mut localBegIdx: usize = 0_usize;
         let mut localNbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
@@ -289,24 +289,24 @@ impl Core {
             return RetCode::Success;
         }
         outputSize = endIdx - tempInt + 1;
-        localOutputArray = vec![T::ta_zero(); (outputSize * 1) as usize];
+        localOutputArray = vec![0.0_f64; (outputSize * 1) as usize];
         localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            tempInt = (((*inPeriods.get_unchecked((startIdx + i) as usize))).ta_to_f64() as i32) as usize;
+            tempInt = (((*inPeriods.get_unchecked(startIdx + i))) as usize) as usize;
             if tempInt < (optInMinPeriod) as usize {
                 tempInt = (optInMinPeriod) as usize;
             } else if tempInt > (optInMaxPeriod) as usize {
                 tempInt = (optInMaxPeriod) as usize;
             }
-            (*localPeriodArray.get_unchecked_mut((i) as usize)) = (tempInt) as i32;
+            (*localPeriodArray.get_unchecked_mut(i)) = (tempInt) as i32;
             i += 1;
         }
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            curPeriod = ((*localPeriodArray.get_unchecked((i) as usize))) as usize;
+            curPeriod = ((*localPeriodArray.get_unchecked(i))) as usize;
             if curPeriod != 0 {
                 retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
@@ -314,13 +314,13 @@ impl Core {
                     (*outNBElement) = 0;
                     return retCode;
                 }
-                (*outReal.get_unchecked_mut((i) as usize)) = (*localOutputArray.get_unchecked((i) as usize));
+                (*outReal.get_unchecked_mut(i)) = (((*localOutputArray.get_unchecked(i))) as f64);
                 // for( j = i + 1; j < outputSize; j += 1 )
                 j = i + 1;
                 while j < outputSize {
-                    if ((*localPeriodArray.get_unchecked((j) as usize))) as usize == curPeriod {
-                        (*localPeriodArray.get_unchecked_mut((j) as usize)) = 0;
-                        (*outReal.get_unchecked_mut((j) as usize)) = (*localOutputArray.get_unchecked((j) as usize));
+                    if ((*localPeriodArray.get_unchecked(j))) as usize == curPeriod {
+                        (*localPeriodArray.get_unchecked_mut(j)) = 0;
+                        (*outReal.get_unchecked_mut(j)) = (((*localOutputArray.get_unchecked(j))) as f64);
                     }
                     j += 1;
                 }

@@ -67,15 +67,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn mult<T: TaFloat>(
+    pub fn mult(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal0: &[T],
-        inReal1: &[T],
+        inReal0: &[f64],
+        inReal1: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -90,22 +90,22 @@ impl Core {
             outReal,
         );
     }
-    pub fn mult_unguarded<T: TaFloat>(
+    pub fn mult_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal0: &[T],
-        inReal1: &[T],
+        inReal0: &[f64],
+        inReal1: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         outIdx = 0;
         i = startIdx;
         while i <= endIdx {
-            outReal[(outIdx) as usize] = T::ta_from_f64((inReal0[(i) as usize] * inReal1[(i) as usize]).ta_to_f64());
+            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
             outIdx += 1;
             i += 1;
         }
@@ -113,15 +113,15 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn mult_unchecked<T: TaFloat>(
+    pub unsafe fn mult_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal0: &[T],
-        inReal1: &[T],
+        inReal0: &[f64],
+        inReal1: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -136,22 +136,22 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn mult_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn mult_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal0: &[T],
-        inReal1: &[T],
+        inReal0: &[f64],
+        inReal1: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         outIdx = 0;
         i = startIdx;
         while i <= endIdx {
-            (*outReal.get_unchecked_mut((outIdx) as usize)) = T::ta_from_f64(((*inReal0.get_unchecked((i) as usize)) * (*inReal1.get_unchecked((i) as usize))).ta_to_f64());
+            (*outReal.get_unchecked_mut(outIdx)) = ((*inReal0.get_unchecked(i)) * (*inReal1.get_unchecked(i))) as f64;
             outIdx += 1;
             i += 1;
         }

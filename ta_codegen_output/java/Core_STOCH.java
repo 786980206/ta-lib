@@ -24,22 +24,22 @@
                          double outSlowD[] )
    {
       RetCode retCode;
-      double lowest;
-      double highest;
-      double tmp;
-      double diff;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double diff = 0;
       double[] tempBuffer;
-      int outIdx;
-      int lowestIdx;
-      int highestIdx;
-      int lookbackTotal;
-      int lookbackK;
-      int lookbackKSlow;
-      int lookbackDSlow;
-      int trailingIdx;
-      int today;
-      int i;
-      int bufferIsAllocated;
+      int outIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackK = 0;
+      int lookbackKSlow = 0;
+      int lookbackDSlow = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int bufferIsAllocated = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -156,22 +156,22 @@
                               double outSlowD[] )
    {
       RetCode retCode;
-      double lowest;
-      double highest;
-      double tmp;
-      double diff;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double diff = 0;
       double[] tempBuffer;
-      int outIdx;
-      int lowestIdx;
-      int highestIdx;
-      int lookbackTotal;
-      int lookbackK;
-      int lookbackKSlow;
-      int lookbackDSlow;
-      int trailingIdx;
-      int today;
-      int i;
-      int bufferIsAllocated;
+      int outIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackK = 0;
+      int lookbackKSlow = 0;
+      int lookbackDSlow = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int bufferIsAllocated = 0;
       lookbackK = (optInFastK_Period-1);
       lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);
@@ -282,22 +282,22 @@
                          double outSlowD[] )
    {
       RetCode retCode;
-      double lowest;
-      double highest;
-      double tmp;
-      double diff;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double diff = 0;
       double[] tempBuffer;
-      int outIdx;
-      int lowestIdx;
-      int highestIdx;
-      int lookbackTotal;
-      int lookbackK;
-      int lookbackKSlow;
-      int lookbackDSlow;
-      int trailingIdx;
-      int today;
-      int i;
-      int bufferIsAllocated;
+      int outIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackK = 0;
+      int lookbackKSlow = 0;
+      int lookbackDSlow = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int bufferIsAllocated = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -414,22 +414,22 @@
                               double outSlowD[] )
    {
       RetCode retCode;
-      double lowest;
-      double highest;
-      double tmp;
-      double diff;
+      double lowest = 0;
+      double highest = 0;
+      double tmp = 0;
+      double diff = 0;
       double[] tempBuffer;
-      int outIdx;
-      int lowestIdx;
-      int highestIdx;
-      int lookbackTotal;
-      int lookbackK;
-      int lookbackKSlow;
-      int lookbackDSlow;
-      int trailingIdx;
-      int today;
-      int i;
-      int bufferIsAllocated;
+      int outIdx = 0;
+      int lowestIdx = 0;
+      int highestIdx = 0;
+      int lookbackTotal = 0;
+      int lookbackK = 0;
+      int lookbackKSlow = 0;
+      int lookbackDSlow = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int bufferIsAllocated = 0;
       lookbackK = (optInFastK_Period-1);
       lookbackKSlow = maLookback(optInSlowK_Period, optInSlowK_MAType);
       lookbackDSlow = maLookback(optInSlowD_Period, optInSlowD_MAType);

@@ -13,22 +13,22 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      double S_xx;
-      double S_xy;
-      double S_x;
-      double S_y;
-      double last_price_x;
-      double last_price_y;
-      double trailing_last_price_x;
-      double trailing_last_price_y;
-      double tmp_real;
-      double x;
-      double y;
-      double n;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double S_xx = 0;
+      double S_xy = 0;
+      double S_x = 0;
+      double S_y = 0;
+      double last_price_x = 0;
+      double last_price_y = 0;
+      double trailing_last_price_x = 0;
+      double trailing_last_price_y = 0;
+      double tmp_real = 0;
+      double x = 0;
+      double y = 0;
+      double n = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -139,22 +139,22 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      double S_xx;
-      double S_xy;
-      double S_x;
-      double S_y;
-      double last_price_x;
-      double last_price_y;
-      double trailing_last_price_x;
-      double trailing_last_price_y;
-      double tmp_real;
-      double x;
-      double y;
-      double n;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double S_xx = 0;
+      double S_xy = 0;
+      double S_x = 0;
+      double S_y = 0;
+      double last_price_x = 0;
+      double last_price_y = 0;
+      double trailing_last_price_x = 0;
+      double trailing_last_price_y = 0;
+      double tmp_real = 0;
+      double x = 0;
+      double y = 0;
+      double n = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       S_xx = 0.0;
       S_xy = 0.0;
       S_x = 0.0;
@@ -259,22 +259,22 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      double S_xx;
-      double S_xy;
-      double S_x;
-      double S_y;
-      double last_price_x;
-      double last_price_y;
-      double trailing_last_price_x;
-      double trailing_last_price_y;
-      double tmp_real;
-      double x;
-      double y;
-      double n;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double S_xx = 0;
+      double S_xy = 0;
+      double S_x = 0;
+      double S_y = 0;
+      double last_price_x = 0;
+      double last_price_y = 0;
+      double trailing_last_price_x = 0;
+      double trailing_last_price_y = 0;
+      double tmp_real = 0;
+      double x = 0;
+      double y = 0;
+      double n = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -385,22 +385,22 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      double S_xx;
-      double S_xy;
-      double S_x;
-      double S_y;
-      double last_price_x;
-      double last_price_y;
-      double trailing_last_price_x;
-      double trailing_last_price_y;
-      double tmp_real;
-      double x;
-      double y;
-      double n;
-      int i;
-      int outIdx;
-      int trailingIdx;
-      int nbInitialElementNeeded;
+      double S_xx = 0;
+      double S_xy = 0;
+      double S_x = 0;
+      double S_y = 0;
+      double last_price_x = 0;
+      double last_price_y = 0;
+      double trailing_last_price_x = 0;
+      double trailing_last_price_y = 0;
+      double tmp_real = 0;
+      double x = 0;
+      double y = 0;
+      double n = 0;
+      int i = 0;
+      int outIdx = 0;
+      int trailingIdx = 0;
+      int nbInitialElementNeeded = 0;
       S_xx = 0.0;
       S_xy = 0.0;
       S_x = 0.0;

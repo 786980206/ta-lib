@@ -17,11 +17,11 @@
       double[] tempBuffer;
       MInteger nbElement = new MInteger();
       MInteger begIdx = new MInteger();
-      int totalLookback;
-      int emaLookback;
-      int rocLookback;
+      int totalLookback = 0;
+      int emaLookback = 0;
+      int rocLookback = 0;
       RetCode retCode;
-      int nbElementToOutput;
+      int nbElementToOutput = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -83,11 +83,11 @@
       double[] tempBuffer;
       MInteger nbElement = new MInteger();
       MInteger begIdx = new MInteger();
-      int totalLookback;
-      int emaLookback;
-      int rocLookback;
+      int totalLookback = 0;
+      int emaLookback = 0;
+      int rocLookback = 0;
       RetCode retCode;
-      int nbElementToOutput;
+      int nbElementToOutput = 0;
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocrLookback(1);
       totalLookback = ((emaLookback*3)+rocLookback);
@@ -143,11 +143,11 @@
       double[] tempBuffer;
       MInteger nbElement = new MInteger();
       MInteger begIdx = new MInteger();
-      int totalLookback;
-      int emaLookback;
-      int rocLookback;
+      int totalLookback = 0;
+      int emaLookback = 0;
+      int rocLookback = 0;
       RetCode retCode;
-      int nbElementToOutput;
+      int nbElementToOutput = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -209,11 +209,11 @@
       double[] tempBuffer;
       MInteger nbElement = new MInteger();
       MInteger begIdx = new MInteger();
-      int totalLookback;
-      int emaLookback;
-      int rocLookback;
+      int totalLookback = 0;
+      int emaLookback = 0;
+      int rocLookback = 0;
       RetCode retCode;
-      int nbElementToOutput;
+      int nbElementToOutput = 0;
       emaLookback = emaLookback(optInTimePeriod);
       rocLookback = rocrLookback(1);
       totalLookback = ((emaLookback*3)+rocLookback);

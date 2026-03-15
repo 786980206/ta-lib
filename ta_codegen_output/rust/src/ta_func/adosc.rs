@@ -89,19 +89,19 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn adosc<T: TaFloat>(
+    pub fn adosc(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -130,35 +130,35 @@ impl Core {
             outReal,
         );
     }
-    pub fn adosc_unguarded<T: TaFloat>(
+    pub fn adosc_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut slowestPeriod: usize = 0_usize;
-        let mut high: T = T::ta_zero();
-        let mut low: T = T::ta_zero();
-        let mut close: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut slowEMA: T = T::ta_zero();
-        let mut slowk: T = T::ta_zero();
-        let mut one_minus_slowk: T = T::ta_zero();
-        let mut fastEMA: T = T::ta_zero();
-        let mut fastk: T = T::ta_zero();
-        let mut one_minus_fastk: T = T::ta_zero();
-        let mut ad: T = T::ta_zero();
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut slowEMA: f64 = 0.0_f64;
+        let mut slowk: f64 = 0.0_f64;
+        let mut one_minus_slowk: f64 = 0.0_f64;
+        let mut fastEMA: f64 = 0.0_f64;
+        let mut fastk: f64 = 0.0_f64;
+        let mut one_minus_fastk: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = (optInSlowPeriod) as usize;
         } else {
@@ -175,28 +175,28 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         today = startIdx - lookbackTotal;
-        ad = T::ta_from_f64(0.0);
-        fastk = T::ta_from_f64(2.0) / ((T::ta_from_i32(optInFastPeriod)) + T::ta_from_f64(1.0));
-        one_minus_fastk = T::ta_from_f64(1.0) - fastk;
-        slowk = T::ta_from_f64(2.0) / ((T::ta_from_i32(optInSlowPeriod)) + T::ta_from_f64(1.0));
-        one_minus_slowk = T::ta_from_f64(1.0) - slowk;
-        high = inHigh[(today) as usize];
-        low = inLow[(today) as usize];
+        ad = 0.0;
+        fastk = 2.0 / (((optInFastPeriod) as f64) + 1.0);
+        one_minus_fastk = 1.0 - fastk;
+        slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
+        one_minus_slowk = 1.0 - slowk;
+        high = inHigh[today];
+        low = inLow[today];
         tmp = high - low;
-        close = inClose[(today) as usize];
-        if tmp > T::ta_from_f64(0.0) {
-            ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[(today) as usize]).ta_to_f64()));
+        close = inClose[today];
+        if tmp > 0.0 {
+            ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
         }
         today += 1;
         fastEMA = ad;
         slowEMA = ad;
         while today < startIdx {
-            high = inHigh[(today) as usize];
-            low = inLow[(today) as usize];
+            high = inHigh[today];
+            low = inLow[today];
             tmp = high - low;
-            close = inClose[(today) as usize];
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[(today) as usize]).ta_to_f64()));
+            close = inClose[today];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
             }
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
@@ -204,34 +204,34 @@ impl Core {
         }
         outIdx = 0;
         while today <= endIdx {
-            high = inHigh[(today) as usize];
-            low = inLow[(today) as usize];
+            high = inHigh[today];
+            low = inLow[today];
             tmp = high - low;
-            close = inClose[(today) as usize];
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64((inVolume[(today) as usize]).ta_to_f64()));
+            close = inClose[today];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
             }
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
             slowEMA = slowk * ad + one_minus_slowk * slowEMA;
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = fastEMA - slowEMA;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = fastEMA - slowEMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn adosc_unchecked<T: TaFloat>(
+    pub unsafe fn adosc_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -260,35 +260,35 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn adosc_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn adosc_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
-        inVolume: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
+        inVolume: &[f64],
         mut optInFastPeriod: i32,
         mut optInSlowPeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut today: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut slowestPeriod: usize = 0_usize;
-        let mut high: T = T::ta_zero();
-        let mut low: T = T::ta_zero();
-        let mut close: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut slowEMA: T = T::ta_zero();
-        let mut slowk: T = T::ta_zero();
-        let mut one_minus_slowk: T = T::ta_zero();
-        let mut fastEMA: T = T::ta_zero();
-        let mut fastk: T = T::ta_zero();
-        let mut one_minus_fastk: T = T::ta_zero();
-        let mut ad: T = T::ta_zero();
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut slowEMA: f64 = 0.0_f64;
+        let mut slowk: f64 = 0.0_f64;
+        let mut one_minus_slowk: f64 = 0.0_f64;
+        let mut fastEMA: f64 = 0.0_f64;
+        let mut fastk: f64 = 0.0_f64;
+        let mut one_minus_fastk: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
         if optInFastPeriod < optInSlowPeriod {
             slowestPeriod = (optInSlowPeriod) as usize;
         } else {
@@ -305,28 +305,28 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         today = startIdx - lookbackTotal;
-        ad = T::ta_from_f64(0.0);
-        fastk = T::ta_from_f64(2.0) / ((T::ta_from_i32(optInFastPeriod)) + T::ta_from_f64(1.0));
-        one_minus_fastk = T::ta_from_f64(1.0) - fastk;
-        slowk = T::ta_from_f64(2.0) / ((T::ta_from_i32(optInSlowPeriod)) + T::ta_from_f64(1.0));
-        one_minus_slowk = T::ta_from_f64(1.0) - slowk;
-        high = (*inHigh.get_unchecked((today) as usize));
-        low = (*inLow.get_unchecked((today) as usize));
+        ad = 0.0;
+        fastk = 2.0 / (((optInFastPeriod) as f64) + 1.0);
+        one_minus_fastk = 1.0 - fastk;
+        slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
+        one_minus_slowk = 1.0 - slowk;
+        high = (*inHigh.get_unchecked(today));
+        low = (*inLow.get_unchecked(today));
         tmp = high - low;
-        close = (*inClose.get_unchecked((today) as usize));
-        if tmp > T::ta_from_f64(0.0) {
-            ad += (close - low - (high - close)) / tmp * (T::ta_from_f64(((*inVolume.get_unchecked((today) as usize))).ta_to_f64()));
+        close = (*inClose.get_unchecked(today));
+        if tmp > 0.0 {
+            ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
         }
         today += 1;
         fastEMA = ad;
         slowEMA = ad;
         while today < startIdx {
-            high = (*inHigh.get_unchecked((today) as usize));
-            low = (*inLow.get_unchecked((today) as usize));
+            high = (*inHigh.get_unchecked(today));
+            low = (*inLow.get_unchecked(today));
             tmp = high - low;
-            close = (*inClose.get_unchecked((today) as usize));
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64(((*inVolume.get_unchecked((today) as usize))).ta_to_f64()));
+            close = (*inClose.get_unchecked(today));
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
             }
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
@@ -334,17 +334,17 @@ impl Core {
         }
         outIdx = 0;
         while today <= endIdx {
-            high = (*inHigh.get_unchecked((today) as usize));
-            low = (*inLow.get_unchecked((today) as usize));
+            high = (*inHigh.get_unchecked(today));
+            low = (*inLow.get_unchecked(today));
             tmp = high - low;
-            close = (*inClose.get_unchecked((today) as usize));
-            if tmp > T::ta_from_f64(0.0) {
-                ad += (close - low - (high - close)) / tmp * (T::ta_from_f64(((*inVolume.get_unchecked((today) as usize))).ta_to_f64()));
+            close = (*inClose.get_unchecked(today));
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
             }
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
             slowEMA = slowk * ad + one_minus_slowk * slowEMA;
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = fastEMA - slowEMA;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = fastEMA - slowEMA;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

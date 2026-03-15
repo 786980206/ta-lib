@@ -67,15 +67,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn obv<T: TaFloat>(
+    pub fn obv(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inVolume: &[T],
+        inReal: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -90,32 +90,32 @@ impl Core {
             outReal,
         );
     }
-    pub fn obv_unguarded<T: TaFloat>(
+    pub fn obv_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inVolume: &[T],
+        inReal: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut prevReal: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
-        let mut prevOBV: T = T::ta_zero();
-        prevOBV = inVolume[(startIdx) as usize];
-        prevReal = inReal[(startIdx) as usize];
+        let mut prevReal: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut prevOBV: f64 = 0.0_f64;
+        prevOBV = inVolume[startIdx];
+        prevReal = inReal[startIdx];
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = inReal[(i) as usize];
+            tempReal = inReal[i];
             if tempReal > prevReal {
-                prevOBV += inVolume[(i) as usize];
+                prevOBV += inVolume[i];
             } else if tempReal < prevReal {
-                prevOBV -= inVolume[(i) as usize];
+                prevOBV -= inVolume[i];
             }
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = prevOBV;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevOBV;
             prevReal = tempReal;
         }
         i = (endIdx as usize) + 1;
@@ -123,15 +123,15 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn obv_unchecked<T: TaFloat>(
+    pub unsafe fn obv_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inVolume: &[T],
+        inReal: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -146,32 +146,32 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn obv_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn obv_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
-        inVolume: &[T],
+        inReal: &[f64],
+        inVolume: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-        let mut prevReal: T = T::ta_zero();
-        let mut tempReal: T = T::ta_zero();
-        let mut prevOBV: T = T::ta_zero();
-        prevOBV = (*inVolume.get_unchecked((startIdx) as usize));
-        prevReal = (*inReal.get_unchecked((startIdx) as usize));
+        let mut prevReal: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut prevOBV: f64 = 0.0_f64;
+        prevOBV = (*inVolume.get_unchecked(startIdx));
+        prevReal = (*inReal.get_unchecked(startIdx));
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            tempReal = (*inReal.get_unchecked((i) as usize));
+            tempReal = (*inReal.get_unchecked(i));
             if tempReal > prevReal {
-                prevOBV += (*inVolume.get_unchecked((i) as usize));
+                prevOBV += (*inVolume.get_unchecked(i));
             } else if tempReal < prevReal {
-                prevOBV -= (*inVolume.get_unchecked((i) as usize));
+                prevOBV -= (*inVolume.get_unchecked(i));
             }
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = prevOBV;
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevOBV;
             prevReal = tempReal;
         }
         i = (endIdx as usize) + 1;

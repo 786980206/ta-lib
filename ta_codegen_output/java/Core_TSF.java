@@ -12,18 +12,18 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      double b;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      double b = 0;
+      int i = 0;
+      double tempValue1 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -69,18 +69,18 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      double b;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      double b = 0;
+      int i = 0;
+      double tempValue1 = 0;
       lookbackTotal = tsfLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -120,18 +120,18 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      double b;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      double b = 0;
+      int i = 0;
+      double tempValue1 = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -177,18 +177,18 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int outIdx;
-      int today;
-      int lookbackTotal;
-      double SumX;
-      double SumXY;
-      double SumY;
-      double SumXSqr;
-      double Divisor;
-      double m;
-      double b;
-      int i;
-      double tempValue1;
+      int outIdx = 0;
+      int today = 0;
+      int lookbackTotal = 0;
+      double SumX = 0;
+      double SumXY = 0;
+      double SumY = 0;
+      double SumXSqr = 0;
+      double Divisor = 0;
+      double m = 0;
+      double b = 0;
+      int i = 0;
+      double tempValue1 = 0;
       lookbackTotal = tsfLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

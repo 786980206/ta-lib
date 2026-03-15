@@ -75,17 +75,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn willr<T: TaFloat>(
+    pub fn willr(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -107,22 +107,22 @@ impl Core {
             outReal,
         );
     }
-    pub fn willr_unguarded<T: TaFloat>(
+    pub fn willr_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut diff: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut diff: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -139,56 +139,56 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        diff = T::ta_from_f64(0.0);
+        diff = 0.0;
         outIdx = 0;
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
         lowestIdx = highestIdx;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         highest = lowest;
         diff = highest;
         while today <= endIdx {
-            tmp = inLow[(today) as usize];
+            tmp = inLow[today];
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = inLow[(lowestIdx) as usize];
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inLow[(i) as usize];
+                    tmp = inLow[i];
                     if tmp < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             } else if tmp <= lowest {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             }
-            tmp = inHigh[(today) as usize];
+            tmp = inHigh[today];
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = inHigh[(highestIdx) as usize];
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inHigh[(i) as usize];
+                    tmp = inHigh[i];
                     if tmp > highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             } else if tmp >= highest {
                 highestIdx = (today) as i32;
                 highest = tmp;
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             }
-            if diff != T::ta_from_f64(0.0) {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (highest - inClose[(today) as usize]) / diff;
+            if diff != 0.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((highest - inClose[today]) / diff) as f64);
             } else {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
             }
             trailingIdx += 1;
             today += 1;
@@ -197,17 +197,17 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn willr_unchecked<T: TaFloat>(
+    pub unsafe fn willr_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -229,22 +229,22 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn willr_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn willr_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
-        let mut diff: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut diff: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -261,56 +261,56 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        diff = T::ta_from_f64(0.0);
+        diff = 0.0;
         outIdx = 0;
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
         lowestIdx = highestIdx;
-        lowest = T::ta_from_f64(0.0);
+        lowest = 0.0;
         highest = lowest;
         diff = highest;
         while today <= endIdx {
-            tmp = (*inLow.get_unchecked((today) as usize));
+            tmp = (*inLow.get_unchecked(today));
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
                 lowest = (*inLow.get_unchecked((lowestIdx) as usize));
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inLow.get_unchecked((i) as usize));
+                    tmp = (*inLow.get_unchecked(i));
                     if tmp < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
                     }
                 }
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             } else if tmp <= lowest {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             }
-            tmp = (*inHigh.get_unchecked((today) as usize));
+            tmp = (*inHigh.get_unchecked(today));
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = (*inHigh.get_unchecked((highestIdx) as usize));
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inHigh.get_unchecked((i) as usize));
+                    tmp = (*inHigh.get_unchecked(i));
                     if tmp > highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
                     }
                 }
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             } else if tmp >= highest {
                 highestIdx = (today) as i32;
                 highest = tmp;
-                diff = (highest - lowest) / (T::ta_from_i32(0) - T::ta_from_f64(100.0));
+                diff = (highest - lowest) / (0_f64 - 100.0);
             }
-            if diff != T::ta_from_f64(0.0) {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (highest - (*inClose.get_unchecked((today) as usize))) / diff;
+            if diff != 0.0 {
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((highest - (*inClose.get_unchecked(today))) / diff) as f64);
             } else {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             }
             trailingIdx += 1;
             today += 1;

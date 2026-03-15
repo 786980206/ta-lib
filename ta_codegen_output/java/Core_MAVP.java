@@ -15,12 +15,12 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      int i;
-      int j;
-      int lookbackTotal;
-      int outputSize;
-      int tempInt;
-      int curPeriod;
+      int i = 0;
+      int j = 0;
+      int lookbackTotal = 0;
+      int outputSize = 0;
+      int tempInt = 0;
+      int curPeriod = 0;
       int[] localPeriodArray;
       double[] localOutputArray;
       MInteger localBegIdx = new MInteger();
@@ -96,12 +96,12 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      int i;
-      int j;
-      int lookbackTotal;
-      int outputSize;
-      int tempInt;
-      int curPeriod;
+      int i = 0;
+      int j = 0;
+      int lookbackTotal = 0;
+      int outputSize = 0;
+      int tempInt = 0;
+      int curPeriod = 0;
       int[] localPeriodArray;
       double[] localOutputArray;
       MInteger localBegIdx = new MInteger();
@@ -171,12 +171,12 @@
                         MInteger outNBElement,
                         double outReal[] )
    {
-      int i;
-      int j;
-      int lookbackTotal;
-      int outputSize;
-      int tempInt;
-      int curPeriod;
+      int i = 0;
+      int j = 0;
+      int lookbackTotal = 0;
+      int outputSize = 0;
+      int tempInt = 0;
+      int curPeriod = 0;
       int[] localPeriodArray;
       double[] localOutputArray;
       MInteger localBegIdx = new MInteger();
@@ -252,12 +252,12 @@
                              MInteger outNBElement,
                              double outReal[] )
    {
-      int i;
-      int j;
-      int lookbackTotal;
-      int outputSize;
-      int tempInt;
-      int curPeriod;
+      int i = 0;
+      int j = 0;
+      int lookbackTotal = 0;
+      int outputSize = 0;
+      int tempInt = 0;
+      int curPeriod = 0;
       int[] localPeriodArray;
       double[] localOutputArray;
       MInteger localBegIdx = new MInteger();

@@ -14,16 +14,16 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double tempReal2;
-      double theAverage;
-      double lastValue;
-      int i;
-      int j;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double theAverage = 0;
+      double lastValue = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       double[] circBuffer = new double[30];
-      int circBuffer_Idx;
+      int circBuffer_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -86,16 +86,16 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double tempReal2;
-      double theAverage;
-      double lastValue;
-      int i;
-      int j;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double theAverage = 0;
+      double lastValue = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       double[] circBuffer = new double[30];
-      int circBuffer_Idx;
+      int circBuffer_Idx = 0;
       circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
@@ -152,16 +152,16 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double tempReal;
-      double tempReal2;
-      double theAverage;
-      double lastValue;
-      int i;
-      int j;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double theAverage = 0;
+      double lastValue = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       double[] circBuffer = new double[30];
-      int circBuffer_Idx;
+      int circBuffer_Idx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -224,16 +224,16 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double tempReal;
-      double tempReal2;
-      double theAverage;
-      double lastValue;
-      int i;
-      int j;
-      int outIdx;
-      int lookbackTotal;
+      double tempReal = 0;
+      double tempReal2 = 0;
+      double theAverage = 0;
+      double lastValue = 0;
+      int i = 0;
+      int j = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
       double[] circBuffer = new double[30];
-      int circBuffer_Idx;
+      int circBuffer_Idx = 0;
       circBuffer_Idx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {

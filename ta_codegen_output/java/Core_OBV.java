@@ -12,11 +12,11 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int i;
-      int outIdx;
-      double prevReal;
-      double tempReal;
-      double prevOBV;
+      int i = 0;
+      int outIdx = 0;
+      double prevReal = 0;
+      double tempReal = 0;
+      double prevOBV = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -48,11 +48,11 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int i;
-      int outIdx;
-      double prevReal;
-      double tempReal;
-      double prevOBV;
+      int i = 0;
+      int outIdx = 0;
+      double prevReal = 0;
+      double tempReal = 0;
+      double prevOBV = 0;
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;
@@ -78,11 +78,11 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      int i;
-      int outIdx;
-      double prevReal;
-      double tempReal;
-      double prevOBV;
+      int i = 0;
+      int outIdx = 0;
+      double prevReal = 0;
+      double tempReal = 0;
+      double prevOBV = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -114,11 +114,11 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      int i;
-      int outIdx;
-      double prevReal;
-      double tempReal;
-      double prevOBV;
+      int i = 0;
+      int outIdx = 0;
+      double prevReal = 0;
+      double tempReal = 0;
+      double prevOBV = 0;
       prevOBV = inVolume[startIdx];
       prevReal = inReal[startIdx];
       outIdx = 0;

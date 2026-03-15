@@ -73,11 +73,11 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outInteger` - Output values
-    pub fn maxindex<T: TaFloat>(
+    pub fn maxindex(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
@@ -101,18 +101,18 @@ impl Core {
             outInteger,
         );
     }
-    pub fn maxindex_unguarded<T: TaFloat>(
+    pub fn maxindex_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -132,15 +132,15 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
-        highest = T::ta_from_f64(0.0);
+        highest = 0.0;
         while today <= endIdx {
-            tmp = inReal[(today) as usize];
+            tmp = inReal[today];
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = inReal[(highestIdx) as usize];
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = inReal[(i) as usize];
+                    tmp = inReal[i];
                     if tmp > highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -150,7 +150,7 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (highestIdx) as i32;
+            outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (highestIdx) as i32;
             trailingIdx += 1;
             today += 1;
         }
@@ -158,11 +158,11 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn maxindex_unchecked<T: TaFloat>(
+    pub unsafe fn maxindex_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
@@ -186,18 +186,18 @@ impl Core {
             outInteger,
         );
     }
-    pub unsafe fn maxindex_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn maxindex_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -217,15 +217,15 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         highestIdx = 0 - 1;
-        highest = T::ta_from_f64(0.0);
+        highest = 0.0;
         while today <= endIdx {
-            tmp = (*inReal.get_unchecked((today) as usize));
+            tmp = (*inReal.get_unchecked(today));
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
                 highest = (*inReal.get_unchecked((highestIdx) as usize));
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inReal.get_unchecked((i) as usize));
+                    tmp = (*inReal.get_unchecked(i));
                     if tmp > highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -235,7 +235,7 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (highestIdx) as i32;
+            (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (highestIdx) as i32;
             trailingIdx += 1;
             today += 1;
         }

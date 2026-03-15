@@ -73,15 +73,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn midpoint<T: TaFloat>(
+    pub fn midpoint(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -101,19 +101,19 @@ impl Core {
             outReal,
         );
     }
-    pub fn midpoint_unguarded<T: TaFloat>(
+    pub fn midpoint_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -132,10 +132,10 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = inReal[({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize];
+            lowest = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             highest = lowest;
             for i in (trailingIdx as usize)..=(today as usize) {
-                tmp = inReal[(i) as usize];
+                tmp = inReal[i];
                 if tmp < lowest {
                     lowest = tmp;
                 } else if tmp > highest {
@@ -143,22 +143,22 @@ impl Core {
                 }
             }
             i = (today as usize) + 1;
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (highest + lowest) / T::ta_from_f64(2.0);
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (highest + lowest) / 2.0;
             today += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn midpoint_unchecked<T: TaFloat>(
+    pub unsafe fn midpoint_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -178,19 +178,19 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn midpoint_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn midpoint_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut lowest: T = T::ta_zero();
-        let mut highest: T = T::ta_zero();
-        let mut tmp: T = T::ta_zero();
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
         let mut outIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
@@ -209,10 +209,10 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = (*inReal.get_unchecked(({ let _v = trailingIdx; trailingIdx += 1; _v }) as usize));
+            lowest = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
             highest = lowest;
             for i in (trailingIdx as usize)..=(today as usize) {
-                tmp = (*inReal.get_unchecked((i) as usize));
+                tmp = (*inReal.get_unchecked(i));
                 if tmp < lowest {
                     lowest = tmp;
                 } else if tmp > highest {
@@ -220,7 +220,7 @@ impl Core {
                 }
             }
             i = (today as usize) + 1;
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (highest + lowest) / T::ta_from_f64(2.0);
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (highest + lowest) / 2.0;
             today += 1;
         }
         (*outBegIdx) = startIdx;

@@ -21,12 +21,12 @@
       double[] tempBuffer2;
       MInteger outBegIdxDummy = new MInteger();
       MInteger outNbElementDummy = new MInteger();
-      int i;
-      int j;
-      int outputSize;
-      int bufferSize;
-      int lookbackTotal;
-      double tempReal;
+      int i = 0;
+      int j = 0;
+      int outputSize = 0;
+      int bufferSize = 0;
+      int lookbackTotal = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -96,12 +96,12 @@
       double[] tempBuffer2;
       MInteger outBegIdxDummy = new MInteger();
       MInteger outNbElementDummy = new MInteger();
-      int i;
-      int j;
-      int outputSize;
-      int bufferSize;
-      int lookbackTotal;
-      double tempReal;
+      int i = 0;
+      int j = 0;
+      int outputSize = 0;
+      int bufferSize = 0;
+      int lookbackTotal = 0;
+      double tempReal = 0;
       lookbackTotal = smaLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -165,12 +165,12 @@
       double[] tempBuffer2;
       MInteger outBegIdxDummy = new MInteger();
       MInteger outNbElementDummy = new MInteger();
-      int i;
-      int j;
-      int outputSize;
-      int bufferSize;
-      int lookbackTotal;
-      double tempReal;
+      int i = 0;
+      int j = 0;
+      int outputSize = 0;
+      int bufferSize = 0;
+      int lookbackTotal = 0;
+      double tempReal = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -240,12 +240,12 @@
       double[] tempBuffer2;
       MInteger outBegIdxDummy = new MInteger();
       MInteger outNbElementDummy = new MInteger();
-      int i;
-      int j;
-      int outputSize;
-      int bufferSize;
-      int lookbackTotal;
-      double tempReal;
+      int i = 0;
+      int j = 0;
+      int outputSize = 0;
+      int bufferSize = 0;
+      int lookbackTotal = 0;
+      double tempReal = 0;
       lookbackTotal = smaLookback(optInTimePeriod);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

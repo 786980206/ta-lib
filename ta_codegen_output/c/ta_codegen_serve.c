@@ -7,6 +7,9 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+#ifdef __APPLE__
+#include <mach/mach_time.h>
+#endif
 
 #include "ta_ACCBANDS.c"
 #include "ta_ACOS.c"
@@ -256,11 +259,20 @@ static int json_write_int_array(char *buf, int buf_size,
 }
 
 static long get_nanotime(void) {
+#ifdef __APPLE__
+    /* mach_absolute_time has ~42ns resolution on Apple Silicon;
+       clock_gettime(CLOCK_MONOTONIC) only has 1000ns resolution on macOS. */
+    static mach_timebase_info_data_t info = {0, 0};
+    if( info.denom == 0 ) mach_timebase_info(&info);
+    uint64_t t = mach_absolute_time();
+    return (long)(t * info.numer / info.denom);
+#else
     struct timespec ts;
     if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 ) {
         return (long)ts.tv_sec * 1000000000LL + (long)ts.tv_nsec;
     }
     return 0;
+#endif
 }
 
 static double g_inBuf0[MAX_ARRAY_SIZE];
@@ -3270,9 +3282,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_MAVP", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
         (void)n0;
-        int n1 = json_find_double_array(json, "inPeriods", g_inBuf1, MAX_ARRAY_SIZE);
+        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
         (void)n1;
         int optInMinPeriod = json_find_int(json, "optInMinPeriod");
         int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");

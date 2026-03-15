@@ -12,14 +12,14 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double highest;
-      double tmp;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
+      double highest = 0;
+      double tmp = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -73,14 +73,14 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double highest;
-      double tmp;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
+      double highest = 0;
+      double tmp = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;
@@ -128,14 +128,14 @@
                        MInteger outNBElement,
                        double outReal[] )
    {
-      double highest;
-      double tmp;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
+      double highest = 0;
+      double tmp = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -189,14 +189,14 @@
                             MInteger outNBElement,
                             double outReal[] )
    {
-      double highest;
-      double tmp;
-      int outIdx;
-      int nbInitialElementNeeded;
-      int trailingIdx;
-      int today;
-      int i;
-      int highestIdx;
+      double highest = 0;
+      double tmp = 0;
+      int outIdx = 0;
+      int nbInitialElementNeeded = 0;
+      int trailingIdx = 0;
+      int today = 0;
+      int i = 0;
+      int highestIdx = 0;
       nbInitialElementNeeded = (optInTimePeriod-1);
       if( (startIdx<nbInitialElementNeeded) ) {
          startIdx = nbInitialElementNeeded;

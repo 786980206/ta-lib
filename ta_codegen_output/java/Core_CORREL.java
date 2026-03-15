@@ -13,20 +13,20 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      double sumXY;
-      double sumX;
-      double sumY;
-      double sumX2;
-      double sumY2;
-      double x;
-      double y;
-      double trailingX;
-      double trailingY;
-      double tempReal;
-      int lookbackTotal;
-      int today;
-      int trailingIdx;
-      int outIdx;
+      double sumXY = 0;
+      double sumX = 0;
+      double sumY = 0;
+      double sumX2 = 0;
+      double sumY2 = 0;
+      double x = 0;
+      double y = 0;
+      double trailingX = 0;
+      double trailingY = 0;
+      double tempReal = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int trailingIdx = 0;
+      int outIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -101,20 +101,20 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      double sumXY;
-      double sumX;
-      double sumY;
-      double sumX2;
-      double sumY2;
-      double x;
-      double y;
-      double trailingX;
-      double trailingY;
-      double tempReal;
-      int lookbackTotal;
-      int today;
-      int trailingIdx;
-      int outIdx;
+      double sumXY = 0;
+      double sumX = 0;
+      double sumY = 0;
+      double sumX2 = 0;
+      double sumY2 = 0;
+      double x = 0;
+      double y = 0;
+      double trailingX = 0;
+      double trailingY = 0;
+      double tempReal = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int trailingIdx = 0;
+      int outIdx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;
@@ -183,20 +183,20 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      double sumXY;
-      double sumX;
-      double sumY;
-      double sumX2;
-      double sumY2;
-      double x;
-      double y;
-      double trailingX;
-      double trailingY;
-      double tempReal;
-      int lookbackTotal;
-      int today;
-      int trailingIdx;
-      int outIdx;
+      double sumXY = 0;
+      double sumX = 0;
+      double sumY = 0;
+      double sumX2 = 0;
+      double sumY2 = 0;
+      double x = 0;
+      double y = 0;
+      double trailingX = 0;
+      double trailingY = 0;
+      double tempReal = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int trailingIdx = 0;
+      int outIdx = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -271,20 +271,20 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      double sumXY;
-      double sumX;
-      double sumY;
-      double sumX2;
-      double sumY2;
-      double x;
-      double y;
-      double trailingX;
-      double trailingY;
-      double tempReal;
-      int lookbackTotal;
-      int today;
-      int trailingIdx;
-      int outIdx;
+      double sumXY = 0;
+      double sumX = 0;
+      double sumY = 0;
+      double sumX2 = 0;
+      double sumY2 = 0;
+      double x = 0;
+      double y = 0;
+      double trailingX = 0;
+      double trailingY = 0;
+      double tempReal = 0;
+      int lookbackTotal = 0;
+      int today = 0;
+      int trailingIdx = 0;
+      int outIdx = 0;
       lookbackTotal = (optInTimePeriod-1);
       if( (startIdx<lookbackTotal) ) {
          startIdx = lookbackTotal;

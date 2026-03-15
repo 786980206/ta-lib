@@ -13,14 +13,14 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int today;
-      int outIdx;
-      double val2;
-      double val3;
-      double greatest;
-      double tempCY;
-      double tempLT;
-      double tempHT;
+      int today = 0;
+      int outIdx = 0;
+      double val2 = 0;
+      double val3 = 0;
+      double greatest = 0;
+      double tempCY = 0;
+      double tempLT = 0;
+      double tempHT = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -66,14 +66,14 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int today;
-      int outIdx;
-      double val2;
-      double val3;
-      double greatest;
-      double tempCY;
-      double tempLT;
-      double tempHT;
+      int today = 0;
+      int outIdx = 0;
+      double val2 = 0;
+      double val3 = 0;
+      double greatest = 0;
+      double tempCY = 0;
+      double tempLT = 0;
+      double tempHT = 0;
       if( (startIdx<1) ) {
          startIdx = 1;
       }
@@ -113,14 +113,14 @@
                           MInteger outNBElement,
                           double outReal[] )
    {
-      int today;
-      int outIdx;
-      double val2;
-      double val3;
-      double greatest;
-      double tempCY;
-      double tempLT;
-      double tempHT;
+      int today = 0;
+      int outIdx = 0;
+      double val2 = 0;
+      double val3 = 0;
+      double greatest = 0;
+      double tempCY = 0;
+      double tempLT = 0;
+      double tempHT = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -166,14 +166,14 @@
                                MInteger outNBElement,
                                double outReal[] )
    {
-      int today;
-      int outIdx;
-      double val2;
-      double val3;
-      double greatest;
-      double tempCY;
-      double tempLT;
-      double tempHT;
+      int today = 0;
+      int outIdx = 0;
+      double val2 = 0;
+      double val3 = 0;
+      double greatest = 0;
+      double tempCY = 0;
+      double tempLT = 0;
+      double tempHT = 0;
       if( (startIdx<1) ) {
          startIdx = 1;
       }

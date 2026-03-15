@@ -67,15 +67,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn medprice<T: TaFloat>(
+    pub fn medprice(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -90,36 +90,36 @@ impl Core {
             outReal,
         );
     }
-    pub fn medprice_unguarded<T: TaFloat>(
+    pub fn medprice_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (inHigh[(i) as usize] + inLow[(i) as usize]) / T::ta_from_f64(2.0);
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inHigh[i] + inLow[i]) / 2.0) as f64);
         }
         i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn medprice_unchecked<T: TaFloat>(
+    pub unsafe fn medprice_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -134,21 +134,21 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn medprice_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn medprice_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize))) / T::ta_from_f64(2.0);
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i))) / 2.0) as f64);
         }
         i = (endIdx as usize) + 1;
         (*outNBElement) = outIdx;

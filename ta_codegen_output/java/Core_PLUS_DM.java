@@ -1,5 +1,5 @@
 /* Generated */
-   public int plus_dmLookback( int optInTimePeriod )
+   public int plusDmLookback( int optInTimePeriod )
    {
       if( (optInTimePeriod>1) ) {
          return ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1) ;
@@ -8,25 +8,25 @@
       }
 
    }
-   public RetCode plus_dm( int startIdx,
-                           int endIdx,
-                           double inHigh[],
-                           double inLow[],
-                           int optInTimePeriod,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode plusDm( int startIdx,
+                          int endIdx,
+                          double inHigh[],
+                          double inLow[],
+                          int optInTimePeriod,
+                          MInteger outBegIdx,
+                          MInteger outNBElement,
+                          double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double tempReal;
-      double prevPlusDM;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double tempReal = 0;
+      double prevPlusDM = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -122,25 +122,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plus_dmLogic( int startIdx,
-                                int endIdx,
-                                double inHigh[],
-                                double inLow[],
-                                int optInTimePeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode plusDmLogic( int startIdx,
+                               int endIdx,
+                               double inHigh[],
+                               double inLow[],
+                               int optInTimePeriod,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double tempReal;
-      double prevPlusDM;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double tempReal = 0;
+      double prevPlusDM = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( (optInTimePeriod>1) ) {
          lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {
@@ -230,25 +230,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plus_dm( int startIdx,
-                           int endIdx,
-                           float inHigh[],
-                           float inLow[],
-                           int optInTimePeriod,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+   public RetCode plusDm( int startIdx,
+                          int endIdx,
+                          float inHigh[],
+                          float inLow[],
+                          int optInTimePeriod,
+                          MInteger outBegIdx,
+                          MInteger outNBElement,
+                          double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double tempReal;
-      double prevPlusDM;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double tempReal = 0;
+      double prevPlusDM = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -344,25 +344,25 @@
       outNBElement.value = outIdx;
       return RetCode.Success ;
    }
-   public RetCode plus_dmLogic( int startIdx,
-                                int endIdx,
-                                float inHigh[],
-                                float inLow[],
-                                int optInTimePeriod,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+   public RetCode plusDmLogic( int startIdx,
+                               int endIdx,
+                               float inHigh[],
+                               float inLow[],
+                               int optInTimePeriod,
+                               MInteger outBegIdx,
+                               MInteger outNBElement,
+                               double outReal[] )
    {
-      int today;
-      int lookbackTotal;
-      int outIdx;
-      double prevHigh;
-      double prevLow;
-      double tempReal;
-      double prevPlusDM;
-      double diffP;
-      double diffM;
-      int i;
+      int today = 0;
+      int lookbackTotal = 0;
+      int outIdx = 0;
+      double prevHigh = 0;
+      double prevLow = 0;
+      double tempReal = 0;
+      double prevPlusDM = 0;
+      double diffP = 0;
+      double diffM = 0;
+      int i = 0;
       if( (optInTimePeriod>1) ) {
          lookbackTotal = ((optInTimePeriod+this.unstablePeriod[FuncUnstId.PlusDM.ordinal()])-1);
       } else {

@@ -75,17 +75,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn cci<T: TaFloat>(
+    pub fn cci(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -107,27 +107,27 @@ impl Core {
             outReal,
         );
     }
-    pub fn cci_unguarded<T: TaFloat>(
+    pub fn cci_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempReal: T = T::ta_zero();
-        let mut tempReal2: T = T::ta_zero();
-        let mut theAverage: T = T::ta_zero();
-        let mut lastValue: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
+        let mut tempReal2: f64 = 0.0_f64;
+        let mut theAverage: f64 = 0.0_f64;
+        let mut lastValue: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut circBuffer: [T; 30 as usize] = [T::ta_zero(); 30 as usize];
+        let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
         let mut circBuffer_Idx: usize = 0_usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
@@ -141,41 +141,41 @@ impl Core {
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(T::ta_zero());
+            circBuffer[_si.._si + _n].fill(0.0_f64);
         };
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                circBuffer[(circBuffer_Idx) as usize] = (inHigh[(i) as usize] + inLow[(i) as usize] + inClose[(i) as usize]) / T::ta_from_i32(3);
+                circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
                 i += 1;
                 circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         outIdx = 0;
         loop {
-            lastValue = (inHigh[(i) as usize] + inLow[(i) as usize] + inClose[(i) as usize]) / T::ta_from_i32(3);
-            circBuffer[(circBuffer_Idx) as usize] = lastValue;
-            theAverage = T::ta_from_i32(0 as i32);
+            lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
+            circBuffer[circBuffer_Idx] = lastValue;
+            theAverage = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                theAverage += circBuffer[(j) as usize];
+                theAverage += circBuffer[j];
                 j += 1;
             }
-            theAverage /= T::ta_from_i32(optInTimePeriod);
-            tempReal2 = T::ta_from_i32(0 as i32);
+            theAverage /= ((optInTimePeriod) as f64);
+            tempReal2 = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                tempReal2 += (circBuffer[(j) as usize] - theAverage).ta_abs();
+                tempReal2 += (circBuffer[j] - theAverage).abs();
                 j += 1;
             }
             tempReal = lastValue - theAverage;
-            if tempReal != T::ta_from_f64(0.0) && tempReal2 != T::ta_from_f64(0.0) {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / T::ta_from_i32(optInTimePeriod)));
+            if tempReal != 0.0 && tempReal2 != 0.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
             } else {
-                outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = T::ta_from_f64(0.0);
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
             }
             circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             i += 1;
@@ -185,17 +185,17 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn cci_unchecked<T: TaFloat>(
+    pub unsafe fn cci_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -217,27 +217,27 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn cci_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn cci_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempReal: T = T::ta_zero();
-        let mut tempReal2: T = T::ta_zero();
-        let mut theAverage: T = T::ta_zero();
-        let mut lastValue: T = T::ta_zero();
+        let mut tempReal: f64 = 0.0_f64;
+        let mut tempReal2: f64 = 0.0_f64;
+        let mut theAverage: f64 = 0.0_f64;
+        let mut lastValue: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
-        let mut circBuffer: [T; 30 as usize] = [T::ta_zero(); 30 as usize];
+        let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
         let mut circBuffer_Idx: usize = 0_usize;
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
@@ -251,41 +251,41 @@ impl Core {
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
             let _si = (0) as usize;
-            circBuffer[_si.._si + _n].fill(T::ta_zero());
+            circBuffer[_si.._si + _n].fill(0.0_f64);
         };
         circBuffer_Idx = 0;
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                (*circBuffer.get_unchecked_mut((circBuffer_Idx) as usize)) = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize)) + (*inClose.get_unchecked((i) as usize))) / T::ta_from_i32(3);
+                (*circBuffer.get_unchecked_mut(circBuffer_Idx)) = ((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3_f64;
                 i += 1;
                 circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         outIdx = 0;
         loop {
-            lastValue = ((*inHigh.get_unchecked((i) as usize)) + (*inLow.get_unchecked((i) as usize)) + (*inClose.get_unchecked((i) as usize))) / T::ta_from_i32(3);
-            (*circBuffer.get_unchecked_mut((circBuffer_Idx) as usize)) = lastValue;
-            theAverage = T::ta_from_i32(0 as i32);
+            lastValue = ((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3_f64;
+            (*circBuffer.get_unchecked_mut(circBuffer_Idx)) = lastValue;
+            theAverage = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                theAverage += (*circBuffer.get_unchecked((j) as usize));
+                theAverage += (*circBuffer.get_unchecked(j));
                 j += 1;
             }
-            theAverage /= T::ta_from_i32(optInTimePeriod);
-            tempReal2 = T::ta_from_i32(0 as i32);
+            theAverage /= ((optInTimePeriod) as f64);
+            tempReal2 = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                tempReal2 += ((*circBuffer.get_unchecked((j) as usize)) - theAverage).ta_abs();
+                tempReal2 += ((*circBuffer.get_unchecked(j)) - theAverage).abs();
                 j += 1;
             }
             tempReal = lastValue - theAverage;
-            if tempReal != T::ta_from_f64(0.0) && tempReal2 != T::ta_from_f64(0.0) {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = tempReal / (T::ta_from_f64(0.015) * (tempReal2 / T::ta_from_i32(optInTimePeriod)));
+            if tempReal != 0.0 && tempReal2 != 0.0 {
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
             } else {
-                (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = T::ta_from_f64(0.0);
+                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             }
             circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
             i += 1;

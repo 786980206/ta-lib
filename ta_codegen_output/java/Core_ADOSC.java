@@ -22,21 +22,21 @@
                          MInteger outNBElement,
                          double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int slowestPeriod;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double slowEMA;
-      double slowk;
-      double one_minus_slowk;
-      double fastEMA;
-      double fastk;
-      double one_minus_fastk;
-      double ad;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int slowestPeriod = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double slowEMA = 0;
+      double slowk = 0;
+      double one_minus_slowk = 0;
+      double fastEMA = 0;
+      double fastk = 0;
+      double one_minus_fastk = 0;
+      double ad = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -115,21 +115,21 @@
                               MInteger outNBElement,
                               double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int slowestPeriod;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double slowEMA;
-      double slowk;
-      double one_minus_slowk;
-      double fastEMA;
-      double fastk;
-      double one_minus_fastk;
-      double ad;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int slowestPeriod = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double slowEMA = 0;
+      double slowk = 0;
+      double one_minus_slowk = 0;
+      double fastEMA = 0;
+      double fastk = 0;
+      double one_minus_fastk = 0;
+      double ad = 0;
       if( (optInFastPeriod<optInSlowPeriod) ) {
          slowestPeriod = optInSlowPeriod;
       } else {
@@ -202,21 +202,21 @@
                          MInteger outNBElement,
                          double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int slowestPeriod;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double slowEMA;
-      double slowk;
-      double one_minus_slowk;
-      double fastEMA;
-      double fastk;
-      double one_minus_fastk;
-      double ad;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int slowestPeriod = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double slowEMA = 0;
+      double slowk = 0;
+      double one_minus_slowk = 0;
+      double fastEMA = 0;
+      double fastk = 0;
+      double one_minus_fastk = 0;
+      double ad = 0;
       if( startIdx < 0 ) {
          return RetCode.OutOfRangeStartIndex ;
       }
@@ -295,21 +295,21 @@
                               MInteger outNBElement,
                               double outReal[] )
    {
-      int today;
-      int outIdx;
-      int lookbackTotal;
-      int slowestPeriod;
-      double high;
-      double low;
-      double close;
-      double tmp;
-      double slowEMA;
-      double slowk;
-      double one_minus_slowk;
-      double fastEMA;
-      double fastk;
-      double one_minus_fastk;
-      double ad;
+      int today = 0;
+      int outIdx = 0;
+      int lookbackTotal = 0;
+      int slowestPeriod = 0;
+      double high = 0;
+      double low = 0;
+      double close = 0;
+      double tmp = 0;
+      double slowEMA = 0;
+      double slowk = 0;
+      double one_minus_slowk = 0;
+      double fastEMA = 0;
+      double fastk = 0;
+      double one_minus_fastk = 0;
+      double ad = 0;
       if( (optInFastPeriod<optInSlowPeriod) ) {
          slowestPeriod = optInSlowPeriod;
       } else {

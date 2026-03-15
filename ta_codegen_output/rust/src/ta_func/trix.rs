@@ -75,15 +75,15 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn trix<T: TaFloat>(
+    pub fn trix(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -103,17 +103,17 @@ impl Core {
             outReal,
         );
     }
-    pub fn trix_unguarded<T: TaFloat>(
+    pub fn trix_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut nbElement: usize = 0_usize;
         let mut begIdx: usize = 0_usize;
         let mut totalLookback: usize = 0_usize;
@@ -134,7 +134,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
-        tempBuffer = vec![T::ta_zero(); (nbElementToOutput * 1) as usize];
+        tempBuffer = vec![0.0_f64; (nbElementToOutput * 1) as usize];
         retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
@@ -158,22 +158,22 @@ impl Core {
         }
         nbElementToOutput -= emaLookback;
         retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
-        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         return RetCode::Success;
     }
-    pub unsafe fn trix_unchecked<T: TaFloat>(
+    pub unsafe fn trix_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -193,17 +193,17 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn trix_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn trix_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut tempBuffer: Vec<T> = Vec::new();
+        let mut tempBuffer: Vec<f64> = Vec::new();
         let mut nbElement: usize = 0_usize;
         let mut begIdx: usize = 0_usize;
         let mut totalLookback: usize = 0_usize;
@@ -224,7 +224,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
-        tempBuffer = vec![T::ta_zero(); (nbElementToOutput * 1) as usize];
+        tempBuffer = vec![0.0_f64; (nbElementToOutput * 1) as usize];
         retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
@@ -248,7 +248,7 @@ impl Core {
         }
         nbElementToOutput -= emaLookback;
         retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
-        if retCode != RetCode::Success || ((*outNBElement)) == 0 {
+        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;

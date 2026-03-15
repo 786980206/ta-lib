@@ -33,16 +33,16 @@
       double[] ShadowLongPeriodTotal = new double[2];
       double[] NearPeriodTotal = new double[3];
       double[] FarPeriodTotal = new double[3];
-      double BodyLongPeriodTotal;
-      int i;
-      int outIdx;
-      int totIdx;
-      int BodyLongTrailingIdx;
-      int ShadowShortTrailingIdx;
-      int ShadowLongTrailingIdx;
-      int NearTrailingIdx;
-      int FarTrailingIdx;
-      int lookbackTotal;
+      double BodyLongPeriodTotal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int totIdx = 0;
+      int BodyLongTrailingIdx = 0;
+      int ShadowShortTrailingIdx = 0;
+      int ShadowLongTrailingIdx = 0;
+      int NearTrailingIdx = 0;
+      int FarTrailingIdx = 0;
+      int lookbackTotal = 0;
       int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
       int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
       double BodyLong_factor = this.candleSettings.bodyLong.factor;
@@ -284,43 +284,203 @@
       outIdx = 0;
       do {
          double _candleaverage_10;
-         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_20;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_20 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_20 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_20 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_20 = 0.0;
+            break;
+         }
+         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (_candlerange_20));
          double divisor_10 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_10 = ((Near_factor*avg_10)/divisor_10);
          double _candleaverage_11;
-         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_21;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_21 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_21 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_21 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_21 = 0.0;
+            break;
+         }
+         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_21));
          double divisor_11 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_11 = ((Near_factor*avg_11)/divisor_11);
          double _candleaverage_12;
-         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_22;
+         switch( BodyLong_rangeType )
+         {
+         case 0:
+            _candlerange_22 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_22 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_22 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_22 = 0.0;
+            break;
+         }
+         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (_candlerange_22));
          double divisor_12 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_12 = ((BodyLong_factor*avg_12)/divisor_12);
          double _candleaverage_13;
-         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_23;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_23 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_23 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_23 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_23 = 0.0;
+            break;
+         }
+         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (_candlerange_23));
          double divisor_13 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_13 = ((ShadowShort_factor*avg_13)/divisor_13);
          double _candleaverage_14;
-         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_24;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_24 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_24 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_24 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_24 = 0.0;
+            break;
+         }
+         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (_candlerange_24));
          double divisor_14 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_14 = ((Far_factor*avg_14)/divisor_14);
          double _candleaverage_15;
-         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_25;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_25 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_25 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_25 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_25 = 0.0;
+            break;
+         }
+         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_25));
          double divisor_15 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_15 = ((Near_factor*avg_15)/divisor_15);
          double _candleaverage_16;
-         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_26;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_26 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_26 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_26 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_26 = 0.0;
+            break;
+         }
+         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (_candlerange_26));
          double divisor_16 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_16 = ((Far_factor*avg_16)/divisor_16);
          double _candleaverage_17;
-         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_27;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_27 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_27 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_27 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_27 = 0.0;
+            break;
+         }
+         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (_candlerange_27));
          double divisor_17 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_17 = ((ShadowShort_factor*avg_17)/divisor_17);
          double _candleaverage_18;
-         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_28;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_28 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_28 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_28 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_28 = 0.0;
+            break;
+         }
+         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (_candlerange_28));
          double divisor_18 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_18 = ((ShadowShort_factor*avg_18)/divisor_18);
          double _candleaverage_19;
-         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_29;
+         switch( ShadowLong_rangeType )
+         {
+         case 0:
+            _candlerange_29 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_29 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_29 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_29 = 0.0;
+            break;
+         }
+         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (_candlerange_29));
          double divisor_19 = (((ShadowLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_19 = ((ShadowLong_factor*avg_19)/divisor_19);
          if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+_candleaverage_10)))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+_candleaverage_11)))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_12))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_13))&&(((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-_candleaverage_14))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_15)))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_16)))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_17)||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_18))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_19)))) ) {
@@ -329,176 +489,176 @@
             outInteger[outIdx++] = 0;
          }
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_20;
+            double _candlerange_30;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_20 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_30 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_20 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_30 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_20 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_30 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_20 = 0.0;
+               _candlerange_30 = 0.0;
                break;
             }
-            double _candlerange_21;
+            double _candlerange_31;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_21 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
+               _candlerange_31 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_21 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
+               _candlerange_31 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_21 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
+               _candlerange_31 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_21 = 0.0;
+               _candlerange_31 = 0.0;
                break;
             }
-            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_20-_candlerange_21));
+            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_30-_candlerange_31));
          }
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_22;
+            double _candlerange_32;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_22 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_32 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_22 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_32 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_22 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_32 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_22 = 0.0;
+               _candlerange_32 = 0.0;
                break;
             }
-            double _candlerange_23;
+            double _candlerange_33;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_23 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
+               _candlerange_33 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_23 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
+               _candlerange_33 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_23 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
+               _candlerange_33 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_23 = 0.0;
+               _candlerange_33 = 0.0;
                break;
             }
-            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_22-_candlerange_23));
+            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_32-_candlerange_33));
          }
          for( totIdx = 2; (totIdx>=1); totIdx -= 1 ) {
-            double _candlerange_24;
+            double _candlerange_34;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_24 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_34 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_24 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_34 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_24 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_34 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_24 = 0.0;
+               _candlerange_34 = 0.0;
                break;
             }
-            double _candlerange_25;
+            double _candlerange_35;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_25 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
+               _candlerange_35 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_25 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
+               _candlerange_35 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_25 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
+               _candlerange_35 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_25 = 0.0;
+               _candlerange_35 = 0.0;
                break;
             }
-            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_24-_candlerange_25));
-            double _candlerange_26;
+            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_34-_candlerange_35));
+            double _candlerange_36;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_26 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_36 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_26 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_36 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_26 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_36 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_26 = 0.0;
+               _candlerange_36 = 0.0;
                break;
             }
-            double _candlerange_27;
+            double _candlerange_37;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_27 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
+               _candlerange_37 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_27 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
+               _candlerange_37 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_27 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
+               _candlerange_37 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_27 = 0.0;
+               _candlerange_37 = 0.0;
                break;
             }
-            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_26-_candlerange_27));
+            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_36-_candlerange_37));
          }
-         double _candlerange_28;
+         double _candlerange_38;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_28 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            _candlerange_38 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
             break;
          case 1:
-            _candlerange_28 = (inHigh[(i-2)]-inLow[(i-2)]);
+            _candlerange_38 = (inHigh[(i-2)]-inLow[(i-2)]);
             break;
          case 2:
-            _candlerange_28 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            _candlerange_38 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
             break;
          default:
-            _candlerange_28 = 0.0;
+            _candlerange_38 = 0.0;
             break;
          }
-         double _candlerange_29;
+         double _candlerange_39;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_29 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
+            _candlerange_39 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
             break;
          case 1:
-            _candlerange_29 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
+            _candlerange_39 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
             break;
          case 2:
-            _candlerange_29 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
+            _candlerange_39 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
             break;
          default:
-            _candlerange_29 = 0.0;
+            _candlerange_39 = 0.0;
             break;
          }
-         BodyLongPeriodTotal += (_candlerange_28-_candlerange_29);
+         BodyLongPeriodTotal += (_candlerange_38-_candlerange_39);
          i += 1;
          ShadowShortTrailingIdx += 1;
          ShadowLongTrailingIdx += 1;
@@ -524,16 +684,16 @@
       double[] ShadowLongPeriodTotal = new double[2];
       double[] NearPeriodTotal = new double[3];
       double[] FarPeriodTotal = new double[3];
-      double BodyLongPeriodTotal;
-      int i;
-      int outIdx;
-      int totIdx;
-      int BodyLongTrailingIdx;
-      int ShadowShortTrailingIdx;
-      int ShadowLongTrailingIdx;
-      int NearTrailingIdx;
-      int FarTrailingIdx;
-      int lookbackTotal;
+      double BodyLongPeriodTotal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int totIdx = 0;
+      int BodyLongTrailingIdx = 0;
+      int ShadowShortTrailingIdx = 0;
+      int ShadowLongTrailingIdx = 0;
+      int NearTrailingIdx = 0;
+      int FarTrailingIdx = 0;
+      int lookbackTotal = 0;
       int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
       int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
       double BodyLong_factor = this.candleSettings.bodyLong.factor;
@@ -769,43 +929,203 @@
       outIdx = 0;
       do {
          double _candleaverage_10;
-         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_20;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_20 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_20 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_20 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_20 = 0.0;
+            break;
+         }
+         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (_candlerange_20));
          double divisor_10 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_10 = ((Near_factor*avg_10)/divisor_10);
          double _candleaverage_11;
-         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_21;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_21 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_21 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_21 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_21 = 0.0;
+            break;
+         }
+         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_21));
          double divisor_11 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_11 = ((Near_factor*avg_11)/divisor_11);
          double _candleaverage_12;
-         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_22;
+         switch( BodyLong_rangeType )
+         {
+         case 0:
+            _candlerange_22 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_22 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_22 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_22 = 0.0;
+            break;
+         }
+         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (_candlerange_22));
          double divisor_12 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_12 = ((BodyLong_factor*avg_12)/divisor_12);
          double _candleaverage_13;
-         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_23;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_23 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_23 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_23 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_23 = 0.0;
+            break;
+         }
+         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (_candlerange_23));
          double divisor_13 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_13 = ((ShadowShort_factor*avg_13)/divisor_13);
          double _candleaverage_14;
-         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_24;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_24 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_24 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_24 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_24 = 0.0;
+            break;
+         }
+         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (_candlerange_24));
          double divisor_14 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_14 = ((Far_factor*avg_14)/divisor_14);
          double _candleaverage_15;
-         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_25;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_25 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_25 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_25 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_25 = 0.0;
+            break;
+         }
+         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_25));
          double divisor_15 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_15 = ((Near_factor*avg_15)/divisor_15);
          double _candleaverage_16;
-         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_26;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_26 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_26 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_26 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_26 = 0.0;
+            break;
+         }
+         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (_candlerange_26));
          double divisor_16 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_16 = ((Far_factor*avg_16)/divisor_16);
          double _candleaverage_17;
-         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_27;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_27 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_27 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_27 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_27 = 0.0;
+            break;
+         }
+         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (_candlerange_27));
          double divisor_17 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_17 = ((ShadowShort_factor*avg_17)/divisor_17);
          double _candleaverage_18;
-         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_28;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_28 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_28 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_28 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_28 = 0.0;
+            break;
+         }
+         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (_candlerange_28));
          double divisor_18 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_18 = ((ShadowShort_factor*avg_18)/divisor_18);
          double _candleaverage_19;
-         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_29;
+         switch( ShadowLong_rangeType )
+         {
+         case 0:
+            _candlerange_29 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_29 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_29 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_29 = 0.0;
+            break;
+         }
+         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (_candlerange_29));
          double divisor_19 = (((ShadowLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_19 = ((ShadowLong_factor*avg_19)/divisor_19);
          if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+_candleaverage_10)))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+_candleaverage_11)))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_12))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_13))&&(((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-_candleaverage_14))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_15)))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_16)))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_17)||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_18))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_19)))) ) {
@@ -814,176 +1134,176 @@
             outInteger[outIdx++] = 0;
          }
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_20;
+            double _candlerange_30;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_20 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_30 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_20 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_30 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_20 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_30 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_20 = 0.0;
+               _candlerange_30 = 0.0;
                break;
             }
-            double _candlerange_21;
+            double _candlerange_31;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_21 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
+               _candlerange_31 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_21 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
+               _candlerange_31 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_21 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
+               _candlerange_31 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_21 = 0.0;
+               _candlerange_31 = 0.0;
                break;
             }
-            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_20-_candlerange_21));
+            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_30-_candlerange_31));
          }
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_22;
+            double _candlerange_32;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_22 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_32 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_22 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_32 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_22 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_32 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_22 = 0.0;
+               _candlerange_32 = 0.0;
                break;
             }
-            double _candlerange_23;
+            double _candlerange_33;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_23 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
+               _candlerange_33 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_23 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
+               _candlerange_33 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_23 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
+               _candlerange_33 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_23 = 0.0;
+               _candlerange_33 = 0.0;
                break;
             }
-            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_22-_candlerange_23));
+            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_32-_candlerange_33));
          }
          for( totIdx = 2; (totIdx>=1); totIdx -= 1 ) {
-            double _candlerange_24;
+            double _candlerange_34;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_24 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_34 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_24 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_34 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_24 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_34 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_24 = 0.0;
+               _candlerange_34 = 0.0;
                break;
             }
-            double _candlerange_25;
+            double _candlerange_35;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_25 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
+               _candlerange_35 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_25 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
+               _candlerange_35 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_25 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
+               _candlerange_35 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_25 = 0.0;
+               _candlerange_35 = 0.0;
                break;
             }
-            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_24-_candlerange_25));
-            double _candlerange_26;
+            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_34-_candlerange_35));
+            double _candlerange_36;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_26 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_36 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_26 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_36 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_26 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_36 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_26 = 0.0;
+               _candlerange_36 = 0.0;
                break;
             }
-            double _candlerange_27;
+            double _candlerange_37;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_27 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
+               _candlerange_37 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_27 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
+               _candlerange_37 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_27 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
+               _candlerange_37 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_27 = 0.0;
+               _candlerange_37 = 0.0;
                break;
             }
-            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_26-_candlerange_27));
+            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_36-_candlerange_37));
          }
-         double _candlerange_28;
+         double _candlerange_38;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_28 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            _candlerange_38 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
             break;
          case 1:
-            _candlerange_28 = (inHigh[(i-2)]-inLow[(i-2)]);
+            _candlerange_38 = (inHigh[(i-2)]-inLow[(i-2)]);
             break;
          case 2:
-            _candlerange_28 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            _candlerange_38 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
             break;
          default:
-            _candlerange_28 = 0.0;
+            _candlerange_38 = 0.0;
             break;
          }
-         double _candlerange_29;
+         double _candlerange_39;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_29 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
+            _candlerange_39 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
             break;
          case 1:
-            _candlerange_29 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
+            _candlerange_39 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
             break;
          case 2:
-            _candlerange_29 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
+            _candlerange_39 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
             break;
          default:
-            _candlerange_29 = 0.0;
+            _candlerange_39 = 0.0;
             break;
          }
-         BodyLongPeriodTotal += (_candlerange_28-_candlerange_29);
+         BodyLongPeriodTotal += (_candlerange_38-_candlerange_39);
          i += 1;
          ShadowShortTrailingIdx += 1;
          ShadowLongTrailingIdx += 1;
@@ -1009,16 +1329,16 @@
       double[] ShadowLongPeriodTotal = new double[2];
       double[] NearPeriodTotal = new double[3];
       double[] FarPeriodTotal = new double[3];
-      double BodyLongPeriodTotal;
-      int i;
-      int outIdx;
-      int totIdx;
-      int BodyLongTrailingIdx;
-      int ShadowShortTrailingIdx;
-      int ShadowLongTrailingIdx;
-      int NearTrailingIdx;
-      int FarTrailingIdx;
-      int lookbackTotal;
+      double BodyLongPeriodTotal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int totIdx = 0;
+      int BodyLongTrailingIdx = 0;
+      int ShadowShortTrailingIdx = 0;
+      int ShadowLongTrailingIdx = 0;
+      int NearTrailingIdx = 0;
+      int FarTrailingIdx = 0;
+      int lookbackTotal = 0;
       int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
       int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
       double BodyLong_factor = this.candleSettings.bodyLong.factor;
@@ -1260,43 +1580,203 @@
       outIdx = 0;
       do {
          double _candleaverage_10;
-         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_20;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_20 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_20 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_20 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_20 = 0.0;
+            break;
+         }
+         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (_candlerange_20));
          double divisor_10 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_10 = ((Near_factor*avg_10)/divisor_10);
          double _candleaverage_11;
-         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_21;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_21 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_21 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_21 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_21 = 0.0;
+            break;
+         }
+         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_21));
          double divisor_11 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_11 = ((Near_factor*avg_11)/divisor_11);
          double _candleaverage_12;
-         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_22;
+         switch( BodyLong_rangeType )
+         {
+         case 0:
+            _candlerange_22 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_22 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_22 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_22 = 0.0;
+            break;
+         }
+         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (_candlerange_22));
          double divisor_12 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_12 = ((BodyLong_factor*avg_12)/divisor_12);
          double _candleaverage_13;
-         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_23;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_23 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_23 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_23 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_23 = 0.0;
+            break;
+         }
+         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (_candlerange_23));
          double divisor_13 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_13 = ((ShadowShort_factor*avg_13)/divisor_13);
          double _candleaverage_14;
-         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_24;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_24 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_24 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_24 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_24 = 0.0;
+            break;
+         }
+         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (_candlerange_24));
          double divisor_14 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_14 = ((Far_factor*avg_14)/divisor_14);
          double _candleaverage_15;
-         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_25;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_25 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_25 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_25 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_25 = 0.0;
+            break;
+         }
+         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_25));
          double divisor_15 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_15 = ((Near_factor*avg_15)/divisor_15);
          double _candleaverage_16;
-         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_26;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_26 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_26 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_26 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_26 = 0.0;
+            break;
+         }
+         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (_candlerange_26));
          double divisor_16 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_16 = ((Far_factor*avg_16)/divisor_16);
          double _candleaverage_17;
-         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_27;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_27 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_27 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_27 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_27 = 0.0;
+            break;
+         }
+         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (_candlerange_27));
          double divisor_17 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_17 = ((ShadowShort_factor*avg_17)/divisor_17);
          double _candleaverage_18;
-         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_28;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_28 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_28 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_28 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_28 = 0.0;
+            break;
+         }
+         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (_candlerange_28));
          double divisor_18 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_18 = ((ShadowShort_factor*avg_18)/divisor_18);
          double _candleaverage_19;
-         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_29;
+         switch( ShadowLong_rangeType )
+         {
+         case 0:
+            _candlerange_29 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_29 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_29 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_29 = 0.0;
+            break;
+         }
+         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (_candlerange_29));
          double divisor_19 = (((ShadowLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_19 = ((ShadowLong_factor*avg_19)/divisor_19);
          if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+_candleaverage_10)))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+_candleaverage_11)))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_12))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_13))&&(((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-_candleaverage_14))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_15)))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_16)))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_17)||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_18))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_19)))) ) {
@@ -1305,176 +1785,176 @@
             outInteger[outIdx++] = 0;
          }
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_20;
+            double _candlerange_30;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_20 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_30 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_20 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_30 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_20 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_30 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_20 = 0.0;
+               _candlerange_30 = 0.0;
                break;
             }
-            double _candlerange_21;
+            double _candlerange_31;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_21 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
+               _candlerange_31 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_21 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
+               _candlerange_31 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_21 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
+               _candlerange_31 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_21 = 0.0;
+               _candlerange_31 = 0.0;
                break;
             }
-            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_20-_candlerange_21));
+            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_30-_candlerange_31));
          }
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_22;
+            double _candlerange_32;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_22 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_32 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_22 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_32 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_22 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_32 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_22 = 0.0;
+               _candlerange_32 = 0.0;
                break;
             }
-            double _candlerange_23;
+            double _candlerange_33;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_23 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
+               _candlerange_33 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_23 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
+               _candlerange_33 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_23 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
+               _candlerange_33 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_23 = 0.0;
+               _candlerange_33 = 0.0;
                break;
             }
-            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_22-_candlerange_23));
+            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_32-_candlerange_33));
          }
          for( totIdx = 2; (totIdx>=1); totIdx -= 1 ) {
-            double _candlerange_24;
+            double _candlerange_34;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_24 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_34 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_24 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_34 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_24 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_34 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_24 = 0.0;
+               _candlerange_34 = 0.0;
                break;
             }
-            double _candlerange_25;
+            double _candlerange_35;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_25 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
+               _candlerange_35 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_25 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
+               _candlerange_35 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_25 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
+               _candlerange_35 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_25 = 0.0;
+               _candlerange_35 = 0.0;
                break;
             }
-            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_24-_candlerange_25));
-            double _candlerange_26;
+            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_34-_candlerange_35));
+            double _candlerange_36;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_26 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_36 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_26 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_36 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_26 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_36 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_26 = 0.0;
+               _candlerange_36 = 0.0;
                break;
             }
-            double _candlerange_27;
+            double _candlerange_37;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_27 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
+               _candlerange_37 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_27 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
+               _candlerange_37 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_27 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
+               _candlerange_37 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_27 = 0.0;
+               _candlerange_37 = 0.0;
                break;
             }
-            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_26-_candlerange_27));
+            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_36-_candlerange_37));
          }
-         double _candlerange_28;
+         double _candlerange_38;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_28 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            _candlerange_38 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
             break;
          case 1:
-            _candlerange_28 = (inHigh[(i-2)]-inLow[(i-2)]);
+            _candlerange_38 = (inHigh[(i-2)]-inLow[(i-2)]);
             break;
          case 2:
-            _candlerange_28 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            _candlerange_38 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
             break;
          default:
-            _candlerange_28 = 0.0;
+            _candlerange_38 = 0.0;
             break;
          }
-         double _candlerange_29;
+         double _candlerange_39;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_29 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
+            _candlerange_39 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
             break;
          case 1:
-            _candlerange_29 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
+            _candlerange_39 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
             break;
          case 2:
-            _candlerange_29 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
+            _candlerange_39 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
             break;
          default:
-            _candlerange_29 = 0.0;
+            _candlerange_39 = 0.0;
             break;
          }
-         BodyLongPeriodTotal += (_candlerange_28-_candlerange_29);
+         BodyLongPeriodTotal += (_candlerange_38-_candlerange_39);
          i += 1;
          ShadowShortTrailingIdx += 1;
          ShadowLongTrailingIdx += 1;
@@ -1500,16 +1980,16 @@
       double[] ShadowLongPeriodTotal = new double[2];
       double[] NearPeriodTotal = new double[3];
       double[] FarPeriodTotal = new double[3];
-      double BodyLongPeriodTotal;
-      int i;
-      int outIdx;
-      int totIdx;
-      int BodyLongTrailingIdx;
-      int ShadowShortTrailingIdx;
-      int ShadowLongTrailingIdx;
-      int NearTrailingIdx;
-      int FarTrailingIdx;
-      int lookbackTotal;
+      double BodyLongPeriodTotal = 0;
+      int i = 0;
+      int outIdx = 0;
+      int totIdx = 0;
+      int BodyLongTrailingIdx = 0;
+      int ShadowShortTrailingIdx = 0;
+      int ShadowLongTrailingIdx = 0;
+      int NearTrailingIdx = 0;
+      int FarTrailingIdx = 0;
+      int lookbackTotal = 0;
       int BodyLong_rangeType = this.candleSettings.bodyLong.rangeType;
       int BodyLong_avgPeriod = this.candleSettings.bodyLong.avgPeriod;
       double BodyLong_factor = this.candleSettings.bodyLong.factor;
@@ -1745,43 +2225,203 @@
       outIdx = 0;
       do {
          double _candleaverage_10;
-         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_20;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_20 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_20 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_20 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_20 = 0.0;
+            break;
+         }
+         double avg_10 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[2]/Near_avgPeriod)) : (_candlerange_20));
          double divisor_10 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_10 = ((Near_factor*avg_10)/divisor_10);
          double _candleaverage_11;
-         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_21;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_21 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_21 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_21 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_21 = 0.0;
+            break;
+         }
+         double avg_11 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_21));
          double divisor_11 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_11 = ((Near_factor*avg_11)/divisor_11);
          double _candleaverage_12;
-         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (ta_candlerange(BodyLong_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_22;
+         switch( BodyLong_rangeType )
+         {
+         case 0:
+            _candlerange_22 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_22 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_22 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_22 = 0.0;
+            break;
+         }
+         double avg_12 = (((BodyLong_avgPeriod!=0)) ? ((BodyLongPeriodTotal/BodyLong_avgPeriod)) : (_candlerange_22));
          double divisor_12 = (((BodyLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_12 = ((BodyLong_factor*avg_12)/divisor_12);
          double _candleaverage_13;
-         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_23;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_23 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_23 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_23 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_23 = 0.0;
+            break;
+         }
+         double avg_13 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[2]/ShadowShort_avgPeriod)) : (_candlerange_23));
          double divisor_13 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_13 = ((ShadowShort_factor*avg_13)/divisor_13);
          double _candleaverage_14;
-         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-2)], inHigh[(i-2)], inLow[(i-2)], inClose[(i-2)])));
+         double _candlerange_24;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_24 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            break;
+         case 1:
+            _candlerange_24 = (inHigh[(i-2)]-inLow[(i-2)]);
+            break;
+         case 2:
+            _candlerange_24 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            break;
+         default:
+            _candlerange_24 = 0.0;
+            break;
+         }
+         double avg_14 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[2]/Far_avgPeriod)) : (_candlerange_24));
          double divisor_14 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_14 = ((Far_factor*avg_14)/divisor_14);
          double _candleaverage_15;
-         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (ta_candlerange(Near_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_25;
+         switch( Near_rangeType )
+         {
+         case 0:
+            _candlerange_25 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_25 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_25 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_25 = 0.0;
+            break;
+         }
+         double avg_15 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal[1]/Near_avgPeriod)) : (_candlerange_25));
          double divisor_15 = (((Near_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_15 = ((Near_factor*avg_15)/divisor_15);
          double _candleaverage_16;
-         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (ta_candlerange(Far_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_26;
+         switch( Far_rangeType )
+         {
+         case 0:
+            _candlerange_26 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_26 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_26 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_26 = 0.0;
+            break;
+         }
+         double avg_16 = (((Far_avgPeriod!=0)) ? ((FarPeriodTotal[1]/Far_avgPeriod)) : (_candlerange_26));
          double divisor_16 = (((Far_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_16 = ((Far_factor*avg_16)/divisor_16);
          double _candleaverage_17;
-         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_27;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_27 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_27 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_27 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_27 = 0.0;
+            break;
+         }
+         double avg_17 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[0]/ShadowShort_avgPeriod)) : (_candlerange_27));
          double divisor_17 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_17 = ((ShadowShort_factor*avg_17)/divisor_17);
          double _candleaverage_18;
-         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (ta_candlerange(ShadowShort_rangeType, inOpen[(i-1)], inHigh[(i-1)], inLow[(i-1)], inClose[(i-1)])));
+         double _candlerange_28;
+         switch( ShadowShort_rangeType )
+         {
+         case 0:
+            _candlerange_28 = Math.abs((inClose[(i-1)]-inOpen[(i-1)]));
+            break;
+         case 1:
+            _candlerange_28 = (inHigh[(i-1)]-inLow[(i-1)]);
+            break;
+         case 2:
+            _candlerange_28 = ((inHigh[(i-1)]-inLow[(i-1)])-Math.abs((inClose[(i-1)]-inOpen[(i-1)])));
+            break;
+         default:
+            _candlerange_28 = 0.0;
+            break;
+         }
+         double avg_18 = (((ShadowShort_avgPeriod!=0)) ? ((ShadowShortPeriodTotal[1]/ShadowShort_avgPeriod)) : (_candlerange_28));
          double divisor_18 = (((ShadowShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_18 = ((ShadowShort_factor*avg_18)/divisor_18);
          double _candleaverage_19;
-         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (ta_candlerange(ShadowLong_rangeType, inOpen[i], inHigh[i], inLow[i], inClose[i])));
+         double _candlerange_29;
+         switch( ShadowLong_rangeType )
+         {
+         case 0:
+            _candlerange_29 = Math.abs((inClose[i]-inOpen[i]));
+            break;
+         case 1:
+            _candlerange_29 = (inHigh[i]-inLow[i]);
+            break;
+         case 2:
+            _candlerange_29 = ((inHigh[i]-inLow[i])-Math.abs((inClose[i]-inOpen[i])));
+            break;
+         default:
+            _candlerange_29 = 0.0;
+            break;
+         }
+         double avg_19 = (((ShadowLong_avgPeriod!=0)) ? ((ShadowLongPeriodTotal[0]/ShadowLong_avgPeriod)) : (_candlerange_29));
          double divisor_19 = (((ShadowLong_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_19 = ((ShadowLong_factor*avg_19)/divisor_19);
          if( (((((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inClose[(i-1)]))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]>inOpen[(i-2)]))&&(inOpen[(i-1)]<=(inClose[(i-2)]+_candleaverage_10)))&&(inOpen[i]>inOpen[(i-1)]))&&(inOpen[i]<=(inClose[(i-1)]+_candleaverage_11)))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_12))&&((inHigh[(i-2)]-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (inClose[(i-2)]) : (inOpen[(i-2)])))<_candleaverage_13))&&(((((Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))-_candleaverage_14))&&(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))+_candleaverage_15)))||(Math.abs((inClose[i]-inOpen[i]))<(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))-_candleaverage_16)))||(((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&(Math.abs((inClose[(i-1)]-inOpen[(i-1)]))<Math.abs((inClose[(i-2)]-inOpen[(i-2)]))))&&(((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_17)||((inHigh[(i-1)]-(((inClose[(i-1)]>=inOpen[(i-1)])) ? (inClose[(i-1)]) : (inOpen[(i-1)])))>_candleaverage_18))))||((Math.abs((inClose[i]-inOpen[i]))<Math.abs((inClose[(i-1)]-inOpen[(i-1)])))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_19)))) ) {
@@ -1790,176 +2430,176 @@
             outInteger[outIdx++] = 0;
          }
          for( totIdx = 2; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_20;
+            double _candlerange_30;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_20 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_30 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_20 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_30 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_20 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_30 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_20 = 0.0;
+               _candlerange_30 = 0.0;
                break;
             }
-            double _candlerange_21;
+            double _candlerange_31;
             switch( ShadowShort_rangeType )
             {
             case 0:
-               _candlerange_21 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
+               _candlerange_31 = Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_21 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
+               _candlerange_31 = (inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_21 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
+               _candlerange_31 = ((inHigh[(ShadowShortTrailingIdx-totIdx)]-inLow[(ShadowShortTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowShortTrailingIdx-totIdx)]-inOpen[(ShadowShortTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_21 = 0.0;
+               _candlerange_31 = 0.0;
                break;
             }
-            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_20-_candlerange_21));
+            ShadowShortPeriodTotal[totIdx] = (ShadowShortPeriodTotal[totIdx]+(_candlerange_30-_candlerange_31));
          }
          for( totIdx = 1; (totIdx>=0); totIdx -= 1 ) {
-            double _candlerange_22;
+            double _candlerange_32;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_22 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_32 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_22 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_32 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_22 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_32 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_22 = 0.0;
+               _candlerange_32 = 0.0;
                break;
             }
-            double _candlerange_23;
+            double _candlerange_33;
             switch( ShadowLong_rangeType )
             {
             case 0:
-               _candlerange_23 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
+               _candlerange_33 = Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_23 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
+               _candlerange_33 = (inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_23 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
+               _candlerange_33 = ((inHigh[(ShadowLongTrailingIdx-totIdx)]-inLow[(ShadowLongTrailingIdx-totIdx)])-Math.abs((inClose[(ShadowLongTrailingIdx-totIdx)]-inOpen[(ShadowLongTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_23 = 0.0;
+               _candlerange_33 = 0.0;
                break;
             }
-            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_22-_candlerange_23));
+            ShadowLongPeriodTotal[totIdx] = (ShadowLongPeriodTotal[totIdx]+(_candlerange_32-_candlerange_33));
          }
          for( totIdx = 2; (totIdx>=1); totIdx -= 1 ) {
-            double _candlerange_24;
+            double _candlerange_34;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_24 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_34 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_24 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_34 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_24 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_34 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_24 = 0.0;
+               _candlerange_34 = 0.0;
                break;
             }
-            double _candlerange_25;
+            double _candlerange_35;
             switch( Far_rangeType )
             {
             case 0:
-               _candlerange_25 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
+               _candlerange_35 = Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_25 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
+               _candlerange_35 = (inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_25 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
+               _candlerange_35 = ((inHigh[(FarTrailingIdx-totIdx)]-inLow[(FarTrailingIdx-totIdx)])-Math.abs((inClose[(FarTrailingIdx-totIdx)]-inOpen[(FarTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_25 = 0.0;
+               _candlerange_35 = 0.0;
                break;
             }
-            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_24-_candlerange_25));
-            double _candlerange_26;
+            FarPeriodTotal[totIdx] = (FarPeriodTotal[totIdx]+(_candlerange_34-_candlerange_35));
+            double _candlerange_36;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_26 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
+               _candlerange_36 = Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)]));
                break;
             case 1:
-               _candlerange_26 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
+               _candlerange_36 = (inHigh[(i-totIdx)]-inLow[(i-totIdx)]);
                break;
             case 2:
-               _candlerange_26 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
+               _candlerange_36 = ((inHigh[(i-totIdx)]-inLow[(i-totIdx)])-Math.abs((inClose[(i-totIdx)]-inOpen[(i-totIdx)])));
                break;
             default:
-               _candlerange_26 = 0.0;
+               _candlerange_36 = 0.0;
                break;
             }
-            double _candlerange_27;
+            double _candlerange_37;
             switch( Near_rangeType )
             {
             case 0:
-               _candlerange_27 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
+               _candlerange_37 = Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)]));
                break;
             case 1:
-               _candlerange_27 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
+               _candlerange_37 = (inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)]);
                break;
             case 2:
-               _candlerange_27 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
+               _candlerange_37 = ((inHigh[(NearTrailingIdx-totIdx)]-inLow[(NearTrailingIdx-totIdx)])-Math.abs((inClose[(NearTrailingIdx-totIdx)]-inOpen[(NearTrailingIdx-totIdx)])));
                break;
             default:
-               _candlerange_27 = 0.0;
+               _candlerange_37 = 0.0;
                break;
             }
-            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_26-_candlerange_27));
+            NearPeriodTotal[totIdx] = (NearPeriodTotal[totIdx]+(_candlerange_36-_candlerange_37));
          }
-         double _candlerange_28;
+         double _candlerange_38;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_28 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
+            _candlerange_38 = Math.abs((inClose[(i-2)]-inOpen[(i-2)]));
             break;
          case 1:
-            _candlerange_28 = (inHigh[(i-2)]-inLow[(i-2)]);
+            _candlerange_38 = (inHigh[(i-2)]-inLow[(i-2)]);
             break;
          case 2:
-            _candlerange_28 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
+            _candlerange_38 = ((inHigh[(i-2)]-inLow[(i-2)])-Math.abs((inClose[(i-2)]-inOpen[(i-2)])));
             break;
          default:
-            _candlerange_28 = 0.0;
+            _candlerange_38 = 0.0;
             break;
          }
-         double _candlerange_29;
+         double _candlerange_39;
          switch( BodyLong_rangeType )
          {
          case 0:
-            _candlerange_29 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
+            _candlerange_39 = Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)]));
             break;
          case 1:
-            _candlerange_29 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
+            _candlerange_39 = (inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)]);
             break;
          case 2:
-            _candlerange_29 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
+            _candlerange_39 = ((inHigh[(BodyLongTrailingIdx-2)]-inLow[(BodyLongTrailingIdx-2)])-Math.abs((inClose[(BodyLongTrailingIdx-2)]-inOpen[(BodyLongTrailingIdx-2)])));
             break;
          default:
-            _candlerange_29 = 0.0;
+            _candlerange_39 = 0.0;
             break;
          }
-         BodyLongPeriodTotal += (_candlerange_28-_candlerange_29);
+         BodyLongPeriodTotal += (_candlerange_38-_candlerange_39);
          i += 1;
          ShadowShortTrailingIdx += 1;
          ShadowLongTrailingIdx += 1;

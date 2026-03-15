@@ -75,14 +75,14 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outInteger` - Output values
-    pub fn cdl3linestrike<T: TaFloat>(
+    pub fn cdl3linestrike(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -102,19 +102,19 @@ impl Core {
             outInteger,
         );
     }
-    pub fn cdl3linestrike_unguarded<T: TaFloat>(
+    pub fn cdl3linestrike_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut NearPeriodTotal: [T; 4 as usize] = [T::ta_zero(); 4 as usize];
+        let mut NearPeriodTotal: [f64; 4 as usize] = [0.0_f64; 4 as usize];
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut totIdx: usize = 0_usize;
@@ -135,87 +135,87 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        NearPeriodTotal[(3) as usize] = T::ta_from_i32(0 as i32);
-        NearPeriodTotal[(2) as usize] = T::ta_from_i32(0 as i32);
+        NearPeriodTotal[3] = 0.0;
+        NearPeriodTotal[2] = 0.0;
         NearTrailingIdx = startIdx - (Near_avgPeriod) as usize;
         i = NearTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_0: T;
+            let mut _candlerange_0: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_0 = (inClose[(i - 3) as usize] - inOpen[(i - 3) as usize]).ta_abs();
+                    _candlerange_0 = (inClose[i - 3] - inOpen[i - 3]).abs();
                 }
                 1 => {
-                    _candlerange_0 = inHigh[(i - 3) as usize] - inLow[(i - 3) as usize];
+                    _candlerange_0 = inHigh[i - 3] - inLow[i - 3];
                 }
                 2 => {
-                    _candlerange_0 = inHigh[(i - 3) as usize] - inLow[(i - 3) as usize] - (inClose[(i - 3) as usize] - inOpen[(i - 3) as usize]).ta_abs();
+                    _candlerange_0 = inHigh[i - 3] - inLow[i - 3] - (inClose[i - 3] - inOpen[i - 3]).abs();
                 }
                 _ => {
-                    _candlerange_0 = T::ta_from_f64(0.0);
+                    _candlerange_0 = 0.0;
                 }
             }
-            NearPeriodTotal[(3) as usize] = NearPeriodTotal[(3) as usize] + _candlerange_0;
-            let mut _candlerange_1: T;
+            NearPeriodTotal[3] = NearPeriodTotal[3] + _candlerange_0;
+            let mut _candlerange_1: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_1 = (inClose[(i - 2) as usize] - inOpen[(i - 2) as usize]).ta_abs();
+                    _candlerange_1 = (inClose[i - 2] - inOpen[i - 2]).abs();
                 }
                 1 => {
-                    _candlerange_1 = inHigh[(i - 2) as usize] - inLow[(i - 2) as usize];
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2];
                 }
                 2 => {
-                    _candlerange_1 = inHigh[(i - 2) as usize] - inLow[(i - 2) as usize] - (inClose[(i - 2) as usize] - inOpen[(i - 2) as usize]).ta_abs();
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs();
                 }
                 _ => {
-                    _candlerange_1 = T::ta_from_f64(0.0);
+                    _candlerange_1 = 0.0;
                 }
             }
-            NearPeriodTotal[(2) as usize] = NearPeriodTotal[(2) as usize] + _candlerange_1;
+            NearPeriodTotal[2] = NearPeriodTotal[2] + _candlerange_1;
             i += 1;
         }
         i = startIdx;
         outIdx = 0;
         loop {
-            if if inClose[(i - 3) as usize] >= inOpen[(i - 3) as usize] { 1 } else { 0 - 1 } == if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } && if inClose[(i - 2) as usize] >= inOpen[(i - 2) as usize] { 1 } else { 0 - 1 } == if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } && if inClose[(i) as usize] >= inOpen[(i) as usize] { 1 } else { 0 - 1 } == 0 - if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } && inOpen[(i - 2) as usize] >= (inOpen[(i - 3) as usize]).min(inClose[(i - 3) as usize]) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[(3) as usize], inOpen[(i - 3) as usize], inHigh[(i - 3) as usize], inLow[(i - 3) as usize], inClose[(i - 3) as usize]) && inOpen[(i - 2) as usize] <= (inOpen[(i - 3) as usize]).max(inClose[(i - 3) as usize]) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[(3) as usize], inOpen[(i - 3) as usize], inHigh[(i - 3) as usize], inLow[(i - 3) as usize], inClose[(i - 3) as usize]) && inOpen[(i - 1) as usize] >= (inOpen[(i - 2) as usize]).min(inClose[(i - 2) as usize]) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[(2) as usize], inOpen[(i - 2) as usize], inHigh[(i - 2) as usize], inLow[(i - 2) as usize], inClose[(i - 2) as usize]) && inOpen[(i - 1) as usize] <= (inOpen[(i - 2) as usize]).max(inClose[(i - 2) as usize]) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal[(2) as usize], inOpen[(i - 2) as usize], inHigh[(i - 2) as usize], inLow[(i - 2) as usize], inClose[(i - 2) as usize]) && (if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } == 1 && inClose[(i - 1) as usize] > inClose[(i - 2) as usize] && inClose[(i - 2) as usize] > inClose[(i - 3) as usize] && inOpen[(i) as usize] > inClose[(i - 1) as usize] && inClose[(i) as usize] < inOpen[(i - 3) as usize] || (if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 }) as i32 == 0 - 1 && inClose[(i - 1) as usize] < inClose[(i - 2) as usize] && inClose[(i - 2) as usize] < inClose[(i - 3) as usize] && inOpen[(i) as usize] < inClose[(i - 1) as usize] && inClose[(i) as usize] > inOpen[(i - 3) as usize]) {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = (if inClose[(i - 1) as usize] >= inOpen[(i - 1) as usize] { 1 } else { 0 - 1 } * 100) as i32;
+            if (if inClose[i - 3] >= inOpen[i - 3] { 1 } else { 0 - 1 }) == (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) && (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) && inOpen[i - 2] >= (inOpen[i - 3]).min(inClose[i - 3]) - { let _cr = match Near_rangeType { 0 => (inClose[i - 3] - inOpen[i - 3]).abs(), 1 => inHigh[i - 3] - inLow[i - 3], _ => inHigh[i - 3] - inLow[i - 3] - (inClose[i - 3] - inOpen[i - 3]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal[3]) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && inOpen[i - 2] <= (inOpen[i - 3]).max(inClose[i - 3]) + { let _cr = match Near_rangeType { 0 => (inClose[i - 3] - inOpen[i - 3]).abs(), 1 => inHigh[i - 3] - inLow[i - 3], _ => inHigh[i - 3] - inLow[i - 3] - (inClose[i - 3] - inOpen[i - 3]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal[3]) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && inOpen[i - 1] >= (inOpen[i - 2]).min(inClose[i - 2]) - { let _cr = match Near_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal[2]) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && inOpen[i - 1] <= (inOpen[i - 2]).max(inClose[i - 2]) + { let _cr = match Near_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal[2]) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 1 && inClose[i - 1] > inClose[i - 2] && inClose[i - 2] > inClose[i - 3] && inOpen[i] > inClose[i - 1] && inClose[i] < inOpen[i - 3] || ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inClose[i - 1] < inClose[i - 2] && inClose[i - 2] < inClose[i - 3] && inOpen[i] < inClose[i - 1] && inClose[i] > inOpen[i - 3]) {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) * 100) as i32;
             } else {
-                outInteger[({ let _v = outIdx; outIdx += 1; _v }) as usize] = 0;
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
             }
             // for( totIdx = 3; totIdx >= 2; totIdx -= 1 )
             totIdx = 3;
             loop {
-                let mut _candlerange_2: T;
+                let mut _candlerange_2: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_2 = (inClose[(i - totIdx) as usize] - inOpen[(i - totIdx) as usize]).ta_abs();
+                        _candlerange_2 = (inClose[i - totIdx] - inOpen[i - totIdx]).abs();
                     }
                     1 => {
-                        _candlerange_2 = inHigh[(i - totIdx) as usize] - inLow[(i - totIdx) as usize];
+                        _candlerange_2 = inHigh[i - totIdx] - inLow[i - totIdx];
                     }
                     2 => {
-                        _candlerange_2 = inHigh[(i - totIdx) as usize] - inLow[(i - totIdx) as usize] - (inClose[(i - totIdx) as usize] - inOpen[(i - totIdx) as usize]).ta_abs();
+                        _candlerange_2 = inHigh[i - totIdx] - inLow[i - totIdx] - (inClose[i - totIdx] - inOpen[i - totIdx]).abs();
                     }
                     _ => {
-                        _candlerange_2 = T::ta_from_f64(0.0);
+                        _candlerange_2 = 0.0;
                     }
                 }
-                let mut _candlerange_3: T;
+                let mut _candlerange_3: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_3 = (inClose[(NearTrailingIdx - totIdx) as usize] - inOpen[(NearTrailingIdx - totIdx) as usize]).ta_abs();
+                        _candlerange_3 = (inClose[NearTrailingIdx - totIdx] - inOpen[NearTrailingIdx - totIdx]).abs();
                     }
                     1 => {
-                        _candlerange_3 = inHigh[(NearTrailingIdx - totIdx) as usize] - inLow[(NearTrailingIdx - totIdx) as usize];
+                        _candlerange_3 = inHigh[NearTrailingIdx - totIdx] - inLow[NearTrailingIdx - totIdx];
                     }
                     2 => {
-                        _candlerange_3 = inHigh[(NearTrailingIdx - totIdx) as usize] - inLow[(NearTrailingIdx - totIdx) as usize] - (inClose[(NearTrailingIdx - totIdx) as usize] - inOpen[(NearTrailingIdx - totIdx) as usize]).ta_abs();
+                        _candlerange_3 = inHigh[NearTrailingIdx - totIdx] - inLow[NearTrailingIdx - totIdx] - (inClose[NearTrailingIdx - totIdx] - inOpen[NearTrailingIdx - totIdx]).abs();
                     }
                     _ => {
-                        _candlerange_3 = T::ta_from_f64(0.0);
+                        _candlerange_3 = 0.0;
                     }
                 }
-                NearPeriodTotal[(totIdx) as usize] = NearPeriodTotal[(totIdx) as usize] + (_candlerange_2 - _candlerange_3);
+                NearPeriodTotal[totIdx] = NearPeriodTotal[totIdx] + (_candlerange_2 - _candlerange_3);
                 if totIdx == 2 { break; }
                 totIdx -= 1;
             }
@@ -227,14 +227,14 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn cdl3linestrike_unchecked<T: TaFloat>(
+    pub unsafe fn cdl3linestrike_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
@@ -254,19 +254,19 @@ impl Core {
             outInteger,
         );
     }
-    pub unsafe fn cdl3linestrike_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn cdl3linestrike_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inOpen: &[T],
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inOpen: &[f64],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
         outInteger: &mut [i32],
     ) -> RetCode {
-        let mut NearPeriodTotal: [T; 4 as usize] = [T::ta_zero(); 4 as usize];
+        let mut NearPeriodTotal: [f64; 4 as usize] = [0.0_f64; 4 as usize];
         let mut i: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut totIdx: usize = 0_usize;
@@ -287,87 +287,87 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        (*NearPeriodTotal.get_unchecked_mut((3) as usize)) = T::ta_from_i32(0 as i32);
-        (*NearPeriodTotal.get_unchecked_mut((2) as usize)) = T::ta_from_i32(0 as i32);
+        (*NearPeriodTotal.get_unchecked_mut(3)) = 0.0;
+        (*NearPeriodTotal.get_unchecked_mut(2)) = 0.0;
         NearTrailingIdx = startIdx - (Near_avgPeriod) as usize;
         i = NearTrailingIdx;
         while i < startIdx {
-            let mut _candlerange_0: T;
+            let mut _candlerange_0: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_0 = ((*inClose.get_unchecked((i - 3) as usize)) - (*inOpen.get_unchecked((i - 3) as usize))).ta_abs();
+                    _candlerange_0 = ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs();
                 }
                 1 => {
-                    _candlerange_0 = (*inHigh.get_unchecked((i - 3) as usize)) - (*inLow.get_unchecked((i - 3) as usize));
+                    _candlerange_0 = (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3));
                 }
                 2 => {
-                    _candlerange_0 = (*inHigh.get_unchecked((i - 3) as usize)) - (*inLow.get_unchecked((i - 3) as usize)) - ((*inClose.get_unchecked((i - 3) as usize)) - (*inOpen.get_unchecked((i - 3) as usize))).ta_abs();
+                    _candlerange_0 = (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)) - ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs();
                 }
                 _ => {
-                    _candlerange_0 = T::ta_from_f64(0.0);
+                    _candlerange_0 = 0.0;
                 }
             }
-            (*NearPeriodTotal.get_unchecked_mut((3) as usize)) = (*NearPeriodTotal.get_unchecked((3) as usize)) + _candlerange_0;
-            let mut _candlerange_1: T;
+            (*NearPeriodTotal.get_unchecked_mut(3)) = (*NearPeriodTotal.get_unchecked(3)) + _candlerange_0;
+            let mut _candlerange_1: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_1 = ((*inClose.get_unchecked((i - 2) as usize)) - (*inOpen.get_unchecked((i - 2) as usize))).ta_abs();
+                    _candlerange_1 = ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
                 }
                 1 => {
-                    _candlerange_1 = (*inHigh.get_unchecked((i - 2) as usize)) - (*inLow.get_unchecked((i - 2) as usize));
+                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2));
                 }
                 2 => {
-                    _candlerange_1 = (*inHigh.get_unchecked((i - 2) as usize)) - (*inLow.get_unchecked((i - 2) as usize)) - ((*inClose.get_unchecked((i - 2) as usize)) - (*inOpen.get_unchecked((i - 2) as usize))).ta_abs();
+                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
                 }
                 _ => {
-                    _candlerange_1 = T::ta_from_f64(0.0);
+                    _candlerange_1 = 0.0;
                 }
             }
-            (*NearPeriodTotal.get_unchecked_mut((2) as usize)) = (*NearPeriodTotal.get_unchecked((2) as usize)) + _candlerange_1;
+            (*NearPeriodTotal.get_unchecked_mut(2)) = (*NearPeriodTotal.get_unchecked(2)) + _candlerange_1;
             i += 1;
         }
         i = startIdx;
         outIdx = 0;
         loop {
-            if if (*inClose.get_unchecked((i - 3) as usize)) >= (*inOpen.get_unchecked((i - 3) as usize)) { 1 } else { 0 - 1 } == if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } && if (*inClose.get_unchecked((i - 2) as usize)) >= (*inOpen.get_unchecked((i - 2) as usize)) { 1 } else { 0 - 1 } == if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } && if (*inClose.get_unchecked((i) as usize)) >= (*inOpen.get_unchecked((i) as usize)) { 1 } else { 0 - 1 } == 0 - if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } && (*inOpen.get_unchecked((i - 2) as usize)) >= ((*inOpen.get_unchecked((i - 3) as usize))).min((*inClose.get_unchecked((i - 3) as usize))) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, (*NearPeriodTotal.get_unchecked((3) as usize)), (*inOpen.get_unchecked((i - 3) as usize)), (*inHigh.get_unchecked((i - 3) as usize)), (*inLow.get_unchecked((i - 3) as usize)), (*inClose.get_unchecked((i - 3) as usize))) && (*inOpen.get_unchecked((i - 2) as usize)) <= ((*inOpen.get_unchecked((i - 3) as usize))).max((*inClose.get_unchecked((i - 3) as usize))) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, (*NearPeriodTotal.get_unchecked((3) as usize)), (*inOpen.get_unchecked((i - 3) as usize)), (*inHigh.get_unchecked((i - 3) as usize)), (*inLow.get_unchecked((i - 3) as usize)), (*inClose.get_unchecked((i - 3) as usize))) && (*inOpen.get_unchecked((i - 1) as usize)) >= ((*inOpen.get_unchecked((i - 2) as usize))).min((*inClose.get_unchecked((i - 2) as usize))) - self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, (*NearPeriodTotal.get_unchecked((2) as usize)), (*inOpen.get_unchecked((i - 2) as usize)), (*inHigh.get_unchecked((i - 2) as usize)), (*inLow.get_unchecked((i - 2) as usize)), (*inClose.get_unchecked((i - 2) as usize))) && (*inOpen.get_unchecked((i - 1) as usize)) <= ((*inOpen.get_unchecked((i - 2) as usize))).max((*inClose.get_unchecked((i - 2) as usize))) + self.ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, (*NearPeriodTotal.get_unchecked((2) as usize)), (*inOpen.get_unchecked((i - 2) as usize)), (*inHigh.get_unchecked((i - 2) as usize)), (*inLow.get_unchecked((i - 2) as usize)), (*inClose.get_unchecked((i - 2) as usize))) && (if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } == 1 && (*inClose.get_unchecked((i - 1) as usize)) > (*inClose.get_unchecked((i - 2) as usize)) && (*inClose.get_unchecked((i - 2) as usize)) > (*inClose.get_unchecked((i - 3) as usize)) && (*inOpen.get_unchecked((i) as usize)) > (*inClose.get_unchecked((i - 1) as usize)) && (*inClose.get_unchecked((i) as usize)) < (*inOpen.get_unchecked((i - 3) as usize)) || (if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 }) as i32 == 0 - 1 && (*inClose.get_unchecked((i - 1) as usize)) < (*inClose.get_unchecked((i - 2) as usize)) && (*inClose.get_unchecked((i - 2) as usize)) < (*inClose.get_unchecked((i - 3) as usize)) && (*inOpen.get_unchecked((i) as usize)) < (*inClose.get_unchecked((i - 1) as usize)) && (*inClose.get_unchecked((i) as usize)) > (*inOpen.get_unchecked((i - 3) as usize))) {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (if (*inClose.get_unchecked((i - 1) as usize)) >= (*inOpen.get_unchecked((i - 1) as usize)) { 1 } else { 0 - 1 } * 100) as i32;
+            if (if (*inClose.get_unchecked(i - 3)) >= (*inOpen.get_unchecked(i - 3)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) == 0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (*inOpen.get_unchecked(i - 2)) >= ((*inOpen.get_unchecked(i - 3))).min((*inClose.get_unchecked(i - 3))) - { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs(), 1 => (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)), _ => (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)) - ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs() }; let _avg = if Near_avgPeriod != 0 { ((*NearPeriodTotal.get_unchecked(3))) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && (*inOpen.get_unchecked(i - 2)) <= ((*inOpen.get_unchecked(i - 3))).max((*inClose.get_unchecked(i - 3))) + { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs(), 1 => (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)), _ => (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)) - ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs() }; let _avg = if Near_avgPeriod != 0 { ((*NearPeriodTotal.get_unchecked(3))) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && (*inOpen.get_unchecked(i - 1)) >= ((*inOpen.get_unchecked(i - 2))).min((*inClose.get_unchecked(i - 2))) - { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Near_avgPeriod != 0 { ((*NearPeriodTotal.get_unchecked(2))) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && (*inOpen.get_unchecked(i - 1)) <= ((*inOpen.get_unchecked(i - 2))).max((*inClose.get_unchecked(i - 2))) + { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Near_avgPeriod != 0 { ((*NearPeriodTotal.get_unchecked(2))) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } && ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 1 && (*inClose.get_unchecked(i - 1)) > (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i - 2)) > (*inClose.get_unchecked(i - 3)) && (*inOpen.get_unchecked(i)) > (*inClose.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) < (*inOpen.get_unchecked(i - 3)) || ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (*inClose.get_unchecked(i - 1)) < (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i - 2)) < (*inClose.get_unchecked(i - 3)) && (*inOpen.get_unchecked(i)) < (*inClose.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) > (*inOpen.get_unchecked(i - 3))) {
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) * 100) as i32;
             } else {
-                (*outInteger.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = 0;
+                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
             }
             // for( totIdx = 3; totIdx >= 2; totIdx -= 1 )
             totIdx = 3;
             loop {
-                let mut _candlerange_2: T;
+                let mut _candlerange_2: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_2 = ((*inClose.get_unchecked((i - totIdx) as usize)) - (*inOpen.get_unchecked((i - totIdx) as usize))).ta_abs();
+                        _candlerange_2 = ((*inClose.get_unchecked(i - totIdx)) - (*inOpen.get_unchecked(i - totIdx))).abs();
                     }
                     1 => {
-                        _candlerange_2 = (*inHigh.get_unchecked((i - totIdx) as usize)) - (*inLow.get_unchecked((i - totIdx) as usize));
+                        _candlerange_2 = (*inHigh.get_unchecked(i - totIdx)) - (*inLow.get_unchecked(i - totIdx));
                     }
                     2 => {
-                        _candlerange_2 = (*inHigh.get_unchecked((i - totIdx) as usize)) - (*inLow.get_unchecked((i - totIdx) as usize)) - ((*inClose.get_unchecked((i - totIdx) as usize)) - (*inOpen.get_unchecked((i - totIdx) as usize))).ta_abs();
+                        _candlerange_2 = (*inHigh.get_unchecked(i - totIdx)) - (*inLow.get_unchecked(i - totIdx)) - ((*inClose.get_unchecked(i - totIdx)) - (*inOpen.get_unchecked(i - totIdx))).abs();
                     }
                     _ => {
-                        _candlerange_2 = T::ta_from_f64(0.0);
+                        _candlerange_2 = 0.0;
                     }
                 }
-                let mut _candlerange_3: T;
+                let mut _candlerange_3: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_3 = ((*inClose.get_unchecked((NearTrailingIdx - totIdx) as usize)) - (*inOpen.get_unchecked((NearTrailingIdx - totIdx) as usize))).ta_abs();
+                        _candlerange_3 = ((*inClose.get_unchecked(NearTrailingIdx - totIdx)) - (*inOpen.get_unchecked(NearTrailingIdx - totIdx))).abs();
                     }
                     1 => {
-                        _candlerange_3 = (*inHigh.get_unchecked((NearTrailingIdx - totIdx) as usize)) - (*inLow.get_unchecked((NearTrailingIdx - totIdx) as usize));
+                        _candlerange_3 = (*inHigh.get_unchecked(NearTrailingIdx - totIdx)) - (*inLow.get_unchecked(NearTrailingIdx - totIdx));
                     }
                     2 => {
-                        _candlerange_3 = (*inHigh.get_unchecked((NearTrailingIdx - totIdx) as usize)) - (*inLow.get_unchecked((NearTrailingIdx - totIdx) as usize)) - ((*inClose.get_unchecked((NearTrailingIdx - totIdx) as usize)) - (*inOpen.get_unchecked((NearTrailingIdx - totIdx) as usize))).ta_abs();
+                        _candlerange_3 = (*inHigh.get_unchecked(NearTrailingIdx - totIdx)) - (*inLow.get_unchecked(NearTrailingIdx - totIdx)) - ((*inClose.get_unchecked(NearTrailingIdx - totIdx)) - (*inOpen.get_unchecked(NearTrailingIdx - totIdx))).abs();
                     }
                     _ => {
-                        _candlerange_3 = T::ta_from_f64(0.0);
+                        _candlerange_3 = 0.0;
                     }
                 }
-                (*NearPeriodTotal.get_unchecked_mut((totIdx) as usize)) = (*NearPeriodTotal.get_unchecked((totIdx) as usize)) + (_candlerange_2 - _candlerange_3);
+                (*NearPeriodTotal.get_unchecked_mut(totIdx)) = (*NearPeriodTotal.get_unchecked(totIdx)) + (_candlerange_2 - _candlerange_3);
                 if totIdx == 2 { break; }
                 totIdx -= 1;
             }

@@ -79,17 +79,17 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn adxr<T: TaFloat>(
+    pub fn adxr(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -111,19 +111,19 @@ impl Core {
             outReal,
         );
     }
-    pub fn adxr_unguarded<T: TaFloat>(
+    pub fn adxr_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut adx: Vec<T> = Vec::new();
+        let mut adx: Vec<f64> = Vec::new();
         let mut adxrLookback: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
@@ -139,7 +139,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        adx = vec![T::ta_zero(); ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
+        adx = vec![0.0_f64; ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
         retCode = self.adx_unguarded((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
         if retCode != RetCode::Success {
             return retCode;
@@ -149,23 +149,23 @@ impl Core {
         outIdx = 0;
         nbElement = endIdx - startIdx + 2;
         while { nbElement -= 1; nbElement } != 0 {
-            outReal[({ let _v = outIdx; outIdx += 1; _v }) as usize] = ((adx[({ let _v = i; i += 1; _v }) as usize] + adx[({ let _v = j; j += 1; _v }) as usize]) / T::ta_from_f64(2.0));
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((((adx[{ let _v = i; i += 1; _v }] + adx[{ let _v = j; j += 1; _v }]) / 2.0)) as f64);
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
-    pub unsafe fn adxr_unchecked<T: TaFloat>(
+    pub unsafe fn adxr_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -187,19 +187,19 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn adxr_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn adxr_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inHigh: &[T],
-        inLow: &[T],
-        inClose: &[T],
+        inHigh: &[f64],
+        inLow: &[f64],
+        inClose: &[f64],
         mut optInTimePeriod: i32,
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
-        let mut adx: Vec<T> = Vec::new();
+        let mut adx: Vec<f64> = Vec::new();
         let mut adxrLookback: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
@@ -215,7 +215,7 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        adx = vec![T::ta_zero(); ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
+        adx = vec![0.0_f64; ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
         retCode = self.adx_unguarded((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
         if retCode != RetCode::Success {
             return retCode;
@@ -225,7 +225,7 @@ impl Core {
         outIdx = 0;
         nbElement = endIdx - startIdx + 2;
         while { nbElement -= 1; nbElement } != 0 {
-            (*outReal.get_unchecked_mut(({ let _v = outIdx; outIdx += 1; _v }) as usize)) = (((*adx.get_unchecked(({ let _v = i; i += 1; _v }) as usize)) + (*adx.get_unchecked(({ let _v = j; j += 1; _v }) as usize))) / T::ta_from_f64(2.0));
+            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((((*adx.get_unchecked({ let _v = i; i += 1; _v })) + (*adx.get_unchecked({ let _v = j; j += 1; _v }))) / 2.0)) as f64);
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

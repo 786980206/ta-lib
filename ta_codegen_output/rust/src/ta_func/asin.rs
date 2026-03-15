@@ -66,14 +66,14 @@ impl Core {
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outReal` - Output values
-    pub fn asin<T: TaFloat>(
+    pub fn asin(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -87,14 +87,14 @@ impl Core {
             outReal,
         );
     }
-    pub fn asin_unguarded<T: TaFloat>(
+    pub fn asin_unguarded(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -102,7 +102,7 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            outReal[(outIdx) as usize] = inReal[(i) as usize].ta_asin();
+            outReal[outIdx] = (((inReal[i]).asin()) as f64);
             i += 1;
             outIdx += 1;
         }
@@ -110,14 +110,14 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
-    pub unsafe fn asin_unchecked<T: TaFloat>(
+    pub unsafe fn asin_unchecked(
         &self,
         startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
@@ -131,14 +131,14 @@ impl Core {
             outReal,
         );
     }
-    pub unsafe fn asin_unguarded_unchecked<T: TaFloat>(
+    pub unsafe fn asin_unguarded_unchecked(
         &self,
         mut startIdx: usize,
         endIdx: usize,
-        inReal: &[T],
+        inReal: &[f64],
         outBegIdx: &mut usize,
         outNBElement: &mut usize,
-        outReal: &mut [T],
+        outReal: &mut [f64],
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
@@ -146,7 +146,7 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            (*outReal.get_unchecked_mut((outIdx) as usize)) = (*inReal.get_unchecked((i) as usize)).ta_asin();
+            (*outReal.get_unchecked_mut(outIdx)) = ((((*inReal.get_unchecked(i))).asin()) as f64);
             i += 1;
             outIdx += 1;
         }

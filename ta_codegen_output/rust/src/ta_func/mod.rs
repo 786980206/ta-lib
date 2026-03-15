@@ -116,9 +116,6 @@ pub enum FuncUnstId {
     FuncUnstAll,
 }
 
-mod float;
-pub use float::TaFloat;
-
 /// A single candlestick setting entry.
 #[derive(Debug, Clone, Copy)]
 pub struct CandleSetting {
@@ -223,27 +220,29 @@ impl Core {
     }
 
     /// Compute candlestick range for the given range type and OHLC values.
+    #[inline(always)]
     #[allow(non_snake_case)]
-    pub fn ta_candlerange<T: TaFloat>(&self, rangeType: i32, open: T, high: T, low: T, close: T) -> T {
+    pub fn ta_candlerange(&self, rangeType: i32, open: f64, high: f64, low: f64, close: f64) -> f64 {
         match rangeType {
-            0 => (close - open).ta_abs(),
+            0 => (close - open).abs(),
             1 => high - low,
-            2 => high - low - (close - open).ta_abs(),
-            _ => T::ta_zero(),
+            2 => high - low - (close - open).abs(),
+            _ => 0.0,
         }
     }
 
     /// Compute candlestick average for the given settings and OHLC values.
+    #[inline(always)]
     #[allow(non_snake_case)]
-    pub fn ta_candleaverage<T: TaFloat>(&self, rangeType: i32, avgPeriod: i32, factor: f64, sum: T,
-                                         open: T, high: T, low: T, close: T) -> T {
+    pub fn ta_candleaverage(&self, rangeType: i32, avgPeriod: i32, factor: f64, sum: f64,
+                             open: f64, high: f64, low: f64, close: f64) -> f64 {
         let avg = if avgPeriod != 0 {
-            sum / T::ta_from_i32(avgPeriod)
+            sum / (avgPeriod as f64)
         } else {
             self.ta_candlerange(rangeType, open, high, low, close)
         };
-        let divisor = if rangeType == 2 { T::ta_from_f64(2.0) } else { T::ta_one() };
-        T::ta_from_f64(factor) * avg / divisor
+        let divisor = if rangeType == 2 { 2.0 } else { 1.0 };
+        factor * avg / divisor
     }
 }
 
