@@ -2115,10 +2115,15 @@ fn render_expr(
                     // Only wrap if the expression is provably usize AND wasn't already handled by i32 wrapping
                     let left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
                     let right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
-                    if left_is_known_usize && right_is_float && !left_is_i32 {
+                    // Also detect BinOps that render as usize due to inner i32-to-usize coercion
+                    let left_eff_usize = left_is_known_usize
+                        || expr_binop_renders_as_usize(left, ctx);
+                    let right_eff_usize = right_is_known_usize
+                        || expr_binop_renders_as_usize(right, ctx);
+                    if left_eff_usize && right_is_float && !left_is_i32 {
                         left_str = format!("T::ta_from_i32(({left_str}) as i32)");
                     }
-                    if right_is_known_usize && left_is_float && !right_is_i32 {
+                    if right_eff_usize && left_is_float && !right_is_i32 {
                         right_str = format!("T::ta_from_i32(({right_str}) as i32)");
                     }
                 }
@@ -2135,6 +2140,18 @@ fn render_expr(
                 }
                 if right_is_i32_eff && left_is_usize {
                     right_str = format!("({right_str}) as usize");
+                }
+                // When both sides appear i32-typed but one actually renders as usize
+                // (e.g., Cast(Integer, usize_expr) drops the cast), fix the mismatch.
+                if left_is_i32_eff && right_is_i32_eff && !left_is_int_lit && !right_is_int_lit {
+                    let left_renders_usize = expr_renders_as_usize_despite_i32(left, ctx);
+                    let right_renders_usize = expr_renders_as_usize_despite_i32(right, ctx);
+                    if left_renders_usize && !right_renders_usize {
+                        right_str = format!("({right_str}) as usize");
+                    }
+                    if right_renders_usize && !left_renders_usize {
+                        left_str = format!("({left_str}) as usize");
+                    }
                 }
             }
             // For comparison operators, cast i32 to usize when mixed (not float)
@@ -2280,6 +2297,16 @@ fn render_expr(
                 Expr::Ternary(_, t, _) => expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_)),
                 Expr::Var(name) => ctx.index_vars.contains(name) || is_likely_index_var(name) || is_i32_opt_in_param(name),
                 Expr::Not(inner) => matches!(inner.as_ref(), Expr::Var(name) if ctx.index_vars.contains(name) || is_likely_index_var(name)),
+                // FuncCall that inlines to integer-producing ternary (e.g., ta_realbodygapup)
+                Expr::FuncCall(fname, args) => {
+                    if let Some(helper) = helpers.get(fname) {
+                        if let Some(inlined) = try_inline_expr(helper, args) {
+                            if let Expr::Ternary(_, ref t, _) = inlined {
+                                expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_))
+                            } else { false }
+                        } else { is_integer_returning_helper(fname) }
+                    } else { is_integer_returning_helper(fname) }
+                }
                 _ => false,
             };
             let cond_str = if cond_needs_bool {
@@ -2411,14 +2438,22 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
             is_i32_opt_in_param(name) || name.ends_with("_avgPeriod")
                 || name.ends_with("_rangeType")
         }
-        Expr::FuncCall(name, _) => {
-            name == "UNSTABLE_PERIOD" // unstable_period array contains i32 values
+        Expr::FuncCall(name, args) => {
+            if name == "UNSTABLE_PERIOD" {
+                return true; // unstable_period array contains i32 values
+            }
+            // max(a,b) / min(a,b) preserve the type of their arguments.
+            // If all args are i32-typed, the result is i32.
+            if matches!(name.as_str(), "max" | "min" | "fmax" | "fmin") {
+                return args.iter().all(|a| expr_is_i32_typed(a));
+            }
+            false
         }
         Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Shr | BinOp::Shl | BinOp::Mod) => {
             expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
                 || expr_is_i32_typed(right) && matches!(left.as_ref(), Expr::IntLiteral(_))
         }
-        Expr::Cast(VarType::Integer, inner) => {
+        Expr::Cast(VarType::Integer, _inner) => {
             true
         }
         _ => false,
@@ -2475,6 +2510,56 @@ fn expr_is_known_usize_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
 }
 
 
+
+/// Check if an expression considered "i32-typed" by `expr_is_i32_typed` actually
+/// renders as usize due to containing a `Cast(Integer/Index, inner)` where `inner`
+/// is already usize. Used to detect BinOps with mixed rendered types.
+fn expr_renders_as_usize_despite_i32(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    match expr {
+        Expr::Cast(VarType::Integer | VarType::Index, inner) => {
+            // The Cast handler renders as identity (no `as usize`) when inner is
+            // already usize-typed, making the whole expr usize at runtime
+            expr_is_known_usize_ctx(inner, ctx)
+                || expr_is_integer(inner)
+                || expr_returns_usize(inner)
+        }
+        Expr::BinOp(left, _, right) => {
+            expr_renders_as_usize_despite_i32(left, ctx)
+                || expr_renders_as_usize_despite_i32(right, ctx)
+        }
+        _ => false,
+    }
+}
+
+/// Check if a BinOp expression evaluates to usize after rendering, considering
+/// that the BinOp handler casts i32 operands to usize when mixed with usize.
+/// This detects expressions like `optInTimePeriod - (today - highestIdx)` where
+/// optInTimePeriod is i32 but gets cast to usize at render time.
+fn expr_binop_renders_as_usize(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    if let Expr::BinOp(left, op, right) = expr {
+        if !matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) {
+            return false;
+        }
+        let l_usize = expr_is_known_usize_ctx(left, ctx)
+            || matches!(left.as_ref(), Expr::IntLiteral(_));
+        let r_usize = expr_is_known_usize_ctx(right, ctx)
+            || matches!(right.as_ref(), Expr::IntLiteral(_));
+        let l_i32 = expr_is_i32_typed(left);
+        let r_i32 = expr_is_i32_typed(right);
+        // If one side is usize and the other is i32, the handler casts i32 to usize
+        // Also if one side is a sub-BinOp that itself renders as usize
+        let l_eff_usize = l_usize || expr_binop_renders_as_usize(left, ctx)
+            || expr_renders_as_usize_despite_i32(left, ctx);
+        let r_eff_usize = r_usize || expr_binop_renders_as_usize(right, ctx)
+            || expr_renders_as_usize_despite_i32(right, ctx);
+        // Mixed: one side usize, other i32 => renders as usize
+        (l_eff_usize && r_i32) || (r_eff_usize && l_i32)
+            // Both usize
+            || (l_eff_usize && r_eff_usize)
+    } else {
+        false
+    }
+}
 
 /// Render an array index expression, adding `as usize` when needed.
 fn render_index_expr(
