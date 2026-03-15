@@ -880,152 +880,6 @@ pub use ta_func::*;
     std::fs::write(&lib_path, lib_rs).unwrap();
     println!("  Scaffolding -> {}", lib_path.display());
 
-    // --- src/ta_func/float.rs ---
-    let float_rs = r#"//! Sealed floating-point trait for TA-Lib generic indicator functions.
-//!
-//! [`TaFloat`] is implemented for [`f32`] and [`f64`]. It cannot be implemented
-//! outside this crate (sealed via `private::Sealed`).
-//!
-//! All trait methods use a `ta_` prefix to avoid name collisions with inherent
-//! `f32`/`f64` methods in the standard library.
-
-/// Sealed floating-point trait for generic TA-Lib indicator functions.
-///
-/// Provides constants, conversions, and math operations needed by
-/// generated indicator code. All methods delegate to built-in intrinsics
-/// and compile to single CPU instructions after monomorphization.
-///
-/// # Sealed
-///
-/// This trait cannot be implemented outside this crate. This allows
-/// adding methods in future versions without breaking changes.
-pub trait TaFloat:
-    private::Sealed
-    + Copy
-    + PartialEq
-    + PartialOrd
-    + std::ops::Add<Output = Self>
-    + std::ops::Sub<Output = Self>
-    + std::ops::Mul<Output = Self>
-    + std::ops::Div<Output = Self>
-    + std::ops::Rem<Output = Self>
-    + std::ops::Neg<Output = Self>
-    + std::ops::AddAssign
-    + std::ops::SubAssign
-    + std::ops::MulAssign
-    + std::ops::DivAssign
-    + std::ops::RemAssign
-{
-    /// The additive identity (0.0).
-    fn ta_zero() -> Self;
-    /// The multiplicative identity (1.0).
-    fn ta_one() -> Self;
-    /// Machine epsilon for near-zero comparison.
-    fn ta_epsilon() -> Self;
-
-    /// Convert from `f64`. For `f64` this is identity; for `f32` it narrows.
-    fn ta_from_f64(v: f64) -> Self;
-    /// Convert from `i32`.
-    fn ta_from_i32(v: i32) -> Self;
-    /// Convert to `f64`. For `f64` this is identity; for `f32` it widens.
-    fn ta_to_f64(self) -> f64;
-
-    /// Absolute value.
-    fn ta_abs(self) -> Self;
-    /// Square root.
-    fn ta_sqrt(self) -> Self;
-    /// Ceiling (round up).
-    fn ta_ceil(self) -> Self;
-    /// Floor (round down).
-    fn ta_floor(self) -> Self;
-    /// Round to nearest integer.
-    fn ta_round(self) -> Self;
-
-    /// Sine.
-    fn ta_sin(self) -> Self;
-    /// Cosine.
-    fn ta_cos(self) -> Self;
-    /// Tangent.
-    fn ta_tan(self) -> Self;
-    /// Arcsine.
-    fn ta_asin(self) -> Self;
-    /// Arccosine.
-    fn ta_acos(self) -> Self;
-    /// Arctangent.
-    fn ta_atan(self) -> Self;
-
-    /// Hyperbolic sine.
-    fn ta_sinh(self) -> Self;
-    /// Hyperbolic cosine.
-    fn ta_cosh(self) -> Self;
-    /// Hyperbolic tangent.
-    fn ta_tanh(self) -> Self;
-
-    /// Natural logarithm.
-    fn ta_ln(self) -> Self;
-    /// Base-10 logarithm.
-    fn ta_log10(self) -> Self;
-    /// Exponential (e^self).
-    fn ta_exp(self) -> Self;
-
-    /// Minimum of two values.
-    fn min(self, other: Self) -> Self;
-    /// Maximum of two values.
-    fn max(self, other: Self) -> Self;
-}
-
-macro_rules! impl_ta_float {
-    ($t:ty, $epsilon:expr) => {
-        impl TaFloat for $t {
-            #[inline(always)] fn ta_zero() -> Self { 0.0 }
-            #[inline(always)] fn ta_one() -> Self { 1.0 }
-            #[inline(always)] fn ta_epsilon() -> Self { $epsilon }
-
-            #[inline(always)] fn ta_from_f64(v: f64) -> Self { v as Self }
-            #[inline(always)] fn ta_from_i32(v: i32) -> Self { v as Self }
-            #[inline(always)] fn ta_to_f64(self) -> f64 { self as f64 }
-
-            #[inline(always)] fn ta_abs(self) -> Self { <$t>::abs(self) }
-            #[inline(always)] fn ta_sqrt(self) -> Self { <$t>::sqrt(self) }
-            #[inline(always)] fn ta_ceil(self) -> Self { <$t>::ceil(self) }
-            #[inline(always)] fn ta_floor(self) -> Self { <$t>::floor(self) }
-            #[inline(always)] fn ta_round(self) -> Self { <$t>::round(self) }
-
-            #[inline(always)] fn ta_sin(self) -> Self { <$t>::sin(self) }
-            #[inline(always)] fn ta_cos(self) -> Self { <$t>::cos(self) }
-            #[inline(always)] fn ta_tan(self) -> Self { <$t>::tan(self) }
-            #[inline(always)] fn ta_asin(self) -> Self { <$t>::asin(self) }
-            #[inline(always)] fn ta_acos(self) -> Self { <$t>::acos(self) }
-            #[inline(always)] fn ta_atan(self) -> Self { <$t>::atan(self) }
-
-            #[inline(always)] fn ta_sinh(self) -> Self { <$t>::sinh(self) }
-            #[inline(always)] fn ta_cosh(self) -> Self { <$t>::cosh(self) }
-            #[inline(always)] fn ta_tanh(self) -> Self { <$t>::tanh(self) }
-
-            #[inline(always)] fn ta_ln(self) -> Self { <$t>::ln(self) }
-            #[inline(always)] fn ta_log10(self) -> Self { <$t>::log10(self) }
-            #[inline(always)] fn ta_exp(self) -> Self { <$t>::exp(self) }
-
-            #[inline(always)] fn min(self, other: Self) -> Self { <$t>::min(self, other) }
-            #[inline(always)] fn max(self, other: Self) -> Self { <$t>::max(self, other) }
-        }
-    };
-}
-
-impl_ta_float!(f64, 1e-14);
-impl_ta_float!(f32, 1e-6);
-
-mod private {
-    /// Sealed trait -- prevents external implementations of [`super::TaFloat`].
-    pub trait Sealed {}
-    impl Sealed for f32 {}
-    impl Sealed for f64 {}
-}
-"#;
-    let float_path = ta_func_dir.join("float.rs");
-    std::fs::write(&float_path, float_rs).unwrap();
-    println!("  Scaffolding -> {}", float_path.display());
-
     // --- src/ta_func/mod.rs ---
     let mut mod_rs = String::new();
     mod_rs.push_str(
@@ -1147,9 +1001,6 @@ pub enum FuncUnstId {
     FuncUnstAll,
 }
 
-mod float;
-pub use float::TaFloat;
-
 /// A single candlestick setting entry.
 #[derive(Debug, Clone, Copy)]
 pub struct CandleSetting {
@@ -1254,27 +1105,29 @@ impl Core {
     }
 
     /// Compute candlestick range for the given range type and OHLC values.
+    #[inline(always)]
     #[allow(non_snake_case)]
-    pub fn ta_candlerange<T: TaFloat>(&self, rangeType: i32, open: T, high: T, low: T, close: T) -> T {
+    pub fn ta_candlerange(&self, rangeType: i32, open: f64, high: f64, low: f64, close: f64) -> f64 {
         match rangeType {
-            0 => (close - open).ta_abs(),
+            0 => (close - open).abs(),
             1 => high - low,
-            2 => high - low - (close - open).ta_abs(),
-            _ => T::ta_zero(),
+            2 => high - low - (close - open).abs(),
+            _ => 0.0,
         }
     }
 
     /// Compute candlestick average for the given settings and OHLC values.
+    #[inline(always)]
     #[allow(non_snake_case)]
-    pub fn ta_candleaverage<T: TaFloat>(&self, rangeType: i32, avgPeriod: i32, factor: f64, sum: T,
-                                         open: T, high: T, low: T, close: T) -> T {
+    pub fn ta_candleaverage(&self, rangeType: i32, avgPeriod: i32, factor: f64, sum: f64,
+                             open: f64, high: f64, low: f64, close: f64) -> f64 {
         let avg = if avgPeriod != 0 {
-            sum / T::ta_from_i32(avgPeriod)
+            sum / (avgPeriod as f64)
         } else {
             self.ta_candlerange(rangeType, open, high, low, close)
         };
-        let divisor = if rangeType == 2 { T::ta_from_f64(2.0) } else { T::ta_one() };
-        T::ta_from_f64(factor) * avg / divisor
+        let divisor = if rangeType == 2 { 2.0 } else { 1.0 };
+        factor * avg / divisor
     }
 }
 
