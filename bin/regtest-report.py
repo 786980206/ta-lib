@@ -69,17 +69,18 @@ def parse_results(output):
     return results, columns
 
 
-def fmt_us(val):
-    """Format microseconds nicely."""
-    if val is None:
+def fmt_ns(val_us):
+    """Format timing in nanoseconds (input is microseconds)."""
+    if val_us is None:
         return "—"
-    if val == 0:
-        return "<0.1"
-    if val < 0.1:
-        return f"{val:.2f}"
-    if val < 10:
-        return f"{val:.1f}"
-    return f"{val:.0f}"
+    ns = val_us * 1000
+    if ns == 0:
+        return "<42"
+    if ns < 100:
+        return f"{ns:.0f}"
+    if ns < 10000:
+        return f"{ns:.0f}"
+    return f"{ns:,.0f}"
 
 
 def fmt_ratio(val, ref):
@@ -139,8 +140,8 @@ def generate_report(languages="c,java,dotnet,rust"):
     lines.append("")
 
     # Build summary table with Unicode box drawing
-    sum_headers = ["Language", "Pass", "Fail", "Avg (μs)", "vs C-ref"]
-    sum_widths = [10, 6, 6, 10, 16]
+    sum_headers = ["Language", "Pass", "Fail", "Avg (ns)", "vs C-ref"]
+    sum_widths = [10, 6, 6, 12, 16]
 
     def hline(widths, left, mid, right, fill="─"):
         return left + mid.join(fill * w for w in widths) + right
@@ -157,7 +158,7 @@ def generate_report(languages="c,java,dotnet,rust"):
     lines.append(hline(sum_widths, "├", "┼", "┤"))
 
     # C-ref row
-    lines.append(row(["C-ref", str(total), "0", fmt_us(c_ref_avg), "baseline"], sum_widths))
+    lines.append(row(["C-ref", str(total), "0", fmt_ns(c_ref_avg), "baseline"], sum_widths))
 
     for col in columns:
         name = lang_display.get(col, col)
@@ -167,10 +168,10 @@ def generate_report(languages="c,java,dotnet,rust"):
         measured = col_measured.get(col, 0)
         if measured < total * 0.5:
             # Most values below timer resolution — flag it
-            avg_str = f"~{fmt_us(avg)}*"
+            avg_str = f"~{fmt_ns(avg)}*"
             vs = f"*{measured}/{total} measured"
         else:
-            avg_str = fmt_us(avg)
+            avg_str = fmt_ns(avg)
             vs = fmt_ratio(avg, c_ref_avg) if avg > 0 else "—"
         lines.append(row([name, str(p), str(f), avg_str, vs], sum_widths))
 
@@ -179,10 +180,10 @@ def generate_report(languages="c,java,dotnet,rust"):
     lines.append("")
 
     # ── Detailed Results ──
-    lines.append("## Results (μs/call)")
+    lines.append("## Results (ns/call)")
     lines.append("")
 
-    col_widths = [20, 7] + [7] * len(columns)
+    col_widths = [20, 8] + [8] * len(columns)
     headers = ["Function", "C-ref"] + [lang_display.get(c, c) for c in columns]
 
     lines.append("```")
@@ -192,12 +193,12 @@ def generate_report(languages="c,java,dotnet,rust"):
 
     for func in sorted(results.keys()):
         data = results[func]
-        cells = [func, fmt_us(data["c_ref"])]
+        cells = [func, fmt_ns(data["c_ref"])]
         for col in columns:
             if data["status"] == "FAIL":
                 cells.append("FAIL")
             elif col in data["timings"]:
-                cells.append(fmt_us(data["timings"][col]))
+                cells.append(fmt_ns(data["timings"][col]))
             else:
                 cells.append("—")
         lines.append(row(cells, col_widths))
