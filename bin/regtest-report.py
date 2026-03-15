@@ -116,11 +116,14 @@ def generate_report(languages="c,java,dotnet,rust"):
 
     col_avgs = {}
     col_pass = {}
+    col_measured = {}  # how many functions had measurable (>0) timing
     for col in columns:
-        vals = [f["timings"].get(col) for f in results.values()
-                if f["timings"].get(col) is not None and f["timings"].get(col) > 0]
-        col_avgs[col] = sum(vals) / len(vals) if vals else 0
+        all_vals = [f["timings"].get(col) for f in results.values()
+                    if f["timings"].get(col) is not None]
+        nonzero = [v for v in all_vals if v > 0]
+        col_avgs[col] = sum(nonzero) / len(nonzero) if nonzero else 0
         col_pass[col] = sum(1 for f in results.values() if f["status"] == "PASS")
+        col_measured[col] = len(nonzero)
 
     lines = []
     lines.append("# ta_regtest Cross-Language Report")
@@ -161,8 +164,15 @@ def generate_report(languages="c,java,dotnet,rust"):
         p = col_pass.get(col, 0)
         f = total - p
         avg = col_avgs.get(col, 0)
-        vs = fmt_ratio(avg, c_ref_avg) if avg > 0 else "—"
-        lines.append(row([name, str(p), str(f), fmt_us(avg), vs], sum_widths))
+        measured = col_measured.get(col, 0)
+        if measured < total * 0.5:
+            # Most values below timer resolution — flag it
+            avg_str = f"~{fmt_us(avg)}*"
+            vs = f"*{measured}/{total} measured"
+        else:
+            avg_str = fmt_us(avg)
+            vs = fmt_ratio(avg, c_ref_avg) if avg > 0 else "—"
+        lines.append(row([name, str(p), str(f), avg_str, vs], sum_widths))
 
     lines.append(hline(sum_widths, "└", "┴", "┘"))
     lines.append("```")
