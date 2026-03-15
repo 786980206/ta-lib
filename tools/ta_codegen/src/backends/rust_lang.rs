@@ -34,6 +34,9 @@ pub struct RustRenderCtx {
     /// Output parameter names that are integer (i32) arrays (e.g., outInteger, outMaxIdx).
     /// Values assigned to these arrays need `as i32` cast when they are usize-typed.
     pub int_output_names: std::collections::HashSet<String>,
+    /// Variable names declared as `VarType::IntPointer` (Vec<i32>).
+    /// Array accesses on these produce i32 values. Assignments to these need i32 values.
+    pub int_vec_vars: std::collections::HashSet<String>,
     /// If true, we're inside a lookback function (returns usize, not RetCode).
     /// Return values that are i32-typed will be cast to usize.
     pub is_lookback: bool,
@@ -49,9 +52,18 @@ impl RustRenderCtx {
             vec_vars: std::collections::HashSet::new(),
             real_array_vars: std::collections::HashSet::new(),
             int_output_names: std::collections::HashSet::new(),
+            int_vec_vars: std::collections::HashSet::new(),
             is_lookback: false,
         }
     }
+}
+
+/// Check if an array variable is a Vec<i32> or [i32; N] (integer array).
+/// Elements produce i32 values. Assignments need i32 cast.
+fn is_int_array_or_vec(name: &str, ctx: &RustRenderCtx) -> bool {
+    ctx.int_vec_vars.contains(name)
+        || is_int_array_var(name)
+        || ctx.int_output_names.contains(name)
 }
 
 #[allow(clippy::implicit_hasher)]
@@ -143,7 +155,8 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     let mut real_vars = std::collections::HashSet::new();
     let mut vec_vars = std::collections::HashSet::new();
     let mut real_array_vars = std::collections::HashSet::new();
-    collect_var_types(&func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars);
+    let mut int_vec_vars = std::collections::HashSet::new();
+    collect_var_types(&func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars, &mut int_vec_vars);
     // Also add parameter names
     index_vars.insert("startIdx".to_string());
     index_vars.insert("endIdx".to_string());
@@ -165,6 +178,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         vec_vars: vec_vars.clone(),
         real_array_vars: real_array_vars.clone(),
         int_output_names: int_output_set.clone(),
+        int_vec_vars: int_vec_vars.clone(),
         is_lookback: false,
     };
     out.push_str(&gen_unguarded_func(
@@ -183,6 +197,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         vec_vars,
         real_array_vars,
         int_output_names: int_output_set,
+        int_vec_vars,
         is_lookback: false,
     };
     out.push_str(&gen_unguarded_func(
@@ -706,6 +721,7 @@ fn collect_var_types(
     real_vars: &mut std::collections::HashSet<String>,
     vec_vars: &mut std::collections::HashSet<String>,
     real_array_vars: &mut std::collections::HashSet<String>,
+    int_vec_vars: &mut std::collections::HashSet<String>,
 ) {
     for stmt in body {
         match stmt {
@@ -713,34 +729,35 @@ fn collect_var_types(
                 match var_type {
                     VarType::Integer | VarType::Index => { index_vars.insert(name.clone()); }
                     VarType::Real => { real_vars.insert(name.clone()); }
-                    VarType::RealPointer | VarType::IntPointer => { vec_vars.insert(name.clone()); }
-                    VarType::IntArray(_) => { index_vars.insert(name.clone()); }
+                    VarType::RealPointer => { vec_vars.insert(name.clone()); }
+                    VarType::IntPointer => { vec_vars.insert(name.clone()); int_vec_vars.insert(name.clone()); }
+                    VarType::IntArray(_) => { index_vars.insert(name.clone()); int_vec_vars.insert(name.clone()); }
                     VarType::RealArray(_) => { real_array_vars.insert(name.clone()); }
                     _ => {}
                 }
             }
             Statement::If { then_body, else_body, .. } => {
-                collect_var_types(then_body, index_vars, real_vars, vec_vars, real_array_vars);
-                collect_var_types(else_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(then_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
+                collect_var_types(else_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::While { body: while_body, .. }
             | Statement::DoWhile { body: while_body, .. } => {
-                collect_var_types(while_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(while_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::For { body: for_body, .. } => {
-                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::ForC { body: for_body, .. } => {
-                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::Block { body: block_body } => {
-                collect_var_types(block_body, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(block_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::Switch { cases, default, .. } => {
                 for (_, case_body) in cases {
-                    collect_var_types(case_body, index_vars, real_vars, vec_vars, real_array_vars);
+                    collect_var_types(case_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
                 }
-                collect_var_types(default, index_vars, real_vars, vec_vars, real_array_vars);
+                collect_var_types(default, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             _ => {}
         }
@@ -1421,14 +1438,18 @@ pub fn render_statement(
                 false
             };
             // Check if we're assigning an i32-typed expression to a non-i32 target variable
-            // (e.g., usize var = optInTimePeriod which is i32)
+            // (e.g., usize var = optInTimePeriod which is i32,
+            //  or curPeriod = localPeriodArray[i] where array is Vec<i32>)
+            let value_is_i32 = expr_is_i32_typed(&new_value)
+                || matches!(new_value, Expr::Var(ref v) if is_i32_opt_in_param(v) || v.ends_with("_avgPeriod") || v.ends_with("_rangeType"))
+                || matches!(&new_value, Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
             let needs_usize_cast = if let Expr::Var(tname) = target {
                 !output_names.iter().any(|n| n == tname)
                     && !is_i32_opt_in_param(tname)
                     && !tname.ends_with("_avgPeriod")
                     && !tname.ends_with("_rangeType")
                     && !ctx.real_vars.contains(tname)
-                    && (expr_is_i32_typed(&new_value) || (matches!(new_value, Expr::Var(ref v) if is_i32_opt_in_param(v) || v.ends_with("_avgPeriod") || v.ends_with("_rangeType"))))
+                    && value_is_i32
             } else {
                 false
             };
@@ -1443,10 +1464,11 @@ pub fn render_statement(
             } else {
                 false
             };
-            // Check if target is an integer output array (e.g., outInteger[idx] = usize_val)
-            // Values assigned to i32 output arrays need `as i32` cast when usize-typed
+            // Check if target is an integer output/local array (e.g., outInteger[idx] = usize_val,
+            // sortedPeriods[i] = longestPeriod, localPeriodArray[i] = tempInt)
+            // Values assigned to i32 arrays need `as i32` cast when usize-typed
             let needs_int_output_cast = if let Expr::ArrayAccess(name, _) = target {
-                ctx.int_output_names.contains(name)
+                (ctx.int_output_names.contains(name) || is_int_array_or_vec(name, ctx))
                     && !expr_is_i32_typed(&new_value)
                     && !matches!(new_value, Expr::IntLiteral(_))
                     && (expr_is_known_usize_ctx(&new_value, ctx)
@@ -1471,12 +1493,13 @@ pub fn render_statement(
                             || expr_is_known_usize_ctx(&new_value, ctx))
                 } else if let Expr::ArrayAccess(name, _) = target {
                     // Array target: Real arrays (output, temp, local) need T values
-                    // But NOT IntArray targets (periods, usedFlag, sortedPeriods, etc.)
+                    // But NOT IntArray/IntPointer targets (periods, usedFlag, localPeriodArray, etc.)
                     // and NOT integer output arrays (outInteger, outMaxIdx, etc.)
                     !name.contains("Int") && !name.contains("integer")
                         && !ctx.index_vars.contains(name)
                         && !is_int_array_var(name)
                         && !ctx.int_output_names.contains(name)
+                        && !ctx.int_vec_vars.contains(name)
                         && (expr_is_untyped_integer(&new_value) || expr_is_i32_typed(&new_value)
                             || expr_is_known_usize_ctx(&new_value, ctx))
                 } else {
@@ -1940,6 +1963,26 @@ fn render_condition(
             }
         }
     }
+    // Ternary producing integer used as condition: needs != 0
+    if let Expr::Ternary(_, then_expr, _) = expr {
+        if expr_is_untyped_integer(then_expr) || matches!(then_expr.as_ref(), Expr::IntLiteral(_)) {
+            let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+            return format!("({rendered} != 0)");
+        }
+    }
+    // FuncCall that inlines to ternary producing integer: needs != 0
+    if let Expr::FuncCall(fname, args) = expr {
+        if let Some(helper) = helpers.get(fname) {
+            if let Some(inlined) = try_inline_expr(helper, args) {
+                if let Expr::Ternary(_, ref then_expr, _) = inlined {
+                    if expr_is_untyped_integer(then_expr) || matches!(then_expr.as_ref(), Expr::IntLiteral(_)) {
+                        let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+                        return format!("({rendered} != 0)");
+                    }
+                }
+            }
+        }
+    }
     render_expr(expr, ctx, opt_real_params, registry, helpers)
 }
 
@@ -2080,12 +2123,17 @@ fn render_expr(
                     }
                 }
                 // Cast i32 operands to usize when mixed with usize-typed operands (not float)
-                let left_is_usize = !left_is_i32 && !left_is_float && !left_is_int_lit;
-                let right_is_usize = !right_is_i32 && !right_is_float && !right_is_int_lit;
-                if left_is_i32 && right_is_usize {
+                // Also detect i32 array accesses (IntArray/IntPointer)
+                let arith_left_is_i32_arr = matches!(left.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+                let arith_right_is_i32_arr = matches!(right.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+                let left_is_i32_eff = left_is_i32 || arith_left_is_i32_arr;
+                let right_is_i32_eff = right_is_i32 || arith_right_is_i32_arr;
+                let left_is_usize = !left_is_i32_eff && !left_is_float && !left_is_int_lit;
+                let right_is_usize = !right_is_i32_eff && !right_is_float && !right_is_int_lit;
+                if left_is_i32_eff && right_is_usize {
                     left_str = format!("({left_str}) as usize");
                 }
-                if right_is_i32 && left_is_usize {
+                if right_is_i32_eff && left_is_usize {
                     right_str = format!("({right_str}) as usize");
                 }
             }
@@ -2130,11 +2178,28 @@ fn render_expr(
                     if right_is_untyped_int && !right_is_int_lit && left_is_float {
                         right_str = format!("T::ta_from_i32({right_str} as i32)");
                     }
+                    // Wrap usize-typed expressions when compared with T-typed expressions
+                    // (e.g., daysInTrend < 0.5 * smoothPeriod in ht_trendmode)
+                    // Only apply when the other side is GENUINELY float (not just matching
+                    // a naming heuristic while being usize in the context)
+                    let cmp_left_is_known_usize = expr_is_known_usize_ctx(left, ctx);
+                    let cmp_right_is_known_usize = expr_is_known_usize_ctx(right, ctx);
+                    if cmp_left_is_known_usize && right_is_float && !cmp_right_is_known_usize && !left_is_i32 && !left_is_int_lit {
+                        left_str = format!("T::ta_from_i32(({left_str}) as i32)");
+                    }
+                    if cmp_right_is_known_usize && left_is_float && !cmp_left_is_known_usize && !right_is_i32 && !right_is_int_lit {
+                        right_str = format!("T::ta_from_i32(({right_str}) as i32)");
+                    }
                 }
-                if left_is_i32 && !right_is_i32 && !right_is_float && !right_is_int_lit {
+                // Also detect i32 array accesses (IntArray/IntPointer) using context
+                let left_is_i32_arr = matches!(left.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+                let right_is_i32_arr = matches!(right.as_ref(), Expr::ArrayAccess(ref name, _) if is_int_array_or_vec(name, ctx));
+                let left_is_i32_eff = left_is_i32 || left_is_i32_arr;
+                let right_is_i32_eff = right_is_i32 || right_is_i32_arr;
+                if left_is_i32_eff && !right_is_i32_eff && !right_is_float && !right_is_int_lit {
                     left_str = format!("({left_str}) as usize");
                 }
-                if right_is_i32 && !left_is_i32 && !left_is_float && !left_is_int_lit {
+                if right_is_i32_eff && !left_is_i32_eff && !left_is_float && !left_is_int_lit {
                     right_str = format!("({right_str}) as usize");
                 }
             }
@@ -2209,7 +2274,19 @@ fn render_expr(
             format!("{{ {rendered} -= 1; {rendered} }}")
         }
         Expr::Ternary(cond, then_expr, else_expr) => {
-            let cond_str = render_expr(cond, ctx, opt_real_params, registry, helpers);
+            // Use render_condition for the ternary condition when it's a non-boolean
+            // expression (integer variable, ternary producing integer, etc.)
+            let cond_needs_bool = match cond.as_ref() {
+                Expr::Ternary(_, t, _) => expr_is_untyped_integer(t) || matches!(t.as_ref(), Expr::IntLiteral(_)),
+                Expr::Var(name) => ctx.index_vars.contains(name) || is_likely_index_var(name) || is_i32_opt_in_param(name),
+                Expr::Not(inner) => matches!(inner.as_ref(), Expr::Var(name) if ctx.index_vars.contains(name) || is_likely_index_var(name)),
+                _ => false,
+            };
+            let cond_str = if cond_needs_bool {
+                render_condition(cond, ctx, opt_real_params, registry, helpers)
+            } else {
+                render_expr(cond, ctx, opt_real_params, registry, helpers)
+            };
             let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
             let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
             format!(
@@ -2269,6 +2346,11 @@ fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
             if let Some(c) = ctx {
                 if c.real_vars.contains(name) {
                     return true;
+                }
+                // If declared as index/integer in VarDecl, it's NOT float
+                // Only use explicit declarations, not naming heuristics (which overlap)
+                if c.index_vars.contains(name) {
+                    return false;
                 }
             }
             // Only match known float-typed variable patterns.
@@ -2336,7 +2418,9 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
             expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
                 || expr_is_i32_typed(right) && matches!(left.as_ref(), Expr::IntLiteral(_))
         }
-        Expr::Cast(VarType::Integer, _) => true,
+        Expr::Cast(VarType::Integer, inner) => {
+            true
+        }
         _ => false,
     }
 }
@@ -2974,6 +3058,17 @@ fn render_cross_indicator_arg(
                 if let Expr::Var(name) = arg {
                     if ctx.real_vars.contains(name) {
                         return format!("std::slice::from_mut(&mut {name})");
+                    }
+                }
+                rendered
+            // Non-startIdx/endIdx, non-output position: if a usize variable is passed
+            // where an i32 param is expected (e.g., curPeriod to ma_unguarded), cast to i32
+            } else if position > 1 && !is_output_position {
+                if let Expr::Var(name) = arg {
+                    if (ctx.index_vars.contains(name) || is_likely_index_var(name))
+                        && !name.starts_with("in") && !name.starts_with("out")
+                    {
+                        return format!("({rendered}) as i32");
                     }
                 }
                 rendered
