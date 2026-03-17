@@ -199,7 +199,7 @@ TA_RetCode TA_S_EMA( int    startIdx,
       return TA_OUT_OF_RANGE_END_INDEX;
 
    optInK_1 = (2.0/((double)(optInTimePeriod+1)));
-   return TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
+   return TA_S_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
 
    return TA_SUCCESS;
 }

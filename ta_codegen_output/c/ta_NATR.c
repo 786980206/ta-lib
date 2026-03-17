@@ -268,16 +268,16 @@ TA_RetCode TA_S_NATR( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_S_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_S_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_S_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
@@ -359,16 +359,16 @@ TA_RetCode TA_S_NATR_Logic( int    startIdx,
    }
    if( (optInTimePeriod<=1) )
    {
-      return TA_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
+      return TA_S_TRANGE(startIdx,endIdx,inHigh,inLow,inClose,outBegIdx,outNBElement,outReal);
    }
    tempBuffer = malloc((((lookbackTotal+(endIdx-startIdx))+1)*sizeof(double)));
-   retCode = TA_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
+   retCode = TA_S_TRANGE(((startIdx-lookbackTotal)+1),endIdx,inHigh,inLow,inClose,&outBegIdx1,&outNbElement1,tempBuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_S_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);

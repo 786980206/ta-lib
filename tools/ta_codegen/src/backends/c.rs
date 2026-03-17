@@ -1121,8 +1121,22 @@ fn render_func_call(
             .map(|a| render_expr(a, single_precision, registry, helpers))
             .collect();
         if resolved != fname {
-            // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_INT_SMA)
-            format!("{}({})", resolved, rendered.join(","))
+            // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_SMA)
+            // For single-precision variants, convert TA_ prefix to TA_S_
+            // But NOT for:
+            // - _Lookback calls (they return int, no precision variant)
+            // - TA_INT_* calls (these are #defines that resolve to *_Logic; add S_ #defines instead)
+            let final_name = if single_precision
+                && resolved.starts_with("TA_")
+                && !resolved.starts_with("TA_S_")
+                && !resolved.starts_with("TA_INT_")
+                && !resolved.contains("_Lookback")
+            {
+                format!("TA_S_{}", &resolved[3..])
+            } else {
+                resolved
+            };
+            format!("{}({})", final_name, rendered.join(","))
         } else if fname.ends_with("_Lookback") {
             // Legacy: RSI_Lookback(args...) -> TA_RSI_Lookback(args...)
             format!("TA_{}({})", fname, rendered.join(","))

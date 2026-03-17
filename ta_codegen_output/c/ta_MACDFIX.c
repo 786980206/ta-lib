@@ -95,7 +95,7 @@ TA_RetCode TA_S_MACDFIX( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+   return TA_S_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
 
    return TA_SUCCESS;
 }
@@ -111,7 +111,7 @@ TA_RetCode TA_S_MACDFIX_Logic( int    startIdx,
                                double        outMACDHist[] )
 {
 
-   return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
+   return TA_S_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
 
    return TA_SUCCESS;
 }

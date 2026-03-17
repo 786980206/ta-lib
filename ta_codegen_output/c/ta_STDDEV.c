@@ -165,7 +165,7 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
-   retCode = TA_VAR(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
+   retCode = TA_S_VAR(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
    if( (retCode!=TA_SUCCESS) )
    {
       return retCode;
@@ -215,7 +215,7 @@ TA_RetCode TA_S_STDDEV_Logic( int    startIdx,
    TA_RetCode retCode;
    double tempReal;
 
-   retCode = TA_VAR(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
+   retCode = TA_S_VAR(startIdx,endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,outReal);
    if( (retCode!=TA_SUCCESS) )
    {
       return retCode;

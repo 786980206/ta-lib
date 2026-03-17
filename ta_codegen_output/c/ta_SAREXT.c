@@ -569,7 +569,7 @@ TA_RetCode TA_S_SAREXT( int    startIdx,
    }
    if( (optInStartValue==0) )
    {
-      retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+      retCode = TA_S_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
       if( (ep_temp[0]>0) )
       {
          isLong = 0;
@@ -796,7 +796,7 @@ TA_RetCode TA_S_SAREXT_Logic( int    startIdx,
    }
    if( (optInStartValue==0) )
    {
-      retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+      retCode = TA_S_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
       if( (ep_temp[0]>0) )
       {
          isLong = 0;

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("TaCodegenServe")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+087dadf7f1f53a8a54fe58a7b6b9ae08523a39e4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+55f9789d8dd65eb8e80aa275234b8519e999f85c")]
 [assembly: System.Reflection.AssemblyProductAttribute("TaCodegenServe")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TaCodegenServe")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

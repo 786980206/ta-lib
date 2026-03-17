@@ -272,6 +272,9 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         let upper = func.name.to_uppercase();
         let lookback_params = build_lookback_param_str(func);
         let full_params = build_full_param_str(func);
+        let sp_params = full_params.replace("const double", "const float");
+
+        // Double-precision variants
         s.push_str(&format!("extern int TA_{upper}_Lookback({lookback_params});\n"));
         s.push_str(&format!(
             "extern TA_RetCode TA_{upper}({full_params});\n"
@@ -279,7 +282,6 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         // Logic variant may have extra params (e.g., EMA's k factor)
         let mut logic_params = full_params.clone();
         for (pname, ptype) in &func.unguarded_extra_params {
-            // Insert extra params before the output params (before *outBegIdx)
             if let Some(pos) = logic_params.find("int *outBegIdx") {
                 logic_params.insert_str(pos, &format!("{ptype} {pname}, "));
             }
@@ -288,6 +290,20 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
             "extern TA_RetCode TA_{upper}_Logic({logic_params});\n"
         ));
         s.push_str(&format!("#define TA_INT_{upper} TA_{upper}_Logic\n"));
+
+        // Single-precision variants
+        s.push_str(&format!(
+            "extern TA_RetCode TA_S_{upper}({sp_params});\n"
+        ));
+        let mut sp_logic_params = sp_params.clone();
+        for (pname, ptype) in &func.unguarded_extra_params {
+            if let Some(pos) = sp_logic_params.find("int *outBegIdx") {
+                sp_logic_params.insert_str(pos, &format!("{ptype} {pname}, "));
+            }
+        }
+        s.push_str(&format!(
+            "extern TA_RetCode TA_S_{upper}_Logic({sp_logic_params});\n"
+        ));
     }
     s.push('\n');
 

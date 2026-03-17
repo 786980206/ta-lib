@@ -204,7 +204,7 @@ TA_RetCode TA_S_ADXR( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_S_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);
@@ -260,7 +260,7 @@ TA_RetCode TA_S_ADXR_Logic( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_S_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);

@@ -395,7 +395,7 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
    {
       return TA_BAD_PARAM;
    }
-   retCode = TA_MA(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
+   retCode = TA_S_MA(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       *outNBElement= 0;
@@ -440,7 +440,7 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       }
    } else 
    {
-      retCode = TA_STDDEV(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      retCode = TA_S_STDDEV(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
       if( (retCode!=TA_SUCCESS) )
       {
          *outNBElement= 0;
@@ -546,7 +546,7 @@ TA_RetCode TA_S_BBANDS_Logic( int    startIdx,
    {
       return TA_BAD_PARAM;
    }
-   retCode = TA_MA(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
+   retCode = TA_S_MA(startIdx,endIdx,inReal,optInTimePeriod,optInMAType,outBegIdx,outNBElement,tempBuffer1);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       *outNBElement= 0;
@@ -591,7 +591,7 @@ TA_RetCode TA_S_BBANDS_Logic( int    startIdx,
       }
    } else 
    {
-      retCode = TA_STDDEV(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
+      retCode = TA_S_STDDEV(((int)*outBegIdx),endIdx,inReal,optInTimePeriod,1.0,outBegIdx,outNBElement,tempBuffer2);
       if( (retCode!=TA_SUCCESS) )
       {
          *outNBElement= 0;
