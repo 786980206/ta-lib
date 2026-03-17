@@ -1123,13 +1123,10 @@ fn render_func_call(
         if resolved != fname {
             // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_SMA)
             // For single-precision variants, convert TA_ prefix to TA_S_
-            // But NOT for:
-            // - _Lookback calls (they return int, no precision variant)
-            // - TA_INT_* calls (these are #defines that resolve to *_Logic; add S_ #defines instead)
+            // But NOT for _Lookback calls (they return int, no precision variant)
             let final_name = if single_precision
                 && resolved.starts_with("TA_")
                 && !resolved.starts_with("TA_S_")
-                && !resolved.starts_with("TA_INT_")
                 && !resolved.contains("_Lookback")
             {
                 format!("TA_S_{}", &resolved[3..])

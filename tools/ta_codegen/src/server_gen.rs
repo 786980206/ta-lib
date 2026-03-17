@@ -304,6 +304,7 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         s.push_str(&format!(
             "extern TA_RetCode TA_S_{upper}_Logic({sp_logic_params});\n"
         ));
+        s.push_str(&format!("#define TA_S_INT_{upper} TA_S_{upper}_Logic\n"));
     }
     s.push('\n');
 
