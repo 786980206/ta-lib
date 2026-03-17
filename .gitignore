@@ -89,7 +89,7 @@ out/
 # Never ignore .gitkeep files
 !**/.gitkeep
 
-cmake-build-debug/
+cmake-build*/
 rust/target
 
 # Git worktrees
