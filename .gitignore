@@ -4,7 +4,6 @@
 *.pc
 *.m4
 Makefile
-!/Makefile
 Makefile.in
 .deps
 .libs

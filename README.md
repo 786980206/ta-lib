@@ -26,11 +26,11 @@ Optional (for cross-language server testing):
 ## Building
 
 ```bash
-make                  # Build library + all tools
-make ta_regtest       # Build just the test runner
-make gen_code         # Build the legacy C code generator
-make ta_codegen       # Build the Rust codegen tool
-make servers          # Generate + compile JSON-RPC language servers
+python3 scripts/build.py                # Build library + all tools
+python3 scripts/build.py ta_regtest     # Build just the test runner
+python3 scripts/build.py gen_code       # Build the legacy C code generator
+python3 scripts/build.py ta_codegen     # Build the Rust codegen tool
+python3 scripts/build.py servers        # Generate + compile JSON-RPC language servers
 ```
 
 Built binaries go to `bin/`. CMake is configured automatically on first run.
@@ -38,12 +38,12 @@ Built binaries go to `bin/`. CMake is configured automatically on first run.
 ## Running Tests
 
 ```bash
-make test             # C reference tests only (quick)
-make regtest          # Full pipeline: servers + C tests + cross-language verification
-make regtest-only     # Codegen verification only (skip C reference tests)
+python3 scripts/build.py test           # C reference tests only (quick)
+python3 scripts/build.py regtest        # Full pipeline: servers + C tests + cross-language verification
+python3 scripts/build.py regtest-only   # Codegen verification only (skip C reference tests)
 ```
 
-`make regtest` does three things:
+`scripts/build.py regtest` does three things:
 1. Generates JSON-RPC server source for C, Java, .NET, and Python
 2. Compiles the servers into `bin/`
 3. Runs `ta_regtest --codegen` — C reference tests + cross-language comparison

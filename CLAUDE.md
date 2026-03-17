@@ -70,8 +70,8 @@ The generator:
 ## Quick Reference Commands
 
 ```bash
-# Build gen_code (from project root)
-cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make gen_code -j4
+# Build gen_code (from any directory in the repo)
+python3 scripts/build.py gen_code
 
 # Run gen_code (must run from bin directory)
 cd bin && ../cmake-build/bin/gen_code
@@ -86,10 +86,10 @@ cd rust && cargo test
 cd rust && cargo fix --lib -p ta-lib --allow-dirty && cargo fmt
 
 # Build ta_regtest (universal test runner)
-cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release && make ta_regtest -j4
+python3 scripts/build.py ta_regtest
 
 # Run C reference tests (standard)
-cd ../bin && ./ta_regtest
+cd bin && ./ta_regtest
 
 # Run codegen verification against all languages (all 158 indicators)
 ./ta_regtest --codegen
