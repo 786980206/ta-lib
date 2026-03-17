@@ -71,7 +71,7 @@ The generator:
 
 ```bash
 # Build gen_code (from any directory in the repo)
-python3 scripts/build.py gen_code
+scripts/build.py gen_code
 
 # Run gen_code (must run from bin directory)
 cd bin && ../cmake-build/bin/gen_code
@@ -86,7 +86,7 @@ cd rust && cargo test
 cd rust && cargo fix --lib -p ta-lib --allow-dirty && cargo fmt
 
 # Build ta_regtest (universal test runner)
-python3 scripts/build.py ta_regtest
+scripts/build.py ta_regtest
 
 # Run C reference tests (standard)
 cd bin && ./ta_regtest

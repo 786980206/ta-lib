@@ -26,11 +26,11 @@ Optional (for cross-language server testing):
 ## Building
 
 ```bash
-python3 scripts/build.py                # Build library + all tools
-python3 scripts/build.py ta_regtest     # Build just the test runner
-python3 scripts/build.py gen_code       # Build the legacy C code generator
-python3 scripts/build.py ta_codegen     # Build the Rust codegen tool
-python3 scripts/build.py servers        # Generate + compile JSON-RPC language servers
+scripts/build.py                # Build library + all tools
+scripts/build.py ta_regtest     # Build just the test runner
+scripts/build.py gen_code       # Build the legacy C code generator
+scripts/build.py ta_codegen     # Build the Rust codegen tool
+scripts/build.py servers        # Generate + compile JSON-RPC language servers
 ```
 
 Built binaries go to `bin/`. CMake is configured automatically on first run.
@@ -38,9 +38,9 @@ Built binaries go to `bin/`. CMake is configured automatically on first run.
 ## Running Tests
 
 ```bash
-python3 scripts/build.py test           # C reference tests only (quick)
-python3 scripts/build.py regtest        # Full pipeline: servers + C tests + cross-language verification
-python3 scripts/build.py regtest-only   # Codegen verification only (skip C reference tests)
+scripts/build.py test           # C reference tests only (quick)
+scripts/build.py regtest        # Full pipeline: servers + C tests + cross-language verification
+scripts/build.py regtest-only   # Codegen verification only (skip C reference tests)
 ```
 
 `scripts/build.py regtest` does three things:

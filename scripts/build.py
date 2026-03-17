@@ -5,27 +5,28 @@
 # Wraps CMake so you can build and test from any directory within the repo.
 #
 # Usage:
-#   python3 scripts/build.py                Build library + all tools
-#   python3 scripts/build.py ta_regtest     Build the regression test runner
-#   python3 scripts/build.py gen_code       Build the legacy C code generator
-#   python3 scripts/build.py ta_codegen     Build the Rust codegen tool
-#   python3 scripts/build.py generate       Generate per-function source for all backends
-#   python3 scripts/build.py servers        Generate + compile JSON-RPC language servers
-#   python3 scripts/build.py test           C reference regression tests
-#   python3 scripts/build.py regtest        Full cross-language regression tests
-#   python3 scripts/build.py regtest-only   Codegen verification only (skip C tests)
-#   python3 scripts/build.py clean          Remove build directory
-#   python3 scripts/build.py help           Show all targets
+#   scripts/build.py                Build library + all tools
+#   scripts/build.py ta_regtest     Build the regression test runner
+#   scripts/build.py gen_code       Build the legacy C code generator
+#   scripts/build.py ta_codegen     Build the Rust codegen tool
+#   scripts/build.py generate       Generate per-function source for all backends
+#   scripts/build.py servers        Generate + compile JSON-RPC language servers
+#   scripts/build.py test           C reference regression tests
+#   scripts/build.py regtest        Full cross-language regression tests
+#   scripts/build.py regtest-only   Codegen verification only (skip C tests)
+#   scripts/build.py clean          Remove build directory
+#   scripts/build.py help           Show all targets
 
 import argparse
 import os
+import shlex
 import shutil
 import subprocess
 import sys
 
 BUILD_DIR_NAME = "cmake-build"
 DEFAULT_BUILD_TYPE = "Release"
-DEFAULT_JOBS = 4
+DEFAULT_JOBS = os.cpu_count() or 4
 
 def find_repo_root() -> str:
     """Find the git repository root, regardless of where the script is called from."""
@@ -63,19 +64,16 @@ def ensure_configured(root_dir: str, build_dir: str, build_type: str, cmake_args
 
     if needs_configure:
         os.makedirs(build_dir, exist_ok=True)
-        cmd = ['cmake', '..', f'-DCMAKE_BUILD_TYPE={build_type}']
+        cmd = ['cmake', root_dir, f'-DCMAKE_BUILD_TYPE={build_type}']
         if cmake_args:
-            cmd.extend(cmake_args.split())
+            cmd.extend(shlex.split(cmake_args))
         subprocess.run(cmd, check=True, cwd=build_dir)
 
-def cmake_build(build_dir: str, target: str, jobs: int):
-    """Run cmake --build for a specific target."""
-    cmd = ['cmake', '--build', '.', '--target', target, '-j', str(jobs)]
-    subprocess.run(cmd, check=True, cwd=build_dir)
-
-def cmake_build_all(build_dir: str, jobs: int):
-    """Run cmake --build with no specific target (build all)."""
+def cmake_build(build_dir: str, target: str = None, jobs: int = DEFAULT_JOBS):
+    """Run cmake --build, optionally for a specific target."""
     cmd = ['cmake', '--build', '.', '-j', str(jobs)]
+    if target:
+        cmd.extend(['--target', target])
     subprocess.run(cmd, check=True, cwd=build_dir)
 
 def show_help():
@@ -95,34 +93,31 @@ def show_help():
     regtest-only        Codegen verification only (skip C tests)
 
   Other:
-    install             Install to system
-    package             Create distribution package
     clean               Remove cmake-build/
     help                Show this message
 
   Options:
     --build-type=Debug  Set cmake build type (default: Release)
-    --jobs=8            Parallel jobs (default: 4)
+    --jobs=8            Parallel jobs (default: number of CPUs)
     --cmake-args="..."  Extra arguments passed to cmake configure
 """)
 
-# Targets that map to a single cmake target
+# Each target maps to cmake target(s). Use only the final dependency target
+# when earlier targets are already wired as CMake dependencies.
 SIMPLE_TARGETS = {
-    'ta_regtest':  ['ta_regtest', 'ensure_ta_regtest_in_bin'],
-    'gen_code':    ['gen_code', 'ensure_gen_code_in_bin'],
-    'ta_codegen':  ['ta_codegen_bin'],
-    'generate':    ['ta_codegen_generate'],
-    'servers':     ['ta_codegen_servers'],
-    'test':        ['test'],
-    'regtest':     ['regtest'],
-    'regtest-only':['regtest-only'],
-    'install':     ['install'],
-    'package':     ['package'],
+    'ta_regtest':  'ensure_ta_regtest_in_bin',
+    'gen_code':    'ensure_gen_code_in_bin',
+    'ta_codegen':  'ta_codegen_bin',
+    'generate':    'ta_codegen_generate',
+    'servers':     'ta_codegen_servers',
+    'test':        'test',
+    'regtest':     'regtest',
+    'regtest-only':'regtest-only',
 }
 
 def main():
-    # Refuse to run as root/sudo.
-    if os.getuid() == 0:
+    # Refuse to run as root/sudo (Unix only).
+    if hasattr(os, 'getuid') and os.getuid() == 0:
         print("Error: Do not run this script as root or with sudo.")
         sys.exit(1)
 
@@ -145,20 +140,19 @@ def main():
     build_dir = os.path.join(root_dir, BUILD_DIR_NAME)
 
     if args.target == 'clean':
-        if os.path.exists(build_dir):
+        try:
             shutil.rmtree(build_dir)
             print(f"Removed {build_dir}")
-        else:
+        except FileNotFoundError:
             print("Nothing to clean.")
         return
 
     ensure_configured(root_dir, build_dir, args.build_type, args.cmake_args)
 
     if args.target == 'all':
-        cmake_build_all(build_dir, args.jobs)
+        cmake_build(build_dir, jobs=args.jobs)
     elif args.target in SIMPLE_TARGETS:
-        for t in SIMPLE_TARGETS[args.target]:
-            cmake_build(build_dir, t, args.jobs)
+        cmake_build(build_dir, target=SIMPLE_TARGETS[args.target], jobs=args.jobs)
     else:
         print(f"Error: Unknown target '{args.target}'. Run with 'help' to see available targets.")
         sys.exit(1)
