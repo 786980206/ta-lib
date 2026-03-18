@@ -948,12 +948,20 @@ fn render_expr(
                 BinOp::Shr => ">>",
                 BinOp::Shl => "<<",
             };
-            format!(
-                "({}{}{})",
-                render_expr(left, single_precision, registry, helpers),
-                op_str,
-                render_expr(right, single_precision, registry, helpers)
-            )
+            // In single-precision variants, pointer aliasing checks compare
+            // float* inputs against double* outputs/buffers. Cast both to
+            // void* to avoid -Wcompare-distinct-pointer-types warnings.
+            let needs_void_cast = single_precision
+                && matches!(op, BinOp::Eq | BinOp::NotEq)
+                && is_pointer_var(left)
+                && is_pointer_var(right);
+            let l = render_expr(left, single_precision, registry, helpers);
+            let r = render_expr(right, single_precision, registry, helpers);
+            if needs_void_cast {
+                format!("((void *){}{}(void *){})", l, op_str, r)
+            } else {
+                format!("({}{}{})", l, op_str, r)
+            }
         }
         Expr::Cast(var_type, inner) => {
             let c_type = match var_type {
@@ -1030,6 +1038,58 @@ fn to_pascal_case(s: &str) -> String {
         None => String::new(),
         Some(c) => c.to_uppercase().collect::<String>() + chars.as_str(),
     }
+}
+
+/// Check if an expression is a variable that likely holds a pointer (array param
+/// or buffer). Used to detect pointer aliasing comparisons that need void* casts.
+/// Must NOT match integer variables like outBegIdx, outNBElement, tempInteger.
+fn is_pointer_var(expr: &Expr) -> bool {
+    match expr {
+        Expr::Var(name) => {
+            // Input array params: inReal, inHigh, inLow, inClose, inVolume, inOpenInterest
+            let is_input = name.starts_with("in")
+                && name.len() > 2
+                && name.as_bytes()[2].is_ascii_uppercase();
+            // Output array params: outReal*, outSlowK, outFastK, outMACDSignal, etc.
+            // Exclude integer outputs: outBegIdx, outNBElement, outIdx, outNbElement
+            let is_output = name.starts_with("out")
+                && !name.contains("BegIdx")
+                && !name.contains("NbElement")
+                && !name.contains("NBElement")
+                && !name.contains("Idx")
+                && name != "outIdx";
+            // Temp buffers: tempBuffer*, firstEMA, secondEMA, fastEMABuffer, etc.
+            // Exclude: tempInteger, tempReal (scalars)
+            let is_buffer = name.starts_with("tempBuffer")
+                || name.starts_with("firstEMA")
+                || name.starts_with("secondEMA")
+                || name.starts_with("thirdEMA")
+                || name.starts_with("fastEMA")
+                || name.starts_with("fastMA")
+                || name.starts_with("slowEMA")
+                || name.starts_with("slowMA")
+                || name.starts_with("tempRSI");
+            is_input || is_output || is_buffer
+        }
+        _ => false,
+    }
+}
+
+/// Check if any argument in a cross-indicator call references a function input
+/// parameter (inReal, inHigh, inClose, etc.). Input params are float* in single-
+/// precision context, while intermediate buffers (tempBuffer, firstEMA, etc.) are
+/// always double*. This determines whether to use TA_S_ or TA_ in SP variants.
+fn args_have_input_param(args: &[Expr]) -> bool {
+    args.iter().any(|arg| match arg {
+        Expr::Var(name) => {
+            // Input parameters follow TA-Lib naming: in + uppercase letter
+            // e.g., inReal, inHigh, inLow, inClose, inVolume, inOpenInterest, inReal0
+            name.starts_with("in")
+                && name.len() > 2
+                && name.as_bytes()[2].is_ascii_uppercase()
+        }
+        _ => false,
+    })
 }
 
 /// Render a `FuncCall` expression to C code.
@@ -1125,13 +1185,16 @@ fn render_func_call(
             .collect();
         if resolved != fname {
             // Registry resolved it (e.g. sma_lookback -> TA_SMA_Lookback, sma -> TA_SMA)
-            // For single-precision variants, convert TA_ prefix to TA_S_
-            // But NOT for _Lookback calls (they return int, no precision variant)
-            let final_name = if single_precision
+            // For single-precision variants, use TA_S_ ONLY when passing user input
+            // arrays (float* in SP context). Intermediate buffers are always double*,
+            // so calls with those must use the double-precision TA_ variant.
+            // Matches the reference code's FUNCTION_CALL vs FUNCTION_CALL_DOUBLE distinction.
+            let use_sp = single_precision
                 && resolved.starts_with("TA_")
                 && !resolved.starts_with("TA_S_")
                 && !resolved.contains("_Lookback")
-            {
+                && args_have_input_param(args);
+            let final_name = if use_sp {
                 format!("TA_S_{}", &resolved[3..])
             } else {
                 resolved
@@ -1142,7 +1205,9 @@ fn render_func_call(
             format!("TA_{}({})", fname, rendered.join(","))
         } else {
             // General TA function call: SMA(...) -> TA_SMA(...) or TA_S_SMA(...) for single precision
-            let prefix = if single_precision { "TA_S_" } else { "TA_" };
+            // Same rule: only use TA_S_ when passing user input arrays.
+            let use_sp = single_precision && args_have_input_param(args);
+            let prefix = if use_sp { "TA_S_" } else { "TA_" };
             format!("{}{}({})", prefix, fname, rendered.join(","))
         }
     }
