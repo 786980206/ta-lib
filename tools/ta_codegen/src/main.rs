@@ -338,7 +338,8 @@ fn build_servers(backend_filter: Option<&str>) {
                         dst.to_str().unwrap(),
                         src.to_str().unwrap(),
                         "-lm",
-                        "-O2",
+                        "-O3",
+                        "-DNDEBUG",
                         "-Wno-parentheses-equality",
                     ])
                     .status()
@@ -516,7 +517,8 @@ fn build_servers(backend_filter: Option<&str>) {
                         &format!("-I{}", c_dir.to_str().unwrap()),
                         &format!("-I{}", swig_dir.to_str().unwrap()),
                         "-lm",
-                        "-O2",
+                        "-O3",
+                        "-DNDEBUG",
                         "-Wno-parentheses-equality",
                         "-Wno-unused-function",
                         "-undefined",
@@ -647,7 +649,8 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         unity_path.to_str().unwrap().to_string(),
         format!("-I{}", c_dir.to_str().unwrap()),
         "-lm".to_string(),
-        "-O2".to_string(),
+        "-O3".to_string(),
+        "-DNDEBUG".to_string(),
         "-Wno-parentheses-equality".to_string(),
     ];
 

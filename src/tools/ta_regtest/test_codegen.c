@@ -881,6 +881,14 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
             compare_codegen_output_generic(&params, outNb);
     }
 
+    /* Snapshot server timing from the full-range comparison call.
+     * This is apples-to-apples with c_ref_ns (both are one full-range call).
+     * The doRangeTest callbacks below will add more timing data, but we
+     * use only the comparison-call timing for the performance report. */
+    double s_avg_ns = (params.timing_count > 0)
+                      ? (double)params.server_total_ns / (double)params.timing_count
+                      : 0.0;
+
     /* Run doRangeTest with the generic callback (C reference coherency only).
      * Skip when lookback exceeds data range (no output possible). */
     ErrorNumber errNb = TA_TEST_PASS;
@@ -893,11 +901,6 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
             funcInfo->nbOutput,
             get_integer_tolerance(funcInfo));
     }
-
-    /* Compute server average timing */
-    double s_avg_ns = (params.timing_count > 0)
-                      ? (double)params.server_total_ns / (double)params.timing_count
-                      : 0.0;
 
     /* Record results in global timing table */
     int resultIdx = -1;

@@ -332,7 +332,7 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     // Header
     s.push_str("/* Auto-generated JSON-RPC server for ta_codegen C output.\n");
     s.push_str(" * Reads JSON-RPC requests from stdin, writes responses to stdout.\n");
-    s.push_str(" * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O2\n");
+    s.push_str(" * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O3 -DNDEBUG\n");
     s.push_str(" */\n");
     s.push_str("#include <stdio.h>\n");
     s.push_str("#include <stdlib.h>\n");
