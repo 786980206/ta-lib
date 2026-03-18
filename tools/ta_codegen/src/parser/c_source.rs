@@ -2887,4 +2887,2010 @@ TA_RetCode test_func(int startIdx, int endIdx, int *outBegIdx, int *outNBElement
             other => panic!("Expected Return with BinOp, got {other:?}"),
         }
     }
+
+    // ===== strip_local_macros: multi-line #define and #undef =====
+
+    #[test]
+    fn test_strip_local_macros_multiline_define() {
+        // Lines 85-86, 93-94: multi-line #define with backslash continuations
+        let input = "#define FOO(x) \\\n    (x + 1)\nint y;";
+        let result = strip_local_macros(input);
+        assert_eq!(result, "int y;");
+    }
+
+    #[test]
+    fn test_strip_local_macros_undef() {
+        let input = "#undef FOO\nint y;";
+        let result = strip_local_macros(input);
+        assert_eq!(result, "int y;");
+    }
+
+    #[test]
+    fn test_strip_local_macros_undef_tab() {
+        let input = "#undef\tFOO\nint y;";
+        let result = strip_local_macros(input);
+        assert_eq!(result, "int y;");
+    }
+
+    #[test]
+    fn test_strip_local_macros_define_tab() {
+        let input = "#define\tFOO 1\nint y;";
+        let result = strip_local_macros(input);
+        assert_eq!(result, "int y;");
+    }
+
+    #[test]
+    fn test_strip_local_macros_multiline_continuation() {
+        // A multi-line define where the continuation also ends with backslash
+        let input = "#define FOO(x) \\\n    (x + 1) \\\n    + 2\nint z;";
+        let result = strip_local_macros(input);
+        assert_eq!(result, "int z;");
+    }
+
+    // ===== Tokenizer: special operators =====
+
+    #[test]
+    fn test_tokenize_left_shift() {
+        // Line 277-278: << left shift operator
+        let tokens = tokenize("x << 3");
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Ident("x".to_string()),
+                Token::Op("<<".to_string()),
+                Token::IntNumber(3),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_tokenize_right_shift() {
+        let tokens = tokenize("x >> 2");
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Ident("x".to_string()),
+                Token::Op(">>".to_string()),
+                Token::IntNumber(2),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_tokenize_pipe() {
+        // Lines 324-326: single | pipe token
+        let tokens = tokenize("a | b");
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Ident("a".to_string()),
+                Token::Pipe,
+                Token::Ident("b".to_string()),
+            ]
+        );
+    }
+
+    #[test]
+    fn test_tokenize_dot() {
+        // Lines 382-385: standalone . (dot) token
+        let tokens = tokenize("arr.field");
+        assert!(tokens.contains(&Token::Dot));
+    }
+
+    #[test]
+    fn test_tokenize_preprocessor_skip() {
+        // Lines 389-391, 393: # preprocessor directives get skipped
+        let tokens = tokenize("#include <stdio.h>\nint x;");
+        assert_eq!(
+            tokens,
+            vec![
+                Token::Ident("int".to_string()),
+                Token::Ident("x".to_string()),
+                Token::Semicolon,
+            ]
+        );
+    }
+
+    #[test]
+    fn test_tokenize_bang_equals() {
+        let tokens = tokenize("x != y");
+        assert!(tokens.contains(&Token::Op("!=".to_string())));
+    }
+
+    #[test]
+    fn test_tokenize_percent() {
+        let tokens = tokenize("x % 2");
+        assert!(tokens.contains(&Token::Op("%".to_string())));
+    }
+
+    #[test]
+    fn test_tokenize_float_with_f_suffix() {
+        let tokens = tokenize("0.0f");
+        assert_eq!(tokens, vec![Token::Number(0.0)]);
+    }
+
+    #[test]
+    fn test_tokenize_leading_dot_float() {
+        let tokens = tokenize(".5");
+        assert_eq!(tokens, vec![Token::Number(0.5)]);
+    }
+
+    #[test]
+    fn test_tokenize_ampersand() {
+        let tokens = tokenize("&x");
+        assert_eq!(
+            tokens,
+            vec![Token::Ampersand, Token::Ident("x".to_string())]
+        );
+    }
+
+    #[test]
+    fn test_tokenize_question_mark() {
+        let tokens = tokenize("a ? b : c");
+        assert!(tokens.contains(&Token::Question));
+        assert!(tokens.contains(&Token::Colon));
+    }
+
+    // ===== Tokenizer panic =====
+
+    #[test]
+    #[should_panic(expected = "Unexpected character")]
+    fn test_tokenize_unexpected_char() {
+        // Line 396: unexpected character
+        tokenize("int x = @;");
+    }
+
+    // ===== extract_func_params edge cases =====
+
+    #[test]
+    fn test_extract_func_params_no_lparen() {
+        // Lines 413, 416: no LParen found returns empty
+        let tokens = tokenize("int x;");
+        let params = extract_func_params(&tokens, 0);
+        assert!(params.is_empty());
+    }
+
+    #[test]
+    fn test_extract_func_params_with_brackets() {
+        // Lines 450: skip [] in param types like double buf[]
+        let tokens = tokenize("(const double inReal[], int period)");
+        let params = extract_func_params(&tokens, 0);
+        assert_eq!(params.len(), 2);
+        assert_eq!(params[0].0, "inReal");
+        assert!(params[0].1.contains("[]"));
+        assert_eq!(params[1].0, "period");
+    }
+
+    #[test]
+    fn test_extract_func_params_with_star() {
+        // Line 461: Star in parameter type
+        let tokens = tokenize("(int *outBegIdx, double *outReal)");
+        let params = extract_func_params(&tokens, 0);
+        assert_eq!(params.len(), 2);
+        assert_eq!(params[0].0, "outBegIdx");
+        assert!(params[0].1.contains("*"));
+        assert_eq!(params[1].0, "outReal");
+    }
+
+    // ===== Static TA_RetCode function detection =====
+
+    #[test]
+    fn test_static_ta_retcode_function() {
+        // Lines 507-510: static TA_RetCode function detection
+        let source = r"
+static TA_RetCode helper_func(int startIdx, int endIdx, int *outBegIdx)
+{
+    *outBegIdx = startIdx;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        assert_eq!(parsed.functions.len(), 1);
+        assert_eq!(parsed.functions[0].name, "helper_func");
+    }
+
+    // ===== Helper function parsing =====
+
+    #[test]
+    fn test_parse_helper_function_basic() {
+        // Lines 558-631: extract_helper_functions
+        let source = "double helper(double x, int y) { return x; }";
+        let helpers = parse_helper_file_str(source);
+        assert_eq!(helpers.len(), 1);
+        assert_eq!(helpers[0].name, "helper");
+        assert_eq!(helpers[0].return_type, VarType::Real);
+        assert_eq!(helpers[0].params.len(), 2);
+        assert_eq!(helpers[0].params[0].name, "x");
+        assert_eq!(helpers[0].params[0].var_type, VarType::Real);
+        assert_eq!(helpers[0].params[1].name, "y");
+        assert_eq!(helpers[0].params[1].var_type, VarType::Integer);
+    }
+
+    #[test]
+    fn test_parse_helper_function_int_return() {
+        let source = "int helper(int a) { return a; }";
+        let helpers = parse_helper_file_str(source);
+        assert_eq!(helpers.len(), 1);
+        assert_eq!(helpers[0].return_type, VarType::Integer);
+    }
+
+    #[test]
+    fn test_parse_helper_function_no_brace() {
+        // Lines 614-615: next must be { after params
+        let source = "double helper(double x);";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    #[test]
+    fn test_parse_helper_function_not_a_function() {
+        // Lines 576-577: next token not LParen
+        let source = "double value = 1.0;";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    #[test]
+    fn test_parse_helper_function_bad_return_type() {
+        // Lines 562-563: return type is not double or int
+        let source = "void helper(int x) { return; }";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    #[test]
+    fn test_parse_helper_function_no_name() {
+        // Lines 569-570: next token not identifier
+        let source = "double (int x) { return x; }";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    #[test]
+    fn test_parse_helper_function_bad_param_type() {
+        // Line 593: param type not double or int
+        let source = "double helper(void x) { return x; }";
+        let helpers = parse_helper_file_str(source);
+        // Should parse as a helper with 0 params (breaks out of param loop)
+        assert_eq!(helpers.len(), 0);
+    }
+
+    #[test]
+    fn test_parse_helper_function_bad_param_name() {
+        // Line 598: param name not identifier after type
+        let source = "double helper(double 42) { return 0.0; }";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    #[test]
+    fn test_parse_helper_missing_matching_brace() {
+        // Line 629: no matching brace
+        let source = "double helper(double x) { return x;";
+        let helpers = parse_helper_file_str(source);
+        assert!(helpers.is_empty());
+    }
+
+    // ===== Break and Continue statements =====
+
+    #[test]
+    fn test_break_statement() {
+        // Lines 776-778
+        let tokens = tokenize("break;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        assert!(matches!(stmt, Statement::Break));
+    }
+
+    #[test]
+    fn test_continue_statement() {
+        // Lines 781-783
+        let tokens = tokenize("continue;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        assert!(matches!(stmt, Statement::Continue));
+    }
+
+    // ===== Pre-increment/decrement as statement =====
+
+    #[test]
+    fn test_pre_increment_statement() {
+        // Lines 798-812
+        let tokens = tokenize("++x;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(name),
+                compound: true,
+                value: Expr::BinOp(_, BinOp::Add, _),
+            } => assert_eq!(name, "x"),
+            other => panic!("Expected pre-increment Assign, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_pre_decrement_statement() {
+        // Lines 816-830
+        let tokens = tokenize("--x;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(name),
+                compound: true,
+                value: Expr::BinOp(_, BinOp::Sub, _),
+            } => assert_eq!(name, "x"),
+            other => panic!("Expected pre-decrement Assign, got {other:?}"),
+        }
+    }
+
+    // ===== Stray semicolons =====
+
+    #[test]
+    fn test_stray_semicolons() {
+        // Lines 717-718: stray semicolons are skipped
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    ;
+    *outBegIdx = startIdx;
+    ;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // Should only have 2 statements: *outBegIdx = startIdx and return
+        assert_eq!(body.len(), 2);
+    }
+
+    // ===== dedup_var_decls: non-VarDecl passthrough =====
+
+    #[test]
+    fn test_dedup_var_decls_non_vardecl_passthrough() {
+        // Line 762: non-VarDecl statements pass through
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    double x = 1.0;
+    double x = 2.0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // First double x is VarDecl, second is converted to Assign
+        let var_count = body
+            .iter()
+            .filter(|s| matches!(s, Statement::VarDecl { name, .. } if name == "x"))
+            .count();
+        let assign_count = body
+            .iter()
+            .filter(|s| {
+                matches!(s, Statement::Assign { target: Expr::Var(n), .. } if n == "x")
+            })
+            .count();
+        assert_eq!(var_count, 1);
+        assert_eq!(assign_count, 1);
+    }
+
+    // ===== Macro declarations =====
+
+    #[test]
+    fn test_enum_declaration_macro() {
+        // Lines 884-907
+        let tokens = tokenize("ENUM_DECLARATION(RetCode) retCode;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::RetCodeType,
+                name,
+                init: None,
+            } => assert_eq!(name, "retCode"),
+            other => panic!("Expected VarDecl with RetCodeType, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_enum_declaration_non_retcode() {
+        // Line 899-901: non-RetCode enum type falls back to Integer
+        let tokens = tokenize("ENUM_DECLARATION(MAType) maType;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::Integer,
+                name,
+                init: None,
+            } => assert_eq!(name, "maType"),
+            other => panic!("Expected VarDecl with Integer for non-RetCode, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_array_ref_macro() {
+        // Lines 909-921
+        let tokens = tokenize("ARRAY_REF(buf);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::Real,
+                name,
+                init: None,
+            } => assert_eq!(name, "buf"),
+            other => panic!("Expected VarDecl for ARRAY_REF, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_array_alloc_macro() {
+        // Lines 923-945
+        let tokens = tokenize("ARRAY_ALLOC(buf, 100);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(n),
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(n, "_");
+                assert_eq!(name, "ARRAY_ALLOC");
+                assert!(args.is_empty());
+            }
+            other => panic!("Expected no-op Assign for ARRAY_ALLOC, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_array_free_macro() {
+        let tokens = tokenize("ARRAY_FREE(buf);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, _),
+                ..
+            } => assert_eq!(name, "ARRAY_FREE"),
+            other => panic!("Expected no-op for ARRAY_FREE, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_circbuf_macros() {
+        for macro_name in &[
+            "CIRCBUF_PROLOG",
+            "CIRCBUF_PROLOG_CLASS",
+            "CIRCBUF_CONSTRUCT",
+            "CIRCBUF_INIT_CLASS",
+            "CIRCBUF_DESTROY",
+            "CIRCBUF_NEXT",
+        ] {
+            let input = format!("{macro_name}(arg1, arg2);");
+            let tokens = tokenize(&input);
+            let mut parser = Parser::new(tokens);
+            let stmt = parser.parse_statement();
+            match stmt {
+                Statement::Assign {
+                    value: Expr::FuncCall(name, _),
+                    ..
+                } => assert_eq!(name, *macro_name),
+                other => panic!("Expected no-op for {macro_name}, got {other:?}"),
+            }
+        }
+    }
+
+    #[test]
+    fn test_constant_double_macro() {
+        // Lines 947-961
+        let tokens = tokenize("CONSTANT_DOUBLE(PI) = 3.14159;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::Real,
+                name,
+                init: Some(_),
+            } => assert_eq!(name, "PI"),
+            other => panic!("Expected VarDecl for CONSTANT_DOUBLE, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_constant_integer_macro() {
+        // Lines 963-977
+        let tokens = tokenize("CONSTANT_INTEGER(MAX_SIZE) = 100;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::VarDecl {
+                var_type: VarType::Integer,
+                name,
+                init: Some(_),
+            } => assert_eq!(name, "MAX_SIZE"),
+            other => panic!("Expected VarDecl for CONSTANT_INTEGER, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_hilbert_variables_macro() {
+        // Lines 990-1033
+        let tokens = tokenize("HILBERT_VARIABLES(detrender);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Block { body } => {
+                assert_eq!(body.len(), 6);
+                // Check first and last names
+                match &body[0] {
+                    Statement::VarDecl { name, .. } => assert_eq!(name, "detrender_Odd0"),
+                    other => panic!("Expected VarDecl, got {other:?}"),
+                }
+                match &body[5] {
+                    Statement::VarDecl { name, .. } => assert_eq!(name, "detrender_Even2"),
+                    other => panic!("Expected VarDecl, got {other:?}"),
+                }
+            }
+            other => panic!("Expected Block for HILBERT_VARIABLES, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_init_hilbert_variables_macro() {
+        // Lines 979-988
+        let tokens = tokenize("INIT_HILBERT_VARIABLES(detrender);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "INIT_HILBERT_VARIABLES");
+                assert_eq!(args.len(), 1);
+            }
+            other => panic!("Expected FuncCall for INIT_HILBERT_VARIABLES, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_do_hilbert_odd_macro() {
+        let tokens = tokenize("DO_HILBERT_ODD(a, b, c);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "DO_HILBERT_ODD");
+                assert_eq!(args.len(), 3);
+            }
+            other => panic!("Expected FuncCall for DO_HILBERT_ODD, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_do_hilbert_even_macro() {
+        let tokens = tokenize("DO_HILBERT_EVEN(a, b, c);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "DO_HILBERT_EVEN");
+                assert_eq!(args.len(), 3);
+            }
+            other => panic!("Expected FuncCall for DO_HILBERT_EVEN, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_do_price_wma_macro() {
+        let tokens = tokenize("DO_PRICE_WMA(a, b);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "DO_PRICE_WMA");
+                assert_eq!(args.len(), 2);
+            }
+            other => panic!("Expected FuncCall for DO_PRICE_WMA, got {other:?}"),
+        }
+    }
+
+    // ===== Do-while loop =====
+
+    #[test]
+    fn test_do_while_loop() {
+        // Lines 1239-1254
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    int x;
+    x = 0;
+    do {
+        x += 1;
+    } while( x < 10 );
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        let do_while = body.iter().find(|s| matches!(s, Statement::DoWhile { .. }));
+        assert!(do_while.is_some(), "Expected DoWhile statement");
+        match do_while.unwrap() {
+            Statement::DoWhile { body, .. } => assert_eq!(body.len(), 1),
+            _ => unreachable!(),
+        }
+    }
+
+    // ===== For loop: init with type declaration =====
+
+    #[test]
+    fn test_for_loop_with_type_decl_init() {
+        // Lines 1340-1345: for init with type keyword
+        let tokens = tokenize("for( int i = 0; i < 10; i++ ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { init, .. } => match *init {
+                Statement::VarDecl {
+                    var_type: VarType::Index,
+                    name,
+                    init: Some(_),
+                } => assert_eq!(name, "i"),
+                other => panic!("Expected VarDecl init, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: pre-decrement in update =====
+
+    #[test]
+    fn test_for_loop_pre_decrement_update() {
+        // Lines 1370-1384: for update with --i
+        let tokens = tokenize("for( i = 10; i > 0; --i ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Sub, _),
+                    ..
+                } => {}
+                other => panic!("Expected pre-decrement update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: pre-increment in update =====
+
+    #[test]
+    fn test_for_loop_pre_increment_update() {
+        // Line 1357: for update with ++i
+        let tokens = tokenize("for( i = 0; i < 10; ++i ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Add, _),
+                    ..
+                } => {}
+                other => panic!("Expected pre-increment update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: compound operator update =====
+
+    #[test]
+    fn test_for_loop_compound_op_update() {
+        // Lines 1417-1426: for update with compound ops
+        let tokens = tokenize("for( i = 0; i < 100; i += 5 ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Add, _),
+                    ..
+                } => {}
+                other => panic!("Expected compound add update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: simple assignment update =====
+
+    #[test]
+    fn test_for_loop_simple_assign_update() {
+        // Lines 1430-1436: for update with simple assignment
+        let tokens = tokenize("for( i = 0; i < 10; i = i + 1 ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: false,
+                    target: Expr::Var(name),
+                    ..
+                } => assert_eq!(name, "i"),
+                other => panic!("Expected simple assign update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: post-decrement in update =====
+
+    #[test]
+    fn test_for_loop_post_decrement_update() {
+        // Lines 1405-1416: i-- in for update
+        let tokens = tokenize("for( i = 10; i > 0; i-- ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Sub, _),
+                    ..
+                } => {}
+                other => panic!("Expected post-decrement update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: braceless body =====
+
+    #[test]
+    fn test_for_loop_braceless_body() {
+        // Lines 1323-1326: braceless for body
+        let tokens = tokenize("for( i = 0; i < 10; i++ ) x = 1;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { body, .. } => assert_eq!(body.len(), 1),
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: multiple init and update =====
+
+    #[test]
+    fn test_for_loop_multi_init_and_update() {
+        let tokens = tokenize("for( i = 0, j = 10; i < j; i++, j-- ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { init, update, .. } => {
+                match *init {
+                    Statement::Block { body } => assert_eq!(body.len(), 2),
+                    other => panic!("Expected Block init, got {other:?}"),
+                }
+                match *update {
+                    Statement::Block { body } => assert_eq!(body.len(), 2),
+                    other => panic!("Expected Block update, got {other:?}"),
+                }
+            }
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== For loop: empty update =====
+
+    #[test]
+    fn test_for_loop_empty_update() {
+        let tokens = tokenize("for( i = 0; i < 10; ) { i += 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Block { body } => assert!(body.is_empty()),
+                other => panic!("Expected empty Block update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== If/else with braces =====
+
+    #[test]
+    fn test_if_else_with_braces() {
+        // Lines 1468-1471: else { body }
+        let tokens = tokenize("if( x > 0 ) { x = 1; } else { x = 2; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::If {
+                then_body,
+                else_body,
+                ..
+            } => {
+                assert_eq!(then_body.len(), 1);
+                assert_eq!(else_body.len(), 1);
+            }
+            other => panic!("Expected If, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_else_braceless_after_non_if_ident() {
+        // Lines 1482: braceless else when peeked is not "if" and not LBrace
+        // This tests the branch: else followed by non-if ident, non-brace token
+        let tokens = tokenize("if( x > 0 ) { x = 1; } else x = 2;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::If {
+                then_body,
+                else_body,
+                ..
+            } => {
+                assert_eq!(then_body.len(), 1);
+                assert_eq!(else_body.len(), 1);
+            }
+            other => panic!("Expected If, got {other:?}"),
+        }
+    }
+
+    // ===== Switch: ENUM_CASE macro =====
+
+    #[test]
+    fn test_switch_enum_case_macro() {
+        // Lines 1518-1536: ENUM_CASE(Type, CName, PascalName)
+        let tokens = tokenize(
+            r"switch( maType ) {
+                case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
+                    x = 1;
+                    break;
+                default:
+                    x = 0;
+                    break;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { cases, .. } => {
+                assert_eq!(cases.len(), 1);
+                assert_eq!(cases[0].0, "MAType_SMA");
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_switch_int_case_label() {
+        // Line 1544-1545: case with IntNumber label
+        let tokens = tokenize(
+            r"switch( mode ) {
+                case 0:
+                    x = 1;
+                    break;
+                case 1:
+                    x = 2;
+                    break;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { cases, .. } => {
+                assert_eq!(cases.len(), 2);
+                assert_eq!(cases[0].0, "0");
+                assert_eq!(cases[1].0, "1");
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_switch_ta_prefix_label() {
+        // Lines 1537-1542: TA_ prefix stripping from case labels
+        let tokens = tokenize(
+            r"switch( maType ) {
+                case TA_MAType_SMA:
+                    x = 1;
+                    break;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { cases, .. } => {
+                assert_eq!(cases[0].0, "MAType_SMA");
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_switch_default_with_statements() {
+        // Lines 1566-1580: default case with body before break
+        let tokens = tokenize(
+            r"switch( mode ) {
+                default:
+                    x = 0;
+                    y = 1;
+                    break;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { default, .. } => {
+                assert_eq!(default.len(), 2);
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_switch_case_fallthrough_to_rbrace() {
+        // Line 1552: case body ends at RBrace (no break)
+        let tokens = tokenize(
+            r"switch( mode ) {
+                case MODE_A:
+                    x = 1;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { cases, .. } => {
+                assert_eq!(cases.len(), 1);
+                assert_eq!(cases[0].1.len(), 1);
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    // ===== Bare return =====
+
+    #[test]
+    fn test_bare_return() {
+        // Lines 1598-1599: return with no expression
+        let tokens = tokenize("return;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Return { value: None } => {}
+            other => panic!("Expected bare Return, got {other:?}"),
+        }
+    }
+
+    // ===== Void cast =====
+
+    #[test]
+    fn test_void_cast_statement() {
+        // Line 1648-1661
+        let tokens = tokenize("(void)unused_var;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Block { body } => assert!(body.is_empty()),
+            other => panic!("Expected empty Block for void cast, got {other:?}"),
+        }
+    }
+
+    // ===== ALL_CAPS macro as standalone statement (no args) =====
+
+    #[test]
+    fn test_all_caps_macro_no_args() {
+        // Lines 1672-1677: ALL_CAPS macro as standalone statement without parens
+        let tokens = tokenize("CALCULATE_AD;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(n),
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(n, "_");
+                assert_eq!(name, "CALCULATE_AD");
+                assert!(args.is_empty());
+            }
+            other => panic!("Expected macro FuncCall, got {other:?}"),
+        }
+    }
+
+    // ===== ALL_CAPS macro with args =====
+
+    #[test]
+    fn test_all_caps_macro_with_args() {
+        // Lines 1685-1700
+        let tokens = tokenize("TRUE_RANGE(high, low, close, result);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "TRUE_RANGE");
+                assert_eq!(args.len(), 4);
+            }
+            other => panic!("Expected macro FuncCall with args, got {other:?}"),
+        }
+    }
+
+    // ===== ALL_CAPS macro that backtracks =====
+
+    #[test]
+    fn test_all_caps_macro_backtrack() {
+        // Line 1703: ALL_CAPS macro call followed by non-semicolon (e.g., an assignment op)
+        // triggers backtrack to save_pos. After backtrack, it then falls through to the
+        // function call path (1737) which also backtracks, and then to array access.
+        // Use a pattern like FOO(x) that backtracks from ALL_CAPS macro but resolves as
+        // a function call via the regular function call path (line 1737).
+        // FOO[0] = 1; - FOO is ALL_CAPS, next is [, not ( so it bypasses the macro path.
+        // We need ALL_CAPS followed by ( args ) then non-semicolon.
+        // Actually, the scenario is: ALL_CAPS(args) followed by an operator like =
+        // This backtracks from macro path (line 1703), then tries function call path
+        // (line 1737), which also backtracks (line 1798), then tries array access (1802)
+        // which doesn't match, then reaches assignment (1878).
+        // Let's just test the simpler path: a function call that ends the token stream
+        let tokens = tokenize("SOME_MACRO(x, y)");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(name, "SOME_MACRO");
+                assert_eq!(args.len(), 2);
+            }
+            other => panic!("Expected FuncCall statement, got {other:?}"),
+        }
+    }
+
+    // ===== Function call as statement =====
+
+    #[test]
+    fn test_function_call_as_statement() {
+        // Lines 1737-1752
+        let tokens = tokenize("some_func(x, y);");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(n),
+                value: Expr::FuncCall(name, args),
+                ..
+            } => {
+                assert_eq!(n, "_");
+                assert_eq!(name, "some_func");
+                assert_eq!(args.len(), 2);
+            }
+            other => panic!("Expected FuncCall statement, got {other:?}"),
+        }
+    }
+
+    // ===== CIRCBUF_REF in statement context =====
+
+    #[test]
+    fn test_circbuf_ref_assign_statement() {
+        // Lines 1756-1776: CIRCBUF_REF(arr[idx])field = expr;
+        let tokens = tokenize("CIRCBUF_REF(buf[i])value = 3.14;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: false,
+                ..
+            } => assert_eq!(name, "buf_value"),
+            other => panic!("Expected CIRCBUF_REF assign, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_circbuf_ref_compound_assign_statement() {
+        // Lines 1778-1790: CIRCBUF_REF(arr[idx])field += expr;
+        let tokens = tokenize("CIRCBUF_REF(buf[i])total += 1.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: true,
+                ..
+            } => assert_eq!(name, "buf_total"),
+            other => panic!("Expected CIRCBUF_REF compound assign, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_circbuf_ref_fallback_no_array_arg() {
+        // Lines 1764: fallback when CIRCBUF_REF arg isn't ArrayAccess
+        let tokens = tokenize("CIRCBUF_REF(x)field = 1.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(name),
+                compound: false,
+                ..
+            } => assert_eq!(name, "circbuf_field"),
+            other => panic!("Expected fallback CIRCBUF_REF assign, got {other:?}"),
+        }
+    }
+
+    // ===== Array access with struct member =====
+
+    #[test]
+    fn test_array_struct_member_assign() {
+        // Lines 1810-1840: arr[idx].field = expr;
+        let tokens = tokenize("data[i].value = 1.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: false,
+                ..
+            } => assert_eq!(name, "data_value"),
+            other => panic!("Expected flattened struct member assign, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_array_struct_member_compound_assign() {
+        // Lines 1817-1830: arr[idx].field += expr;
+        let tokens = tokenize("data[i].total += 5.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: true,
+                ..
+            } => assert_eq!(name, "data_total"),
+            other => panic!("Expected flattened struct compound assign, got {other:?}"),
+        }
+    }
+
+    // ===== Custom type variable declaration =====
+
+    #[test]
+    fn test_custom_type_var_decl() {
+        // Lines 1914-1919: custom type like `MoneyFlow mflow[50];`
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    MoneyFlow mflow;
+    *outBegIdx = startIdx;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // The MoneyFlow decl becomes an empty Block (no-op)
+        let has_block = body.iter().any(|s| matches!(s, Statement::Block { body } if body.is_empty()));
+        assert!(has_block, "Expected empty Block for custom type decl");
+    }
+
+    // ===== Chained assignment =====
+
+    #[test]
+    fn test_chained_assignment() {
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    double a;
+    double b;
+    double c;
+    a = b = c = 0.0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // a = b = c = 0.0 should produce a Block with multiple assignments
+        let chain = body.iter().find(|s| matches!(s, Statement::Block { .. }));
+        assert!(chain.is_some(), "Expected chained assignment Block");
+    }
+
+    // ===== Bitwise OR =====
+
+    #[test]
+    fn test_bitwise_or_expr() {
+        // Lines 1996-1998
+        let tokens = tokenize("a | b | c");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::BinOp(_, BinOp::BitwiseOr, _) => {}
+            other => panic!("Expected BitwiseOr, got {other:?}"),
+        }
+    }
+
+    // ===== Shift operators in expressions =====
+
+    #[test]
+    fn test_shift_operators() {
+        let tokens = tokenize("x << 2");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::BinOp(_, BinOp::Shl, _) => {}
+            other => panic!("Expected Shl, got {other:?}"),
+        }
+
+        let tokens2 = tokenize("x >> 1");
+        let mut parser2 = Parser::new(tokens2);
+        let expr2 = parser2.parse_expr();
+        match expr2 {
+            Expr::BinOp(_, BinOp::Shr, _) => {}
+            other => panic!("Expected Shr, got {other:?}"),
+        }
+    }
+
+    // ===== Ternary expression =====
+
+    #[test]
+    fn test_ternary_expr() {
+        let tokens = tokenize("x > 0 ? 1 : 0");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::Ternary(_, _, _) => {}
+            other => panic!("Expected Ternary, got {other:?}"),
+        }
+    }
+
+    // ===== Unary minus and plus =====
+
+    #[test]
+    fn test_unary_minus() {
+        let tokens = tokenize("-x");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::BinOp(left, BinOp::Sub, _) => match *left {
+                Expr::IntLiteral(0) => {}
+                other => panic!("Expected IntLiteral(0) for unary minus, got {other:?}"),
+            },
+            other => panic!("Expected Sub from 0 for unary minus, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_unary_plus() {
+        let tokens = tokenize("+x");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::Var(name) => assert_eq!(name, "x"),
+            other => panic!("Expected Var for unary plus, got {other:?}"),
+        }
+    }
+
+    // ===== Pre-increment/decrement in expression =====
+
+    #[test]
+    fn test_pre_increment_expr() {
+        let tokens = tokenize("++x");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PreIncrement(_) => {}
+            other => panic!("Expected PreIncrement, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_pre_decrement_expr() {
+        let tokens = tokenize("--x");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PreDecrement(_) => {}
+            other => panic!("Expected PreDecrement, got {other:?}"),
+        }
+    }
+
+    // ===== Dereference of parenthesized expression =====
+
+    #[test]
+    fn test_deref_parenthesized() {
+        // Lines 2098-2100: *(ptr)
+        let tokens = tokenize("*(ptr)");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PointerDeref(name) => assert_eq!(name, "ptr"),
+            other => panic!("Expected PointerDeref, got {other:?}"),
+        }
+    }
+
+    // ===== CIRCBUF_REF in expression context =====
+
+    #[test]
+    fn test_circbuf_ref_expr() {
+        // Lines 2164-2170: CIRCBUF_REF(arr[idx])field in expression
+        let tokens = tokenize("CIRCBUF_REF(buf[i])value");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::ArrayAccess(name, _) => assert_eq!(name, "buf_value"),
+            other => panic!("Expected ArrayAccess for CIRCBUF_REF expr, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_circbuf_ref_expr_fallback() {
+        // Line 2174: CIRCBUF_REF fallback when no field follows
+        let tokens = tokenize("CIRCBUF_REF(x)");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::FuncCall(name, _) => assert_eq!(name, "CIRCBUF_REF"),
+            other => panic!("Expected FuncCall fallback for CIRCBUF_REF, got {other:?}"),
+        }
+    }
+
+    // ===== Array access with struct member in expression =====
+
+    #[test]
+    fn test_array_struct_member_expr() {
+        // Lines 2187-2192: arr[idx].field in expression
+        let tokens = tokenize("data[i].value");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::ArrayAccess(name, _) => assert_eq!(name, "data_value"),
+            other => panic!("Expected flattened struct ArrayAccess, got {other:?}"),
+        }
+    }
+
+    // ===== Post-increment/decrement on array access =====
+
+    #[test]
+    fn test_array_post_increment_expr() {
+        // Lines 2199-2200
+        let tokens = tokenize("arr[i]++");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PostIncrement(inner) => match *inner {
+                Expr::ArrayAccess(name, _) => assert_eq!(name, "arr"),
+                other => panic!("Expected ArrayAccess, got {other:?}"),
+            },
+            other => panic!("Expected PostIncrement, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_array_post_decrement_expr() {
+        // Lines 2203-2204
+        let tokens = tokenize("arr[i]--");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PostDecrement(inner) => match *inner {
+                Expr::ArrayAccess(name, _) => assert_eq!(name, "arr"),
+                other => panic!("Expected ArrayAccess, got {other:?}"),
+            },
+            other => panic!("Expected PostDecrement, got {other:?}"),
+        }
+    }
+
+    // ===== Post-increment/decrement on plain identifier in expression =====
+
+    #[test]
+    fn test_post_decrement_expr() {
+        let tokens = tokenize("x--");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::PostDecrement(inner) => match *inner {
+                Expr::Var(name) => assert_eq!(name, "x"),
+                other => panic!("Expected Var, got {other:?}"),
+            },
+            other => panic!("Expected PostDecrement, got {other:?}"),
+        }
+    }
+
+    // ===== Address-of expression =====
+
+    #[test]
+    fn test_address_of_expr() {
+        let tokens = tokenize("&x");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::AddressOf(inner) => match *inner {
+                Expr::Var(name) => assert_eq!(name, "x"),
+                other => panic!("Expected Var in AddressOf, got {other:?}"),
+            },
+            other => panic!("Expected AddressOf, got {other:?}"),
+        }
+    }
+
+    // ===== Modulo operator =====
+
+    #[test]
+    fn test_modulo_expr() {
+        let tokens = tokenize("x % 3");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::BinOp(_, BinOp::Mod, _) => {}
+            other => panic!("Expected Mod, got {other:?}"),
+        }
+    }
+
+    // ===== Logical OR =====
+
+    #[test]
+    fn test_logical_or() {
+        // Line 1971
+        let tokens = tokenize("a || b");
+        let mut parser = Parser::new(tokens);
+        let expr = parser.parse_expr();
+        match expr {
+            Expr::BinOp(_, BinOp::Or, _) => {}
+            other => panic!("Expected Or, got {other:?}"),
+        }
+    }
+
+    // ===== Var decl: pointer to index type =====
+
+    #[test]
+    fn test_var_decl_pointer_to_index() {
+        // Line 1084: pointer to non-real/non-int stays as-is
+        let tokens = tokenize("size_t *ptr;");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl { var_type, name, .. } => {
+                // size_t * should keep as Index (the "other" branch)
+                assert_eq!(*var_type, VarType::Index);
+                assert_eq!(name, "ptr");
+            }
+            other => panic!("Expected VarDecl, got {other:?}"),
+        }
+    }
+
+    // ===== Var decl: int pointer =====
+
+    #[test]
+    fn test_var_decl_int_pointer() {
+        let tokens = tokenize("int *buf;");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl { var_type, .. } => {
+                assert_eq!(*var_type, VarType::IntPointer);
+            }
+            other => panic!("Expected VarDecl with IntPointer, got {other:?}"),
+        }
+    }
+
+    // ===== Var decl: double pointer =====
+
+    #[test]
+    fn test_var_decl_double_pointer() {
+        let tokens = tokenize("double *buf;");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl { var_type, .. } => {
+                assert_eq!(*var_type, VarType::RealPointer);
+            }
+            other => panic!("Expected VarDecl with RealPointer, got {other:?}"),
+        }
+    }
+
+    // ===== Var decl: fixed-size array =====
+
+    #[test]
+    fn test_var_decl_fixed_size_real_array() {
+        // Lines 1121-1155: array declarations
+        let tokens = tokenize("double buf[30];");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl {
+                var_type: VarType::RealArray(size),
+                ..
+            } => assert_eq!(size, "30"),
+            other => panic!("Expected RealArray, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_var_decl_fixed_size_int_array() {
+        let tokens = tokenize("int buf[3];");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl {
+                var_type: VarType::IntArray(size),
+                ..
+            } => assert_eq!(size, "3"),
+            other => panic!("Expected IntArray, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_var_decl_array_with_expr_size() {
+        // Lines 1140-1149: array size with identifier expression
+        let tokens = tokenize("double buf[MAX_SIZE];");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl {
+                var_type: VarType::RealArray(size),
+                ..
+            } => assert_eq!(size, "MAX_SIZE"),
+            other => panic!("Expected RealArray with ident size, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_var_decl_index_array_stays_index() {
+        // Line 1155: array of size_t stays Index (the "other" branch)
+        let tokens = tokenize("size_t arr[5];");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl { var_type, .. } => {
+                assert_eq!(*var_type, VarType::Index);
+            }
+            other => panic!("Expected VarDecl with Index type, got {other:?}"),
+        }
+    }
+
+    // ===== Array compound assignment =====
+
+    #[test]
+    fn test_array_compound_assign() {
+        // Lines 1847-1862: arr[i] += expr
+        let tokens = tokenize("data[i] += 1.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: true,
+                ..
+            } => assert_eq!(name, "data"),
+            other => panic!("Expected array compound assign, got {other:?}"),
+        }
+    }
+
+    // ===== Compound assignment with chained rhs =====
+
+    #[test]
+    fn test_compound_assign_with_chain() {
+        // Lines 1894-1910: SumY += tempValue1 = inReal[i]
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    double sumY;
+    double tempValue1;
+    sumY += tempValue1 = 1.0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        // sumY += tempValue1 = 1.0 => Block with [tempValue1 = 1.0, sumY += tempValue1]
+        let block = body.iter().find(|s| matches!(s, Statement::Block { body } if body.len() == 2));
+        assert!(block.is_some(), "Expected Block from chained compound assign");
+    }
+
+    // ===== Pointer deref with chained assignment =====
+
+    #[test]
+    fn test_pointer_deref_chained_assign() {
+        let source = r"
+TA_RetCode test_func(int *outBegIdx)
+{
+    double x;
+    *outBegIdx = x = 0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        let block = body.iter().find(|s| matches!(s, Statement::Block { body } if body.len() == 2));
+        assert!(
+            block.is_some(),
+            "Expected Block from chained pointer deref assign"
+        );
+    }
+
+    // ===== Anonymous block =====
+
+    #[test]
+    fn test_anonymous_block() {
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    { double x; x = 1.0; }
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        let has_block = body.iter().any(|s| matches!(s, Statement::Block { body } if !body.is_empty()));
+        assert!(has_block, "Expected anonymous block in body");
+    }
+
+    // ===== Const variable declaration =====
+
+    #[test]
+    fn test_const_var_decl() {
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    const double x = 1.0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        match &body[0] {
+            Statement::VarDecl {
+                var_type: VarType::Real,
+                name,
+                init: Some(_),
+            } => assert_eq!(name, "x"),
+            other => panic!("Expected const VarDecl, got {other:?}"),
+        }
+    }
+
+    // ===== is_all_caps_macro =====
+
+    #[test]
+    fn test_is_all_caps_macro() {
+        assert!(Parser::is_all_caps_macro("CALCULATE_AD"));
+        assert!(Parser::is_all_caps_macro("TRUE_RANGE"));
+        assert!(Parser::is_all_caps_macro("MAX123"));
+        assert!(!Parser::is_all_caps_macro("x")); // single char
+        assert!(!Parser::is_all_caps_macro("camelCase"));
+        assert!(!Parser::is_all_caps_macro("a")); // too short
+    }
+
+    // ===== strip_ta_prefix with TA_COMPATIBILITY_ =====
+
+    #[test]
+    fn test_strip_ta_compatibility_prefix() {
+        assert_eq!(strip_ta_prefix("TA_COMPATIBILITY_DEFAULT"), "DEFAULT");
+        assert_eq!(strip_ta_prefix("TA_COMPATIBILITY_METASTOCK"), "METASTOCK");
+    }
+
+    // ===== transform_func_name =====
+
+    #[test]
+    fn test_transform_func_name() {
+        assert_eq!(transform_func_name("TA_GetUnstablePeriod"), "UNSTABLE_PERIOD");
+        assert_eq!(transform_func_name("TA_GetCompatibility"), "COMPATIBILITY");
+        assert_eq!(transform_func_name("TA_SMA"), "SMA");
+        assert_eq!(transform_func_name("plain_func"), "plain_func");
+    }
+
+    // ===== Unguarded function detection =====
+
+    #[test]
+    fn test_unguarded_function_detection() {
+        let source = r"
+TA_RetCode sma_unguarded(int startIdx, int endIdx, int *outBegIdx)
+{
+    *outBegIdx = startIdx;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        assert_eq!(parsed.functions.len(), 1);
+        assert!(parsed.functions[0].is_internal);
+    }
+
+    // ===== Braceless while =====
+
+    #[test]
+    fn test_braceless_while() {
+        let tokens = tokenize("while( x < 10 ) x += 1;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::While { body, .. } => assert_eq!(body.len(), 1),
+            other => panic!("Expected While, got {other:?}"),
+        }
+    }
+
+    // ===== Post-decrement as statement =====
+
+    #[test]
+    fn test_post_decrement_statement() {
+        let tokens = tokenize("x--;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::Var(name),
+                compound: true,
+                value: Expr::BinOp(_, BinOp::Sub, _),
+            } => assert_eq!(name, "x"),
+            other => panic!("Expected post-decrement Assign, got {other:?}"),
+        }
+    }
+
+    // ===== Function call at end of tokens =====
+
+    #[test]
+    fn test_function_call_at_end_of_tokens() {
+        // Line 1744: self.pos >= self.tokens.len()
+        let tokens = tokenize("func(x)");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                value: Expr::FuncCall(_, _),
+                ..
+            } => {}
+            other => panic!("Expected FuncCall at end of tokens, got {other:?}"),
+        }
+    }
+
+    // ===== Var decl: array size tokens with operators =====
+
+    #[test]
+    fn test_var_decl_array_complex_size() {
+        // Lines 1143-1148: various token types in array size
+        let tokens = tokenize("double buf[N * 2 + 1];");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl {
+                var_type: VarType::RealArray(size),
+                ..
+            } => {
+                assert!(size.contains('N'));
+                assert!(size.contains('*'));
+                assert!(size.contains('+'));
+            }
+            other => panic!("Expected RealArray with complex size, got {other:?}"),
+        }
+    }
+
+    // ===== find_open_brace and find_matching_brace with no brace found =====
+
+    #[test]
+    fn test_find_open_brace_none() {
+        // Line 645: no brace found returns None
+        let tokens = tokenize("int x;");
+        assert_eq!(find_open_brace(&tokens, 0), None);
+    }
+
+    #[test]
+    fn test_find_matching_brace_none() {
+        // Line 665: unmatched brace returns None
+        let tokens = tokenize("{ x = 1;");
+        // Position 0 is LBrace, but there's no matching RBrace
+        assert_eq!(find_matching_brace(&tokens, 0), None);
+    }
+
+    // ===== For update compound operators: -=, *=, /= =====
+
+    #[test]
+    fn test_for_update_subtract_compound() {
+        let tokens = tokenize("for( i = 10; i > 0; i -= 2 ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Sub, _),
+                    ..
+                } => {}
+                other => panic!("Expected -= update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_for_update_multiply_compound() {
+        let tokens = tokenize("for( i = 1; i < 1000; i *= 2 ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Mul, _),
+                    ..
+                } => {}
+                other => panic!("Expected *= update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_for_update_divide_compound() {
+        let tokens = tokenize("for( i = 100; i > 0; i /= 2 ) { x = 1; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::ForC { update, .. } => match *update {
+                Statement::Assign {
+                    compound: true,
+                    value: Expr::BinOp(_, BinOp::Div, _),
+                    ..
+                } => {}
+                other => panic!("Expected /= update, got {other:?}"),
+            },
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    // ===== Else-if chain =====
+
+    #[test]
+    fn test_else_if_chain() {
+        let tokens = tokenize("if( x > 0 ) { x = 1; } else if( x < 0 ) { x = 2; } else { x = 0; }");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::If {
+                then_body,
+                else_body,
+                ..
+            } => {
+                assert_eq!(then_body.len(), 1);
+                // else_body should contain a single If statement
+                assert_eq!(else_body.len(), 1);
+                match &else_body[0] {
+                    Statement::If { else_body, .. } => {
+                        assert_eq!(else_body.len(), 1);
+                    }
+                    other => panic!("Expected nested If, got {other:?}"),
+                }
+            }
+            other => panic!("Expected If, got {other:?}"),
+        }
+    }
+
+    // ===== Switch default that ends at RBrace =====
+
+    #[test]
+    fn test_switch_default_ends_at_rbrace() {
+        // Line 1571: default body ends at RBrace without explicit break
+        let tokens = tokenize(
+            r"switch( mode ) {
+                default:
+                    x = 0;
+            }",
+        );
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Switch { default, .. } => {
+                assert_eq!(default.len(), 1);
+            }
+            other => panic!("Expected Switch, got {other:?}"),
+        }
+    }
+
+    // ===== Array access with -= compound in statement =====
+
+    #[test]
+    fn test_array_subtract_compound_assign() {
+        let tokens = tokenize("data[i] -= 2.0;");
+        let mut parser = Parser::new(tokens);
+        let stmt = parser.parse_statement();
+        match stmt {
+            Statement::Assign {
+                target: Expr::ArrayAccess(name, _),
+                compound: true,
+                value: Expr::BinOp(_, BinOp::Sub, _),
+            } => assert_eq!(name, "data"),
+            other => panic!("Expected array subtract compound, got {other:?}"),
+        }
+    }
+
+    // ===== Helper function: extract_func_params with empty params =====
+
+    #[test]
+    fn test_extract_func_params_void() {
+        let tokens = tokenize("(void)");
+        let params = extract_func_params(&tokens, 0);
+        // void is treated as a type token but no name follows, so empty params
+        assert!(params.is_empty());
+    }
+
+    // ===== Index var name detection =====
+
+    #[test]
+    fn test_is_index_var_name() {
+        assert!(Parser::is_index_var_name("i"));
+        assert!(Parser::is_index_var_name("j"));
+        assert!(Parser::is_index_var_name("k"));
+        assert!(Parser::is_index_var_name("outIdx"));
+        assert!(Parser::is_index_var_name("today"));
+        assert!(Parser::is_index_var_name("todayIdx"));
+        assert!(Parser::is_index_var_name("trailingIdx"));
+        assert!(Parser::is_index_var_name("inIdx"));
+        assert!(Parser::is_index_var_name("totIdx"));
+        assert!(Parser::is_index_var_name("idx"));
+        assert!(Parser::is_index_var_name("BodyLongTrailingIdx"));
+        assert!(!Parser::is_index_var_name("count"));
+        assert!(!Parser::is_index_var_name("period"));
+    }
+
+    // ===== TA_RetCode var type =====
+
+    #[test]
+    fn test_ta_retcode_var_type() {
+        let tokens = tokenize("TA_RetCode rc;");
+        let mut parser = Parser::new(tokens);
+        let stmts = parser.parse_var_decl();
+        assert_eq!(stmts.len(), 1);
+        match &stmts[0] {
+            Statement::VarDecl { var_type, .. } => assert_eq!(*var_type, VarType::RetCodeType),
+            other => panic!("Expected VarDecl, got {other:?}"),
+        }
+    }
+
+    // ===== Complex chained assignment: simple = ... =====
+
+    #[test]
+    fn test_simple_assignment_plain_rhs() {
+        let source = r"
+TA_RetCode test_func(int startIdx, int *outBegIdx)
+{
+    double x;
+    x = 5.0;
+    return TA_SUCCESS;
+}
+";
+        let parsed = parse_c_source_str(source);
+        let body = &parsed.functions[0].body;
+        match &body[1] {
+            Statement::Assign {
+                target: Expr::Var(name),
+                value: Expr::Literal(n),
+                compound: false,
+            } => {
+                assert_eq!(name, "x");
+                assert!((n - 5.0).abs() < f64::EPSILON);
+            }
+            other => panic!("Expected simple Assign, got {other:?}"),
+        }
+    }
 }

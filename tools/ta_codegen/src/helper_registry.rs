@@ -474,3 +474,744 @@ pub fn hoist_block_helpers(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::ir::{BinOp, Expr, HelperDef, HelperParam, Statement, VarType};
+    use std::collections::HashMap;
+    use std::path::Path;
+
+    /// Helper: build a substitution map from a slice of (name, expr) pairs.
+    fn subs(pairs: &[(&str, Expr)]) -> HashMap<String, Expr> {
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.clone()))
+            .collect()
+    }
+
+    /// Helper: build a simple HelperDef with the given body.
+    fn make_helper(
+        name: &str,
+        params: &[(&str, VarType)],
+        body: Vec<Statement>,
+    ) -> HelperDef {
+        HelperDef {
+            name: name.to_string(),
+            return_type: VarType::Real,
+            params: params
+                .iter()
+                .map(|(n, vt)| HelperParam {
+                    name: n.to_string(),
+                    var_type: vt.clone(),
+                })
+                .collect(),
+            body,
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // HelperRegistry tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_empty_registry_returns_none() {
+        let reg = HelperRegistry::empty();
+        assert!(reg.get("ta_nonexistent").is_none());
+    }
+
+    #[test]
+    fn test_from_dir_loads_helpers() {
+        // Use the real ta_func_defs directory (relative to CARGO_MANIFEST_DIR).
+        let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
+        if !base.join("helpers").exists() {
+            // Skip if not available in CI
+            return;
+        }
+        let reg = HelperRegistry::from_dir(&base);
+        // The candlestick helpers file should contain at least one helper.
+        // We just verify the registry is non-empty and can look up something.
+        assert!(
+            reg.get("ta_candlerange").is_some()
+                || reg.get("ta_realbody").is_some()
+                || reg.get("ta_round").is_some(),
+            "Expected at least one known helper to be loaded"
+        );
+    }
+
+    #[test]
+    fn test_from_dir_nonexistent_is_empty() {
+        let reg = HelperRegistry::from_dir(Path::new("/nonexistent/path"));
+        assert!(reg.get("anything").is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // substitute_expr tests — cover every Expr variant
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_substitute_expr_var_replacement() {
+        let map = subs(&[("x", Expr::IntLiteral(42))]);
+        let result = substitute_expr(&Expr::Var("x".into()), &map);
+        assert!(matches!(result, Expr::IntLiteral(42)));
+    }
+
+    #[test]
+    fn test_substitute_expr_var_no_match() {
+        let map = subs(&[("x", Expr::IntLiteral(1))]);
+        let result = substitute_expr(&Expr::Var("y".into()), &map);
+        assert!(matches!(result, Expr::Var(ref n) if n == "y"));
+    }
+
+    #[test]
+    fn test_substitute_expr_literal_passthrough() {
+        let map = subs(&[]);
+        let result = substitute_expr(&Expr::Literal(7.77), &map);
+        assert!(matches!(result, Expr::Literal(v) if (v - 7.77).abs() < 1e-15));
+    }
+
+    #[test]
+    fn test_substitute_expr_int_literal_passthrough() {
+        let map = subs(&[]);
+        let result = substitute_expr(&Expr::IntLiteral(99), &map);
+        assert!(matches!(result, Expr::IntLiteral(99)));
+    }
+
+    #[test]
+    fn test_substitute_expr_pointer_deref_passthrough() {
+        let map = subs(&[]);
+        let result = substitute_expr(&Expr::PointerDeref("ptr".into()), &map);
+        assert!(matches!(result, Expr::PointerDeref(ref n) if n == "ptr"));
+    }
+
+    #[test]
+    fn test_substitute_expr_binop() {
+        let map = subs(&[("a", Expr::IntLiteral(1)), ("b", Expr::IntLiteral(2))]);
+        let expr = Expr::BinOp(
+            Box::new(Expr::Var("a".into())),
+            BinOp::Add,
+            Box::new(Expr::Var("b".into())),
+        );
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::BinOp(l, _, r) => {
+                assert!(matches!(*l, Expr::IntLiteral(1)));
+                assert!(matches!(*r, Expr::IntLiteral(2)));
+            }
+            other => panic!("Expected BinOp, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_func_call() {
+        let map = subs(&[("x", Expr::Literal(5.0))]);
+        let expr = Expr::FuncCall(
+            "my_func".into(),
+            vec![Expr::Var("x".into()), Expr::IntLiteral(10)],
+        );
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::FuncCall(name, args) => {
+                assert_eq!(name, "my_func");
+                assert_eq!(args.len(), 2);
+                assert!(matches!(args[0], Expr::Literal(v) if (v - 5.0).abs() < 1e-15));
+                assert!(matches!(args[1], Expr::IntLiteral(10)));
+            }
+            other => panic!("Expected FuncCall, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_array_access() {
+        let map = subs(&[("i", Expr::IntLiteral(7))]);
+        let expr = Expr::ArrayAccess("arr".into(), Box::new(Expr::Var("i".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::ArrayAccess(name, idx) => {
+                assert_eq!(name, "arr");
+                assert!(matches!(*idx, Expr::IntLiteral(7)));
+            }
+            other => panic!("Expected ArrayAccess, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_ternary() {
+        let map = subs(&[("c", Expr::IntLiteral(1))]);
+        let expr = Expr::Ternary(
+            Box::new(Expr::Var("c".into())),
+            Box::new(Expr::Literal(10.0)),
+            Box::new(Expr::Literal(20.0)),
+        );
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::Ternary(cond, _, _) => {
+                assert!(matches!(*cond, Expr::IntLiteral(1)));
+            }
+            other => panic!("Expected Ternary, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_cast() {
+        let map = subs(&[("x", Expr::Literal(3.0))]);
+        let expr = Expr::Cast(VarType::Integer, Box::new(Expr::Var("x".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::Cast(vt, inner) => {
+                assert_eq!(vt, VarType::Integer);
+                assert!(matches!(*inner, Expr::Literal(v) if (v - 3.0).abs() < 1e-15));
+            }
+            other => panic!("Expected Cast, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_not() {
+        let map = subs(&[("x", Expr::IntLiteral(0))]);
+        let expr = Expr::Not(Box::new(Expr::Var("x".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::Not(inner) => assert!(matches!(*inner, Expr::IntLiteral(0))),
+            other => panic!("Expected Not, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_address_of() {
+        let map = subs(&[("x", Expr::Var("replaced".into()))]);
+        let expr = Expr::AddressOf(Box::new(Expr::Var("x".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::AddressOf(inner) => {
+                assert!(matches!(*inner, Expr::Var(ref n) if n == "replaced"));
+            }
+            other => panic!("Expected AddressOf, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_post_increment() {
+        let map = subs(&[("i", Expr::Var("j".into()))]);
+        let expr = Expr::PostIncrement(Box::new(Expr::Var("i".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::PostIncrement(inner) => {
+                assert!(matches!(*inner, Expr::Var(ref n) if n == "j"));
+            }
+            other => panic!("Expected PostIncrement, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_post_decrement() {
+        let map = subs(&[("i", Expr::Var("j".into()))]);
+        let expr = Expr::PostDecrement(Box::new(Expr::Var("i".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::PostDecrement(inner) => {
+                assert!(matches!(*inner, Expr::Var(ref n) if n == "j"));
+            }
+            other => panic!("Expected PostDecrement, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_pre_increment() {
+        let map = subs(&[("i", Expr::Var("k".into()))]);
+        let expr = Expr::PreIncrement(Box::new(Expr::Var("i".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::PreIncrement(inner) => {
+                assert!(matches!(*inner, Expr::Var(ref n) if n == "k"));
+            }
+            other => panic!("Expected PreIncrement, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_expr_pre_decrement() {
+        let map = subs(&[("i", Expr::Var("k".into()))]);
+        let expr = Expr::PreDecrement(Box::new(Expr::Var("i".into())));
+        let result = substitute_expr(&expr, &map);
+        match result {
+            Expr::PreDecrement(inner) => {
+                assert!(matches!(*inner, Expr::Var(ref n) if n == "k"));
+            }
+            other => panic!("Expected PreDecrement, got {other:?}"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // try_inline_expr tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_try_inline_single_return_expr() {
+        // Helper: double add(double a, double b) { return a + b; }
+        let helper = make_helper(
+            "ta_add",
+            &[("a", VarType::Real), ("b", VarType::Real)],
+            vec![Statement::Return {
+                value: Some(Expr::BinOp(
+                    Box::new(Expr::Var("a".into())),
+                    BinOp::Add,
+                    Box::new(Expr::Var("b".into())),
+                )),
+            }],
+        );
+        let args = vec![Expr::Literal(1.0), Expr::Literal(2.0)];
+        let result = try_inline_expr(&helper, &args);
+        assert!(result.is_some());
+        match result.unwrap() {
+            Expr::BinOp(l, _, r) => {
+                assert!(matches!(*l, Expr::Literal(v) if (v - 1.0).abs() < 1e-15));
+                assert!(matches!(*r, Expr::Literal(v) if (v - 2.0).abs() < 1e-15));
+            }
+            other => panic!("Expected BinOp, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_try_inline_multi_statement_returns_none() {
+        // Multi-statement body => cannot inline as expression
+        let helper = make_helper(
+            "ta_complex",
+            &[("x", VarType::Real)],
+            vec![
+                Statement::VarDecl {
+                    var_type: VarType::Real,
+                    name: "tmp".into(),
+                    init: Some(Expr::Var("x".into())),
+                },
+                Statement::Return {
+                    value: Some(Expr::Var("tmp".into())),
+                },
+            ],
+        );
+        let args = vec![Expr::Literal(1.0)];
+        assert!(try_inline_expr(&helper, &args).is_none());
+    }
+
+    #[test]
+    fn test_try_inline_return_without_value_returns_none() {
+        let helper = make_helper(
+            "ta_noop",
+            &[],
+            vec![Statement::Return { value: None }],
+        );
+        assert!(try_inline_expr(&helper, &[]).is_none());
+    }
+
+    // -----------------------------------------------------------------------
+    // substitute_statement tests — cover While, DoWhile, For, ForC, Block,
+    //                              Break, Continue
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_substitute_statement_while() {
+        let map = subs(&[("x", Expr::IntLiteral(10))]);
+        let stmt = Statement::While {
+            condition: Expr::Var("x".into()),
+            body: vec![Statement::Assign {
+                target: Expr::Var("x".into()),
+                value: Expr::IntLiteral(0),
+                compound: false,
+            }],
+        };
+        let result = substitute_statement(&stmt, &map, 1);
+        match result {
+            Statement::While { condition, body } => {
+                assert!(matches!(condition, Expr::IntLiteral(10)));
+                assert_eq!(body.len(), 1);
+            }
+            other => panic!("Expected While, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_statement_do_while() {
+        let map = subs(&[("n", Expr::Var("count".into()))]);
+        let stmt = Statement::DoWhile {
+            condition: Expr::Var("n".into()),
+            body: vec![Statement::Break],
+        };
+        let result = substitute_statement(&stmt, &map, 2);
+        match result {
+            Statement::DoWhile { condition, body } => {
+                assert!(matches!(condition, Expr::Var(ref n) if n == "count"));
+                assert_eq!(body.len(), 1);
+                assert!(matches!(body[0], Statement::Break));
+            }
+            other => panic!("Expected DoWhile, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_statement_for() {
+        let map = subs(&[("limit", Expr::IntLiteral(100))]);
+        let stmt = Statement::For {
+            var: "i".into(),
+            count: Expr::Var("limit".into()),
+            body: vec![Statement::Continue],
+        };
+        let result = substitute_statement(&stmt, &map, 3);
+        match result {
+            Statement::For { var, count, body } => {
+                assert_eq!(var, "i_3");
+                assert!(matches!(count, Expr::IntLiteral(100)));
+                assert_eq!(body.len(), 1);
+                assert!(matches!(body[0], Statement::Continue));
+            }
+            other => panic!("Expected For, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_statement_for_c() {
+        let map = subs(&[("n", Expr::IntLiteral(5))]);
+        let stmt = Statement::ForC {
+            init: Box::new(Statement::VarDecl {
+                var_type: VarType::Index,
+                name: "i".into(),
+                init: Some(Expr::IntLiteral(0)),
+            }),
+            condition: Expr::BinOp(
+                Box::new(Expr::Var("i".into())),
+                BinOp::Less,
+                Box::new(Expr::Var("n".into())),
+            ),
+            update: Box::new(Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::BinOp(
+                    Box::new(Expr::Var("i".into())),
+                    BinOp::Add,
+                    Box::new(Expr::IntLiteral(1)),
+                ),
+                compound: true,
+            }),
+            body: vec![Statement::Break],
+        };
+        let result = substitute_statement(&stmt, &map, 7);
+        match result {
+            Statement::ForC {
+                init,
+                condition,
+                update,
+                body,
+            } => {
+                // init should be a renamed VarDecl
+                assert!(matches!(*init, Statement::VarDecl { ref name, .. } if name == "i_7"));
+                // condition should have substituted 'n' -> 5
+                assert!(matches!(condition, Expr::BinOp(_, BinOp::Less, ref r)
+                    if matches!(**r, Expr::IntLiteral(5))));
+                // update should exist
+                assert!(matches!(*update, Statement::Assign { .. }));
+                assert_eq!(body.len(), 1);
+            }
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_statement_block() {
+        let map = subs(&[("x", Expr::IntLiteral(42))]);
+        let stmt = Statement::Block {
+            body: vec![
+                Statement::Assign {
+                    target: Expr::Var("y".into()),
+                    value: Expr::Var("x".into()),
+                    compound: false,
+                },
+                Statement::Break,
+            ],
+        };
+        let result = substitute_statement(&stmt, &map, 0);
+        match result {
+            Statement::Block { body } => {
+                assert_eq!(body.len(), 2);
+                assert!(matches!(body[1], Statement::Break));
+            }
+            other => panic!("Expected Block, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_substitute_statement_break() {
+        let map = subs(&[]);
+        let result = substitute_statement(&Statement::Break, &map, 0);
+        assert!(matches!(result, Statement::Break));
+    }
+
+    #[test]
+    fn test_substitute_statement_continue() {
+        let map = subs(&[]);
+        let result = substitute_statement(&Statement::Continue, &map, 0);
+        assert!(matches!(result, Statement::Continue));
+    }
+
+    // -----------------------------------------------------------------------
+    // replace_returns_with_assign — covers While, DoWhile, For, ForC, Block
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_replace_returns_in_while() {
+        let mut body = vec![Statement::While {
+            condition: Expr::IntLiteral(1),
+            body: vec![Statement::Return {
+                value: Some(Expr::Literal(99.0)),
+            }],
+        }];
+        replace_returns_with_assign(&mut body, "_result_0");
+        match &body[0] {
+            Statement::While {
+                body: inner_body, ..
+            } => match &inner_body[0] {
+                Statement::Assign {
+                    target, compound, ..
+                } => {
+                    assert!(matches!(target, Expr::Var(ref n) if n == "_result_0"));
+                    assert!(!compound);
+                }
+                other => panic!("Expected Assign, got {other:?}"),
+            },
+            other => panic!("Expected While, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_replace_returns_in_do_while() {
+        let mut body = vec![Statement::DoWhile {
+            condition: Expr::IntLiteral(0),
+            body: vec![Statement::Return {
+                value: Some(Expr::IntLiteral(1)),
+            }],
+        }];
+        replace_returns_with_assign(&mut body, "_tmp");
+        match &body[0] {
+            Statement::DoWhile {
+                body: inner_body, ..
+            } => {
+                assert!(matches!(inner_body[0], Statement::Assign { .. }));
+            }
+            other => panic!("Expected DoWhile, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_replace_returns_in_for() {
+        let mut body = vec![Statement::For {
+            var: "i".into(),
+            count: Expr::IntLiteral(10),
+            body: vec![Statement::Return {
+                value: Some(Expr::Var("i".into())),
+            }],
+        }];
+        replace_returns_with_assign(&mut body, "_out");
+        match &body[0] {
+            Statement::For {
+                body: inner_body, ..
+            } => {
+                assert!(matches!(inner_body[0], Statement::Assign { .. }));
+            }
+            other => panic!("Expected For, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_replace_returns_in_for_c() {
+        let mut body = vec![Statement::ForC {
+            init: Box::new(Statement::VarDecl {
+                var_type: VarType::Index,
+                name: "i".into(),
+                init: Some(Expr::IntLiteral(0)),
+            }),
+            condition: Expr::IntLiteral(1),
+            update: Box::new(Statement::Assign {
+                target: Expr::Var("i".into()),
+                value: Expr::IntLiteral(1),
+                compound: true,
+            }),
+            body: vec![Statement::Return {
+                value: Some(Expr::Literal(0.0)),
+            }],
+        }];
+        replace_returns_with_assign(&mut body, "_fc_out");
+        match &body[0] {
+            Statement::ForC {
+                body: inner_body, ..
+            } => {
+                assert!(matches!(inner_body[0], Statement::Assign { .. }));
+            }
+            other => panic!("Expected ForC, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_replace_returns_in_block() {
+        let mut body = vec![Statement::Block {
+            body: vec![Statement::Return {
+                value: Some(Expr::IntLiteral(7)),
+            }],
+        }];
+        replace_returns_with_assign(&mut body, "_blk");
+        match &body[0] {
+            Statement::Block {
+                body: inner_body, ..
+            } => {
+                assert!(matches!(inner_body[0], Statement::Assign { .. }));
+            }
+            other => panic!("Expected Block, got {other:?}"),
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // inline_block tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_inline_block_renames_locals_and_replaces_returns() {
+        // Helper: double compute(double x) { double tmp = x * 2; return tmp; }
+        let helper = make_helper(
+            "ta_compute",
+            &[("x", VarType::Real)],
+            vec![
+                Statement::VarDecl {
+                    var_type: VarType::Real,
+                    name: "tmp".into(),
+                    init: Some(Expr::BinOp(
+                        Box::new(Expr::Var("x".into())),
+                        BinOp::Mul,
+                        Box::new(Expr::IntLiteral(2)),
+                    )),
+                },
+                Statement::Return {
+                    value: Some(Expr::Var("tmp".into())),
+                },
+            ],
+        );
+        let args = vec![Expr::Literal(5.0)];
+        let mut counter = 0_usize;
+        let (body, temp_name) = inline_block(&helper, &args, &mut counter);
+
+        assert_eq!(counter, 1);
+        assert_eq!(temp_name, "_compute_0");
+        assert_eq!(body.len(), 2);
+
+        // First statement: VarDecl with renamed local "tmp_0"
+        match &body[0] {
+            Statement::VarDecl { name, .. } => assert_eq!(name, "tmp_0"),
+            other => panic!("Expected VarDecl, got {other:?}"),
+        }
+
+        // Second statement: Return replaced with Assign to "_compute_0"
+        match &body[1] {
+            Statement::Assign { target, .. } => {
+                assert!(matches!(target, Expr::Var(ref n) if n == "_compute_0"));
+            }
+            other => panic!("Expected Assign (from Return), got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn test_inline_block_counter_increments() {
+        let helper = make_helper(
+            "ta_noop",
+            &[],
+            vec![Statement::Return {
+                value: Some(Expr::IntLiteral(0)),
+            }],
+        );
+        let mut counter = 5_usize;
+        let (_, name1) = inline_block(&helper, &[], &mut counter);
+        let (_, name2) = inline_block(&helper, &[], &mut counter);
+
+        assert_eq!(name1, "_noop_5");
+        assert_eq!(name2, "_noop_6");
+        assert_eq!(counter, 7);
+    }
+
+    // -----------------------------------------------------------------------
+    // hoist_block_helpers tests
+    // -----------------------------------------------------------------------
+
+    #[test]
+    fn test_hoist_block_helpers_no_helpers() {
+        let reg = HelperRegistry::empty();
+        let mut hoisted = Vec::new();
+        let mut counter = 0_usize;
+        let expr = Expr::BinOp(
+            Box::new(Expr::Var("a".into())),
+            BinOp::Add,
+            Box::new(Expr::Var("b".into())),
+        );
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+        assert!(hoisted.is_empty());
+        assert!(matches!(result, Expr::BinOp(..)));
+    }
+
+    #[test]
+    fn test_hoist_block_helpers_single_return_stays_func_call() {
+        // Single-return helpers are inlined as expressions by try_inline_expr,
+        // so hoist_block_helpers should NOT hoist them.
+        let mut helpers = HashMap::new();
+        helpers.insert(
+            "ta_add".into(),
+            make_helper(
+                "ta_add",
+                &[("a", VarType::Real), ("b", VarType::Real)],
+                vec![Statement::Return {
+                    value: Some(Expr::BinOp(
+                        Box::new(Expr::Var("a".into())),
+                        BinOp::Add,
+                        Box::new(Expr::Var("b".into())),
+                    )),
+                }],
+            ),
+        );
+        let reg = HelperRegistry { helpers };
+        let mut hoisted = Vec::new();
+        let mut counter = 0_usize;
+        let expr = Expr::FuncCall(
+            "ta_add".into(),
+            vec![Expr::Literal(1.0), Expr::Literal(2.0)],
+        );
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+        // Single-return: not hoisted, stays as FuncCall (the caller does try_inline_expr)
+        assert!(hoisted.is_empty());
+        assert!(matches!(result, Expr::FuncCall(..)));
+    }
+
+    #[test]
+    fn test_hoist_block_helpers_multi_statement_hoisted() {
+        let mut helpers = HashMap::new();
+        helpers.insert(
+            "ta_complex".into(),
+            make_helper(
+                "ta_complex",
+                &[("x", VarType::Real)],
+                vec![
+                    Statement::VarDecl {
+                        var_type: VarType::Real,
+                        name: "tmp".into(),
+                        init: Some(Expr::Var("x".into())),
+                    },
+                    Statement::Return {
+                        value: Some(Expr::Var("tmp".into())),
+                    },
+                ],
+            ),
+        );
+        let reg = HelperRegistry { helpers };
+        let mut hoisted = Vec::new();
+        let mut counter = 0_usize;
+        let expr = Expr::FuncCall("ta_complex".into(), vec![Expr::Literal(5.0)]);
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+
+        // Should be hoisted: result replaced with Var(_complex_0)
+        assert_eq!(hoisted.len(), 1);
+        assert_eq!(hoisted[0].0, "_complex_0");
+        assert_eq!(hoisted[0].1, VarType::Real);
+        assert!(matches!(result, Expr::Var(ref n) if n == "_complex_0"));
+    }
+}

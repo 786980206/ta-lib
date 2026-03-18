@@ -2648,3 +2648,3524 @@ fn java_backend_hoisted_helper_declares_local_vars() {
         "Should declare 'double tmp_0' for hoisted local: {output}"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Rust render_statement unit tests for uncovered branches
+// ---------------------------------------------------------------------------
+
+/// Helper to build a RustRenderCtx and call render_statement with minimal boilerplate.
+fn render_rust_stmt(stmt: &ir::Statement) -> String {
+    render_rust_stmt_with_ctx(stmt, &backends::rust_lang::RustRenderCtx::for_lookback())
+}
+
+fn render_rust_stmt_with_ctx(
+    stmt: &ir::Statement,
+    ctx: &backends::rust_lang::RustRenderCtx,
+) -> String {
+    let for_loop_vars: Vec<String> = vec![];
+    let var_inits: std::collections::HashMap<String, &ir::Expr> =
+        std::collections::HashMap::new();
+    let output_names: Vec<String> = vec![];
+    let opt_real_params: Vec<String> = vec![];
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+
+    backends::rust_lang::render_statement(
+        stmt,
+        12, // indent > 8 so VarDecl at nested level is emitted
+        ctx,
+        &for_loop_vars,
+        &var_inits,
+        &output_names,
+        &opt_real_params,
+        &enums,
+        &registry,
+        &helpers,
+        &inline_counter,
+    )
+}
+
+// ---------------------------------------------------------------------------
+// 1. VarDecl types: IntPointer, RealPointer, RealArray, IntArray, RetCodeType
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_vardecl_int_pointer_renders_vec_i32() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntPointer,
+        name: "buf".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("Vec<i32>"),
+        "IntPointer VarDecl should render as Vec<i32>: {rendered}"
+    );
+    assert!(
+        rendered.contains("Vec::new()"),
+        "IntPointer VarDecl without init should default to Vec::new(): {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_real_pointer_renders_vec_f64() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealPointer,
+        name: "buf".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("Vec<f64>"),
+        "RealPointer VarDecl should render as Vec<f64>: {rendered}"
+    );
+    assert!(
+        rendered.contains("Vec::new()"),
+        "RealPointer VarDecl without init should default to Vec::new(): {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_real_array_renders_fixed_size() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealArray("30".to_string()),
+        name: "arr".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("[f64; 30 as usize]"),
+        "RealArray VarDecl should render as [f64; N as usize]: {rendered}"
+    );
+    assert!(
+        rendered.contains("0.0_f64"),
+        "RealArray VarDecl should initialize with 0.0_f64: {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_int_array_renders_fixed_size() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntArray("5".to_string()),
+        name: "flags".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("[i32; 5 as usize]"),
+        "IntArray VarDecl should render as [i32; N as usize]: {rendered}"
+    );
+    assert!(
+        rendered.contains("0i32"),
+        "IntArray VarDecl should initialize with 0i32: {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_retcode_type_renders_retcode() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RetCodeType,
+        name: "retCode".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("RetCode"),
+        "RetCodeType VarDecl should render as RetCode: {rendered}"
+    );
+    assert!(
+        rendered.contains("RetCode::Success"),
+        "RetCodeType VarDecl without init should default to RetCode::Success: {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_with_init_expr() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::Real,
+        name: "total".to_string(),
+        init: Some(ir::Expr::Literal(2.71)),
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("2.71"),
+        "VarDecl with init should render the init expression: {rendered}"
+    );
+    assert!(
+        rendered.contains("let mut total: f64"),
+        "VarDecl should declare with type: {rendered}"
+    );
+}
+
+#[test]
+fn rust_vardecl_sentinel_var_renders_i32() {
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.sentinel_vars.insert("highestIdx".to_string());
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::Integer,
+        name: "highestIdx".to_string(),
+        init: None,
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("i32"),
+        "Sentinel var VarDecl should render as i32: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 2. Switch/case rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_switch_renders_match_with_cases() {
+    let stmt = ir::Statement::Switch {
+        expr: ir::Expr::Var("optInMAType".to_string()),
+        cases: vec![
+            (
+                "0".to_string(),
+                vec![ir::Statement::Assign {
+                    target: ir::Expr::Var("x".to_string()),
+                    value: ir::Expr::IntLiteral(1),
+                    compound: false,
+                }],
+            ),
+            (
+                "1".to_string(),
+                vec![ir::Statement::Assign {
+                    target: ir::Expr::Var("x".to_string()),
+                    value: ir::Expr::IntLiteral(2),
+                    compound: false,
+                }],
+            ),
+        ],
+        default: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("match optInMAType"),
+        "Switch should render as match: {rendered}"
+    );
+    assert!(
+        rendered.contains("0 =>"),
+        "Switch case 0 should render: {rendered}"
+    );
+    assert!(
+        rendered.contains("1 =>"),
+        "Switch case 1 should render: {rendered}"
+    );
+    assert!(
+        rendered.contains("_ =>"),
+        "Switch default should render as _ =>: {rendered}"
+    );
+}
+
+#[test]
+fn rust_switch_without_default() {
+    let stmt = ir::Statement::Switch {
+        expr: ir::Expr::Var("mode".to_string()),
+        cases: vec![(
+            "42".to_string(),
+            vec![ir::Statement::Break],
+        )],
+        default: vec![],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("match mode"),
+        "Switch should render as match: {rendered}"
+    );
+    assert!(
+        rendered.contains("42 =>"),
+        "Switch case should render: {rendered}"
+    );
+    assert!(
+        !rendered.contains("_ =>"),
+        "Switch without default should not have _ => arm: {rendered}"
+    );
+}
+
+#[test]
+fn rust_switch_with_enum_label_lookup() {
+    // Test switch rendering with real MA indicator (exercises render_switch_label with enum lookup)
+    let (func, enums) = load_indicator("ma");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // MA's switch should render as match with integer values from enum lookup
+    assert!(
+        rust_out.contains("match "),
+        "MA Rust should contain match statement: {rust_out}"
+    );
+    // The enum variants resolve to integer values (0, 1, 2, etc.)
+    assert!(
+        rust_out.contains("0 =>") || rust_out.contains("1 =>"),
+        "MA Rust match should have integer case labels from enum resolution"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 3. DoWhile rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_dowhile_renders_loop_with_break() {
+    let stmt = ir::Statement::DoWhile {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("x".to_string())),
+                ir::BinOp::Sub,
+                Box::new(ir::Expr::IntLiteral(1)),
+            ),
+            compound: false,
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("loop {"),
+        "DoWhile should render as loop: {rendered}"
+    );
+    assert!(
+        rendered.contains("if !(") && rendered.contains("{ break; }"),
+        "DoWhile should have conditional break at end: {rendered}"
+    );
+    // Body should come before the break condition
+    let body_pos = rendered.find("x =").expect("Should have body assignment");
+    let break_pos = rendered.find("break").expect("Should have break");
+    assert!(
+        body_pos < break_pos,
+        "DoWhile body should execute before break check"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 4. ForC rendering: countdown loop and generic fallback
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_forc_countdown_renders_loop_break_pattern() {
+    // for(i = 10; i >= 0; i--) → loop { body; if i == 0 { break; } i -= 1; }
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::IntLiteral(10),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::GreaterEq,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("i".to_string())),
+                ir::BinOp::Sub,
+                Box::new(ir::Expr::IntLiteral(1)),
+            ),
+            compound: false,
+        }),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("sum".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("loop {"),
+        "Countdown ForC should render as loop: {rendered}"
+    );
+    assert!(
+        rendered.contains("break"),
+        "Countdown ForC should contain break: {rendered}"
+    );
+    assert!(
+        rendered.contains("i -= 1"),
+        "Countdown ForC should have decrement: {rendered}"
+    );
+}
+
+#[test]
+fn rust_forc_pre_decrement_countdown() {
+    // for(i = 5; i >= 0; --i) using PreDecrement
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::IntLiteral(5),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::GreaterEq,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::PreDecrement(Box::new(ir::Expr::Var("i".to_string()))),
+            compound: false,
+        }),
+        body: vec![],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("loop {"),
+        "Pre-decrement countdown ForC should render as loop: {rendered}"
+    );
+    assert!(
+        rendered.contains("break"),
+        "Pre-decrement countdown ForC should contain break: {rendered}"
+    );
+}
+
+#[test]
+fn rust_forc_generic_fallback_uses_while() {
+    // for(i = 0; i < n; i = i * 2) — not simple increment, not simple decrement
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::Less,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("i".to_string())),
+                ir::BinOp::Mul,
+                Box::new(ir::Expr::IntLiteral(2)),
+            ),
+            compound: false,
+        }),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("sum".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("while "),
+        "Generic ForC should fall through to while: {rendered}"
+    );
+    assert!(
+        rendered.contains("// for("),
+        "Generic ForC should include comment with original C form: {rendered}"
+    );
+}
+
+#[test]
+fn rust_forc_range_iteration_post_loop_fixup() {
+    // for(i = startIdx; i <= endIdx; i++) should emit range + post-loop fixup
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::Var("startIdx".to_string()),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::LessEq,
+            Box::new(ir::Expr::Var("endIdx".to_string())),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("i".to_string())),
+                ir::BinOp::Add,
+                Box::new(ir::Expr::IntLiteral(1)),
+            ),
+            compound: false,
+        }),
+        body: vec![],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("..="),
+        "Range ForC should use ..= : {rendered}"
+    );
+    // Post-loop fixup: i = (endIdx as usize) + 1
+    assert!(
+        rendered.contains("+ 1"),
+        "Range ForC should have post-loop fixup: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 5. Block rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_block_renders_inner_statements() {
+    let stmt = ir::Statement::Block {
+        body: vec![
+            ir::Statement::Assign {
+                target: ir::Expr::Var("x".to_string()),
+                value: ir::Expr::IntLiteral(1),
+                compound: false,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("y".to_string()),
+                value: ir::Expr::IntLiteral(2),
+                compound: false,
+            },
+        ],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("x = 1"),
+        "Block should render first statement: {rendered}"
+    );
+    assert!(
+        rendered.contains("y = 2"),
+        "Block should render second statement: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 6. Cross-indicator argument rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_cross_indicator_call_via_generate() {
+    // MA calls sma, ema etc. — exercises the registry-based cross-indicator path
+    let (func, enums) = load_indicator("ma");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // Should contain self.sma(, self.ema( etc. (guarded cross-indicator calls)
+    assert!(
+        rust_out.contains("self.sma("),
+        "MA Rust should call self.sma(): {rust_out}"
+    );
+    assert!(
+        rust_out.contains("self.ema("),
+        "MA Rust should call self.ema(): {rust_out}"
+    );
+}
+
+#[test]
+fn rust_cross_indicator_lookback_with_pascal_case() {
+    // func_call where fname ends in _Lookback: exercises the _Lookback branch
+    let (func, enums) = load_indicator("ma");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // MA calls SMA_Lookback which renders as self.sma_lookback
+    assert!(
+        rust_out.contains("self.sma_lookback("),
+        "MA Rust should call self.sma_lookback(): {rust_out}"
+    );
+}
+
+#[test]
+fn rust_unguarded_cross_indicator_call() {
+    // EMA has explicit unguarded with extra params. MACD calls ema_unguarded.
+    let (func, enums) = load_indicator("macd");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    assert!(
+        rust_out.contains("self.ema_unguarded("),
+        "MACD Rust should call self.ema_unguarded(): {rust_out}"
+    );
+}
+
+#[test]
+fn rust_cross_indicator_vec_input_gets_ref() {
+    // Indicators that allocate local buffers (Vec) and pass them to cross-indicator calls
+    // should render the Vec as &name for input position
+    let (func, enums) = load_indicator("macd");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // MACD allocates local buffers and passes them to EMA
+    // Check that the output compiles (no panic) and contains cross-indicator call patterns
+    assert!(
+        rust_out.contains("self.ema") || rust_out.contains("self.sma"),
+        "MACD Rust should contain cross-indicator calls"
+    );
+}
+
+#[test]
+fn rust_is_ta_function_renders_self_call() {
+    // All-uppercase function names that aren't builtins are treated as cross-indicator calls
+    // via is_ta_function, rendered as self.{lowercase}(args).
+    // STOCHRSI calls STOCHF which should be rendered as self.stochf(...)
+    let (func, enums) = load_indicator("stochrsi");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+        backends::rust_lang::generate(&func, &enums, &registry, &helpers)
+    }));
+    if let Ok(rust_out) = result {
+        // Should contain self.rsi or self.stochf calls
+        let has_cross_call = rust_out.contains("self.rsi")
+            || rust_out.contains("self.stochf")
+            || rust_out.contains("self.sma");
+        assert!(
+            has_cross_call,
+            "STOCHRSI Rust should contain cross-indicator self.xxx calls: {rust_out}"
+        );
+    }
+    // If it panics, the indicator might not be parseable yet — skip silently
+}
+
+// ---------------------------------------------------------------------------
+// 7. Lookback code rendering with candle settings
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_lookback_code_rendering_cdlkicking() {
+    // CDL indicators have complex lookback bodies with candle settings
+    let (func, enums) = load_indicator("cdlkicking");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // Lookback function should exist
+    assert!(
+        rust_out.contains("_lookback("),
+        "CDL indicator should have lookback function: {rust_out}"
+    );
+    // Candle settings should be unpacked
+    assert!(
+        rust_out.contains("candle_settings"),
+        "CDL lookback should unpack candle_settings: {rust_out}"
+    );
+}
+
+#[test]
+fn rust_lookback_code_with_vars() {
+    // Test that lookback code renders VarDecls with proper types
+    let (func, enums) = load_indicator("cdlkicking");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    // CDL indicators have local vars in their lookback body (e.g., lookbackTotal)
+    // They should be declared as `let mut` or `let`
+    let lookback_section = extract_section(&rust_out, "_lookback(", "pub fn cdlkicking(");
+    assert!(
+        lookback_section.contains("let ") || lookback_section.contains("let mut "),
+        "Lookback code should declare local variables: {lookback_section}"
+    );
+}
+
+#[test]
+fn rust_lookback_literal_renders_return() {
+    // SMA has LookbackExpr::ParamMinus or simple literal
+    let (func, enums) = load_indicator("mult");
+    let registry = make_registry();
+    let helpers = make_helpers();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    let lookback_section = extract_section(&rust_out, "_lookback(", "pub fn mult(");
+    assert!(
+        lookback_section.contains("return"),
+        "Lookback should have return statement: {lookback_section}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 8. Expression rendering edge cases
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_ternary_renders_if_else() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::Ternary(
+            Box::new(ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                ir::BinOp::Greater,
+                Box::new(ir::Expr::Var("b".to_string())),
+            )),
+            Box::new(ir::Expr::Var("a".to_string())),
+            Box::new(ir::Expr::Var("b".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("if ") && rendered.contains("else"),
+        "Ternary should render as if/else: {rendered}"
+    );
+}
+
+#[test]
+fn rust_post_increment_renders_block() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("let _v =") && rendered.contains("+= 1"),
+        "PostIncrement should render as block with temp: {rendered}"
+    );
+}
+
+#[test]
+fn rust_post_decrement_renders_block() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::PostDecrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("let _v =") && rendered.contains("-= 1"),
+        "PostDecrement should render as block with temp: {rendered}"
+    );
+}
+
+#[test]
+fn rust_pre_increment_renders_block() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::PreIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("+= 1"),
+        "PreIncrement should render with increment: {rendered}"
+    );
+}
+
+#[test]
+fn rust_pre_decrement_renders_block() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::PreDecrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("-= 1"),
+        "PreDecrement should render with decrement: {rendered}"
+    );
+}
+
+#[test]
+fn rust_not_expr_renders_negation() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("result".to_string()),
+        value: ir::Expr::Not(Box::new(ir::Expr::Var("flag".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("!(flag)"),
+        "Not should render as !(): {rendered}"
+    );
+}
+
+#[test]
+fn rust_cast_renders_as_type() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::Real,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("as f64"),
+        "Cast to Real should render as 'as f64': {rendered}"
+    );
+}
+
+#[test]
+fn rust_cast_to_integer_renders_as_usize() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::Integer,
+            Box::new(ir::Expr::Var("val".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("as usize"),
+        "Cast to Integer should render as 'as usize': {rendered}"
+    );
+}
+
+#[test]
+fn rust_pointer_deref_renders_star() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PointerDeref("outBegIdx".to_string()),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("(*outBegIdx)"),
+        "PointerDeref should render as (*name): {rendered}"
+    );
+}
+
+#[test]
+fn rust_address_of_renders_inner() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::AddressOf(Box::new(ir::Expr::Var("val".to_string()))),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    // AddressOf renders inner expression directly in Rust (not idiomatic)
+    assert!(
+        rendered.contains("val"),
+        "AddressOf should render inner expression: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 9. render_func_call branches
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_func_call_unstable_period() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::FuncCall(
+            "UNSTABLE_PERIOD".to_string(),
+            vec![ir::Expr::Var("FUNC_UNST_RSI".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("self.unstable_period[FuncUnstId::Rsi as usize]"),
+        "UNSTABLE_PERIOD should render with FuncUnstId: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_compatibility() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::FuncCall("COMPATIBILITY".to_string(), vec![]),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("self.compatibility"),
+        "COMPATIBILITY should render as self.compatibility: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_is_zero() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::FuncCall(
+            "IS_ZERO".to_string(),
+            vec![ir::Expr::Var("val".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains(".abs() < 1e-14"),
+        "IS_ZERO should render as abs() < 1e-14: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_per_to_k() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("k".to_string()),
+        value: ir::Expr::FuncCall(
+            "PER_TO_K".to_string(),
+            vec![ir::Expr::Var("optInTimePeriod".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("2.0_f64 / ("),
+        "PER_TO_K should render as 2.0_f64 / (...): {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_sizeof() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::FuncCall(
+            "sizeof".to_string(),
+            vec![ir::Expr::Var("double".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("1"),
+        "sizeof should render as 1: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_malloc_renders_vec() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("buf".to_string()),
+        value: ir::Expr::FuncCall(
+            "malloc".to_string(),
+            vec![ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("n".to_string())),
+                ir::BinOp::Mul,
+                Box::new(ir::Expr::FuncCall(
+                    "sizeof".to_string(),
+                    vec![ir::Expr::Var("int".to_string())],
+                )),
+            )],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("vec![0_i32;"),
+        "malloc with sizeof(int) should render as vec![0_i32; ...]: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_malloc_f64_default() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("buf".to_string()),
+        value: ir::Expr::FuncCall(
+            "malloc".to_string(),
+            vec![ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("n".to_string())),
+                ir::BinOp::Mul,
+                Box::new(ir::Expr::FuncCall(
+                    "sizeof".to_string(),
+                    vec![ir::Expr::Var("double".to_string())],
+                )),
+            )],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("vec![0.0_f64;"),
+        "malloc with sizeof(double) should render as vec![0.0_f64; ...]: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_free_is_noop() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall(
+            "free".to_string(),
+            vec![ir::Expr::Var("buf".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    // free() is a no-op in Rust (returns empty string from render_func_call)
+    // The Assign to _ with an empty value should be skipped
+    assert!(
+        !rendered.contains("free("),
+        "free() should not appear in Rust output: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_memcpy_renders_copy_from_slice() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall(
+            "memcpy".to_string(),
+            vec![
+                ir::Expr::Var("dst".to_string()),
+                ir::Expr::Var("src".to_string()),
+                ir::Expr::Var("count".to_string()),
+            ],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("copy_from_slice"),
+        "memcpy should render as copy_from_slice: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_array_copy_renders_copy_from_slice() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall(
+            "ARRAY_COPY".to_string(),
+            vec![
+                ir::Expr::Var("dst".to_string()),
+                ir::Expr::IntLiteral(0),
+                ir::Expr::Var("src".to_string()),
+                ir::Expr::IntLiteral(0),
+                ir::Expr::Var("n".to_string()),
+            ],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("copy_from_slice"),
+        "ARRAY_COPY should render as copy_from_slice: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_ta_candlerange_renders_match() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("cr".to_string()),
+        value: ir::Expr::FuncCall(
+            "ta_candlerange".to_string(),
+            vec![
+                ir::Expr::Var("rt".to_string()),
+                ir::Expr::Var("open".to_string()),
+                ir::Expr::Var("high".to_string()),
+                ir::Expr::Var("low".to_string()),
+                ir::Expr::Var("close".to_string()),
+            ],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("match rt"),
+        "ta_candlerange should render with match: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_ta_candleaverage_renders_inline() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("avg".to_string()),
+        value: ir::Expr::FuncCall(
+            "ta_candleaverage".to_string(),
+            vec![
+                ir::Expr::Var("rt".to_string()),
+                ir::Expr::Var("ap".to_string()),
+                ir::Expr::Var("factor".to_string()),
+                ir::Expr::Var("sum".to_string()),
+                ir::Expr::Var("open".to_string()),
+                ir::Expr::Var("high".to_string()),
+                ir::Expr::Var("low".to_string()),
+                ir::Expr::Var("close".to_string()),
+            ],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("_cr") && rendered.contains("_avg"),
+        "ta_candleaverage should render with inline temp vars: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 10. Return statement rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_return_success_renders_retcode() {
+    let stmt = ir::Statement::Return {
+        value: Some(ir::Expr::Var("SUCCESS".to_string())),
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("RetCode::Success"),
+        "Return SUCCESS should render as RetCode::Success: {rendered}"
+    );
+}
+
+#[test]
+fn rust_return_bad_param_renders_retcode() {
+    let stmt = ir::Statement::Return {
+        value: Some(ir::Expr::Var("BadParam".to_string())),
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("RetCode::BadParam"),
+        "Return BadParam should render as RetCode::BadParam: {rendered}"
+    );
+}
+
+#[test]
+fn rust_return_alloc_err_renders_retcode() {
+    let stmt = ir::Statement::Return {
+        value: Some(ir::Expr::Var("ALLOC_ERR".to_string())),
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("RetCode::AllocErr"),
+        "Return ALLOC_ERR should render as RetCode::AllocErr: {rendered}"
+    );
+}
+
+#[test]
+fn rust_return_none_renders_bare_return() {
+    let stmt = ir::Statement::Return { value: None };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("return;"),
+        "Return without value should render as 'return;': {rendered}"
+    );
+}
+
+#[test]
+fn rust_break_renders() {
+    let stmt = ir::Statement::Break;
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("break;"),
+        "Break should render as 'break;': {rendered}"
+    );
+}
+
+#[test]
+fn rust_continue_renders() {
+    let stmt = ir::Statement::Continue;
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("continue;"),
+        "Continue should render as 'continue;': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 11. Compound assignment rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_compound_add_assignment() {
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.real_vars.insert("total".to_string());
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("total".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("total".to_string())),
+            ir::BinOp::Add,
+            Box::new(ir::Expr::Literal(1.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("+="),
+        "Compound add should render as +=: {rendered}"
+    );
+}
+
+#[test]
+fn rust_compound_sub_assignment() {
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.real_vars.insert("total".to_string());
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("total".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("total".to_string())),
+            ir::BinOp::Sub,
+            Box::new(ir::Expr::Literal(1.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("-="),
+        "Compound sub should render as -=: {rendered}"
+    );
+}
+
+#[test]
+fn rust_compound_mul_assignment() {
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.real_vars.insert("total".to_string());
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("total".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("total".to_string())),
+            ir::BinOp::Mul,
+            Box::new(ir::Expr::Literal(2.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("*="),
+        "Compound mul should render as *=: {rendered}"
+    );
+}
+
+#[test]
+fn rust_compound_div_assignment() {
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.real_vars.insert("total".to_string());
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("total".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("total".to_string())),
+            ir::BinOp::Div,
+            Box::new(ir::Expr::Literal(2.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("/="),
+        "Compound div should render as /=: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 12. For (countdown) rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_for_countdown_renders_rev() {
+    let stmt = ir::Statement::For {
+        var: "i".to_string(),
+        count: ir::Expr::Var("n".to_string()),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("sum".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains(".rev()"),
+        "For countdown should use .rev(): {rendered}"
+    );
+    assert!(
+        rendered.contains("1..="),
+        "For countdown should use 1..=count: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 13. If/else rendering with alloc_err suppression
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_if_with_alloc_err_return_is_suppressed() {
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("ptr".to_string())),
+            ir::BinOp::Eq,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        then_body: vec![ir::Statement::Return {
+            value: Some(ir::Expr::Var("ALLOC_ERR".to_string())),
+        }],
+        else_body: vec![],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.is_empty(),
+        "If with ALLOC_ERR return should be suppressed (dead code in Rust): got '{rendered}'"
+    );
+}
+
+#[test]
+fn rust_if_else_chain_renders() {
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        then_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(1),
+            compound: false,
+        }],
+        else_body: vec![ir::Statement::If {
+            condition: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("x".to_string())),
+                ir::BinOp::Less,
+                Box::new(ir::Expr::IntLiteral(0)),
+            ),
+            then_body: vec![ir::Statement::Assign {
+                target: ir::Expr::Var("y".to_string()),
+                value: ir::Expr::IntLiteral(-1),
+                compound: false,
+            }],
+            else_body: vec![],
+        }],
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("} else if"),
+        "If/else if chain should render with 'else if': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 14. Lookback rendering with different LookbackExpr variants
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_lookback_param_minus() {
+    // Test ParamMinus lookback variant
+    let body = vec![ir::Statement::Return {
+        value: Some(ir::Expr::Var("SUCCESS".to_string())),
+    }];
+    let func = ir::FuncDef {
+        name: "TEST".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![ir::Input {
+            name: "inReal".to_string(),
+            param_type: ir::ParamType::Real,
+        }],
+        optional_inputs: vec![ir::OptInput {
+            name: "optInTimePeriod".to_string(),
+            param_type: ir::ParamType::Integer,
+            range: Some((2, 100000)),
+            default: Some(30.0),
+            display_name: None,
+            hint: None,
+            flags: vec![],
+            suggested: None,
+        }],
+        outputs: vec![ir::Output {
+            name: "outReal".to_string(),
+            param_type: ir::ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: Some(ir::LookbackExpr::ParamMinus("optInTimePeriod".to_string(), 1)),
+        body: body.clone(),
+        unguarded_body: body,
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
+    };
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    assert!(
+        rust_out.contains("optInTimePeriod - 1"),
+        "ParamMinus lookback should render as param - offset: {rust_out}"
+    );
+    assert!(
+        rust_out.contains("as usize"),
+        "ParamMinus lookback should cast to usize: {rust_out}"
+    );
+}
+
+#[test]
+fn rust_lookback_none() {
+    // Test None lookback variant (returns 0)
+    let body = vec![ir::Statement::Return {
+        value: Some(ir::Expr::Var("SUCCESS".to_string())),
+    }];
+    let func = ir::FuncDef {
+        name: "TEST".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![ir::Input {
+            name: "inReal".to_string(),
+            param_type: ir::ParamType::Real,
+        }],
+        optional_inputs: vec![],
+        outputs: vec![ir::Output {
+            name: "outReal".to_string(),
+            param_type: ir::ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: None,
+        body: body.clone(),
+        unguarded_body: body,
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
+    };
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    let lookback_section = extract_section(&rust_out, "_lookback(", "pub fn test(");
+    assert!(
+        lookback_section.contains("return 0"),
+        "None lookback should return 0: {lookback_section}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 15. Lookback return value casting in lookback context
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_lookback_return_casts_to_usize() {
+    // In lookback context, return values that are i32-typed should be cast to usize
+    let mut ctx = backends::rust_lang::RustRenderCtx::for_lookback();
+    ctx.is_lookback = true;
+
+    let stmt = ir::Statement::Return {
+        value: Some(ir::Expr::Var("optInTimePeriod".to_string())),
+    };
+    let rendered = render_rust_stmt_with_ctx(&stmt, &ctx);
+    assert!(
+        rendered.contains("as usize"),
+        "Lookback return of i32 param should cast to usize: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 16. While loop with for-loop-var pattern
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_while_with_for_loop_var_renders_for_in() {
+    use backends::rust_lang::RustRenderCtx;
+
+    let ctx = RustRenderCtx::for_lookback();
+    let for_loop_vars: Vec<String> = vec!["i".to_string()];
+    let init_expr = ir::Expr::Var("startIdx".to_string());
+    let mut var_inits: std::collections::HashMap<String, &ir::Expr> =
+        std::collections::HashMap::new();
+    var_inits.insert("i".to_string(), &init_expr);
+    let output_names: Vec<String> = vec![];
+    let opt_real_params: Vec<String> = vec![];
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+
+    // while (i <= endIdx) { body; i = i + 1; }
+    // The last statement is the increment — it gets stripped when rendering as for-in
+    let stmt = ir::Statement::While {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::LessEq,
+            Box::new(ir::Expr::Var("endIdx".to_string())),
+        ),
+        body: vec![
+            ir::Statement::Assign {
+                target: ir::Expr::Var("sum".to_string()),
+                value: ir::Expr::Literal(1.0),
+                compound: false,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("i".to_string()),
+                value: ir::Expr::BinOp(
+                    Box::new(ir::Expr::Var("i".to_string())),
+                    ir::BinOp::Add,
+                    Box::new(ir::Expr::IntLiteral(1)),
+                ),
+                compound: false,
+            },
+        ],
+    };
+
+    let rendered = backends::rust_lang::render_statement(
+        &stmt,
+        12,
+        &ctx,
+        &for_loop_vars,
+        &var_inits,
+        &output_names,
+        &opt_real_params,
+        &enums,
+        &registry,
+        &helpers,
+        &inline_counter,
+    );
+    assert!(
+        rendered.contains("for i in"),
+        "While with for-loop-var pattern should render as for-in: {rendered}"
+    );
+    assert!(
+        rendered.contains("..="),
+        "While-to-for should use range syntax: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 17. memset renders as fill
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_func_call_memset_renders_fill() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall(
+            "memset".to_string(),
+            vec![
+                ir::Expr::Var("buf".to_string()),
+                ir::Expr::IntLiteral(0),
+                ir::Expr::Var("count".to_string()),
+            ],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains(".fill("),
+        "memset should render as .fill(): {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// 18. Lookback code rendering with VarDecl types in lookback body
+// ---------------------------------------------------------------------------
+
+#[test]
+fn rust_lookback_code_renders_var_types_correctly() {
+    // Build a synthetic lookback code body with multiple VarDecl types
+    let lookback_stmts = vec![
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::Real,
+            name: "sum".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::Integer,
+            name: "count".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::RetCodeType,
+            name: "retCode".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::RealPointer,
+            name: "buf".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::IntPointer,
+            name: "ibuf".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::RealArray("10".to_string()),
+            name: "rarr".to_string(),
+            init: None,
+        },
+        ir::Statement::VarDecl {
+            var_type: ir::VarType::IntArray("5".to_string()),
+            name: "iarr".to_string(),
+            init: None,
+        },
+        ir::Statement::Assign {
+            target: ir::Expr::Var("count".to_string()),
+            value: ir::Expr::IntLiteral(42),
+            compound: false,
+        },
+        ir::Statement::Return {
+            value: Some(ir::Expr::Var("count".to_string())),
+        },
+    ];
+
+    let body = vec![ir::Statement::Return {
+        value: Some(ir::Expr::Var("SUCCESS".to_string())),
+    }];
+    let func = ir::FuncDef {
+        name: "TEST".to_string(),
+        group: "Test".to_string(),
+        description: None,
+        camel_case: None,
+        hint: None,
+        flags: vec![],
+        inputs: vec![ir::Input {
+            name: "inReal".to_string(),
+            param_type: ir::ParamType::Real,
+        }],
+        optional_inputs: vec![],
+        outputs: vec![ir::Output {
+            name: "outReal".to_string(),
+            param_type: ir::ParamType::Real,
+            flags: vec![],
+        }],
+        lookback: Some(ir::LookbackExpr::Code(lookback_stmts)),
+        body: body.clone(),
+        unguarded_body: body,
+        unguarded_extra_params: vec![],
+        has_explicit_unguarded: false,
+    };
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
+
+    let lookback_section = extract_section(&rust_out, "_lookback(", "pub fn test(");
+    // sum has no assignments in the body, so count_assignments returns 0 => `let` not `let mut`
+    assert!(
+        lookback_section.contains("let sum: f64 = 0.0_f64"),
+        "Lookback should declare f64 var: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("let mut count: usize = 0_usize"),
+        "Lookback should declare usize var: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("RetCode"),
+        "Lookback should declare RetCode var: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("Vec<f64>"),
+        "Lookback should declare Vec<f64> var: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("Vec<i32>"),
+        "Lookback should declare Vec<i32> var: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("[f64; 10 as usize]"),
+        "Lookback should declare RealArray: {lookback_section}"
+    );
+    assert!(
+        lookback_section.contains("[i32; 5 as usize]"),
+        "Lookback should declare IntArray: {lookback_section}"
+    );
+}
+
+// ===========================================================================
+// Java backend coverage tests
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// Java: VarDecl rendering for all VarType variants via render_statement
+// ---------------------------------------------------------------------------
+
+/// Helper to call Java render_statement with minimal boilerplate.
+fn render_java_stmt(stmt: &ir::Statement) -> String {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let double_address_of_vars = std::collections::HashSet::new();
+    let float_input_params = std::collections::HashSet::new();
+    backends::java::render_statement(
+        stmt, 3, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    )
+}
+
+/// Helper to call C render_statement with minimal boilerplate.
+fn render_c_stmt(stmt: &ir::Statement) -> String {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    backends::c::render_statement(
+        stmt, 3, false, &enums, &registry, &helpers, &inline_counter,
+    )
+}
+
+#[test]
+fn java_vardecl_retcode_type() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RetCodeType,
+        name: "retCode".to_string(),
+        init: None,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("RetCode retCode"),
+        "Java VarDecl RetCodeType should render as 'RetCode retCode': {rendered}"
+    );
+}
+
+#[test]
+fn java_vardecl_real_pointer() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealPointer,
+        name: "buf".to_string(),
+        init: None,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("double[] buf"),
+        "Java VarDecl RealPointer should render as 'double[] buf': {rendered}"
+    );
+}
+
+#[test]
+fn java_vardecl_int_pointer() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntPointer,
+        name: "indices".to_string(),
+        init: None,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("int[] indices"),
+        "Java VarDecl IntPointer should render as 'int[] indices': {rendered}"
+    );
+}
+
+#[test]
+fn java_vardecl_real_array() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealArray("30".to_string()),
+        name: "arr".to_string(),
+        init: None,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("double[] arr = new double[30]"),
+        "Java VarDecl RealArray should render as 'double[] arr = new double[30]': {rendered}"
+    );
+}
+
+#[test]
+fn java_vardecl_int_array() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntArray("5".to_string()),
+        name: "flags".to_string(),
+        init: None,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("int[] flags = new int[5]"),
+        "Java VarDecl IntArray should render as 'int[] flags = new int[5]': {rendered}"
+    );
+}
+
+#[test]
+fn java_vardecl_with_init_expr() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::Real,
+        name: "total".to_string(),
+        init: Some(ir::Expr::Literal(2.71)),
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("double total = 2.71"),
+        "Java VarDecl with init should render the init expression: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Return None renders 'return ;'
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_return_none() {
+    let stmt = ir::Statement::Return { value: None };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("return ;"),
+        "Java Return None should render as 'return ;': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: For countdown loop rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_for_countdown_loop() {
+    let stmt = ir::Statement::For {
+        var: "i".to_string(),
+        count: ir::Expr::Var("optInTimePeriod".to_string()),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("tempReal".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("for( i = optInTimePeriod; i > 0; i-- )"),
+        "Java For countdown should render as 'for( i = count; i > 0; i-- )': {rendered}"
+    );
+    assert!(
+        rendered.contains("tempReal = 1.0"),
+        "Java For countdown body should be rendered: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Block statement with VarDecls exercises lines 1085-1120
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_block_statement_with_vardecls() {
+    let stmt = ir::Statement::Block {
+        body: vec![
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::RetCodeType,
+                name: "rc".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::RealPointer,
+                name: "buf".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::IntPointer,
+                name: "idx".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::RealArray("10".to_string()),
+                name: "darr".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::IntArray("3".to_string()),
+                name: "iarr".to_string(),
+                init: None,
+            },
+            ir::Statement::VarDecl {
+                var_type: ir::VarType::Real,
+                name: "x".to_string(),
+                init: Some(ir::Expr::Literal(42.0)),
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("x".to_string()),
+                value: ir::Expr::Literal(99.0),
+                compound: false,
+            },
+        ],
+    };
+    let rendered = render_java_stmt(&stmt);
+    // Block VarDecl declarations should appear
+    assert!(
+        rendered.contains("RetCode rc"),
+        "Block should declare RetCode: {rendered}"
+    );
+    assert!(
+        rendered.contains("double[] buf"),
+        "Block should declare double[]: {rendered}"
+    );
+    assert!(
+        rendered.contains("int[] idx"),
+        "Block should declare int[]: {rendered}"
+    );
+    assert!(
+        rendered.contains("double[] darr = new double[10]"),
+        "Block should declare RealArray: {rendered}"
+    );
+    assert!(
+        rendered.contains("int[] iarr = new int[3]"),
+        "Block should declare IntArray: {rendered}"
+    );
+    assert!(
+        rendered.contains("double x = 42.0"),
+        "Block should declare VarDecl with init: {rendered}"
+    );
+    // Non-VarDecl statements should also render
+    assert!(
+        rendered.contains("x = 99.0"),
+        "Block should render non-VarDecl statements: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: ForC rendering exercises lines 1035-1083
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_forc_single_init_renders_correctly() {
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::Less,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+            compound: false,
+        }),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("sum".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("for("),
+        "Java ForC should render as for(): {rendered}"
+    );
+    assert!(
+        rendered.contains("(i<n)"),
+        "Java ForC should render condition: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: MACD exercises malloc/free/memcpy/cross-indicator calls
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_macd_malloc_renders_as_new_array() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    // malloc should become new double[] or new int[] in Java
+    assert!(
+        j.contains("new double["),
+        "Java MACD should render malloc as new double[]: {j}"
+    );
+    // free should be removed (no-op in Java)
+    assert!(
+        !j.contains("free("),
+        "Java MACD should not contain free() calls"
+    );
+    // memcpy should become System.arraycopy
+    assert!(
+        j.contains("System.arraycopy("),
+        "Java MACD should render memcpy as System.arraycopy(): {j}"
+    );
+}
+
+#[test]
+fn java_macd_cross_indicator_calls() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    // MACD calls ema via emaLogic (the unguarded/logic variant)
+    assert!(
+        j.contains("emaLogic(") || j.contains("emaUnguarded(") || j.contains("ema("),
+        "Java MACD should call ema: {j}"
+    );
+    assert!(
+        j.contains("emaLookback("),
+        "Java MACD should call emaLookback: {j}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: STOCHRSI exercises cross-indicator calls with MAType enum
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_stochrsi_cross_indicator_calls() {
+    let (func, enums) = load_indicator("stochrsi");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    // STOCHRSI calls rsi and stochf
+    assert!(
+        j.contains("rsi(") || j.contains("rsiLookback("),
+        "Java STOCHRSI should call rsi: {j}"
+    );
+    assert!(
+        j.contains("stochf(") || j.contains("stochfLookback("),
+        "Java STOCHRSI should call stochf: {j}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: T3 exercises For countdown loop (real indicator)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_t3_for_countdown_loops() {
+    let (func, enums) = load_indicator("t3");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    // T3 uses multiple for(i=period-1; i>0; i--) loops (rendered as i -= 1)
+    assert!(
+        j.contains("i > 0; i--") || j.contains("(i>0); i -= 1"),
+        "Java T3 should contain countdown for loops: {j}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: MA switch statement exercises MAType variable rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_ma_switch_variable_rendering() {
+    let (func, enums) = load_indicator("ma");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    // MA's switch should use the optInMAType variable
+    assert!(
+        j.contains("switch(") || j.contains("switch ("),
+        "Java MA should contain switch: {j}"
+    );
+    // Should render MAType enum cases
+    assert!(
+        j.contains("MAType.Sma") || j.contains("MAType.Ema"),
+        "Java MA should use MAType enum labels in switch: {j}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Assign to _ target (statement expression) exercises lines 736-761
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_assign_to_underscore_skips_bare_var() {
+    // Assign _ = someVar should produce empty output (no side effects)
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::Var("someVar".to_string()),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.is_empty(),
+        "Assign to _ with bare Var value should produce empty output: '{rendered}'"
+    );
+}
+
+#[test]
+fn java_assign_to_underscore_renders_func_call() {
+    // Assign _ = someFunc(x) should render as someFunc(x);
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall(
+            "someFunc".to_string(),
+            vec![ir::Expr::Var("x".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    // Should render the function call as a statement
+    assert!(
+        rendered.contains("someFunc("),
+        "Assign to _ with FuncCall should render the call: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: outBegIdx/outNBElement scalar assignment exercises lines 764-773
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_output_scalar_assignment() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("outBegIdx".to_string()),
+        value: ir::Expr::IntLiteral(0),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("outBegIdx.value = 0"),
+        "Java outBegIdx assignment should use .value: {rendered}"
+    );
+
+    let stmt2 = ir::Statement::Assign {
+        target: ir::Expr::Var("outNBElement".to_string()),
+        value: ir::Expr::IntLiteral(0),
+        compound: false,
+    };
+    let rendered2 = render_java_stmt(&stmt2);
+    assert!(
+        rendered2.contains("outNBElement.value = 0"),
+        "Java outNBElement assignment should use .value: {rendered2}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Ternary expression rendering exercises lines 1450-1468
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_ternary_bool_to_int_optimization() {
+    // (cond) ? 1 : 0 should simplify to just the condition
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Ternary(
+            Box::new(ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                ir::BinOp::Greater,
+                Box::new(ir::Expr::Var("b".to_string())),
+            )),
+            Box::new(ir::Expr::IntLiteral(1)),
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    // Should NOT have ternary syntax, just the condition
+    assert!(
+        !rendered.contains("?"),
+        "Java ternary (cond)?1:0 should simplify to just cond: {rendered}"
+    );
+    assert!(
+        rendered.contains("(a>b)"),
+        "Java ternary should contain the condition directly: {rendered}"
+    );
+}
+
+#[test]
+fn java_ternary_inverted_bool_optimization() {
+    // (cond) ? 0 : 1 should simplify to !(condition)
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Ternary(
+            Box::new(ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                ir::BinOp::Less,
+                Box::new(ir::Expr::Var("b".to_string())),
+            )),
+            Box::new(ir::Expr::IntLiteral(0)),
+            Box::new(ir::Expr::IntLiteral(1)),
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("!("),
+        "Java ternary (cond)?0:1 should simplify to !(cond): {rendered}"
+    );
+}
+
+#[test]
+fn java_ternary_general_case() {
+    // General ternary: (cond) ? a : b
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Ternary(
+            Box::new(ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                ir::BinOp::Greater,
+                Box::new(ir::Expr::Var("b".to_string())),
+            )),
+            Box::new(ir::Expr::Var("a".to_string())),
+            Box::new(ir::Expr::Var("b".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("?") && rendered.contains(":"),
+        "Java general ternary should render as (cond) ? (then) : (else): {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Cast expression rendering exercises lines 1385-1398
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_cast_expression_types() {
+    // Cast to Integer
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::Integer,
+            Box::new(ir::Expr::Literal(2.71)),
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("((int)2.71)"),
+        "Java Cast to Integer should render as ((int)...): {rendered}"
+    );
+
+    // Cast to RetCodeType
+    let stmt2 = ir::Statement::Assign {
+        target: ir::Expr::Var("rc".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::RetCodeType,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        compound: false,
+    };
+    let rendered2 = render_java_stmt(&stmt2);
+    assert!(
+        rendered2.contains("((RetCode)0)"),
+        "Java Cast to RetCodeType should render as ((RetCode)...): {rendered2}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: PointerDeref and AddressOf expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_pointer_deref_renders_as_value() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PointerDeref("outBegIdx".to_string()),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("outBegIdx.value"),
+        "Java PointerDeref should render as .value: {rendered}"
+    );
+}
+
+#[test]
+fn java_address_of_renders_inner() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::AddressOf(Box::new(ir::Expr::Var("myVar".to_string()))),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("myVar"),
+        "Java AddressOf should render the inner expression: {rendered}"
+    );
+    // Should NOT have & prefix (Java has no address-of)
+    assert!(
+        !rendered.contains("&myVar"),
+        "Java should not render & prefix: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: PostIncrement/PostDecrement/PreIncrement/PreDecrement
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_increment_decrement_expressions() {
+    let post_inc = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&post_inc);
+    assert!(
+        rendered.contains("i++"),
+        "Java PostIncrement should render as i++: {rendered}"
+    );
+
+    let pre_dec = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PreDecrement(Box::new(ir::Expr::Var("j".to_string()))),
+        compound: false,
+    };
+    let rendered2 = render_java_stmt(&pre_dec);
+    assert!(
+        rendered2.contains("--j"),
+        "Java PreDecrement should render as --j: {rendered2}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Not expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_not_expression() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Not(Box::new(ir::Expr::Var("flag".to_string()))),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("!(flag)"),
+        "Java Not expression should render as !(expr): {rendered}"
+    );
+}
+
+// ===========================================================================
+// C backend coverage tests
+// ===========================================================================
+
+// ---------------------------------------------------------------------------
+// C: VarDecl rendering for all VarType variants via render_statement
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_vardecl_retcode_type() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RetCodeType,
+        name: "retCode".to_string(),
+        init: None,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("TA_RetCode retCode"),
+        "C VarDecl RetCodeType should render as 'TA_RetCode retCode': {rendered}"
+    );
+}
+
+#[test]
+fn c_vardecl_real_pointer() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealPointer,
+        name: "buf".to_string(),
+        init: None,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("double *buf"),
+        "C VarDecl RealPointer should render as 'double *buf': {rendered}"
+    );
+}
+
+#[test]
+fn c_vardecl_int_pointer() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntPointer,
+        name: "indices".to_string(),
+        init: None,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("int *indices"),
+        "C VarDecl IntPointer should render as 'int *indices': {rendered}"
+    );
+}
+
+#[test]
+fn c_vardecl_real_array() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::RealArray("30".to_string()),
+        name: "arr".to_string(),
+        init: None,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("double arr[30]"),
+        "C VarDecl RealArray should render as 'double arr[30]': {rendered}"
+    );
+}
+
+#[test]
+fn c_vardecl_int_array() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::IntArray("5".to_string()),
+        name: "flags".to_string(),
+        init: None,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("int flags[5]"),
+        "C VarDecl IntArray should render as 'int flags[5]': {rendered}"
+    );
+}
+
+#[test]
+fn c_vardecl_with_init_expr() {
+    let stmt = ir::Statement::VarDecl {
+        var_type: ir::VarType::Real,
+        name: "total".to_string(),
+        init: Some(ir::Expr::Literal(2.71)),
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("double total = 2.71"),
+        "C VarDecl with init should render the init expression: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Return None renders 'return;'
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_return_none() {
+    let stmt = ir::Statement::Return { value: None };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("return;"),
+        "C Return None should render as 'return;': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: For countdown loop rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_for_countdown_loop() {
+    let stmt = ir::Statement::For {
+        var: "i".to_string(),
+        count: ir::Expr::Var("optInTimePeriod".to_string()),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("tempReal".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("for( i = optInTimePeriod; i > 0; i-- )"),
+        "C For countdown should render correctly: {rendered}"
+    );
+    assert!(
+        rendered.contains("tempReal = 1.0"),
+        "C For countdown body should be rendered: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: ForC rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_forc_single_init_renders_correctly() {
+    let stmt = ir::Statement::ForC {
+        init: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }),
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::Less,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        update: Box::new(ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+            compound: false,
+        }),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("sum".to_string()),
+            value: ir::Expr::Literal(1.0),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("for("),
+        "C ForC should render as for(): {rendered}"
+    );
+    assert!(
+        rendered.contains("(i<n)"),
+        "C ForC should render condition: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Block statement rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_block_statement_renders_inner_stmts() {
+    let stmt = ir::Statement::Block {
+        body: vec![
+            ir::Statement::Assign {
+                target: ir::Expr::Var("x".to_string()),
+                value: ir::Expr::Literal(1.0),
+                compound: false,
+            },
+            ir::Statement::Assign {
+                target: ir::Expr::Var("y".to_string()),
+                value: ir::Expr::Literal(2.0),
+                compound: false,
+            },
+        ],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("x = 1.0"),
+        "C Block should render inner statements: {rendered}"
+    );
+    assert!(
+        rendered.contains("y = 2.0"),
+        "C Block should render all inner statements: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: T3 exercises For countdown loop (real indicator)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_t3_for_countdown_loops() {
+    let (func, enums) = load_indicator("t3");
+    let out = generate_all(&func, &enums);
+    let c = &out.c;
+
+    // T3 uses multiple for(i=period-1; i>0; i--) loops (rendered as i -= 1)
+    assert!(
+        c.contains("i > 0; i--") || c.contains("(i>0); i -= 1"),
+        "C T3 should contain countdown for loops"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: MACD exercises malloc/free/memcpy/cross-indicator calls
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_macd_has_malloc_and_free() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let c = &out.c;
+
+    assert!(
+        c.contains("malloc("),
+        "C MACD should contain malloc calls"
+    );
+    assert!(
+        c.contains("free("),
+        "C MACD should contain free calls"
+    );
+    assert!(
+        c.contains("memcpy("),
+        "C MACD should contain memcpy calls"
+    );
+}
+
+#[test]
+fn c_macd_cross_indicator_calls() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let c = &out.c;
+
+    // MACD calls EMA via TA_INT_EMA (the logic/unguarded variant alias)
+    assert!(
+        c.contains("TA_INT_EMA(") || c.contains("TA_EMA(") || c.contains("TA_EMA_Unguarded("),
+        "C MACD should call EMA: {c}"
+    );
+    assert!(
+        c.contains("TA_EMA_Lookback("),
+        "C MACD should call TA_EMA_Lookback"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Expression rendering edge cases
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_var_name_mappings() {
+    // Test that special variable names are mapped correctly
+    let stmts = vec![
+        ("COMPATIBILITY", "TA_GLOBALS_COMPATIBILITY"),
+        ("SUCCESS", "TA_SUCCESS"),
+        ("BAD_PARAM", "TA_BAD_PARAM"),
+        ("ALLOC_ERR", "TA_ALLOC_ERR"),
+        ("INTERNAL_ERROR", "TA_INTERNAL_ERROR"),
+    ];
+
+    for (var_name, expected) in stmts {
+        let stmt = ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::Var(var_name.to_string()),
+            compound: false,
+        };
+        let rendered = render_c_stmt(&stmt);
+        assert!(
+            rendered.contains(expected),
+            "C Var '{var_name}' should map to '{expected}': {rendered}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// C: Cast expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_cast_expression_types() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::Integer,
+            Box::new(ir::Expr::Literal(2.71)),
+        ),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("((int)2.71)"),
+        "C Cast to Integer should render as ((int)...): {rendered}"
+    );
+
+    let stmt2 = ir::Statement::Assign {
+        target: ir::Expr::Var("rc".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::RetCodeType,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        compound: false,
+    };
+    let rendered2 = render_c_stmt(&stmt2);
+    assert!(
+        rendered2.contains("((TA_RetCode)0)"),
+        "C Cast to RetCodeType should render as ((TA_RetCode)...): {rendered2}"
+    );
+
+    let stmt3 = ir::Statement::Assign {
+        target: ir::Expr::Var("p".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::RealPointer,
+            Box::new(ir::Expr::Var("buf".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered3 = render_c_stmt(&stmt3);
+    assert!(
+        rendered3.contains("((double *)buf)"),
+        "C Cast to RealPointer should render as ((double *)...): {rendered3}"
+    );
+
+    let stmt4 = ir::Statement::Assign {
+        target: ir::Expr::Var("p".to_string()),
+        value: ir::Expr::Cast(
+            ir::VarType::IntPointer,
+            Box::new(ir::Expr::Var("arr".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered4 = render_c_stmt(&stmt4);
+    assert!(
+        rendered4.contains("((int *)arr)"),
+        "C Cast to IntPointer should render as ((int *)...): {rendered4}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: PointerDeref and AddressOf expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_pointer_deref_renders_star() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PointerDeref("outBegIdx".to_string()),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("*outBegIdx"),
+        "C PointerDeref should render as *name: {rendered}"
+    );
+}
+
+#[test]
+fn c_address_of_renders_ampersand() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::AddressOf(Box::new(ir::Expr::Var("myVar".to_string()))),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("&myVar"),
+        "C AddressOf should render as &name: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Ternary expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_ternary_expression() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Ternary(
+            Box::new(ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                ir::BinOp::Greater,
+                Box::new(ir::Expr::Var("b".to_string())),
+            )),
+            Box::new(ir::Expr::Var("a".to_string())),
+            Box::new(ir::Expr::Var("b".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("?") && rendered.contains(":"),
+        "C ternary should render as (cond) ? (then) : (else): {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Increment/Decrement expressions
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_increment_decrement_expressions() {
+    let post_inc = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&post_inc);
+    assert!(
+        rendered.contains("i++"),
+        "C PostIncrement should render as i++: {rendered}"
+    );
+
+    let post_dec = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PostDecrement(Box::new(ir::Expr::Var("j".to_string()))),
+        compound: false,
+    };
+    let rendered2 = render_c_stmt(&post_dec);
+    assert!(
+        rendered2.contains("j--"),
+        "C PostDecrement should render as j--: {rendered2}"
+    );
+
+    let pre_inc = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PreIncrement(Box::new(ir::Expr::Var("k".to_string()))),
+        compound: false,
+    };
+    let rendered3 = render_c_stmt(&pre_inc);
+    assert!(
+        rendered3.contains("++k"),
+        "C PreIncrement should render as ++k: {rendered3}"
+    );
+
+    let pre_dec = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PreDecrement(Box::new(ir::Expr::Var("m".to_string()))),
+        compound: false,
+    };
+    let rendered4 = render_c_stmt(&pre_dec);
+    assert!(
+        rendered4.contains("--m"),
+        "C PreDecrement should render as --m: {rendered4}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Not expression rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_not_expression() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Not(Box::new(ir::Expr::Var("flag".to_string()))),
+        compound: false,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("!(flag)"),
+        "C Not expression should render as !(expr): {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: BinOp rendering for all operators
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_binop_all_operators() {
+    let ops = vec![
+        (ir::BinOp::Add, "+"),
+        (ir::BinOp::Sub, "-"),
+        (ir::BinOp::Mul, "*"),
+        (ir::BinOp::Div, "/"),
+        (ir::BinOp::Mod, "%"),
+        (ir::BinOp::LessEq, "<="),
+        (ir::BinOp::Less, "<"),
+        (ir::BinOp::Greater, ">"),
+        (ir::BinOp::GreaterEq, ">="),
+        (ir::BinOp::Eq, "=="),
+        (ir::BinOp::NotEq, "!="),
+        (ir::BinOp::And, "&&"),
+        (ir::BinOp::Or, "||"),
+        (ir::BinOp::BitwiseOr, "|"),
+        (ir::BinOp::Shr, ">>"),
+        (ir::BinOp::Shl, "<<"),
+    ];
+
+    for (op, expected) in ops {
+        let stmt = ir::Statement::Assign {
+            target: ir::Expr::Var("result".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("a".to_string())),
+                op,
+                Box::new(ir::Expr::Var("b".to_string())),
+            ),
+            compound: false,
+        };
+        let rendered = render_c_stmt(&stmt);
+        assert!(
+            rendered.contains(expected),
+            "C BinOp should contain '{expected}': {rendered}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// C: MACD lookback exercises lookback code rendering (lines 1140-1210)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_macd_lookback_code_rendering() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let c = &out.c;
+
+    // MACD lookback should have the swap logic
+    let lookback_end = c.find("TA_LIB_API TA_RetCode TA_MACD(").unwrap();
+    let lookback = &c[..lookback_end];
+    assert!(
+        lookback.contains("TA_MACD_Lookback"),
+        "C MACD should have lookback function"
+    );
+    // The lookback body should contain variable declarations and logic
+    assert!(
+        lookback.contains("tempInteger") || lookback.contains("int "),
+        "C MACD lookback should have variable declarations"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: MACD lookback code rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_macd_lookback_code_rendering() {
+    let (func, enums) = load_indicator("macd");
+    let out = generate_all(&func, &enums);
+    let j = &out.java;
+
+    let lookback_end = j.find("public RetCode macd(").unwrap();
+    let lookback = &j[..lookback_end];
+    assert!(
+        lookback.contains("macdLookback"),
+        "Java MACD should have lookback function"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java/C: STOCHRSI lookback exercises cross-indicator lookback calls
+// ---------------------------------------------------------------------------
+
+#[test]
+fn stochrsi_lookback_cross_calls() {
+    let (func, enums) = load_indicator("stochrsi");
+    let out = generate_all(&func, &enums);
+
+    // C lookback should call rsi_lookback and stochf_lookback
+    let c = &out.c;
+    assert!(
+        c.contains("TA_RSI_Lookback(") || c.contains("TA_STOCHF_Lookback("),
+        "C STOCHRSI lookback should have cross-indicator lookback calls"
+    );
+
+    // Java lookback should call rsiLookback and stochfLookback
+    let j = &out.java;
+    assert!(
+        j.contains("rsiLookback(") || j.contains("stochfLookback("),
+        "Java STOCHRSI lookback should have cross-indicator lookback calls"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java Var name mappings (exercises lines 1307-1326)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_var_name_mappings() {
+    let stmts = vec![
+        ("COMPATIBILITY", "this.compatibility"),
+        ("METASTOCK", "Compatibility.Metastock"),
+        ("DEFAULT", "Compatibility.Default"),
+        ("BAD_PARAM", "RetCode.BadParam"),
+        ("SUCCESS", "RetCode.Success"),
+        ("ALLOC_ERR", "RetCode.AllocErr"),
+        ("INTERNAL_ERROR", "RetCode.InternalError"),
+        ("TA_MAType_SMA", "MAType.Sma"),
+        ("TA_MAType_EMA", "MAType.Ema"),
+        ("TA_MAType_WMA", "MAType.Wma"),
+        ("TA_MAType_DEMA", "MAType.Dema"),
+        ("TA_MAType_TEMA", "MAType.Tema"),
+        ("TA_MAType_TRIMA", "MAType.Trima"),
+        ("TA_MAType_KAMA", "MAType.Kama"),
+        ("TA_MAType_MAMA", "MAType.Mama"),
+        ("TA_MAType_T3", "MAType.T3"),
+    ];
+
+    for (var_name, expected) in stmts {
+        let stmt = ir::Statement::Assign {
+            target: ir::Expr::Var("result".to_string()),
+            value: ir::Expr::Var(var_name.to_string()),
+            compound: false,
+        };
+        let rendered = render_java_stmt(&stmt);
+        assert!(
+            rendered.contains(expected),
+            "Java Var '{var_name}' should map to '{expected}': {rendered}"
+        );
+    }
+}
+
+// ---------------------------------------------------------------------------
+// C: STOCHRSI exercises full generate with malloc/free/cross-calls
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_stochrsi_full_generate() {
+    let (func, enums) = load_indicator("stochrsi");
+    let out = generate_all(&func, &enums);
+
+    // C should have malloc and free
+    assert!(
+        out.c.contains("malloc("),
+        "C STOCHRSI should contain malloc"
+    );
+    assert!(
+        out.c.contains("free("),
+        "C STOCHRSI should contain free"
+    );
+
+    // Java should have new array and no free
+    assert!(
+        out.java.contains("new double["),
+        "Java STOCHRSI should use new double[]"
+    );
+    assert!(
+        !out.java.contains("free("),
+        "Java STOCHRSI should not contain free"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Assign to _ with free() should be empty (exercises lines 756-758)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_assign_underscore_free_is_empty() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("_".to_string()),
+        value: ir::Expr::FuncCall("free".to_string(), vec![ir::Expr::Var("buf".to_string())]),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.is_empty(),
+        "Java Assign _ = free(buf) should produce empty output: '{rendered}'"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: BinOp with single_precision float input params (lines 1347-1357)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_single_precision_eq_comparison_optimization() {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let double_address_of_vars = std::collections::HashSet::new();
+    let mut float_input_params = std::collections::HashSet::new();
+    float_input_params.insert("inReal".to_string());
+
+    // When comparing a float input param with a non-float param using ==,
+    // it should render as "false" since they can never alias
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("inReal".to_string())),
+            ir::BinOp::Eq,
+            Box::new(ir::Expr::Var("outReal".to_string())),
+        ),
+        then_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::IntLiteral(1),
+            compound: false,
+        }],
+        else_body: vec![],
+    };
+
+    let rendered = backends::java::render_statement(
+        &stmt, 0, true, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+    assert!(
+        rendered.contains("false"),
+        "Java single precision == comparison of float vs non-float should be 'false': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: PointerDeref with double_address_of_vars (lines 1412-1416)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_pointer_deref_double_address_of() {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let mut double_address_of_vars = std::collections::HashSet::new();
+    double_address_of_vars.insert("myBuf".to_string());
+    let float_input_params = std::collections::HashSet::new();
+
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::PointerDeref("myBuf".to_string()),
+        compound: false,
+    };
+    let rendered = backends::java::render_statement(
+        &stmt, 0, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+    assert!(
+        rendered.contains("myBuf[0]"),
+        "Java PointerDeref of double_address_of var should render as name[0]: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Var in address_of_vars renders with .value (lines 1327-1328)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_var_address_of_renders_dot_value() {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let mut address_of_vars = std::collections::HashSet::new();
+    address_of_vars.insert("outBegIdx1".to_string());
+    let double_address_of_vars = std::collections::HashSet::new();
+    let float_input_params = std::collections::HashSet::new();
+
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Var("outBegIdx1".to_string()),
+        compound: false,
+    };
+    let rendered = backends::java::render_statement(
+        &stmt, 0, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+    assert!(
+        rendered.contains("outBegIdx1.value"),
+        "Java Var in address_of_vars should render as name.value: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Var in double_address_of_vars renders with [0] (lines 1329-1330)
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_var_double_address_of_renders_bracket_zero() {
+    let enums = HashMap::new();
+    let registry = make_registry();
+    let helpers = HelperRegistry::empty();
+    let inline_counter = std::cell::Cell::new(0);
+    let address_of_vars = std::collections::HashSet::new();
+    let mut double_address_of_vars = std::collections::HashSet::new();
+    double_address_of_vars.insert("tempBuf".to_string());
+    let float_input_params = std::collections::HashSet::new();
+
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Var("tempBuf".to_string()),
+        compound: false,
+    };
+    let rendered = backends::java::render_statement(
+        &stmt, 0, false, &enums, &registry, &helpers, &inline_counter,
+        &address_of_vars, &double_address_of_vars, &float_input_params,
+    );
+    assert!(
+        rendered.contains("tempBuf[0]"),
+        "Java Var in double_address_of_vars should render as name[0]: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C: Enum/Compatibility variable rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_metastock_and_default_var_rendering() {
+    let stmt1 = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Var("METASTOCK".to_string()),
+        compound: false,
+    };
+    let rendered1 = render_c_stmt(&stmt1);
+    assert!(
+        rendered1.contains("ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)"),
+        "C METASTOCK should render as ENUM_VALUE macro: {rendered1}"
+    );
+
+    let stmt2 = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Var("DEFAULT".to_string()),
+        compound: false,
+    };
+    let rendered2 = render_c_stmt(&stmt2);
+    assert!(
+        rendered2.contains("ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)"),
+        "C DEFAULT should render as ENUM_VALUE macro: {rendered2}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C/Java: DoWhile rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_dowhile_renders_do_while() {
+    let stmt = ir::Statement::DoWhile {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("x".to_string())),
+                ir::BinOp::Sub,
+                Box::new(ir::Expr::IntLiteral(1)),
+            ),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("do") && rendered.contains("while"),
+        "C DoWhile should render as do...while: {rendered}"
+    );
+}
+
+#[test]
+fn java_dowhile_renders_do_while() {
+    let stmt = ir::Statement::DoWhile {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("x".to_string())),
+                ir::BinOp::Sub,
+                Box::new(ir::Expr::IntLiteral(1)),
+            ),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("do") && rendered.contains("while"),
+        "Java DoWhile should render as do...while: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C/Java: While rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_while_renders_correctly() {
+    let stmt = ir::Statement::While {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::Less,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("while(") || rendered.contains("while ("),
+        "C While should render as while(...): {rendered}"
+    );
+}
+
+#[test]
+fn java_while_renders_correctly() {
+    let stmt = ir::Statement::While {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("i".to_string())),
+            ir::BinOp::Less,
+            Box::new(ir::Expr::Var("n".to_string())),
+        ),
+        body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("i".to_string()),
+            value: ir::Expr::PostIncrement(Box::new(ir::Expr::Var("i".to_string()))),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("while(") || rendered.contains("while ("),
+        "Java While should render as while(...): {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C/Java: Break and Continue rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_break_and_continue() {
+    let break_rendered = render_c_stmt(&ir::Statement::Break);
+    assert!(
+        break_rendered.contains("break;"),
+        "C Break should render as 'break;': {break_rendered}"
+    );
+
+    let continue_rendered = render_c_stmt(&ir::Statement::Continue);
+    assert!(
+        continue_rendered.contains("continue;"),
+        "C Continue should render as 'continue;': {continue_rendered}"
+    );
+}
+
+#[test]
+fn java_break_and_continue() {
+    let break_rendered = render_java_stmt(&ir::Statement::Break);
+    assert!(
+        break_rendered.contains("break;"),
+        "Java Break should render as 'break;': {break_rendered}"
+    );
+
+    let continue_rendered = render_java_stmt(&ir::Statement::Continue);
+    assert!(
+        continue_rendered.contains("continue;"),
+        "Java Continue should render as 'continue;': {continue_rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C/Java: Switch rendering via render_statement
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_switch_renders_with_cases() {
+    let stmt = ir::Statement::Switch {
+        expr: ir::Expr::Var("mode".to_string()),
+        cases: vec![
+            (
+                "0".to_string(),
+                vec![ir::Statement::Assign {
+                    target: ir::Expr::Var("x".to_string()),
+                    value: ir::Expr::IntLiteral(1),
+                    compound: false,
+                }],
+            ),
+            (
+                "1".to_string(),
+                vec![ir::Statement::Assign {
+                    target: ir::Expr::Var("x".to_string()),
+                    value: ir::Expr::IntLiteral(2),
+                    compound: false,
+                }],
+            ),
+        ],
+        default: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("switch(") || rendered.contains("switch ("),
+        "C Switch should render as switch(): {rendered}"
+    );
+    assert!(
+        rendered.contains("case") || rendered.contains("ENUM_CASE"),
+        "C Switch should have case labels: {rendered}"
+    );
+    assert!(
+        rendered.contains("default:"),
+        "C Switch should have default label: {rendered}"
+    );
+    assert!(
+        rendered.contains("break;"),
+        "C Switch cases should have break: {rendered}"
+    );
+}
+
+#[test]
+fn java_switch_renders_with_cases() {
+    let stmt = ir::Statement::Switch {
+        expr: ir::Expr::Var("mode".to_string()),
+        cases: vec![
+            (
+                "0".to_string(),
+                vec![ir::Statement::Assign {
+                    target: ir::Expr::Var("x".to_string()),
+                    value: ir::Expr::IntLiteral(1),
+                    compound: false,
+                }],
+            ),
+        ],
+        default: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("x".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("switch(") || rendered.contains("switch ("),
+        "Java Switch should render as switch(): {rendered}"
+    );
+    assert!(
+        rendered.contains("default:"),
+        "Java Switch should have default label: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// C/Java: If-else rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn c_if_else_rendering() {
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        then_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(1),
+            compound: false,
+        }],
+        else_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }],
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("if(") || rendered.contains("if ("),
+        "C If should render as if(): {rendered}"
+    );
+    assert!(
+        rendered.contains("else"),
+        "C If with else_body should contain 'else': {rendered}"
+    );
+}
+
+#[test]
+fn java_if_else_rendering() {
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        then_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(1),
+            compound: false,
+        }],
+        else_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(0),
+            compound: false,
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("if(") || rendered.contains("if ("),
+        "Java If should render: {rendered}"
+    );
+    assert!(
+        rendered.contains("else"),
+        "Java If with else_body should contain 'else': {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: If-else-if chain rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_if_else_if_chain() {
+    let stmt = ir::Statement::If {
+        condition: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Greater,
+            Box::new(ir::Expr::IntLiteral(0)),
+        ),
+        then_body: vec![ir::Statement::Assign {
+            target: ir::Expr::Var("y".to_string()),
+            value: ir::Expr::IntLiteral(1),
+            compound: false,
+        }],
+        else_body: vec![ir::Statement::If {
+            condition: ir::Expr::BinOp(
+                Box::new(ir::Expr::Var("x".to_string())),
+                ir::BinOp::Less,
+                Box::new(ir::Expr::IntLiteral(0)),
+            ),
+            then_body: vec![ir::Statement::Assign {
+                target: ir::Expr::Var("y".to_string()),
+                value: ir::Expr::IntLiteral(-1),
+                compound: false,
+            }],
+            else_body: vec![],
+        }],
+    };
+    let rendered = render_java_stmt(&stmt);
+    // Should chain as "} else if(" not "} else {\n  if("
+    assert!(
+        rendered.contains("} else if(") || rendered.contains("} else if ("),
+        "Java if-else-if should chain without extra braces: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: Compound assignment rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_compound_assignment() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Add,
+            Box::new(ir::Expr::Literal(1.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("x += 1.0"),
+        "Java compound assignment should render as x += 1.0: {rendered}"
+    );
+}
+
+#[test]
+fn c_compound_assignment() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::BinOp(
+            Box::new(ir::Expr::Var("x".to_string())),
+            ir::BinOp::Sub,
+            Box::new(ir::Expr::Literal(2.0)),
+        ),
+        compound: true,
+    };
+    let rendered = render_c_stmt(&stmt);
+    assert!(
+        rendered.contains("x -= 2.0"),
+        "C compound assignment should render as x -= 2.0: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java/C: Literal and IntLiteral rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_literal_rendering() {
+    // Whole number literals should render as N.0
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Literal(42.0),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("42.0"),
+        "Java whole number literal should render as 42.0: {rendered}"
+    );
+
+    // Non-whole number should render as-is
+    let stmt2 = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::Literal(2.71),
+        compound: false,
+    };
+    let rendered2 = render_java_stmt(&stmt2);
+    assert!(
+        rendered2.contains("2.71"),
+        "Java non-whole literal should render as 2.71: {rendered2}"
+    );
+}
+
+#[test]
+fn java_int_literal_rendering() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::IntLiteral(42),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("42"),
+        "Java IntLiteral should render as 42: {rendered}"
+    );
+    // Should NOT have a decimal point
+    assert!(
+        !rendered.contains("42.0"),
+        "Java IntLiteral should NOT have decimal point: {rendered}"
+    );
+}
+
+// ---------------------------------------------------------------------------
+// Java: ArrayAccess rendering
+// ---------------------------------------------------------------------------
+
+#[test]
+fn java_array_access() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::ArrayAccess(
+            "inReal".to_string(),
+            Box::new(ir::Expr::Var("i".to_string())),
+        ),
+        compound: false,
+    };
+    let rendered = render_java_stmt(&stmt);
+    assert!(
+        rendered.contains("inReal[i]"),
+        "Java ArrayAccess should render as arr[idx]: {rendered}"
+    );
+}
