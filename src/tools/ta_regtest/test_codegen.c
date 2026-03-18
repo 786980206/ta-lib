@@ -51,8 +51,8 @@ static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/TaCodegenS
 static const char *const argv_swig[]  = {"python3", "ta_codegen_serve.py", NULL};
 
 static const CodegenLanguage ALL_LANGUAGES[] = {
-    {"rust",   "Rust",         argv_rust},
     {"c",      "C",            argv_c},
+    {"rust",   "Rust",         argv_rust},
     {"java",   "Java",         argv_java},
     {"dotnet", ".NET",         argv_dotnet},
     {"swig",   "SWIG/Python",  argv_swig},
@@ -1091,7 +1091,7 @@ static void print_timing_table(const char *languageFilter)
     }
     printf("\n");
 
-    /* Rows */
+    /* Rows — C column uses ANSI color: red if slower than C-ref, green if faster */
     for( int ri = 0; ri < g_numTimingResults; ri++ )
     {
         FuncTimingResult *r = &g_timingResults[ri];
@@ -1104,9 +1104,21 @@ static void print_timing_table(const char *languageFilter)
             if( st == 0 )
                 printf(" %9s", "--");
             else if( st == -1 )
-                printf(" %9s", "FAIL");
+                printf("     FAIL");
             else
-                printf(" %7.0fok", r->langs[li].avg_ns);
+            {
+                /* Color the C column relative to C-ref */
+                int is_c = (strcmp(ALL_LANGUAGES[li].name, "c") == 0);
+                if( is_c && r->c_ref_ns > 0 )
+                {
+                    if( r->langs[li].avg_ns > r->c_ref_ns )
+                        printf(" \033[31m%8.0f\033[0m", r->langs[li].avg_ns); /* red: slower */
+                    else
+                        printf(" \033[32m%8.0f\033[0m", r->langs[li].avg_ns); /* green: faster */
+                }
+                else
+                    printf(" %8.0f", r->langs[li].avg_ns);
+            }
         }
         printf("\n");
     }
