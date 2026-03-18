@@ -89,6 +89,11 @@ out/
 cmake-build*/
 rust/target
 
+# Build artifacts (platform-specific, rebuilt locally)
+ta_codegen_output/dotnet/bin/
+ta_codegen_output/dotnet/obj/
+ta_codegen_output/java/*.class
+
 # Git worktrees
 .worktrees/
 ta_codegen_output/rust/target/
