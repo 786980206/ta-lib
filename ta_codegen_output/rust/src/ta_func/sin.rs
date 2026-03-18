@@ -98,7 +98,7 @@ impl Core {
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
-    unsafe {
+        unsafe {
         // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
         i = startIdx;
         outIdx = 0;
@@ -110,7 +110,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

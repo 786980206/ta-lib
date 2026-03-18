@@ -129,7 +129,7 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
         let mut circBuffer_Idx: usize = 0_usize;
-    unsafe {
+        unsafe {
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -185,7 +185,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

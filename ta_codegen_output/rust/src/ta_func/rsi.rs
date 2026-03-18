@@ -127,7 +127,7 @@ impl Core {
         let mut savePrevValue: f64 = 0.0_f64;
         let mut tempValue1: f64 = 0.0_f64;
         let mut tempValue2: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = ((self.rsi_lookback(optInTimePeriod)) as usize) as usize;
@@ -260,7 +260,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

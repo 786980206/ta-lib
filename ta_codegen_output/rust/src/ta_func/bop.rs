@@ -111,7 +111,7 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
             tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
@@ -125,7 +125,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

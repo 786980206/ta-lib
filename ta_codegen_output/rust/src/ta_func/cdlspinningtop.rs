@@ -125,7 +125,7 @@ impl Core {
         let BodyShort_avgPeriod: i32 = self.candle_settings.body_short.avg_period;
         #[allow(non_snake_case)]
         let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdlspinningtop_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -202,7 +202,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

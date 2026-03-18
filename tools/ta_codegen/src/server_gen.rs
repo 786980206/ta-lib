@@ -272,6 +272,8 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         let upper = func.name.to_uppercase();
         let lookback_params = build_lookback_param_str(func);
         let full_params = build_full_param_str(func);
+        // Single-precision: only input "const double" → "const float".
+        // Output "double[]" stays double — TA-Lib convention (outputs always double).
         let sp_params = full_params.replace("const double", "const float");
 
         // Double-precision variants
@@ -281,9 +283,13 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
         ));
         // Logic variant may have extra params (e.g., EMA's k factor)
         let mut logic_params = full_params.clone();
-        for (pname, ptype) in &func.unguarded_extra_params {
+        if !func.unguarded_extra_params.is_empty() {
+            let extra: String = func.unguarded_extra_params.iter()
+                .map(|(pname, ptype)| format!("{ptype} {pname}"))
+                .collect::<Vec<_>>()
+                .join(", ");
             if let Some(pos) = logic_params.find("int *outBegIdx") {
-                logic_params.insert_str(pos, &format!("{ptype} {pname}, "));
+                logic_params.insert_str(pos, &format!("{extra}, "));
             }
         }
         s.push_str(&format!(
@@ -296,9 +302,13 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
             "extern TA_RetCode TA_S_{upper}({sp_params});\n"
         ));
         let mut sp_logic_params = sp_params.clone();
-        for (pname, ptype) in &func.unguarded_extra_params {
+        if !func.unguarded_extra_params.is_empty() {
+            let extra: String = func.unguarded_extra_params.iter()
+                .map(|(pname, ptype)| format!("{ptype} {pname}"))
+                .collect::<Vec<_>>()
+                .join(", ");
             if let Some(pos) = sp_logic_params.find("int *outBegIdx") {
-                sp_logic_params.insert_str(pos, &format!("{ptype} {pname}, "));
+                sp_logic_params.insert_str(pos, &format!("{extra}, "));
             }
         }
         s.push_str(&format!(
@@ -332,6 +342,9 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     s.push_str("#ifdef __APPLE__\n");
     s.push_str("#include <mach/mach_time.h>\n");
     s.push_str("#endif\n\n");
+
+    // Include globals (unstable period storage, candle settings)
+    s.push_str("#include \"ta_lib_globals.c\"\n\n");
 
     // Include generated function implementations.
     // Order matters: functions that are called by others must come first.
@@ -1279,6 +1292,7 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 /// Generate a SWIG interface file (.i) that includes Python 3 typemaps
 /// and function declarations from the generated .swg files.
 /// This is compiled with `swig -python` + gcc to produce `_ta_lib.so`.
+#[allow(clippy::too_many_lines)]
 pub fn generate_swig_interface(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 

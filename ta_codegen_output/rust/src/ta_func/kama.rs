@@ -124,7 +124,7 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut trailingValue: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         constMax = 2.0 / (30.0 + 1.0);
         constDiff = 2.0 / (2.0 + 1.0) - constMax;
         (*outBegIdx) = 0;
@@ -198,7 +198,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

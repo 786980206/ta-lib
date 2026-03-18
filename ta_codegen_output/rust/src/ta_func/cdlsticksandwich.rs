@@ -125,7 +125,7 @@ impl Core {
         let Equal_avgPeriod: i32 = self.candle_settings.equal.avg_period;
         #[allow(non_snake_case)]
         let Equal_factor: f64 = self.candle_settings.equal.factor;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdlsticksandwich_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -203,7 +203,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

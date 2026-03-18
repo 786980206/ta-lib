@@ -119,7 +119,7 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         let mut tempReal: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         retCode = self.var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;
@@ -150,7 +150,7 @@ impl Core {
             }
         }
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

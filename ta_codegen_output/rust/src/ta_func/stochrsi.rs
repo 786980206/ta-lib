@@ -158,7 +158,7 @@ impl Core {
         let mut outBegIdx1: usize = 0_usize;
         let mut outBegIdx2: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
-    unsafe {
+        unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
@@ -187,7 +187,7 @@ impl Core {
             return retCode;
         }
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

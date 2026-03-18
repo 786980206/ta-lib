@@ -130,7 +130,7 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut nbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
-    unsafe {
+        unsafe {
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;
@@ -155,7 +155,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

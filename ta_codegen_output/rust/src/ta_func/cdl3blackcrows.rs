@@ -126,7 +126,7 @@ impl Core {
         let ShadowVeryShort_avgPeriod: i32 = self.candle_settings.shadow_very_short.avg_period;
         #[allow(non_snake_case)]
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdl3blackcrows_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -244,7 +244,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

@@ -180,7 +180,7 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut bufferIsAllocated: usize = 0_usize;
-    unsafe {
+        unsafe {
         lookbackK = (optInFastK_Period - 1) as usize;
         lookbackKSlow = self.ma_lookback(optInSlowK_Period, optInSlowK_MAType);
         lookbackDSlow = self.ma_lookback(optInSlowD_Period, optInSlowD_MAType);
@@ -279,7 +279,7 @@ impl Core {
         }
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

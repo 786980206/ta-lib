@@ -138,7 +138,7 @@ impl Core {
         let mut bufferSize: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         lookbackTotal = self.sma_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -189,7 +189,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outputSize;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

@@ -66,11 +66,15 @@ fn load_indicator(name: &str) -> (ir::FuncDef, HashMap<String, ir::EnumDef>) {
     if let Some(ung) = parsed.functions.iter().find(|f| f.name == unguarded_name) {
         func_def.unguarded_body = ung.body.clone();
         func_def.has_explicit_unguarded = true;
-        // Extract extra params (those beyond the standard guarded params)
-        let guarded_param_count = parsed.functions[0].params.len();
-        for (pname, ptype) in ung.params.iter().skip(guarded_param_count) {
-            func_def.unguarded_extra_params.push((pname.clone(), ptype.clone()));
-        }
+        // Extra params = params in unguarded but not in guarded (by name)
+        let guarded_param_names: std::collections::HashSet<_> =
+            parsed.functions[0].params.iter().map(|(name, _)| name.clone()).collect();
+        func_def.unguarded_extra_params = ung
+            .params
+            .iter()
+            .filter(|(name, _)| !guarded_param_names.contains(name))
+            .cloned()
+            .collect();
     } else {
         func_def.unguarded_body = func_def.body.clone();
     }
@@ -501,15 +505,14 @@ fn test_ma_rust_cross_calls() {
         r.contains("self.ema_lookback("),
         "Rust: MA should call self.ema_lookback"
     );
-    // The Rust backend renders bare cross-indicator calls (sma, ema) as _unguarded
-    // to avoid double-validation in cross-indicator dispatch.
+    // Bare cross-indicator calls go to the guarded variant (handles validation + pre-compute).
     assert!(
-        r.contains("self.sma_unguarded("),
-        "Rust: MA should call self.sma_unguarded"
+        r.contains("self.sma("),
+        "Rust: MA should call self.sma (guarded)"
     );
     assert!(
-        r.contains("self.ema_unguarded("),
-        "Rust: MA should call self.ema_unguarded"
+        r.contains("self.ema("),
+        "Rust: MA should call self.ema (guarded)"
     );
 }
 
@@ -1384,7 +1387,7 @@ fn rust_forc_emits_range_iteration_when_possible() {
         body: vec![],
     };
 
-    let ctx = RustRenderCtx::concrete();
+    let ctx = RustRenderCtx::for_lookback();
     let for_loop_vars: Vec<String> = vec![];
     let var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
     let output_names: Vec<String> = vec![];
@@ -1571,7 +1574,7 @@ fn rust_forc_multi_init_falls_through_to_while() {
         body: vec![],
     };
 
-    let ctx = RustRenderCtx::concrete();
+    let ctx = RustRenderCtx::for_lookback();
     let for_loop_vars: Vec<String> = vec![];
     let var_inits: std::collections::HashMap<String, &Expr> = std::collections::HashMap::new();
     let output_names: Vec<String> = vec![];

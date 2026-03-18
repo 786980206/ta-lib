@@ -139,7 +139,7 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
-    unsafe {
+        unsafe {
         tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
@@ -169,7 +169,7 @@ impl Core {
             }
         }
         return retCode;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

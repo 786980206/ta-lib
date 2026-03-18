@@ -119,9 +119,9 @@ impl Core {
         outMACDSignal: &mut [f64],
         outMACDHist: &mut [f64],
     ) -> RetCode {
-    unsafe {
+        unsafe {
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

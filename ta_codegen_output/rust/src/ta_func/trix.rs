@@ -121,7 +121,7 @@ impl Core {
         let mut rocLookback: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElementToOutput: usize = 0_usize;
-    unsafe {
+        unsafe {
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;
@@ -165,7 +165,7 @@ impl Core {
             return retCode;
         }
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

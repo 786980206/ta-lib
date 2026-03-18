@@ -1,5 +1,5 @@
 // Strict linting for ta_codegen source code
-#![warn(clippy::pedantic)]
+#![deny(clippy::pedantic)]
 #![warn(clippy::cognitive_complexity)]
 #![warn(clippy::too_many_lines)]
 #![warn(clippy::needless_pass_by_value)]

@@ -139,7 +139,7 @@ impl Core {
         let Near_avgPeriod: i32 = self.candle_settings.near.avg_period;
         #[allow(non_snake_case)]
         let Near_factor: f64 = self.candle_settings.near.factor;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdlgapsidesidewhite_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -271,7 +271,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

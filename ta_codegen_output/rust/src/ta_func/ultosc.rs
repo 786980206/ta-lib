@@ -178,7 +178,7 @@ impl Core {
         let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
-    unsafe {
+        unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         (*periods.get_unchecked_mut(0)) = optInTimePeriod1;
@@ -378,7 +378,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

@@ -100,11 +100,11 @@ impl Core {
         outNBElement: &mut usize,
         outReal: &mut [f64],
     ) -> RetCode {
-    unsafe {
+        unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

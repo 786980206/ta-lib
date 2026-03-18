@@ -105,7 +105,7 @@ impl Core {
         let mut prevReal: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
         let mut prevOBV: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         prevOBV = (*inVolume.get_unchecked(startIdx));
         prevReal = (*inReal.get_unchecked(startIdx));
         outIdx = 0;
@@ -123,7 +123,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

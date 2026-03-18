@@ -75833,6 +75833,7 @@ class Core {
           MInteger outNbElement2 = new MInteger();
           double slowK = 0;
           double fastK = 0;
+          double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
           int i = 0;
@@ -75859,6 +75860,7 @@ class Core {
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
+          signalK = (2.0/((double)(optInSignalPeriod+1)));
           lookbackSignal = emaLookback(optInSignalPeriod);
           lookbackTotal = lookbackSignal;
           lookbackTotal += emaLookback(optInSlowPeriod);
@@ -75895,7 +75897,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -75930,6 +75932,7 @@ class Core {
           MInteger outNbElement2 = new MInteger();
           double slowK = 0;
           double fastK = 0;
+          double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
           int i = 0;
@@ -75950,6 +75953,7 @@ class Core {
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
+          signalK = (2.0/((double)(optInSignalPeriod+1)));
           lookbackSignal = emaLookback(optInSignalPeriod);
           lookbackTotal = lookbackSignal;
           lookbackTotal += emaLookback(optInSlowPeriod);
@@ -75986,7 +75990,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -76021,6 +76025,7 @@ class Core {
           MInteger outNbElement2 = new MInteger();
           double slowK = 0;
           double fastK = 0;
+          double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
           int i = 0;
@@ -76047,6 +76052,7 @@ class Core {
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
+          signalK = (2.0/((double)(optInSignalPeriod+1)));
           lookbackSignal = emaLookback(optInSignalPeriod);
           lookbackTotal = lookbackSignal;
           lookbackTotal += emaLookback(optInSlowPeriod);
@@ -76083,7 +76089,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -76118,6 +76124,7 @@ class Core {
           MInteger outNbElement2 = new MInteger();
           double slowK = 0;
           double fastK = 0;
+          double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
           int i = 0;
@@ -76138,6 +76145,7 @@ class Core {
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
+          signalK = (2.0/((double)(optInSignalPeriod+1)));
           lookbackSignal = emaLookback(optInSignalPeriod);
           lookbackTotal = lookbackSignal;
           lookbackTotal += emaLookback(optInSlowPeriod);
@@ -76174,7 +76182,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ema(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;

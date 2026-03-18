@@ -45,7 +45,7 @@ pub struct RustRenderCtx {
 }
 
 impl RustRenderCtx {
-    pub fn concrete() -> Self {
+    pub fn for_lookback() -> Self {
         RustRenderCtx {
             unchecked: false,
             index_vars: std::collections::HashSet::new(),
@@ -154,7 +154,7 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
 
     // Build a temporary FuncDef with unguarded_body as its body for the unguarded variant
     let mut unguarded_func = func.clone();
-    unguarded_func.body = func.unguarded_body.clone();
+    unguarded_func.body.clone_from(&func.unguarded_body);
 
     // Collect variable type info from unguarded body for type inference
     let mut index_vars = std::collections::HashSet::new();
@@ -298,6 +298,7 @@ fn gen_lookback(
 
 /// Generate the guarded public function.
 /// Validates params, delegates to `{snake}_unguarded`.
+#[allow(clippy::too_many_lines)]
 fn gen_guarded_func(
     func: &FuncDef,
     snake: &str,
@@ -380,6 +381,10 @@ fn gen_guarded_func(
         g_index_vars.insert("endIdx".to_string());
         let mut g_sentinel_vars = std::collections::HashSet::new();
         collect_sentinel_vars(&func.body, &mut g_sentinel_vars);
+        collect_signed_int_vars(&func.body, &g_index_vars, &mut g_sentinel_vars);
+        for sv in &g_sentinel_vars {
+            g_index_vars.remove(sv);
+        }
         let g_int_output_set: std::collections::HashSet<String> = func.outputs.iter()
             .filter(|o| o.param_type == ParamType::Integer)
             .map(|o| o.name.clone())
@@ -417,13 +422,14 @@ fn gen_guarded_func(
         for stmt in &func.body {
             if let Statement::VarDecl { var_type, name, init } = stmt {
                 let rust_type = match var_type {
-                    VarType::Real => "f64",
-                    VarType::Integer | VarType::Index => "i32",
-                    _ => "f64",
+                    VarType::Integer => "i32",
+                    VarType::Index => if g_ctx.sentinel_vars.contains(name) { "i32" } else { "usize" },
+                    VarType::Real | VarType::RetCodeType | VarType::RealPointer
+                    | VarType::IntPointer | VarType::RealArray(_) | VarType::IntArray(_) => "f64",
                 };
                 if let Some(init_expr) = init {
                     let rendered = render_expr(init_expr, &g_ctx, &g_opt_real_params, registry, helpers);
-                    out.push_str(&format!("        let {name}: {rust_type} = {rendered};\n"));
+                    out.push_str(&format!("        let mut {name}: {rust_type} = {rendered};\n"));
                 } else {
                     out.push_str(&format!("        let mut {name}: {rust_type} = 0 as {rust_type};\n"));
                 }
@@ -462,9 +468,8 @@ fn gen_guarded_func(
     out
 }
 
-/// Generate the unguarded function (real algorithm, bounds-checked or unchecked array access).
-/// When `ctx.unchecked == false`: `pub fn {snake}_unguarded<T: TaFloat>(...)`
-/// When `ctx.unchecked == true`: `pub unsafe fn {snake}_unguarded_unchecked<T: TaFloat>(...)`
+/// Generate the unguarded function: real algorithm with `get_unchecked` array access.
+/// Produces `pub fn {snake}_unguarded(...)` with body wrapped in a single `unsafe {}` block.
 #[allow(clippy::too_many_lines)]
 fn gen_unguarded_func(
     func: &FuncDef,
@@ -488,7 +493,7 @@ fn gen_unguarded_func(
         let rust_type = match c_type.as_str() {
             "double" => "f64",
             "int" => "i32",
-            _ => "f64",
+            other => panic!("Unknown C type '{other}' for extra param '{param_name}'"),
         };
         out.push_str(&format!("        {param_name}: {rust_type},\n"));
     }
@@ -572,8 +577,7 @@ fn gen_unguarded_func(
                             if is_sentinel { "0_i32" } else { "0_usize" }
                         }
                         VarType::RetCodeType => "RetCode::Success",
-                        VarType::RealPointer => "Vec::new()",
-                        VarType::IntPointer => "Vec::new()",
+                        VarType::RealPointer | VarType::IntPointer => "Vec::new()",
                         VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                     };
                     if needs_mut {
@@ -617,7 +621,7 @@ fn gen_unguarded_func(
 
     // Wrap entire body in unsafe block when using get_unchecked
     if ctx.unchecked {
-        out.push_str("    unsafe {\n");
+        out.push_str("        unsafe {\n");
     }
 
     // Emit VarDecl initializations only when there's no body assignment for the same var
@@ -650,7 +654,7 @@ fn gen_unguarded_func(
             } else {
                 rendered_init
             };
-            out.push_str(&format!("        {} = {};\n", name, wrapped_init));
+            out.push_str(&format!("        {name} = {wrapped_init};\n"));
         }
     }
 
@@ -676,7 +680,7 @@ fn gen_unguarded_func(
 
     // Close unsafe block
     if ctx.unchecked {
-        out.push_str("    } // unsafe\n");
+        out.push_str("        } // unsafe\n");
     }
 
     out.push_str("    }\n");
@@ -769,7 +773,7 @@ fn collect_var_types(
                     VarType::IntPointer => { vec_vars.insert(name.clone()); int_vec_vars.insert(name.clone()); }
                     VarType::IntArray(_) => { index_vars.insert(name.clone()); int_vec_vars.insert(name.clone()); }
                     VarType::RealArray(_) => { real_array_vars.insert(name.clone()); }
-                    _ => {}
+                    VarType::RetCodeType => {}
                 }
             }
             Statement::If { then_body, else_body, .. } => {
@@ -780,10 +784,8 @@ fn collect_var_types(
             | Statement::DoWhile { body: while_body, .. } => {
                 collect_var_types(while_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
-            Statement::For { body: for_body, .. } => {
-                collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
-            }
-            Statement::ForC { body: for_body, .. } => {
+            Statement::For { body: for_body, .. }
+            | Statement::ForC { body: for_body, .. } => {
                 collect_var_types(for_body, index_vars, real_vars, vec_vars, real_array_vars, int_vec_vars);
             }
             Statement::Block { body: block_body } => {
@@ -818,12 +820,8 @@ fn expr_can_be_negative(expr: &Expr) -> bool {
         Expr::BinOp(left, BinOp::Sub, _right) => {
             matches!(left.as_ref(), Expr::IntLiteral(0))
         }
-        // Multiplication where either side can be negative
-        Expr::BinOp(left, BinOp::Mul, right) => {
-            expr_can_be_negative(left) || expr_can_be_negative(right)
-        }
-        // Addition where either side can be negative
-        Expr::BinOp(left, BinOp::Add, right) => {
+        // Multiplication or addition where either side can be negative
+        Expr::BinOp(left, BinOp::Mul | BinOp::Add, right) => {
             expr_can_be_negative(left) || expr_can_be_negative(right)
         }
         // Ternary: if either branch can be negative
@@ -854,7 +852,7 @@ fn condition_implies_signed(
             }
         }
         // Boolean AND / OR: recurse into both sides
-        Expr::BinOp(left, BinOp::And, right) | Expr::BinOp(left, BinOp::Or, right) => {
+        Expr::BinOp(left, BinOp::And | BinOp::Or, right) => {
             condition_implies_signed(left, int_vars, signed_vars);
             condition_implies_signed(right, int_vars, signed_vars);
         }
@@ -896,11 +894,8 @@ fn collect_signed_int_vars(
                 collect_signed_int_vars(then_body, int_vars, signed_vars);
                 collect_signed_int_vars(else_body, int_vars, signed_vars);
             }
-            Statement::While { condition, body: inner, .. } => {
-                condition_implies_signed(condition, int_vars, signed_vars);
-                collect_signed_int_vars(inner, int_vars, signed_vars);
-            }
-            Statement::DoWhile { condition, body: inner, .. } => {
+            Statement::While { condition, body: inner, .. }
+            | Statement::DoWhile { condition, body: inner, .. } => {
                 condition_implies_signed(condition, int_vars, signed_vars);
                 collect_signed_int_vars(inner, int_vars, signed_vars);
             }
@@ -969,13 +964,9 @@ fn collect_sentinel_vars(
                 collect_sentinel_vars(else_body, sentinel_vars);
             }
             Statement::While { body: inner, .. }
-            | Statement::DoWhile { body: inner, .. } => {
-                collect_sentinel_vars(inner, sentinel_vars);
-            }
-            Statement::For { body: inner, .. } => {
-                collect_sentinel_vars(inner, sentinel_vars);
-            }
-            Statement::ForC { body: inner, .. } => {
+            | Statement::DoWhile { body: inner, .. }
+            | Statement::For { body: inner, .. }
+            | Statement::ForC { body: inner, .. } => {
                 collect_sentinel_vars(inner, sentinel_vars);
             }
             Statement::Switch { cases, default, .. } => {
@@ -997,15 +988,10 @@ fn count_assignments(name: &str, body: &[Statement]) -> usize {
 /// Count increment/decrement operations on a variable embedded in expressions.
 fn count_increments_in_expr(name: &str, expr: &Expr) -> usize {
     match expr {
-        Expr::PostIncrement(inner) | Expr::PostDecrement(inner)
-        | Expr::PreIncrement(inner) | Expr::PreDecrement(inner) => {
-            if let Expr::Var(vname) = inner.as_ref() {
-                if vname == name { return 1; }
-            }
-            count_increments_in_expr(name, inner)
-        }
         // &var in a function call means the variable will be mutably borrowed
-        Expr::AddressOf(inner) => {
+        Expr::PostIncrement(inner) | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner) | Expr::PreDecrement(inner)
+        | Expr::AddressOf(inner) => {
             if let Expr::Var(vname) = inner.as_ref() {
                 if vname == name { return 1; }
             }
@@ -1330,8 +1316,7 @@ fn render_hoisted_blocks(
                         }
                         VarType::Integer | VarType::Index => "0_usize",
                         VarType::RetCodeType => "RetCode::Success",
-                        VarType::RealPointer => "Vec::new()",
-                        VarType::IntPointer => "Vec::new()",
+                        VarType::RealPointer | VarType::IntPointer => "Vec::new()",
                         VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                     }.to_string()
                 };
@@ -1362,7 +1347,7 @@ fn render_hoisted_blocks(
     out
 }
 
-#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::too_many_arguments)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::too_many_arguments, clippy::implicit_hasher)]
 pub fn render_statement(
     stmt: &Statement,
     indent: usize,
@@ -1424,8 +1409,7 @@ pub fn render_statement(
                         if is_sentinel { "0_i32" } else { "0_usize" }
                     }
                     VarType::RetCodeType => "RetCode::Success",
-                    VarType::RealPointer => "Vec::new()",
-                    VarType::IntPointer => "Vec::new()",
+                    VarType::RealPointer | VarType::IntPointer => "Vec::new()",
                     VarType::RealArray(_) | VarType::IntArray(_) => unreachable!(),
                 }
                 .to_string()
@@ -1721,6 +1705,7 @@ pub fn render_statement(
                                 | BinOp::NotEq
                                 | BinOp::And
                                 | BinOp::Or
+                                | BinOp::BitwiseOr
                                 | BinOp::Shr
                                 | BinOp::Shl => "",
                             };
@@ -1737,9 +1722,9 @@ pub fn render_statement(
                                         && !tname.ends_with("_rangeType"));
                                 // Cast integer RHS in compound assignments to f64-typed variables
                                 let rhs_wrapped = if target_is_real {
-                                    if expr_is_untyped_integer(right) || expr_is_i32_typed(right) {
-                                        format!("(({rhs_str}) as f64)")
-                                    } else if expr_is_known_usize_ctx(right, ctx) && !expr_is_float_typed_ctx(right, Some(ctx)) {
+                                    if expr_is_untyped_integer(right) || expr_is_i32_typed(right)
+                                        || (expr_is_known_usize_ctx(right, ctx) && !expr_is_float_typed_ctx(right, Some(ctx)))
+                                    {
                                         format!("(({rhs_str}) as f64)")
                                     } else {
                                         rhs_str
@@ -1754,11 +1739,7 @@ pub fn render_statement(
                                     rhs_str
                                 };
                                 out.push_str(&format!(
-                                    "{}{} {} {};\n",
-                                    pad,
-                                    target_str,
-                                    op_str,
-                                    rhs_wrapped
+                                    "{pad}{target_str} {op_str} {rhs_wrapped};\n"
                                 ));
                                 return out;
                             }
@@ -1824,7 +1805,7 @@ pub fn render_statement(
             };
             // Check if target is an i32 optIn param and value is usize
             // (e.g., optInFastPeriod = tempInteger where tempInteger is usize)
-            let needs_i32_cast = if let Expr::Var(tname) = target {
+            let needs_optin_i32_cast = if let Expr::Var(tname) = target {
                 is_i32_opt_in_param(tname)
                     && !expr_is_i32_typed(&new_value)
                     && !matches!(new_value, Expr::IntLiteral(_))
@@ -1898,21 +1879,14 @@ pub fn render_statement(
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
             } else if needs_int_output_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
-            } else if needs_f64_cast {
+            } else if needs_f64_cast || needs_f64_wrap {
                 // IntLiteral → emit as float literal instead of cast
                 if let Expr::IntLiteral(n) = &new_value {
                     out.push_str(&format!("{pad}{target_str} = {n}.0;\n"));
                 } else {
                     out.push_str(&format!("{pad}{target_str} = (({value_str}) as f64);\n"));
                 }
-            } else if needs_f64_wrap {
-                // IntLiteral → emit as float literal instead of cast
-                if let Expr::IntLiteral(n) = &new_value {
-                    out.push_str(&format!("{pad}{target_str} = {n}.0;\n"));
-                } else {
-                    out.push_str(&format!("{pad}{target_str} = (({value_str}) as f64);\n"));
-                }
-            } else if needs_i32_cast {
+            } else if needs_optin_i32_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as i32;\n"));
             } else if needs_usize_cast {
                 out.push_str(&format!("{pad}{target_str} = ({value_str}) as usize;\n"));
@@ -2228,10 +2202,11 @@ fn op_precedence(op: &BinOp) -> u8 {
     match op {
         BinOp::Or => 1,
         BinOp::And => 2,
-        BinOp::Eq | BinOp::NotEq => 3,
-        BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 4,
-        BinOp::Add | BinOp::Sub | BinOp::Shr | BinOp::Shl => 5,
-        BinOp::Mul | BinOp::Div | BinOp::Mod => 6,
+        BinOp::BitwiseOr => 3,
+        BinOp::Eq | BinOp::NotEq => 4,
+        BinOp::Less | BinOp::LessEq | BinOp::Greater | BinOp::GreaterEq => 5,
+        BinOp::Add | BinOp::Sub | BinOp::Shr | BinOp::Shl => 6,
+        BinOp::Mul | BinOp::Div | BinOp::Mod => 7,
     }
 }
 
@@ -2348,12 +2323,10 @@ fn render_condition(
     // FuncCall that inlines to ternary producing integer: needs != 0
     if let Expr::FuncCall(fname, args) = expr {
         if let Some(helper) = helpers.get(fname) {
-            if let Some(inlined) = try_inline_expr(helper, args) {
-                if let Expr::Ternary(_, ref then_expr, _) = inlined {
-                    if expr_is_untyped_integer(then_expr) || matches!(then_expr.as_ref(), Expr::IntLiteral(_)) {
-                        let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
-                        return format!("({rendered} != 0)");
-                    }
+            if let Some(Expr::Ternary(_, ref then_expr, _)) = try_inline_expr(helper, args) {
+                if expr_is_untyped_integer(then_expr) || matches!(then_expr.as_ref(), Expr::IntLiteral(_)) {
+                    let rendered = render_expr(expr, ctx, opt_real_params, registry, helpers);
+                    return format!("({rendered} != 0)");
                 }
             }
         }
@@ -2361,7 +2334,7 @@ fn render_condition(
     render_expr(expr, ctx, opt_real_params, registry, helpers)
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn render_expr(
     expr: &Expr,
     ctx: &RustRenderCtx,
@@ -2430,6 +2403,7 @@ fn render_expr(
                 BinOp::NotEq => " != ",
                 BinOp::And => " && ",
                 BinOp::Or => " || ",
+                BinOp::BitwiseOr => " | ",
                 BinOp::Shr => " >> ",
                 BinOp::Shl => " << ",
             };
@@ -2667,8 +2641,7 @@ fn render_expr(
             let then_str = render_expr(then_expr, ctx, opt_real_params, registry, helpers);
             let else_str = render_expr(else_expr, ctx, opt_real_params, registry, helpers);
             format!(
-                "(if {} {{ {} }} else {{ {} }})",
-                cond_str, then_str, else_str
+                "(if {cond_str} {{ {then_str} }} else {{ {else_str} }})"
             )
         }
     }
@@ -2678,12 +2651,11 @@ fn render_expr(
 /// When true, `T::ta_from_i32(expr as i32)` will be used instead of `T::ta_from_f64(expr.ta_to_f64())`.
 fn expr_is_integer(expr: &Expr) -> bool {
     match expr {
-        Expr::IntLiteral(_) => true,
         Expr::Var(name) => {
             is_i32_opt_in_param(name) || name.ends_with("_avgPeriod")
                 || name.ends_with("_rangeType")
         }
-        Expr::Cast(VarType::Integer | VarType::Index, _) => true,
+        Expr::IntLiteral(_) | Expr::Cast(VarType::Integer | VarType::Index, _) => true,
         Expr::BinOp(left, _, right) => expr_is_integer(left) && expr_is_integer(right),
         _ => false,
     }
@@ -2711,13 +2683,9 @@ fn is_i32_opt_in_param(name: &str) -> bool {
 /// Check if an expression is likely T-typed (float/Real) in generic context.
 /// Used to decide whether an IntLiteral should be wrapped with `T::ta_from_i32()`.
 /// Conservative: only returns true when there's strong evidence the expression produces T.
-fn expr_is_float_typed(expr: &Expr) -> bool {
-    expr_is_float_typed_ctx(expr, None)
-}
-
 fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
     match expr {
-        Expr::Literal(_) => true,
+        Expr::Literal(_) | Expr::Cast(VarType::Real, _) => true,
         Expr::Var(name) => {
             // Check context's real_vars set first
             if let Some(c) = ctx {
@@ -2778,7 +2746,6 @@ fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
             matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div)
                 && (expr_is_float_typed_ctx(left, ctx) || expr_is_float_typed_ctx(right, ctx))
         }
-        Expr::Cast(VarType::Real, _) => true,
         Expr::Ternary(_, then_expr, _) => expr_is_float_typed_ctx(then_expr, ctx),
         _ => false,
     }
@@ -2803,7 +2770,7 @@ fn expr_is_i32_typed(expr: &Expr) -> bool {
             }
             false
         }
-        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Shr | BinOp::Shl | BinOp::Mod) => {
+        Expr::BinOp(left, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Shr | BinOp::Shl | BinOp::Mod, right) => {
             expr_is_i32_typed(left) && (expr_is_i32_typed(right) || matches!(right.as_ref(), Expr::IntLiteral(_)))
                 || expr_is_i32_typed(right) && matches!(left.as_ref(), Expr::IntLiteral(_))
         }
@@ -2821,9 +2788,7 @@ fn expr_is_i32_typed_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
     }
     match expr {
         Expr::Var(name) => ctx.sentinel_vars.contains(name),
-        Expr::BinOp(left, op, right)
-            if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) =>
-        {
+        Expr::BinOp(left, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div, right) => {
             let l_i32 = expr_is_i32_typed_ctx(left, ctx)
                 || matches!(left.as_ref(), Expr::IntLiteral(_));
             let r_i32 = expr_is_i32_typed_ctx(right, ctx)
@@ -2865,7 +2830,7 @@ fn expr_is_untyped_integer(expr: &Expr) -> bool {
             // Integer-returning helpers inline to integer ternaries
             is_integer_returning_helper(name)
         }
-        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod) => {
+        Expr::BinOp(left, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div | BinOp::Mod, right) => {
             let left_is_int = expr_is_untyped_integer(left) || matches!(left.as_ref(), Expr::IntLiteral(_));
             let right_is_int = expr_is_untyped_integer(right) || matches!(right.as_ref(), Expr::IntLiteral(_));
             left_is_int && right_is_int && !expr_is_i32_typed(left) && !expr_is_i32_typed(right)
@@ -2878,7 +2843,6 @@ fn expr_is_untyped_integer(expr: &Expr) -> bool {
 /// Uses the context's `index_vars` set to recognize declared usize variables.
 fn expr_is_usize(expr: &Expr, ctx: &RustRenderCtx) -> bool {
     match expr {
-        Expr::Cast(VarType::Index | VarType::Integer, _) => true,
         // Variables declared as usize (loop counters, index vars) don't need casting
         Expr::Var(name) => {
             if ctx.sentinel_vars.contains(name) {
@@ -2887,19 +2851,14 @@ fn expr_is_usize(expr: &Expr, ctx: &RustRenderCtx) -> bool {
             ctx.index_vars.contains(name) || is_likely_index_var(name)
         }
         // Integer literals infer usize from array index context
-        Expr::IntLiteral(_) => true,
+        Expr::Cast(VarType::Index | VarType::Integer, _) | Expr::IntLiteral(_) => true,
         // PostIncrement/PostDecrement/PreIncrement/PreDecrement on usize vars produce usize
         Expr::PostIncrement(inner)
         | Expr::PostDecrement(inner)
         | Expr::PreIncrement(inner)
         | Expr::PreDecrement(inner) => expr_is_usize(inner, ctx),
         // BinOps where both sides are usize produce usize
-        Expr::BinOp(left, op, right)
-            if matches!(
-                op,
-                BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div
-            ) =>
-        {
+        Expr::BinOp(left, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div, right) => {
             expr_is_usize(left, ctx) && expr_is_usize(right, ctx)
         }
         _ => false,
@@ -2924,7 +2883,7 @@ fn expr_is_known_usize_ctx(expr: &Expr, ctx: &RustRenderCtx) -> bool {
             ctx.index_vars.contains(name) || is_likely_index_var(name)
                 || name == "outBegIdx" || name == "outNBElement"
         }
-        Expr::BinOp(left, op, right) if matches!(op, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div) => {
+        Expr::BinOp(left, BinOp::Add | BinOp::Sub | BinOp::Mul | BinOp::Div, right) => {
             (expr_is_known_usize_ctx(left, ctx) || matches!(left.as_ref(), Expr::IntLiteral(_)))
                 && (expr_is_known_usize_ctx(right, ctx) || matches!(right.as_ref(), Expr::IntLiteral(_)))
         }
@@ -3064,7 +3023,7 @@ fn render_lookback_code(
         out.push_str(&emit_rust_unpacking(&candle_used, 8));
     }
 
-    let mut lookback_ctx = RustRenderCtx::concrete();
+    let mut lookback_ctx = RustRenderCtx::for_lookback();
     lookback_ctx.is_lookback = true;
     let inline_counter = Cell::new(0);
     for stmt in stmts {
@@ -3175,7 +3134,7 @@ fn decompose_rust_array_ref(
 // runtime method calls (`self.ta_candlerange` / `self.ta_candleaverage`)
 // which dispatch on the actual rangeType value.
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn render_func_call(
     fname: &str,
     args: &[Expr],
@@ -3418,11 +3377,11 @@ fn render_func_call(
     } else if registry.contains(fname) {
         // Bare cross-indicator calls go to guarded variant (handles validation + pre-compute)
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}({})", fname, rendered_args.join(", "))
+        format!("self.{}({})", fname.to_lowercase(), rendered_args.join(", "))
     } else if fname.ends_with("_unguarded") {
         // Explicit _unguarded cross-indicator call (e.g., ema_unguarded with extra params)
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}({})", fname, rendered_args.join(", "))
+        format!("self.{}({})", fname.to_lowercase(), rendered_args.join(", "))
     } else if is_ta_function(fname) {
         let rust_name = fname.to_lowercase();
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
@@ -3595,6 +3554,7 @@ fn render_cross_indicator_arg(
 /// The boundary is after the outBegIdx/outNBElement pair. These can be:
 /// - AddressOf pairs: `&outBegIdx1, &outNbElement1`
 /// - Var pairs when passing through from caller: `outBegIdx, outNBElement`
+///
 /// Returns the index of the first output arg.
 fn find_output_boundary(args: &[Expr]) -> usize {
     // Look for consecutive AddressOf pairs first (starting from position 2+)

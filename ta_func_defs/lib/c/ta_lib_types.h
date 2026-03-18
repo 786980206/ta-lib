@@ -48,13 +48,11 @@ typedef int TA_Integer;
 #define TA_FUNC_UNST_ALL 24
 #define TA_FUNC_UNST_NONE 99
 
-/* Global unstable period storage */
-int ta_unstable_period[TA_FUNC_UNST_ALL];
+/* Global unstable period storage — defined in ta_lib_globals.c */
+extern int ta_unstable_period[TA_FUNC_UNST_ALL];
 #define TA_GLOBALS_UNSTABLE_PERIOD(id, name) ta_unstable_period[id]
 
-__attribute__((used)) void TA_SetUnstablePeriod(int id, int period) {
-    if (id >= 0 && id < TA_FUNC_UNST_ALL) ta_unstable_period[id] = period;
-}
+extern void TA_SetUnstablePeriod(int id, int period);
 
 /* Compatibility mode */
 #define TA_GLOBALS_COMPATIBILITY 0

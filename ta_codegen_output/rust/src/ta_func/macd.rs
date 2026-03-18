@@ -165,10 +165,11 @@ impl Core {
         let mut outNbElement2: usize = 0_usize;
         let mut slowK: f64 = 0.0_f64;
         let mut fastK: f64 = 0.0_f64;
+        let mut signalK: f64 = 0.0_f64;
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSignal: usize = 0_usize;
         let mut i: usize = 0_usize;
-    unsafe {
+        unsafe {
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -186,6 +187,7 @@ impl Core {
         } else {
             fastK = 2.0 / ((optInFastPeriod + 1) as f64);
         }
+        signalK = 2.0 / ((optInSignalPeriod + 1) as f64);
         lookbackSignal = self.ema_lookback(optInSignalPeriod);
         lookbackTotal = lookbackSignal;
         lookbackTotal += self.ema_lookback(optInSlowPeriod);
@@ -230,7 +232,7 @@ impl Core {
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
-        retCode = self.ema(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
+        retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -245,7 +247,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

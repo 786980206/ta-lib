@@ -71,6 +71,7 @@ enum Token {
     MinusMinus,
     Question,
     Dot,
+    Pipe,
 }
 
 /// Strip #define and #undef lines (including multi-line continuations with \)
@@ -314,9 +315,14 @@ fn tokenize(input: &str) -> Vec<Token> {
             i += 1;
             continue;
         }
-        if c == '|' && i + 1 < chars.len() && chars[i + 1] == '|' {
-            tokens.push(Token::Op("||".to_string()));
-            i += 2;
+        if c == '|' {
+            if i + 1 < chars.len() && chars[i + 1] == '|' {
+                tokens.push(Token::Op("||".to_string()));
+                i += 2;
+                continue;
+            }
+            tokens.push(Token::Pipe);
+            i += 1;
             continue;
         }
 
@@ -430,18 +436,19 @@ fn extract_func_params(tokens: &[Token], start: usize) -> Vec<(String, String)> 
                     let next = tokens.get(i + 1);
                     let is_name = matches!(
                         next,
-                        Some(Token::Comma)
-                            | Some(Token::RParen)
-                            | Some(Token::LBracket)
-                            | None
+                        Some(Token::Comma | Token::RParen | Token::LBracket) | None
                     );
                     if is_name && !type_parts.is_empty() {
-                        param_name = s.clone();
+                        param_name.clone_from(s);
                         i += 1;
-                        // Skip [] if present
+                        // Skip [] or [N] if present (e.g., double buf[3])
                         if matches!(tokens.get(i), Some(Token::LBracket)) {
                             type_parts.push("[]".to_string());
                             i += 1; // skip [
+                            // Consume everything until closing ]
+                            while i < tokens.len() && tokens[i] != Token::RBracket {
+                                i += 1;
+                            }
                             if matches!(tokens.get(i), Some(Token::RBracket)) {
                                 i += 1; // skip ]
                             }
@@ -1141,8 +1148,7 @@ impl Parser {
                     Token::MinusMinus => "--".to_string(),
                     other => format!("{other:?}"),
                 })
-                .collect::<Vec<_>>()
-                .join("");
+                .collect::<String>();
             match var_type {
                 VarType::Real => VarType::RealArray(size_str),
                 VarType::Integer => VarType::IntArray(size_str),
@@ -1806,7 +1812,7 @@ impl Parser {
                     Token::Ident(s) => s,
                     other => panic!("Expected field name after '.', got {other:?}"),
                 };
-                let flat_name = format!("{}_{}", name, field);
+                let flat_name = format!("{name}_{field}");
                 match self.peek().cloned() {
                     Some(Token::Op(ref op)) if op == "+=" || op == "-=" || op == "*=" || op == "/=" => {
                         let op_str = op.clone();
@@ -1972,14 +1978,24 @@ impl Parser {
     }
 
     fn parse_logical_and(&mut self) -> Expr {
-        let mut left = self.parse_comparison();
+        let mut left = self.parse_bitwise_or();
         while let Some(Token::Op(ref op)) = self.peek() {
             if op != "&&" {
                 break;
             }
             self.advance();
-            let right = self.parse_comparison();
+            let right = self.parse_bitwise_or();
             left = Expr::BinOp(Box::new(left), BinOp::And, Box::new(right));
+        }
+        left
+    }
+
+    fn parse_bitwise_or(&mut self) -> Expr {
+        let mut left = self.parse_comparison();
+        while self.peek() == Some(&Token::Pipe) {
+            self.advance();
+            let right = self.parse_comparison();
+            left = Expr::BinOp(Box::new(left), BinOp::BitwiseOr, Box::new(right));
         }
         left
     }
@@ -2173,7 +2189,7 @@ impl Parser {
                                 Token::Ident(s) => s,
                                 other => panic!("Expected field name after '.', got {other:?}"),
                             };
-                            format!("{}_{}", name, field)
+                            format!("{name}_{field}")
                         } else {
                             name
                         };

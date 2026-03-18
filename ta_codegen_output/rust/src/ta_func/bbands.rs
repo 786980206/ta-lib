@@ -138,7 +138,7 @@ impl Core {
         let mut tempReal2: f64 = 0.0_f64;
         let mut tempBuffer1: Vec<f64> = Vec::new();
         let mut tempBuffer2: Vec<f64> = Vec::new();
-    unsafe {
+        unsafe {
         if inReal == outRealUpperBand {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();
@@ -269,7 +269,7 @@ impl Core {
             }
         }
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

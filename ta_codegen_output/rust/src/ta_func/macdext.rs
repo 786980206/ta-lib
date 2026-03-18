@@ -178,7 +178,7 @@ impl Core {
         let mut lookbackLargest: usize = 0_usize;
         let mut i: usize = 0_usize;
         let mut tempMAType: usize = 0_usize;
-    unsafe {
+        unsafe {
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
@@ -250,7 +250,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

@@ -116,7 +116,7 @@ impl Core {
         let mut close: f64 = 0.0_f64;
         let mut tmp: f64 = 0.0_f64;
         let mut ad: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;
@@ -136,7 +136,7 @@ impl Core {
             nbBar -= 1;
         }
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

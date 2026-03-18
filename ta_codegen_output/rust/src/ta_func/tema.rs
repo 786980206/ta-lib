@@ -128,7 +128,7 @@ impl Core {
         let mut firstEMAIdx: usize = 0_usize;
         let mut secondEMAIdx: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
-    unsafe {
+        unsafe {
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
         lookbackEMA = self.ema_lookback(optInTimePeriod);
@@ -164,7 +164,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

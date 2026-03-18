@@ -131,7 +131,7 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
-    unsafe {
+        unsafe {
         S_xx = 0.0;
         S_xy = 0.0;
         S_x = 0.0;
@@ -226,7 +226,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

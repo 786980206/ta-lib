@@ -129,7 +129,7 @@ impl Core {
         let mut prevATR: f64 = 0.0_f64;
         let mut tempValue: f64 = 0.0_f64;
         let mut tempBuffer: Vec<f64> = Vec::new();
-    unsafe {
+        unsafe {
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.natr_lookback(optInTimePeriod);
@@ -182,7 +182,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return retCode;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

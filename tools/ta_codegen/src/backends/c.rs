@@ -193,7 +193,7 @@ fn gen_func(
     // Extra unguarded params (e.g., EMA's k factor) — only on Logic variant
     if logic {
         for (param_name, c_type) in &func.unguarded_extra_params {
-            params.push(format!("{} {}", c_type, param_name));
+            params.push(format!("{c_type} {param_name}"));
         }
     }
 
@@ -434,7 +434,7 @@ fn render_hoisted_blocks(
     out
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity, clippy::implicit_hasher)]
 pub fn render_statement(
     stmt: &Statement,
     indent: usize,
@@ -543,6 +543,7 @@ pub fn render_statement(
                                 | BinOp::NotEq
                                 | BinOp::And
                                 | BinOp::Or
+                                | BinOp::BitwiseOr
                                 | BinOp::Shr
                                 | BinOp::Shl => "",
                             };
@@ -889,6 +890,7 @@ fn render_return_expr(
     render_expr(expr, single_precision, registry, helpers)
 }
 
+#[allow(clippy::too_many_lines)]
 fn render_expr(
     expr: &Expr,
     single_precision: bool,
@@ -942,6 +944,7 @@ fn render_expr(
                 BinOp::NotEq => "!=",
                 BinOp::And => "&&",
                 BinOp::Or => "||",
+                BinOp::BitwiseOr => "|",
                 BinOp::Shr => ">>",
                 BinOp::Shl => "<<",
             };

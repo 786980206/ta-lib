@@ -135,7 +135,7 @@ impl Core {
         let mut mflow_positive: [f64; 50 as usize] = [0.0_f64; 50 as usize];
         let mut mflow_negative: [f64; 50 as usize] = [0.0_f64; 50 as usize];
         let mut mflow_Idx: usize = 0_usize;
-    unsafe {
+        unsafe {
         mflow_Idx = 0;
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;
@@ -244,7 +244,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

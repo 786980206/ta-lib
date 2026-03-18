@@ -152,12 +152,12 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
             param_type: parse_param_type(&p.param_type, None),
             range: p
                 .range
-                .map(|r| (yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))),
+                .and_then(|r| if r.len() >= 2 { Some((yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))) } else { None }),
             default: p.default,
             display_name: p.display_name,
             hint: p.hint,
             flags: p.flags.into_vec(),
-            suggested: p.suggested.map(|s| (s[0], s[1], s[2])),
+            suggested: p.suggested.and_then(|s| if s.len() >= 3 { Some((s[0], s[1], s[2])) } else { None }),
         })
         .collect();
 

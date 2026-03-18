@@ -106,7 +106,7 @@ impl Core {
     ) -> RetCode {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
-    unsafe {
+        unsafe {
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
             (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i)) * 2.0) / 4.0) as f64);
@@ -115,7 +115,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

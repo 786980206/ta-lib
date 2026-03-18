@@ -60,6 +60,36 @@ fn main() {
     }
 }
 
+/// Wire parsed C source (guarded + optional unguarded) into a FuncDef.
+fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::ParsedCSource) {
+    let guarded = parsed
+        .functions
+        .iter()
+        .find(|f| !f.name.ends_with("_unguarded"))
+        .expect("C source must contain at least one function");
+    func_def.body = guarded.body.clone();
+    func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body.clone()));
+
+    let unguarded = parsed
+        .functions
+        .iter()
+        .find(|f| f.name.ends_with("_unguarded"));
+    if let Some(ung) = unguarded {
+        func_def.unguarded_body = ung.body.clone();
+        func_def.has_explicit_unguarded = true;
+        let guarded_param_names: std::collections::HashSet<_> =
+            guarded.params.iter().map(|(name, _)| name.clone()).collect();
+        func_def.unguarded_extra_params = ung
+            .params
+            .iter()
+            .filter(|(name, _)| !guarded_param_names.contains(name))
+            .cloned()
+            .collect();
+    } else {
+        func_def.unguarded_body = func_def.body.clone();
+    }
+}
+
 fn find_arg(args: &[String], prefix: &str) -> Option<String> {
     let prefix_eq = format!("{}=", prefix);
     args.iter()
@@ -128,37 +158,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
-
-        // Find the guarded function (first non-_unguarded function)
-        let guarded = parsed
-            .functions
-            .iter()
-            .find(|f| !f.name.ends_with("_unguarded"))
-            .expect("C source must contain at least one function");
-        func_def.body = guarded.body.clone();
-        func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
-
-        // Find explicit _unguarded variant if present
-        let unguarded = parsed
-            .functions
-            .iter()
-            .find(|f| f.name.ends_with("_unguarded"));
-        if let Some(ung) = unguarded {
-            func_def.unguarded_body = ung.body.clone();
-            func_def.has_explicit_unguarded = true;
-            // Extra params = params in unguarded but not in guarded (by name)
-            let guarded_param_names: std::collections::HashSet<_> =
-                guarded.params.iter().map(|(name, _)| name.clone()).collect();
-            func_def.unguarded_extra_params = ung
-                .params
-                .iter()
-                .filter(|(name, _)| !guarded_param_names.contains(name))
-                .cloned()
-                .collect();
-        } else {
-            // Auto-generate: copy guarded body (range-check stripping happens in backends)
-            func_def.unguarded_body = func_def.body.clone();
-        }
+        wire_parsed_source(&mut func_def, &parsed);
 
         for backend in &backends_to_run {
             generate_backend(&func_def, backend, &enums, &registry, &helper_registry);
@@ -173,15 +173,18 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         generate_rust_crate_scaffolding(out_base, &generated_funcs);
     }
 
-    // Copy hand-written C library types when C is one of the backends
+    // Copy hand-written C library types + globals when C is one of the backends
     if backends_to_run.contains(&"c") {
-        let c_types_src = Path::new("../../ta_func_defs/lib/c/ta_lib_types.h");
+        let c_lib_src = Path::new("../../ta_func_defs/lib/c");
         let c_dir = Path::new("../../ta_codegen_output/c");
         std::fs::create_dir_all(c_dir).unwrap();
-        if c_types_src.exists() {
-            let dest = c_dir.join("ta_lib_types.h");
-            std::fs::copy(c_types_src, &dest).unwrap();
-            println!("  Copied ta_lib_types.h -> {}", dest.display());
+        for filename in &["ta_lib_types.h", "ta_lib_globals.c"] {
+            let src = c_lib_src.join(filename);
+            if src.exists() {
+                let dest = c_dir.join(filename);
+                std::fs::copy(&src, &dest).unwrap();
+                println!("  Copied {filename} -> {}", dest.display());
+            }
         }
     }
 }
@@ -220,33 +223,7 @@ fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
 
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
-
-        let guarded = parsed
-            .functions
-            .iter()
-            .find(|f| !f.name.ends_with("_unguarded"))
-            .expect("C source must contain at least one function");
-        func_def.body = guarded.body.clone();
-        func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
-
-        let unguarded = parsed
-            .functions
-            .iter()
-            .find(|f| f.name.ends_with("_unguarded"));
-        if let Some(ung) = unguarded {
-            func_def.unguarded_body = ung.body.clone();
-            func_def.has_explicit_unguarded = true;
-            let guarded_param_names: std::collections::HashSet<_> =
-                guarded.params.iter().map(|(name, _)| name.clone()).collect();
-            func_def.unguarded_extra_params = ung
-                .params
-                .iter()
-                .filter(|(name, _)| !guarded_param_names.contains(name))
-                .cloned()
-                .collect();
-        } else {
-            func_def.unguarded_body = func_def.body.clone();
-        }
+        wire_parsed_source(&mut func_def, &parsed);
 
         funcs.push(func_def);
     }

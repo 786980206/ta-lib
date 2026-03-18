@@ -155,7 +155,7 @@ impl Core {
         let mut nbElement: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         let mut todayIdx: usize = 0_usize;
-    unsafe {
+        unsafe {
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;
@@ -204,7 +204,7 @@ impl Core {
             }
         }
         return retCode;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

@@ -35,7 +35,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     int outNbElement1;
     int outBegIdx2;
     int outNbElement2;
-    double slowK, fastK;
+    double slowK, fastK, signalK;
     int lookbackTotal, lookbackSignal;
     int i;
 
@@ -97,6 +97,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     fastK = 2.0 / ((double)(optInFastPeriod + 1));
     }
 
+    signalK = 2.0 / ((double)(optInSignalPeriod + 1));
     lookbackSignal = ema_lookback( optInSignalPeriod );
 
     /* Move up the start index if there is not
@@ -192,8 +193,8 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     memcpy(outMACD, &fastEMABuffer[lookbackSignal], ((endIdx-startIdx)+1) * sizeof(double));
 
     /* Calculate the signal/trigger line. */
-    retCode = ema( 0, outNbElement1-1,
-    fastEMABuffer, optInSignalPeriod,
+    retCode = ema_unguarded( 0, outNbElement1-1,
+    fastEMABuffer, optInSignalPeriod, signalK,
     &outBegIdx2, &outNbElement2, outMACDSignal );
 
 

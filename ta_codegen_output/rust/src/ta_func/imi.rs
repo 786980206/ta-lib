@@ -117,7 +117,7 @@ impl Core {
     ) -> RetCode {
         let mut lookback: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
-    unsafe {
+        unsafe {
         outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {
@@ -149,7 +149,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

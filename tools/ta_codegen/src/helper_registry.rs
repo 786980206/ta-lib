@@ -45,6 +45,7 @@ impl HelperRegistry {
 
 /// Substitute helper parameters with actual arguments in an expression.
 /// Recurses into ALL `Expr` variants. No `_ =>` fallback.
+#[allow(clippy::implicit_hasher)]
 pub fn substitute_expr(expr: &Expr, subs: &HashMap<String, Expr>) -> Expr {
     match expr {
         Expr::Var(name) => subs
@@ -114,7 +115,7 @@ pub fn try_inline_expr(helper: &HelperDef, args: &[Expr]) -> Option<Expr> {
 
 /// Substitute params in a statement, renaming local vars to avoid collisions.
 /// Handles all `Statement` variants exhaustively.
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::implicit_hasher)]
 pub fn substitute_statement(
     stmt: &Statement,
     subs: &HashMap<String, Expr>,

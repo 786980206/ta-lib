@@ -130,7 +130,7 @@ impl Core {
         let BodyLong_avgPeriod: i32 = self.candle_settings.body_long.avg_period;
         #[allow(non_snake_case)]
         let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdldarkcloudcover_lookback(optInPenetration);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -208,7 +208,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

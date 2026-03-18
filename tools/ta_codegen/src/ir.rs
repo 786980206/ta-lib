@@ -209,6 +209,7 @@ pub enum BinOp {
     Shr, // >> right shift
     Shl, // << left shift
     Or,
+    BitwiseOr, // | bitwise OR
 }
 
 /// A helper function definition (parsed from ta_func_defs/helpers/*.c).

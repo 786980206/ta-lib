@@ -11,6 +11,8 @@
 #include <mach/mach_time.h>
 #endif
 
+#include "ta_lib_globals.c"
+
 #include "ta_ACCBANDS.c"
 #include "ta_ACOS.c"
 #include "ta_AD.c"

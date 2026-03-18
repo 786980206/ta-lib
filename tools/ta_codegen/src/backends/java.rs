@@ -197,14 +197,12 @@ fn collect_matype_vars_stmts(
             }
             Statement::While { body, .. }
             | Statement::DoWhile { body, .. }
-            | Statement::For { body, .. } => {
+            | Statement::For { body, .. }
+            | Statement::Block { body } => {
                 collect_matype_vars_stmts(body, matype_params, vars);
             }
             Statement::ForC { init, body, .. } => {
                 collect_matype_vars_stmts(&[*init.clone()], matype_params, vars);
-                collect_matype_vars_stmts(body, matype_params, vars);
-            }
-            Statement::Block { body } => {
                 collect_matype_vars_stmts(body, matype_params, vars);
             }
             Statement::Switch {
@@ -304,7 +302,7 @@ fn gen_lookback(
     )
 }
 
-#[allow(clippy::too_many_lines)]
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn gen_func(
     func: &FuncDef,
     single_precision: bool,
@@ -355,11 +353,11 @@ fn gen_func(
     if logic {
         for (param_name, c_type) in &func.unguarded_extra_params {
             let java_type = match c_type.as_str() {
-                "double" => "double",
                 "int" => "int",
+                // "double" and any other C type map to Java double
                 _ => "double",
             };
-            params.push(format!("{} {}", java_type, param_name));
+            params.push(format!("{java_type} {param_name}"));
         }
     }
 
@@ -806,6 +804,7 @@ pub fn render_statement(
                                 | BinOp::NotEq
                                 | BinOp::And
                                 | BinOp::Or
+                                | BinOp::BitwiseOr
                                 | BinOp::Shr
                                 | BinOp::Shl => "",
                             };
@@ -1372,6 +1371,7 @@ fn render_expr(
                 BinOp::NotEq => "!=",
                 BinOp::And => "&&",
                 BinOp::Or => "||",
+                BinOp::BitwiseOr => "|",
                 BinOp::Shr => ">>",
                 BinOp::Shl => "<<",
             };

@@ -154,7 +154,7 @@ impl Core {
         let mut ep: f64 = 0.0_f64;
         let mut sar: f64 = 0.0_f64;
         let mut ep_temp: [f64; 1 as usize] = [0.0_f64; 1 as usize];
-    unsafe {
+        unsafe {
         if startIdx < 1 {
             startIdx = 1;
         }
@@ -307,7 +307,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

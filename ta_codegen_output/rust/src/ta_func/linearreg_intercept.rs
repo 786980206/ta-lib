@@ -122,7 +122,7 @@ impl Core {
         let mut m: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         let mut tempValue1: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         lookbackTotal = self.linearreg_intercept_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -154,7 +154,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

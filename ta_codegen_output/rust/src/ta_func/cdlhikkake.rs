@@ -113,7 +113,7 @@ impl Core {
         let mut lookbackTotal: usize = 0_usize;
         let mut patternIdx: usize = 0_usize;
         let mut patternResult: i32 = 0_i32;
-    unsafe {
+        unsafe {
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -154,7 +154,7 @@ impl Core {
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */

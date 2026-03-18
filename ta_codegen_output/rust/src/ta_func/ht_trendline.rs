@@ -162,7 +162,7 @@ impl Core {
         let mut idx: usize = 0_usize;
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPeriod: f64 = 0.0_f64;
-    unsafe {
+        unsafe {
         a = 0.0962;
         b = 0.5769;
         smoothPrice_Idx = 0;
@@ -410,7 +410,7 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
-    } // unsafe
+        } // unsafe
     }
 }
 /* Generated */
