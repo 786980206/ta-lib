@@ -842,15 +842,14 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     TA_Integer nbElem  = 0;
     TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
 
-    /* Measure C reference call with high-resolution timer */
+    /* Measure C reference call (single, post-warmup) */
     begIdx = 0;
     nbElem = 0;
     long long c_ns0 = get_nanotime();
     TA_CallFunc(params.paramHolder, 0, params.nbBars - 1, &begIdx, &nbElem);
     long long c_ns1 = get_nanotime();
-    long long c_elapsed_ns = c_ns1 - c_ns0;
-    double c_avg_ns = (double)c_elapsed_ns;
-    params.c_ref_total_ns = c_elapsed_ns;
+    double c_avg_ns = (double)(c_ns1 - c_ns0);
+    params.c_ref_total_ns = (long long)c_avg_ns;
 
     /* Save C reference results for codegen comparison */
     params.lastRetCode  = TA_SUCCESS;
@@ -882,9 +881,10 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     }
 
     /* Snapshot server timing from the full-range comparison call.
-     * This is apples-to-apples with c_ref_ns (both are one full-range call).
-     * The doRangeTest callbacks below will add more timing data, but we
-     * use only the comparison-call timing for the performance report. */
+     * Both c_ref_ns and s_avg_ns are single full-range calls (apples-to-apples).
+     * Note: C-ref includes ta_abstract dispatch overhead; server measures the
+     * raw indicator call only. This is intentional — the dispatch overhead is
+     * real cost that library users pay. */
     double s_avg_ns = (params.timing_count > 0)
                       ? (double)params.server_total_ns / (double)params.timing_count
                       : 0.0;
