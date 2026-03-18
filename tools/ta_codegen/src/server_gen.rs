@@ -1051,18 +1051,9 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
 
     s.push_str("public class TaCodegenServe {\n\n");
 
-    // High-resolution timer via mach_absolute_time on macOS
-    s.push_str("    // High-resolution nanosecond timer (mach_absolute_time on macOS)\n");
-    s.push_str("    [DllImport(\"libSystem.B\")]\n");
-    s.push_str("    static extern ulong mach_absolute_time();\n\n");
-    s.push_str("    [DllImport(\"libSystem.B\")]\n");
-    s.push_str("    static extern int mach_timebase_info(ref MachTimebaseInfo info);\n\n");
-    s.push_str("    [StructLayout(LayoutKind.Sequential)]\n");
-    s.push_str("    struct MachTimebaseInfo { public uint numer; public uint denom; }\n\n");
-    s.push_str("    static MachTimebaseInfo s_timebaseInfo;\n");
+    // Cross-platform high-resolution nanosecond timer via Stopwatch
     s.push_str("    static long GetNanoTime() {\n");
-    s.push_str("        if (s_timebaseInfo.denom == 0) mach_timebase_info(ref s_timebaseInfo);\n");
-    s.push_str("        return (long)(mach_absolute_time() * s_timebaseInfo.numer / s_timebaseInfo.denom);\n");
+    s.push_str("        return Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency;\n");
     s.push_str("    }\n\n");
 
     // P/Invoke for unstable period setter

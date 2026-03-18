@@ -14,6 +14,9 @@ import os
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utilities.common import check_prerequisites, PREREQS_BUILD_SERVERS
+
 def find_repo_root():
     script_dir = os.path.dirname(os.path.abspath(__file__))
     result = subprocess.run(
@@ -23,6 +26,8 @@ def find_repo_root():
     return result.stdout.strip()
 
 def main():
+    check_prerequisites(PREREQS_BUILD_SERVERS)
+
     root = find_repo_root()
     build_dir = os.path.join(root, "cmake-build")
     bin_dir = os.path.join(root, "bin")

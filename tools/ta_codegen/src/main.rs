@@ -326,6 +326,9 @@ fn build_servers(backend_filter: Option<&str>) {
     let out_base = Path::new("../../ta_codegen_output");
     let bin_dir = Path::new("../../bin");
 
+    // Remove stale shared-lib marker so it rebuilds fresh each invocation.
+    let _ = std::fs::remove_file(bin_dir.join(".shared_lib_built"));
+
     for backend in &backends_to_build {
         match *backend {
             "c" => {

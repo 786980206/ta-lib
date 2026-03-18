@@ -9,20 +9,8 @@ using System.Diagnostics;
 
 public class TaCodegenServe {
 
-    // High-resolution nanosecond timer (mach_absolute_time on macOS)
-    [DllImport("libSystem.B")]
-    static extern ulong mach_absolute_time();
-
-    [DllImport("libSystem.B")]
-    static extern int mach_timebase_info(ref MachTimebaseInfo info);
-
-    [StructLayout(LayoutKind.Sequential)]
-    struct MachTimebaseInfo { public uint numer; public uint denom; }
-
-    static MachTimebaseInfo s_timebaseInfo;
     static long GetNanoTime() {
-        if (s_timebaseInfo.denom == 0) mach_timebase_info(ref s_timebaseInfo);
-        return (long)(mach_absolute_time() * s_timebaseInfo.numer / s_timebaseInfo.denom);
+        return Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency;
     }
 
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SetUnstablePeriod")]

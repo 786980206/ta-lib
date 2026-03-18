@@ -24,6 +24,12 @@ import shutil
 import subprocess
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from utilities.common import (
+    check_prerequisites,
+    PREREQS_BUILD_BASIC, PREREQS_BUILD_CODEGEN, PREREQS_BUILD_SERVERS,
+)
+
 BUILD_DIR_NAME = "cmake-build"
 DEFAULT_BUILD_TYPE = "Release"
 DEFAULT_JOBS = os.cpu_count() or 4
@@ -115,6 +121,19 @@ SIMPLE_TARGETS = {
     'regtest-only':'regtest-only',
 }
 
+# Map each target to the prerequisite set it requires.
+TARGET_PREREQS = {
+    'all':          PREREQS_BUILD_BASIC,
+    'ta_regtest':   PREREQS_BUILD_BASIC,
+    'gen_code':     PREREQS_BUILD_BASIC,
+    'ta_codegen':   PREREQS_BUILD_CODEGEN,
+    'generate':     PREREQS_BUILD_CODEGEN,
+    'servers':      PREREQS_BUILD_SERVERS,
+    'test':         PREREQS_BUILD_BASIC,
+    'regtest':      PREREQS_BUILD_SERVERS,
+    'regtest-only': PREREQS_BUILD_SERVERS,
+}
+
 def main():
     # Refuse to run as root/sudo (Unix only).
     if hasattr(os, 'getuid') and os.getuid() == 0:
@@ -146,6 +165,8 @@ def main():
         except FileNotFoundError:
             print("Nothing to clean.")
         return
+
+    check_prerequisites(TARGET_PREREQS.get(args.target, PREREQS_BUILD_BASIC))
 
     ensure_configured(root_dir, build_dir, args.build_type, args.cmake_args)
 

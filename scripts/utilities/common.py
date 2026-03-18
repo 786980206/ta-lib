@@ -43,9 +43,9 @@ def is_windows() -> bool:
 def is_cmake_installed() -> bool:
     try:
         subprocess.run(['cmake', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    except subprocess.CalledProcessError:
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
         return False
-    return True
 
 def is_rpmbuild_installed() -> bool:
     if not is_redhat_based():
@@ -71,6 +71,78 @@ def is_dotnet_installed() -> bool:
         return True
     except (subprocess.CalledProcessError, FileNotFoundError):
         return False
+
+def is_cargo_installed() -> bool:
+    try:
+        subprocess.run(['cargo', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def is_gcc_installed() -> bool:
+    try:
+        subprocess.run(['gcc', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def is_javac_installed() -> bool:
+    try:
+        subprocess.run(['javac', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def is_java_installed() -> bool:
+    try:
+        subprocess.run(['java', '--version'], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        return False
+
+def is_mcpp_installed() -> bool:
+    try:
+        subprocess.run(['mcpp', '--version'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        return True
+    except FileNotFoundError:
+        return False
+
+def check_prerequisites(tools: list):
+    """Check that all required tools are installed. Exit with an error if any are missing.
+
+    Each entry in 'tools' is a tuple of (name, check_func, install_hint).
+    Example:
+        check_prerequisites([
+            ("cmake", is_cmake_installed, "apt install cmake"),
+            ("javac", is_javac_installed, "apt install default-jdk"),
+        ])
+    """
+    missing = []
+    for name, check_func, hint in tools:
+        if not check_func():
+            missing.append((name, hint))
+
+    if missing:
+        print("Error: Missing required development tools:\n")
+        for name, hint in missing:
+            print(f"  {name:10s}  install with: {hint}")
+        print(f"\nAll tools above must be installed before running this script.")
+        sys.exit(1)
+
+# Common prerequisite lists for reuse across scripts.
+# Each entry: (tool_name, check_function, install_hint)
+PREREQS_CMAKE = ("cmake", is_cmake_installed, "apt install cmake (or brew install cmake)")
+PREREQS_CARGO = ("cargo", is_cargo_installed, "curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh")
+PREREQS_GCC = ("gcc", is_gcc_installed, "apt install build-essential (or brew install gcc)")
+PREREQS_JAVAC = ("javac", is_javac_installed, "apt install default-jdk (or brew install openjdk)")
+PREREQS_JAVA = ("java", is_java_installed, "apt install default-jdk (or brew install openjdk)")
+PREREQS_DOTNET = ("dotnet", is_dotnet_installed, "see https://dotnet.microsoft.com/download")
+PREREQS_MCPP = ("mcpp", is_mcpp_installed, "apt install mcpp (or brew install mcpp)")
+
+# Grouped prerequisite sets for common build scenarios.
+PREREQS_BUILD_BASIC = [PREREQS_CMAKE]
+PREREQS_BUILD_CODEGEN = [PREREQS_CMAKE, PREREQS_CARGO, PREREQS_MCPP]
+PREREQS_BUILD_SERVERS = [PREREQS_CMAKE, PREREQS_CARGO, PREREQS_MCPP, PREREQS_GCC, PREREQS_JAVAC, PREREQS_JAVA, PREREQS_DOTNET]
 
 def is_wix_installed() -> bool:
     # For installation, see https://cmake.org/cmake/help/latest/cpack_gen/wix.html#wix-net-tools
