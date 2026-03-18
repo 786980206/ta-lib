@@ -27,9 +27,7 @@ ar-lib
 # TA-Lib tools (must be built by devs on its own platform)
 src/tools/gen_code/gen_code
 src/tools/ta_regtest/ta_regtest
-bin/*.class
-bin/gen_code*
-bin/ta_*
+bin/*
 !bin/HOLDER
 
 ## TA-Lib misc. build and packaging artifacts
