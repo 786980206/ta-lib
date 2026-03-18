@@ -401,10 +401,10 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
    highest = lowest;
    diff = highest;
    bufferIsAllocated = 0;
-   if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) )
+   if( ((((void *)outFastK==(void *)inHigh)||((void *)outFastK==(void *)inLow))||((void *)outFastK==(void *)inClose)) )
    {
       tempBuffer = outFastK;
-   } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) )
+   } else if( ((((void *)outFastD==(void *)inHigh)||((void *)outFastD==(void *)inLow))||((void *)outFastD==(void *)inClose)) )
    {
       tempBuffer = outFastD;
    } else 
@@ -468,7 +468,7 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_S_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -548,10 +548,10 @@ TA_RetCode TA_S_STOCHF_Logic( int    startIdx,
    highest = lowest;
    diff = highest;
    bufferIsAllocated = 0;
-   if( (((outFastK==inHigh)||(outFastK==inLow))||(outFastK==inClose)) )
+   if( ((((void *)outFastK==(void *)inHigh)||((void *)outFastK==(void *)inLow))||((void *)outFastK==(void *)inClose)) )
    {
       tempBuffer = outFastK;
-   } else if( (((outFastD==inHigh)||(outFastD==inLow))||(outFastD==inClose)) )
+   } else if( ((((void *)outFastD==(void *)inHigh)||((void *)outFastD==(void *)inLow))||((void *)outFastD==(void *)inClose)) )
    {
       tempBuffer = outFastD;
    } else 
@@ -615,7 +615,7 @@ TA_RetCode TA_S_STOCHF_Logic( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_S_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )

@@ -43,7 +43,17 @@ def main():
         check=True, cwd=build_dir,
     )
 
-    # 2. Build codegen servers (cargo + gcc)
+    # 2. Regenerate output files + build codegen servers
+    print("\n=== Regenerating output files ===")
+    subprocess.run(
+        ["cargo", "run", "--release", "--", "generate"],
+        check=True, cwd=codegen_dir,
+    )
+    print("\n=== Generating servers ===")
+    subprocess.run(
+        ["cargo", "run", "--release", "--", "generate-servers"],
+        check=True, cwd=codegen_dir,
+    )
     print("\n=== Building codegen servers ===")
     subprocess.run(
         ["cargo", "run", "--release", "--", "build"],

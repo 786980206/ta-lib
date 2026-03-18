@@ -432,7 +432,7 @@ TA_RetCode TA_S_MACD( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_S_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -563,7 +563,7 @@ TA_RetCode TA_S_MACD_Logic( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_S_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )

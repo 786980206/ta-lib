@@ -263,7 +263,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
    }
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -272,7 +272,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -281,7 +281,7 @@ TA_RetCode TA_S_TRIX( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_ROC(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
+   retCode = TA_ROC(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
@@ -343,7 +343,7 @@ TA_RetCode TA_S_TRIX_Logic( int    startIdx,
    }
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -352,7 +352,7 @@ TA_RetCode TA_S_TRIX_Logic( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -361,7 +361,7 @@ TA_RetCode TA_S_TRIX_Logic( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_S_ROC(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
+   retCode = TA_ROC(0,nbElementToOutput,tempBuffer,1,&begIdx,outNBElement,outReal);
    free(tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {

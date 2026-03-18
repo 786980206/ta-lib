@@ -163,4 +163,5 @@
 #include "ta_WCLPRICE.c"
 #include "ta_WILLR.c"
 #include "ta_WMA.c"
+#include "ta_lib_globals.c"
 #include "ta_MA.c"

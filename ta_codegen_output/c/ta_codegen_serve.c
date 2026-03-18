@@ -1,6 +1,6 @@
 /* Auto-generated JSON-RPC server for ta_codegen C output.
  * Reads JSON-RPC requests from stdin, writes responses to stdout.
- * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O2
+ * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O3 -DNDEBUG
  */
 #include <stdio.h>
 #include <stdlib.h>

@@ -277,7 +277,7 @@ TA_RetCode TA_S_NATR( int    startIdx,
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_S_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
@@ -368,7 +368,7 @@ TA_RetCode TA_S_NATR_Logic( int    startIdx,
       free(tempBuffer);
       return retCode;
    }
-   retCode = TA_S_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
+   retCode = TA_SMA((optInTimePeriod-1),(optInTimePeriod-1),tempBuffer,optInTimePeriod,&outBegIdx1,&outNbElement1,&prevATR);
    if( (retCode!=TA_SUCCESS) )
    {
       free(tempBuffer);
