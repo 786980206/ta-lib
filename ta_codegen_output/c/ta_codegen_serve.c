@@ -350,12 +350,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ACCBANDS(
             startIdx, endIdx,
             g_inBuf0,
@@ -363,9 +362,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -390,19 +388,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ACOS(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -426,12 +422,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_AD(
             startIdx, endIdx,
             g_inBuf0,
@@ -439,9 +434,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -463,20 +457,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ADD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -502,12 +494,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ADOSC(
             startIdx, endIdx,
             g_inBuf0,
@@ -517,9 +508,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastPeriod,
             optInSlowPeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -544,12 +534,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ADX(
             startIdx, endIdx,
             g_inBuf0,
@@ -557,9 +546,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -584,12 +572,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ADXR(
             startIdx, endIdx,
             g_inBuf0,
@@ -597,9 +584,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -623,12 +609,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_APO(
             startIdx, endIdx,
             g_inBuf0,
@@ -636,9 +621,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSlowPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -661,21 +645,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_AROON(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -700,21 +682,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_AROONOSC(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -735,19 +715,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ASIN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -768,19 +746,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ATAN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -805,12 +781,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ATR(
             startIdx, endIdx,
             g_inBuf0,
@@ -818,9 +793,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -842,20 +816,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_AVGDEV(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -879,12 +851,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_AVGPRICE(
             startIdx, endIdx,
             g_inBuf0,
@@ -892,9 +863,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -919,12 +889,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_BBANDS(
             startIdx, endIdx,
             g_inBuf0,
@@ -933,9 +902,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInNbDevDn,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -962,21 +930,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_BETA(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1000,12 +966,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_BOP(
             startIdx, endIdx,
             g_inBuf0,
@@ -1013,9 +978,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1039,12 +1003,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CCI(
             startIdx, endIdx,
             g_inBuf0,
@@ -1052,9 +1015,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1078,12 +1040,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL2CROWS(
             startIdx, endIdx,
             g_inBuf0,
@@ -1091,9 +1052,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1117,12 +1077,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3BLACKCROWS(
             startIdx, endIdx,
             g_inBuf0,
@@ -1130,9 +1089,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1156,12 +1114,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3INSIDE(
             startIdx, endIdx,
             g_inBuf0,
@@ -1169,9 +1126,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1195,12 +1151,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3LINESTRIKE(
             startIdx, endIdx,
             g_inBuf0,
@@ -1208,9 +1163,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1234,12 +1188,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3OUTSIDE(
             startIdx, endIdx,
             g_inBuf0,
@@ -1247,9 +1200,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1273,12 +1225,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3STARSINSOUTH(
             startIdx, endIdx,
             g_inBuf0,
@@ -1286,9 +1237,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1312,12 +1262,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDL3WHITESOLDIERS(
             startIdx, endIdx,
             g_inBuf0,
@@ -1325,9 +1274,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1352,12 +1300,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLABANDONEDBABY(
             startIdx, endIdx,
             g_inBuf0,
@@ -1366,9 +1313,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1392,12 +1338,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLADVANCEBLOCK(
             startIdx, endIdx,
             g_inBuf0,
@@ -1405,9 +1350,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1431,12 +1375,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLBELTHOLD(
             startIdx, endIdx,
             g_inBuf0,
@@ -1444,9 +1387,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1470,12 +1412,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLBREAKAWAY(
             startIdx, endIdx,
             g_inBuf0,
@@ -1483,9 +1424,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1509,12 +1449,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLCLOSINGMARUBOZU(
             startIdx, endIdx,
             g_inBuf0,
@@ -1522,9 +1461,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1548,12 +1486,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLCONCEALBABYSWALL(
             startIdx, endIdx,
             g_inBuf0,
@@ -1561,9 +1498,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1587,12 +1523,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLCOUNTERATTACK(
             startIdx, endIdx,
             g_inBuf0,
@@ -1600,9 +1535,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1627,12 +1561,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLDARKCLOUDCOVER(
             startIdx, endIdx,
             g_inBuf0,
@@ -1641,9 +1574,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1667,12 +1599,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLDOJI(
             startIdx, endIdx,
             g_inBuf0,
@@ -1680,9 +1611,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1706,12 +1636,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -1719,9 +1648,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1745,12 +1673,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLDRAGONFLYDOJI(
             startIdx, endIdx,
             g_inBuf0,
@@ -1758,9 +1685,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1784,12 +1710,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLENGULFING(
             startIdx, endIdx,
             g_inBuf0,
@@ -1797,9 +1722,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1824,12 +1748,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLEVENINGDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -1838,9 +1761,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1865,12 +1787,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLEVENINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -1879,9 +1800,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1905,12 +1825,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLGAPSIDESIDEWHITE(
             startIdx, endIdx,
             g_inBuf0,
@@ -1918,9 +1837,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1944,12 +1862,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLGRAVESTONEDOJI(
             startIdx, endIdx,
             g_inBuf0,
@@ -1957,9 +1874,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1983,12 +1899,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHAMMER(
             startIdx, endIdx,
             g_inBuf0,
@@ -1996,9 +1911,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2022,12 +1936,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHANGINGMAN(
             startIdx, endIdx,
             g_inBuf0,
@@ -2035,9 +1948,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2061,12 +1973,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHARAMI(
             startIdx, endIdx,
             g_inBuf0,
@@ -2074,9 +1985,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2100,12 +2010,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHARAMICROSS(
             startIdx, endIdx,
             g_inBuf0,
@@ -2113,9 +2022,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2139,12 +2047,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHIGHWAVE(
             startIdx, endIdx,
             g_inBuf0,
@@ -2152,9 +2059,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2178,12 +2084,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHIKKAKE(
             startIdx, endIdx,
             g_inBuf0,
@@ -2191,9 +2096,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2217,12 +2121,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHIKKAKEMOD(
             startIdx, endIdx,
             g_inBuf0,
@@ -2230,9 +2133,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2256,12 +2158,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLHOMINGPIGEON(
             startIdx, endIdx,
             g_inBuf0,
@@ -2269,9 +2170,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2295,12 +2195,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLIDENTICAL3CROWS(
             startIdx, endIdx,
             g_inBuf0,
@@ -2308,9 +2207,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2334,12 +2232,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLINNECK(
             startIdx, endIdx,
             g_inBuf0,
@@ -2347,9 +2244,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2373,12 +2269,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLINVERTEDHAMMER(
             startIdx, endIdx,
             g_inBuf0,
@@ -2386,9 +2281,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2412,12 +2306,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLKICKING(
             startIdx, endIdx,
             g_inBuf0,
@@ -2425,9 +2318,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2451,12 +2343,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLKICKINGBYLENGTH(
             startIdx, endIdx,
             g_inBuf0,
@@ -2464,9 +2355,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2490,12 +2380,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLLADDERBOTTOM(
             startIdx, endIdx,
             g_inBuf0,
@@ -2503,9 +2392,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2529,12 +2417,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLLONGLEGGEDDOJI(
             startIdx, endIdx,
             g_inBuf0,
@@ -2542,9 +2429,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2568,12 +2454,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLLONGLINE(
             startIdx, endIdx,
             g_inBuf0,
@@ -2581,9 +2466,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2607,12 +2491,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLMARUBOZU(
             startIdx, endIdx,
             g_inBuf0,
@@ -2620,9 +2503,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2646,12 +2528,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLMATCHINGLOW(
             startIdx, endIdx,
             g_inBuf0,
@@ -2659,9 +2540,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2686,12 +2566,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLMATHOLD(
             startIdx, endIdx,
             g_inBuf0,
@@ -2700,9 +2579,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2727,12 +2605,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLMORNINGDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -2741,9 +2618,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2768,12 +2644,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLMORNINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -2782,9 +2657,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2808,12 +2682,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLONNECK(
             startIdx, endIdx,
             g_inBuf0,
@@ -2821,9 +2694,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2847,12 +2719,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLPIERCING(
             startIdx, endIdx,
             g_inBuf0,
@@ -2860,9 +2731,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2886,12 +2756,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLRICKSHAWMAN(
             startIdx, endIdx,
             g_inBuf0,
@@ -2899,9 +2768,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2925,12 +2793,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLRISEFALL3METHODS(
             startIdx, endIdx,
             g_inBuf0,
@@ -2938,9 +2805,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2964,12 +2830,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSEPARATINGLINES(
             startIdx, endIdx,
             g_inBuf0,
@@ -2977,9 +2842,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3003,12 +2867,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSHOOTINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -3016,9 +2879,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3042,12 +2904,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSHORTLINE(
             startIdx, endIdx,
             g_inBuf0,
@@ -3055,9 +2916,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3081,12 +2941,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSPINNINGTOP(
             startIdx, endIdx,
             g_inBuf0,
@@ -3094,9 +2953,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3120,12 +2978,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSTALLEDPATTERN(
             startIdx, endIdx,
             g_inBuf0,
@@ -3133,9 +2990,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3159,12 +3015,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLSTICKSANDWICH(
             startIdx, endIdx,
             g_inBuf0,
@@ -3172,9 +3027,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3198,12 +3052,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLTAKURI(
             startIdx, endIdx,
             g_inBuf0,
@@ -3211,9 +3064,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3237,12 +3089,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLTASUKIGAP(
             startIdx, endIdx,
             g_inBuf0,
@@ -3250,9 +3101,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3276,12 +3126,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLTHRUSTING(
             startIdx, endIdx,
             g_inBuf0,
@@ -3289,9 +3138,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3315,12 +3163,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLTRISTAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -3328,9 +3175,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3354,12 +3200,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLUNIQUE3RIVER(
             startIdx, endIdx,
             g_inBuf0,
@@ -3367,9 +3212,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3393,12 +3237,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLUPSIDEGAP2CROWS(
             startIdx, endIdx,
             g_inBuf0,
@@ -3406,9 +3249,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3432,12 +3274,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CDLXSIDEGAP3METHODS(
             startIdx, endIdx,
             g_inBuf0,
@@ -3445,9 +3286,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3468,19 +3308,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CEIL(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3503,20 +3341,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CMO(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3539,21 +3375,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_CORREL(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3574,19 +3408,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_COS(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3607,19 +3439,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_COSH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3641,20 +3471,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_DEMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3676,20 +3504,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_DIV(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3714,12 +3540,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_DX(
             startIdx, endIdx,
             g_inBuf0,
@@ -3727,9 +3552,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3752,20 +3576,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_EMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3786,19 +3608,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_EXP(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3819,19 +3639,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_FLOOR(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3853,19 +3671,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_DCPERIOD(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3887,19 +3703,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_DCPHASE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3921,19 +3735,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_PHASOR(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3957,19 +3769,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_SINE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3993,19 +3803,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_TRENDLINE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4027,19 +3835,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_HT_TRENDMODE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4063,21 +3869,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_IMI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4100,20 +3904,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_KAMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4135,20 +3937,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LINEARREG(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4170,20 +3970,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LINEARREG_ANGLE(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4205,20 +4003,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LINEARREG_INTERCEPT(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4240,20 +4036,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LINEARREG_SLOPE(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4274,19 +4068,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4307,19 +4099,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_LOG10(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4342,21 +4132,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4380,12 +4168,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MACD(
             startIdx, endIdx,
             g_inBuf0,
@@ -4393,9 +4180,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSlowPeriod,
             optInSignalPeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4426,12 +4212,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MACDEXT(
             startIdx, endIdx,
             g_inBuf0,
@@ -4442,9 +4227,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSignalPeriod,
             optInSignalMAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4470,20 +4254,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MACDFIX(
             startIdx, endIdx,
             g_inBuf0,
             optInSignalPeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4511,21 +4293,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MAMA(
             startIdx, endIdx,
             g_inBuf0,
             optInFastLimit,
             optInSlowLimit,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4552,12 +4332,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MAVP(
             startIdx, endIdx,
             g_inBuf0,
@@ -4566,9 +4345,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInMaxPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4590,20 +4368,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MAX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4625,20 +4401,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MAXINDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4660,20 +4434,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MEDPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4699,12 +4471,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(4, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(4, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MFI(
             startIdx, endIdx,
             g_inBuf0,
@@ -4713,9 +4484,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4737,20 +4507,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MIDPOINT(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4773,21 +4541,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MIDPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4809,20 +4575,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MIN(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4844,20 +4608,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MININDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4879,20 +4641,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MINMAX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4916,20 +4676,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MINMAXINDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0, g_outIntBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4956,12 +4714,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MINUS_DI(
             startIdx, endIdx,
             g_inBuf0,
@@ -4969,9 +4726,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4995,21 +4751,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MINUS_DM(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5031,20 +4785,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MOM(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5066,20 +4818,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_MULT(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5104,12 +4854,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_NATR(
             startIdx, endIdx,
             g_inBuf0,
@@ -5117,9 +4866,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5141,20 +4889,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_NVI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5176,20 +4922,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_OBV(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5214,12 +4958,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_PLUS_DI(
             startIdx, endIdx,
             g_inBuf0,
@@ -5227,9 +4970,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5253,21 +4995,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_PLUS_DM(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5291,12 +5031,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_PPO(
             startIdx, endIdx,
             g_inBuf0,
@@ -5304,9 +5043,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSlowPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5328,20 +5066,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_PVI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5363,20 +5099,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ROC(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5398,20 +5132,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ROCP(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5433,20 +5165,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ROCR(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5468,20 +5198,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ROCR100(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5504,20 +5232,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_RSI(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5541,12 +5267,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SAR(
             startIdx, endIdx,
             g_inBuf0,
@@ -5554,9 +5279,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInAcceleration,
             optInMaximum,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5586,12 +5310,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SAREXT(
             startIdx, endIdx,
             g_inBuf0,
@@ -5605,9 +5328,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInAccelerationShort,
             optInAccelerationMaxShort,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5628,19 +5350,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SIN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5661,19 +5381,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SINH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5695,20 +5413,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5729,19 +5445,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SQRT(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5764,21 +5478,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_STDDEV(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInNbDev,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5806,12 +5518,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_STOCH(
             startIdx, endIdx,
             g_inBuf0,
@@ -5823,9 +5534,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSlowD_Period,
             optInSlowD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5853,12 +5563,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_STOCHF(
             startIdx, endIdx,
             g_inBuf0,
@@ -5868,9 +5577,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastD_Period,
             optInFastD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5898,12 +5606,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_STOCHRSI(
             startIdx, endIdx,
             g_inBuf0,
@@ -5912,9 +5619,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastD_Period,
             optInFastD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5938,20 +5644,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(2, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(2, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SUB(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5973,20 +5677,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_SUM(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6010,21 +5712,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_T3(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInVFactor,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6045,19 +5745,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TAN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6078,19 +5776,17 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TANH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6112,20 +5808,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TEMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6148,21 +5842,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TRANGE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6184,20 +5876,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TRIMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6219,20 +5909,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TRIX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6254,20 +5942,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TSF(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6290,21 +5976,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_TYPPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6330,12 +6014,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_ULTOSC(
             startIdx, endIdx,
             g_inBuf0,
@@ -6345,9 +6028,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInTimePeriod2,
             optInTimePeriod3,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6370,21 +6052,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_VAR(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInNbDev,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6407,21 +6087,19 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_WCLPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6445,12 +6123,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(3, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(3, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_WILLR(
             startIdx, endIdx,
             g_inBuf0,
@@ -6458,9 +6135,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -6482,20 +6158,18 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
-        long total_ns = 0;
+        if( use_preloaded ) {
+            preload_to_working(1, 0);
+        }
+        long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-            if( use_preloaded ) {
-                preload_to_working(1, 0);
-            }
-            long _t0 = get_nanotime();
         rc = TA_WMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-            total_ns += get_nanotime() - _t0;
         }
-        long elapsed_ns = total_ns / bench_iters;
+        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);

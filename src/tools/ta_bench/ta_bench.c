@@ -203,7 +203,7 @@ static long long run_ref(const TA_FuncInfo *fi, int startIdx, int endIdx, int it
     TA_Integer beg, nb;
     TA_CallFunc(ph, startIdx, endIdx, &beg, &nb);
 
-    /* Timed loop */
+    /* Single timing block — amortizes timer overhead across all iterations */
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
         TA_CallFunc(ph, startIdx, endIdx, &beg, &nb);

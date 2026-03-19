@@ -632,19 +632,18 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        if( bench_iters < 1 ) bench_iters = 1;\n");
 
         s.push_str("        TA_RetCode rc = 0;\n");
-        s.push_str("        long total_ns = 0;\n");
-        s.push_str("        for( int _bi = 0; _bi < bench_iters; _bi++ ) {\n");
 
-        // Copy pre-loaded data OUTSIDE timing — ensures clean input per iteration
-        s.push_str("            if( use_preloaded ) {\n");
+        // Copy once before timing
+        s.push_str("        if( use_preloaded ) {\n");
         s.push_str(&format!(
-            "                preload_to_working({n_inputs}, {});\n",
+            "            preload_to_working({n_inputs}, {});\n",
             if is_price_input { 1 } else { 0 }
         ));
-        s.push_str("            }\n");
+        s.push_str("        }\n");
 
-        // Time ONLY the indicator call
-        s.push_str("            long _t0 = get_nanotime();\n");
+        // Single timing block around ALL iterations — amortizes timer overhead
+        s.push_str("        long _t0 = get_nanotime();\n");
+        s.push_str("        for( int _bi = 0; _bi < bench_iters; _bi++ ) {\n");
 
         // Call the function
         s.push_str(&format!("        rc = TA_{}(\n", func.name));
@@ -678,11 +677,8 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(");\n");
-        s.push_str("            total_ns += get_nanotime() - _t0;\n");
         s.push_str("        }\n"); // end bench_iters loop
-
-        // Average timing over iterations (only indicator call, not copy)
-        s.push_str("        long elapsed_ns = total_ns / bench_iters;\n");
+        s.push_str("        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;\n");
 
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
