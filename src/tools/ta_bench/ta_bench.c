@@ -1,14 +1,14 @@
 /* ta_bench — Performance benchmark for TA-Lib indicators.
  *
  * Compares C reference (direct call, linked) against codegen language
- * servers (JSON-RPC). Uses larger dataset and multi-iteration averaging
- * for stable, meaningful measurements.
+ * servers using the load_data + use_preloaded protocol:
+ *   1. Generate deterministic OHLCV data
+ *   2. Send load_data to each server (triggers language-specific warmup)
+ *   3. Run each indicator with varying ranges, server-side iteration
+ *   4. Report per-indicator per-language timing
  *
  * Usage:
- *   ./ta_bench                                # all indicators, all languages
- *   ./ta_bench --points=100000 --iters=50     # 100k points, 50 iterations
- *   ./ta_bench --language=c,rust              # filter languages
- *   ./ta_bench --function=RSI,SMA             # filter indicators
+ *   ./ta_bench [--points=N] [--iters=N] [--language=c,rust] [--function=RSI,SMA]
  */
 
 #include <stdio.h>
@@ -25,14 +25,11 @@
 
 /* ---- Configuration ---- */
 
+#define MAX_POINTS        200000
 #define MAX_FUNCTIONS     200
-#define MAX_OUTPUTS       3
-#define DEFAULT_POINTS    10000
-#define DEFAULT_ITERS     20
-#define DEFAULT_WARMUP    3
-
-/* JSON buffer: 100k doubles × ~20 chars = ~2MB per array, need room for 6 arrays + overhead */
-#define JSON_BUF_SIZE     (16 * 1024 * 1024)   /* 16 MB */
+#define DEFAULT_POINTS    100000
+#define DEFAULT_ITERS     100
+#define JSON_BUF_SIZE     (32 * 1024 * 1024)   /* 32 MB for load_data */
 
 /* ---- Timing ---- */
 
@@ -52,8 +49,20 @@ static long long get_nanotime(void) {
 
 /* ---- Deterministic test data (LCG PRNG, seed 42) ---- */
 
-static void generate_price_data(double *open, double *high, double *low,
-                                double *close, double *volume, int n)
+static double g_open[MAX_POINTS];
+static double g_high[MAX_POINTS];
+static double g_low[MAX_POINTS];
+static double g_close[MAX_POINTS];
+static double g_volume[MAX_POINTS];
+
+/* Working copies for C-ref (protect against mutation) */
+static double g_wOpen[MAX_POINTS];
+static double g_wHigh[MAX_POINTS];
+static double g_wLow[MAX_POINTS];
+static double g_wClose[MAX_POINTS];
+static double g_wVolume[MAX_POINTS];
+
+static void generate_price_data(int n)
 {
     unsigned int seed = 42;
     double price = 100.0;
@@ -67,11 +76,20 @@ static void generate_price_data(double *open, double *high, double *low,
         double h = fmax(o, c) + fabs(r) * 0.5;
         double l = fmin(o, c) - fabs(r) * 0.5;
         if( l < 1.0 ) l = 1.0;
-        open[i] = o; high[i] = h; low[i] = l; close[i] = c;
-        volume[i] = 1000000.0 + r * 500000.0;
+        g_open[i] = o; g_high[i] = h; g_low[i] = l; g_close[i] = c;
+        g_volume[i] = 1000000.0 + r * 500000.0;
         price = c;
         if( price < 1.0 ) price = 1.0;
     }
+}
+
+static void copy_close(int n) {
+    memcpy(g_wClose, g_close, n * sizeof(double));
+}
+static void copy_hlc(int n) {
+    memcpy(g_wHigh, g_high, n * sizeof(double));
+    memcpy(g_wLow, g_low, n * sizeof(double));
+    memcpy(g_wClose, g_close, n * sizeof(double));
 }
 
 /* ---- JSON helpers ---- */
@@ -97,18 +115,15 @@ static const char *json_find_field(const char *json, const char *field, int *len
     if( !p ) return NULL;
     p += strlen(pattern);
     while( *p == ' ' ) p++;
-    /* Find end: number ends at , or } */
     const char *end = p;
-    if( *end == '[' ) { /* skip array */ int depth = 1; end++;
+    if( *end == '[' ) { int depth = 1; end++;
         while( depth > 0 && *end ) { if(*end=='[') depth++; if(*end==']') depth--; end++; }
-    } else {
-        while( *end && *end != ',' && *end != '}' ) end++;
-    }
+    } else { while( *end && *end != ',' && *end != '}' ) end++; }
     *len = (int)(end - p);
     return p;
 }
 
-/* ---- Language server definitions ---- */
+/* ---- Language servers ---- */
 
 typedef struct {
     const char *name;
@@ -133,273 +148,166 @@ static BenchLanguage LANGUAGES[] = {
 
 /* ---- Indicator definitions ---- */
 
+volatile double g_sink;
+
 typedef struct {
     const char *name;
-    /* Builds JSON request into buf. Returns length written. */
-    int (*build_request)(char *buf, int buf_size,
-                         const double *open, const double *high, const double *low,
-                         const double *close, const double *volume, int n);
-    /* Runs C reference. Returns average ns over iters. */
-    long long (*run_ref)(const double *open, const double *high, const double *low,
-                         const double *close, const double *volume, int n, int iters);
+    int is_price; /* 1 = uses OHLCV, 0 = uses close only */
+    const char *params_json; /* optional params as JSON fragment */
+    /* C-ref function: runs indicator, returns ns/call */
+    long long (*run_ref)(int startIdx, int endIdx, int n, int iters);
 } BenchIndicator;
 
-volatile double g_sink; /* prevent optimization */
+/* ---- C-ref implementations ---- */
 
-/* ---- Indicator implementations ---- */
-
-static int build_RSI(char *buf, int sz, const double *o, const double *h,
-                     const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)h; (void)l; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_RSI\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInTimePeriod\":14,\"inReal\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_RSI_ref(const double *o, const double *h, const double *l,
-                             const double *c, const double *v, int n, int iters)
-{
-    double *out = malloc(n * sizeof(double));
-    int beg, nb;
-    (void)o; (void)h; (void)l; (void)v;
-    TA_RSI(0, n-1, c, 14, &beg, &nb, out);
+static long long ref_SMA(int s, int e, int n, int iters) {
+    double *out = malloc(n * sizeof(double)); int beg, nb;
+    copy_close(n);
+    TA_SMA(s, e, g_wClose, 20, &beg, &nb, out); /* warmup */
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_RSI(0, n-1, c, 14, &beg, &nb, out);
+        copy_close(n);
+        TA_SMA(s, e, g_wClose, 20, &beg, &nb, out);
         g_sink = out[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(out);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(out); return r;
 }
 
-static int build_SMA(char *buf, int sz, const double *o, const double *h,
-                     const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)h; (void)l; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInTimePeriod\":20,\"inReal\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_SMA_ref(const double *o, const double *h, const double *l,
-                             const double *c, const double *v, int n, int iters)
-{
-    double *out = malloc(n * sizeof(double));
-    int beg, nb;
-    (void)o; (void)h; (void)l; (void)v;
-    TA_SMA(0, n-1, c, 20, &beg, &nb, out);
+static long long ref_EMA(int s, int e, int n, int iters) {
+    double *out = malloc(n * sizeof(double)); int beg, nb;
+    copy_close(n);
+    TA_EMA(s, e, g_wClose, 20, &beg, &nb, out);
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_SMA(0, n-1, c, 20, &beg, &nb, out);
+        copy_close(n);
+        TA_EMA(s, e, g_wClose, 20, &beg, &nb, out);
         g_sink = out[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(out);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(out); return r;
 }
 
-static int build_EMA(char *buf, int sz, const double *o, const double *h,
-                     const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)h; (void)l; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_EMA\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInTimePeriod\":20,\"inReal\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_EMA_ref(const double *o, const double *h, const double *l,
-                             const double *c, const double *v, int n, int iters)
-{
-    double *out = malloc(n * sizeof(double));
-    int beg, nb;
-    (void)o; (void)h; (void)l; (void)v;
-    TA_EMA(0, n-1, c, 20, &beg, &nb, out);
+static long long ref_RSI(int s, int e, int n, int iters) {
+    double *out = malloc(n * sizeof(double)); int beg, nb;
+    copy_close(n);
+    TA_RSI(s, e, g_wClose, 14, &beg, &nb, out);
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_EMA(0, n-1, c, 20, &beg, &nb, out);
+        copy_close(n);
+        TA_RSI(s, e, g_wClose, 14, &beg, &nb, out);
         g_sink = out[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(out);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(out); return r;
 }
 
-static int build_MACD(char *buf, int sz, const double *o, const double *h,
-                      const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)h; (void)l; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_MACD\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInFastPeriod\":12,\"optInSlowPeriod\":26,\"optInSignalPeriod\":9,"
-                       "\"inReal\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_MACD_ref(const double *o, const double *h, const double *l,
-                              const double *c, const double *v, int n, int iters)
-{
-    double *out1 = malloc(n * sizeof(double));
-    double *out2 = malloc(n * sizeof(double));
-    double *out3 = malloc(n * sizeof(double));
+static long long ref_MACD(int s, int e, int n, int iters) {
+    double *o1 = malloc(n*sizeof(double)), *o2 = malloc(n*sizeof(double)), *o3 = malloc(n*sizeof(double));
     int beg, nb;
-    (void)o; (void)h; (void)l; (void)v;
-    TA_MACD(0, n-1, c, 12, 26, 9, &beg, &nb, out1, out2, out3);
+    copy_close(n);
+    TA_MACD(s, e, g_wClose, 12, 26, 9, &beg, &nb, o1, o2, o3);
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_MACD(0, n-1, c, 12, 26, 9, &beg, &nb, out1, out2, out3);
-        g_sink = out1[0];
+        copy_close(n);
+        TA_MACD(s, e, g_wClose, 12, 26, 9, &beg, &nb, o1, o2, o3);
+        g_sink = o1[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(out1); free(out2); free(out3);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(o1); free(o2); free(o3); return r;
 }
 
-static int build_STOCH(char *buf, int sz, const double *o, const double *h,
-                       const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_STOCH\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInFastK_Period\":5,\"optInSlowK_Period\":3,"
-                       "\"optInSlowK_MAType\":0,\"optInSlowD_Period\":3,"
-                       "\"optInSlowD_MAType\":0,\"inHigh\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, h, n);
-    pos += snprintf(buf+pos, sz-pos, ",\"inLow\":");
-    pos += json_write_double_array(buf+pos, sz-pos, l, n);
-    pos += snprintf(buf+pos, sz-pos, ",\"inClose\":");
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_STOCH_ref(const double *o, const double *h, const double *l,
-                               const double *c, const double *v, int n, int iters)
-{
-    double *outK = malloc(n * sizeof(double));
-    double *outD = malloc(n * sizeof(double));
+static long long ref_STOCH(int s, int e, int n, int iters) {
+    double *outK = malloc(n*sizeof(double)), *outD = malloc(n*sizeof(double));
     int beg, nb;
-    (void)o; (void)v;
-    TA_STOCH(0, n-1, h, l, c, 5, 3, TA_MAType_SMA, 3, TA_MAType_SMA, &beg, &nb, outK, outD);
+    copy_hlc(n);
+    TA_STOCH(s, e, g_wHigh, g_wLow, g_wClose, 5, 3, TA_MAType_SMA, 3, TA_MAType_SMA, &beg, &nb, outK, outD);
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_STOCH(0, n-1, h, l, c, 5, 3, TA_MAType_SMA, 3, TA_MAType_SMA, &beg, &nb, outK, outD);
+        copy_hlc(n);
+        TA_STOCH(s, e, g_wHigh, g_wLow, g_wClose, 5, 3, TA_MAType_SMA, 3, TA_MAType_SMA, &beg, &nb, outK, outD);
         g_sink = outK[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(outK); free(outD);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(outK); free(outD); return r;
 }
 
-static int build_BBANDS(char *buf, int sz, const double *o, const double *h,
-                        const double *l, const double *c, const double *v, int n)
-{
-    (void)o; (void)h; (void)l; (void)v;
-    int pos = snprintf(buf, sz, "{\"method\":\"TA_BBANDS\",\"params\":{\"startIdx\":0,\"endIdx\":%d,"
-                       "\"optInTimePeriod\":20,\"optInNbDevUp\":2.0,\"optInNbDevDn\":2.0,"
-                       "\"optInMAType\":0,\"inReal\":", n-1);
-    pos += json_write_double_array(buf+pos, sz-pos, c, n);
-    pos += snprintf(buf+pos, sz-pos, "}}");
-    return pos;
-}
-
-static long long run_BBANDS_ref(const double *o, const double *h, const double *l,
-                                const double *c, const double *v, int n, int iters)
-{
-    double *outU = malloc(n * sizeof(double));
-    double *outM = malloc(n * sizeof(double));
-    double *outL = malloc(n * sizeof(double));
+static long long ref_BBANDS(int s, int e, int n, int iters) {
+    double *oU = malloc(n*sizeof(double)), *oM = malloc(n*sizeof(double)), *oL = malloc(n*sizeof(double));
     int beg, nb;
-    (void)o; (void)h; (void)l; (void)v;
-    TA_BBANDS(0, n-1, c, 20, 2.0, 2.0, TA_MAType_SMA, &beg, &nb, outU, outM, outL);
+    copy_close(n);
+    TA_BBANDS(s, e, g_wClose, 20, 2.0, 2.0, TA_MAType_SMA, &beg, &nb, oU, oM, oL);
     long long t0 = get_nanotime();
     for( int i = 0; i < iters; i++ ) {
-        TA_BBANDS(0, n-1, c, 20, 2.0, 2.0, TA_MAType_SMA, &beg, &nb, outU, outM, outL);
-        g_sink = outU[0];
+        copy_close(n);
+        TA_BBANDS(s, e, g_wClose, 20, 2.0, 2.0, TA_MAType_SMA, &beg, &nb, oU, oM, oL);
+        g_sink = oU[0];
     }
-    long long elapsed = (get_nanotime() - t0) / iters;
-    free(outU); free(outM); free(outL);
-    return elapsed;
+    long long r = (get_nanotime() - t0) / iters; free(oU); free(oM); free(oL); return r;
 }
 
-/* ---- All indicators ---- */
+/* ---- Indicator table ---- */
 
 static BenchIndicator INDICATORS[] = {
-    {"SMA",    build_SMA,    run_SMA_ref},
-    {"EMA",    build_EMA,    run_EMA_ref},
-    {"RSI",    build_RSI,    run_RSI_ref},
-    {"MACD",   build_MACD,   run_MACD_ref},
-    {"STOCH",  build_STOCH,  run_STOCH_ref},
-    {"BBANDS", build_BBANDS, run_BBANDS_ref},
+    {"SMA",    0, "\"optInTimePeriod\":20",    ref_SMA},
+    {"EMA",    0, "\"optInTimePeriod\":20",    ref_EMA},
+    {"RSI",    0, "\"optInTimePeriod\":14",    ref_RSI},
+    {"MACD",   0, "\"optInFastPeriod\":12,\"optInSlowPeriod\":26,\"optInSignalPeriod\":9", ref_MACD},
+    {"STOCH",  1, "\"optInFastK_Period\":5,\"optInSlowK_Period\":3,\"optInSlowK_MAType\":0,\"optInSlowD_Period\":3,\"optInSlowD_MAType\":0", ref_STOCH},
+    {"BBANDS", 0, "\"optInTimePeriod\":20,\"optInNbDevUp\":2.0,\"optInNbDevDn\":2.0,\"optInMAType\":0", ref_BBANDS},
 };
 #define NUM_INDICATORS (sizeof(INDICATORS)/sizeof(INDICATORS[0]))
 
-/* ---- Server benchmarking ---- */
+/* ---- Server communication ---- */
 
-/* Inject "iters":N into the JSON request before the closing "}}".
- * Returns new length written to out_buf. */
-static int inject_iters(const char *request, char *out_buf, int out_size, int iters)
+static int send_load_data(BenchLanguage *lang, char *buf, int buf_size, char *resp, int resp_size, int n)
 {
-    /* Find the closing "}}" and insert before it */
-    int len = (int)strlen(request);
-    if( len < 2 ) return 0;
-    memcpy(out_buf, request, len - 2); /* copy everything except trailing }} */
-    int pos = len - 2;
-    pos += snprintf(out_buf + pos, out_size - pos, ",\"iters\":%d}}", iters);
-    return pos;
+    int pos = snprintf(buf, buf_size, "{\"method\":\"load_data\",\"params\":{\"open\":");
+    pos += json_write_double_array(buf+pos, buf_size-pos, g_open, n);
+    pos += snprintf(buf+pos, buf_size-pos, ",\"high\":");
+    pos += json_write_double_array(buf+pos, buf_size-pos, g_high, n);
+    pos += snprintf(buf+pos, buf_size-pos, ",\"low\":");
+    pos += json_write_double_array(buf+pos, buf_size-pos, g_low, n);
+    pos += snprintf(buf+pos, buf_size-pos, ",\"close\":");
+    pos += json_write_double_array(buf+pos, buf_size-pos, g_close, n);
+    pos += snprintf(buf+pos, buf_size-pos, ",\"volume\":");
+    pos += json_write_double_array(buf+pos, buf_size-pos, g_volume, n);
+    pos += snprintf(buf+pos, buf_size-pos, ",\"openInterest\":");
+    /* Send zeros for OI */
+    pos += snprintf(buf+pos, buf_size-pos, "[");
+    for( int i = 0; i < n; i++ ) pos += snprintf(buf+pos, buf_size-pos, "%s0", i?",":"");
+    pos += snprintf(buf+pos, buf_size-pos, "]}}");
+
+    if( codegen_pipe_call(&lang->cp, buf, resp, resp_size) != TA_TEST_PASS )
+        return -1;
+    return (strstr(resp, "\"ok\"") != NULL) ? 0 : -1;
 }
 
-static long long bench_server(BenchLanguage *lang, const char *request,
-                              char *response, int resp_size, int iters, int warmup)
+static long long bench_indicator(BenchLanguage *lang, BenchIndicator *ind,
+                                  int startIdx, int endIdx, int iters,
+                                  char *buf, int buf_size, char *resp, int resp_size)
 {
-    char *bench_req = malloc(strlen(request) + 64);
+    int pos = snprintf(buf, buf_size,
+        "{\"method\":\"TA_%s\",\"params\":{\"startIdx\":%d,\"endIdx\":%d,%s,"
+        "\"use_preloaded\":1,\"iters\":%d}}",
+        ind->name, startIdx, endIdx, ind->params_json, iters);
+    (void)pos;
 
-    /* Warmup: single call with iters=warmup */
-    inject_iters(request, bench_req, (int)strlen(request) + 64, warmup);
-    codegen_pipe_call(&lang->cp, bench_req, response, resp_size);
-
-    /* Benchmark: single call with iters=N — server loops internally,
-     * returns average timing_ns without JSON cache pollution between iterations */
-    inject_iters(request, bench_req, (int)strlen(request) + 64, iters);
-    if( codegen_pipe_call(&lang->cp, bench_req, response, resp_size) != TA_TEST_PASS )
-    {
-        free(bench_req);
+    if( codegen_pipe_call(&lang->cp, buf, resp, resp_size) != TA_TEST_PASS )
         return -1;
-    }
-    free(bench_req);
 
     int len;
-    const char *t = json_find_field(response, "timing_ns", &len);
+    const char *t = json_find_field(resp, "timing_ns", &len);
     return t ? strtoll(t, NULL, 10) : -1;
 }
 
-/* ---- CLI parsing ---- */
+/* ---- CLI helpers ---- */
 
-static int language_matches(const char *filter, const char *name)
-{
+static int language_matches(const char *filter, const char *name) {
     if( !filter ) return 1;
     return strstr(filter, name) != NULL;
 }
 
-static int function_matches(const char *filter, const char *name)
-{
+static int function_matches(const char *filter, const char *name) {
     if( !filter ) return 1;
-    /* Comma-separated filter, case-insensitive substring match */
-    char buf[512];
-    strncpy(buf, filter, sizeof(buf)-1);
-    buf[sizeof(buf)-1] = '\0';
+    char buf[512]; strncpy(buf, filter, sizeof(buf)-1); buf[sizeof(buf)-1]='\0';
     char *tok = strtok(buf, ",");
-    while( tok ) {
-        if( strcasestr(name, tok) ) return 1;
-        tok = strtok(NULL, ",");
-    }
+    while( tok ) { if( strcasestr(name, tok) ) return 1; tok = strtok(NULL, ","); }
     return 0;
 }
 
@@ -409,48 +317,51 @@ int main(int argc, char *argv[])
 {
     int n_points = DEFAULT_POINTS;
     int n_iters  = DEFAULT_ITERS;
-    int n_warmup = DEFAULT_WARMUP;
     const char *lang_filter = NULL;
     const char *func_filter = NULL;
 
     for( int i = 1; i < argc; i++ ) {
-        if( strncmp(argv[i], "--points=", 9) == 0 )     n_points = atoi(argv[i]+9);
-        else if( strncmp(argv[i], "--iters=", 8) == 0 )  n_iters = atoi(argv[i]+8);
-        else if( strncmp(argv[i], "--warmup=", 9) == 0 ) n_warmup = atoi(argv[i]+9);
+        if( strncmp(argv[i], "--points=", 9) == 0 )      n_points = atoi(argv[i]+9);
+        else if( strncmp(argv[i], "--iters=", 8) == 0 )   n_iters = atoi(argv[i]+8);
         else if( strncmp(argv[i], "--language=", 11) == 0 ) lang_filter = argv[i]+11;
         else if( strncmp(argv[i], "--function=", 11) == 0 ) func_filter = argv[i]+11;
     }
+    if( n_points > MAX_POINTS ) n_points = MAX_POINTS;
 
     TA_Initialize();
 
-    printf("ta_bench: %d points, %d iters, %d warmup\n\n", n_points, n_iters, n_warmup);
+    printf("ta_bench: %d points, %d iters (server-side)\n\n", n_points, n_iters);
 
     /* Generate test data */
-    double *open   = malloc(n_points * sizeof(double));
-    double *high   = malloc(n_points * sizeof(double));
-    double *low    = malloc(n_points * sizeof(double));
-    double *close  = malloc(n_points * sizeof(double));
-    double *volume = malloc(n_points * sizeof(double));
-    generate_price_data(open, high, low, close, volume, n_points);
+    generate_price_data(n_points);
 
-    /* Start language servers */
-    int any_server = 0;
+    /* Start servers */
     for( unsigned li = 0; li < NUM_LANGUAGES; li++ ) {
         if( !language_matches(lang_filter, LANGUAGES[li].name) ) continue;
-        ErrorNumber err = codegen_pipe_open(&LANGUAGES[li].cp, LANGUAGES[li].argv);
-        if( err == TA_TEST_PASS ) {
+        if( codegen_pipe_open(&LANGUAGES[li].cp, LANGUAGES[li].argv) == TA_TEST_PASS ) {
             LANGUAGES[li].active = 1;
-            any_server = 1;
             printf("  Started %s server (pid %d)\n", LANGUAGES[li].display, LANGUAGES[li].cp.child_pid);
         } else {
             printf("  FAILED to start %s server\n", LANGUAGES[li].display);
         }
     }
-    printf("\n");
 
     /* Allocate JSON buffers */
     char *request  = malloc(JSON_BUF_SIZE);
     char *response = malloc(JSON_BUF_SIZE);
+
+    /* Send load_data to each server */
+    printf("  Loading %d points into servers...\n", n_points);
+    for( unsigned li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( !LANGUAGES[li].active ) continue;
+        if( send_load_data(&LANGUAGES[li], request, JSON_BUF_SIZE, response, JSON_BUF_SIZE, n_points) != 0 ) {
+            printf("    %s: load_data FAILED\n", LANGUAGES[li].display);
+            LANGUAGES[li].active = 0;
+        } else {
+            printf("    %s: ready\n", LANGUAGES[li].display);
+        }
+    }
+    printf("\n");
 
     /* Print header */
     printf("%-10s %10s", "Function", "C-ref");
@@ -464,28 +375,25 @@ int main(int argc, char *argv[])
             printf(" %10s", "------");
     printf("\n");
 
-    /* Run benchmarks */
+    /* Run benchmarks — full range for now */
     for( unsigned fi = 0; fi < NUM_INDICATORS; fi++ )
     {
         BenchIndicator *ind = &INDICATORS[fi];
         if( !function_matches(func_filter, ind->name) ) continue;
 
-        /* C reference */
-        long long ref_ns = ind->run_ref(open, high, low, close, volume, n_points, n_iters);
+        int startIdx = 0;
+        int endIdx = n_points - 1;
 
+        /* C reference (direct call with mutation protection) */
+        long long ref_ns = ind->run_ref(startIdx, endIdx, n_points, n_iters);
         printf("%-10s %10lld", ind->name, ref_ns);
-
-        /* Build JSON request (once, reuse for all servers) */
-        ind->build_request(request, JSON_BUF_SIZE, open, high, low, close, volume, n_points);
 
         /* Each language server */
         for( unsigned li = 0; li < NUM_LANGUAGES; li++ )
         {
             if( !LANGUAGES[li].active ) continue;
-
-            long long srv_ns = bench_server(&LANGUAGES[li], request, response,
-                                            JSON_BUF_SIZE, n_iters, n_warmup);
-
+            long long srv_ns = bench_indicator(&LANGUAGES[li], ind, startIdx, endIdx, n_iters,
+                                               request, JSON_BUF_SIZE, response, JSON_BUF_SIZE);
             if( srv_ns < 0 ) {
                 printf(" %10s", "ERR");
             } else {
@@ -498,17 +406,14 @@ int main(int argc, char *argv[])
         printf("\n");
     }
 
-    /* Summary */
-    printf("\n(times in nanoseconds, avg over %d calls on %d points)\n", n_iters, n_points);
-    printf("(red = >10%% slower than C-ref, green = >10%% faster)\n");
+    printf("\n(times in ns, avg over %d server-side iterations on %d points)\n", n_iters, n_points);
+    printf("(C-ref includes memcpy for mutation protection; red >10%% slower, green >10%% faster)\n");
 
     /* Cleanup */
     for( unsigned li = 0; li < NUM_LANGUAGES; li++ )
         if( LANGUAGES[li].active )
             codegen_pipe_close(&LANGUAGES[li].cp);
-
     free(request); free(response);
-    free(open); free(high); free(low); free(close); free(volume);
     TA_Shutdown();
     return 0;
 }
