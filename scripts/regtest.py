@@ -33,31 +33,32 @@ def find_repo_root():
     return result.stdout.strip()
 
 
-def build(root, build_dir, codegen_dir, do_generate):
+def build(root, build_dir, codegen_dir, do_cmake, do_generate):
     jobs = str(os.cpu_count() or 4)
 
-    # cmake configure if needed
-    os.makedirs(build_dir, exist_ok=True)
-    cache = os.path.join(build_dir, "CMakeCache.txt")
-    if not os.path.exists(cache):
+    if do_cmake:
+        # cmake configure if needed
+        os.makedirs(build_dir, exist_ok=True)
+        cache = os.path.join(build_dir, "CMakeCache.txt")
+        if not os.path.exists(cache):
+            subprocess.run(
+                ["cmake", root, "-DCMAKE_BUILD_TYPE=Release"],
+                check=True, cwd=build_dir,
+            )
+
+        # build ta_regtest + ta_bench
+        print("=== Building ta_regtest + ta_bench ===")
         subprocess.run(
-            ["cmake", root, "-DCMAKE_BUILD_TYPE=Release"],
+            ["cmake", "--build", ".", "--target", "ensure_ta_regtest_in_bin", "ta_bench",
+             "-j", jobs],
             check=True, cwd=build_dir,
         )
-
-    # build ta_regtest + ta_bench
-    print("=== Building ta_regtest + ta_bench ===")
-    subprocess.run(
-        ["cmake", "--build", ".", "--target", "ensure_ta_regtest_in_bin", "ta_bench",
-         "-j", jobs],
-        check=True, cwd=build_dir,
-    )
-    # copy ta_bench to bin/
-    src = os.path.join(build_dir, "bin", "ta_bench")
-    dst = os.path.join(root, "bin", "ta_bench")
-    if os.path.exists(src):
-        import shutil
-        shutil.copy2(src, dst)
+        # copy ta_bench to bin/
+        src = os.path.join(build_dir, "bin", "ta_bench")
+        dst = os.path.join(root, "bin", "ta_bench")
+        if os.path.exists(src):
+            import shutil
+            shutil.copy2(src, dst)
 
     if do_generate:
         print("\n=== Regenerating output files ===")
@@ -71,6 +72,7 @@ def build(root, build_dir, codegen_dir, do_generate):
             check=True, cwd=codegen_dir,
         )
 
+    # Always rebuild servers (compiles generated code into binaries)
     print("\n=== Building codegen servers ===")
     subprocess.run(
         ["cargo", "run", "--release", "--", "build"],
@@ -103,11 +105,12 @@ def main():
     check_prerequisites(PREREQS_BUILD_SERVERS)
 
     # Parse our flags vs passthrough args
-    our_flags = {"--bench-only", "--regtest-only", "--no-build", "--no-generate"}
+    our_flags = {"--bench-only", "--regtest-only", "--no-build", "--no-generate", "--run-only"}
     do_bench_only = "--bench-only" in sys.argv
     do_regtest_only = "--regtest-only" in sys.argv
-    do_build = "--no-build" not in sys.argv
-    do_generate = "--no-generate" not in sys.argv
+    run_only = "--run-only" in sys.argv
+    do_build = "--no-build" not in sys.argv and not run_only
+    do_generate = "--no-generate" not in sys.argv and not run_only
 
     # Passthrough: everything that's not our flag
     passthrough = [a for a in sys.argv[1:] if a not in our_flags]
@@ -117,8 +120,8 @@ def main():
     bin_dir = os.path.join(root, "bin")
     codegen_dir = os.path.join(root, "tools", "ta_codegen")
 
-    if do_build:
-        build(root, build_dir, codegen_dir, do_generate)
+    if not run_only:
+        build(root, build_dir, codegen_dir, do_build, do_generate)
 
     rc = 0
 
