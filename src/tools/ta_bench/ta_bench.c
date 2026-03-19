@@ -107,12 +107,14 @@ typedef struct {
     int active;
 } BenchLanguage;
 
+static const char *const argv_cref[]   = {"./ta_ref_serve", NULL};
 static const char *const argv_c[]      = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_rust[]   = {"./ta_codegen_serve_rust", NULL};
 static const char *const argv_java[]   = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
 static const char *const argv_dotnet[] = {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
 
 static BenchLanguage LANGUAGES[] = {
+    {"cref",   "C-ref",  argv_cref,   {0}, 0},
     {"c",      "C",      argv_c,      {0}, 0},
     {"rust",   "Rust",   argv_rust,   {0}, 0},
     {"java",   "Java",   argv_java,   {0}, 0},
@@ -164,69 +166,6 @@ static int build_bench_request(char *buf, int sz, const TA_FuncInfo *fi,
     return pos;
 }
 
-/* ---- C-ref: setup + call via ta_abstract ---- */
-
-static void setup_ref_inputs(TA_ParamHolder *ph, const TA_FuncInfo *fi) {
-    int realCount = 0;
-    for( unsigned int i = 0; i < fi->nbInput; i++ ) {
-        const TA_InputParameterInfo *info;
-        TA_GetInputParameterInfo(fi->handle, i, &info);
-        if( info->type == TA_Input_Price ) {
-            TA_SetInputParamPricePtr(ph, i, g_open, g_high, g_low, g_close, g_volume, g_oi);
-        } else if( info->type == TA_Input_Real ) {
-            /* Map multiple real inputs to different arrays (must match server) */
-            const TA_Real *data;
-            if( realCount == 0 )      data = g_close;
-            else if( realCount == 1 ) data = g_high;
-            else                      data = g_close;
-            TA_SetInputParamRealPtr(ph, i, data);
-            realCount++;
-        } else if( info->type == TA_Input_Integer ) {
-            TA_SetInputParamIntegerPtr(ph, i, (const TA_Integer *)g_close);
-        }
-    }
-}
-
-static long long run_ref(const TA_FuncInfo *fi, int startIdx, int endIdx, int iters) {
-    TA_ParamHolder *ph;
-    if( TA_ParamHolderAlloc(fi->handle, &ph) != TA_SUCCESS ) return -1;
-    setup_ref_inputs(ph, fi);
-
-    /* Allocate output buffers */
-    int maxOut = endIdx - startIdx + 1;
-    TA_Real **realOuts = calloc(fi->nbOutput, sizeof(TA_Real *));
-    TA_Integer **intOuts = calloc(fi->nbOutput, sizeof(TA_Integer *));
-    for( unsigned int i = 0; i < fi->nbOutput; i++ ) {
-        const TA_OutputParameterInfo *outInfo;
-        TA_GetOutputParameterInfo(fi->handle, i, &outInfo);
-        if( outInfo->type == TA_Output_Real ) {
-            realOuts[i] = calloc(maxOut, sizeof(TA_Real));
-            TA_SetOutputParamRealPtr(ph, i, realOuts[i]);
-        } else {
-            intOuts[i] = calloc(maxOut, sizeof(TA_Integer));
-            TA_SetOutputParamIntegerPtr(ph, i, intOuts[i]);
-        }
-    }
-
-    /* Warmup */
-    TA_Integer beg, nb;
-    TA_CallFunc(ph, startIdx, endIdx, &beg, &nb);
-
-    /* Single timing block — amortizes timer overhead across all iterations */
-    long long t0 = get_nanotime();
-    for( int i = 0; i < iters; i++ ) {
-        TA_CallFunc(ph, startIdx, endIdx, &beg, &nb);
-    }
-    long long elapsed = (get_nanotime() - t0) / iters;
-
-    for( unsigned int i = 0; i < fi->nbOutput; i++ ) {
-        free(realOuts[i]); free(intOuts[i]);
-    }
-    free(realOuts); free(intOuts);
-    TA_ParamHolderFree(ph);
-    return elapsed;
-}
-
 /* ---- Per-indicator benchmark callback ---- */
 
 typedef struct {
@@ -259,29 +198,41 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
     int startIdx = 0;
     int endIdx = g_nPoints - 1;
 
-    /* C-ref */
-    long long ref_ns = run_ref(fi, startIdx, endIdx, ctx->iters);
-    printf("%-20s %10lld", fi->name, ref_ns);
-
-    /* Each language server */
     build_bench_request(ctx->reqBuf, JSON_BUF_SIZE, fi, startIdx, endIdx, ctx->iters);
+
+    /* Collect timing from all active servers (including C-ref server) */
+    long long ref_ns = 0; /* from cref server, for ratio coloring */
+    long long timings[16] = {0};
+    int has_timing[16] = {0};
 
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
         if( !LANGUAGES[li].active ) continue;
-
-        if( codegen_pipe_call(&LANGUAGES[li].cp, ctx->reqBuf, ctx->respBuf, JSON_BUF_SIZE) != TA_TEST_PASS ) {
-            printf(" %10s", "ERR");
+        if( codegen_pipe_call(&LANGUAGES[li].cp, ctx->reqBuf, ctx->respBuf, JSON_BUF_SIZE) != TA_TEST_PASS )
             continue;
-        }
         int len;
         const char *t = json_find_field(ctx->respBuf, "timing_ns", &len);
-        if( !t ) { printf(" %10s", "ERR"); continue; }
+        if( t ) {
+            timings[li] = strtoll(t, NULL, 10);
+            has_timing[li] = 1;
+            if( strcmp(LANGUAGES[li].name, "cref") == 0 )
+                ref_ns = timings[li];
+        }
+    }
 
-        long long srv_ns = strtoll(t, NULL, 10);
-        double ratio = (ref_ns > 0) ? (double)srv_ns / (double)ref_ns : 0.0;
-        const char *clr = (ratio > 1.10) ? "\033[31m" : (ratio < 0.90) ? "\033[32m" : "";
-        const char *rst = (*clr) ? "\033[0m" : "";
-        printf(" %s%10lld%s", clr, srv_ns, rst);
+    /* Print row */
+    printf("%-20s", fi->name);
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( !LANGUAGES[li].active ) continue;
+        if( !has_timing[li] ) {
+            printf(" %10s", "ERR");
+        } else if( strcmp(LANGUAGES[li].name, "cref") == 0 ) {
+            printf(" %10lld", timings[li]);
+        } else {
+            double ratio = (ref_ns > 0) ? (double)timings[li] / (double)ref_ns : 0.0;
+            const char *clr = (ratio > 1.10) ? "\033[31m" : (ratio < 0.90) ? "\033[32m" : "";
+            const char *rst = (*clr) ? "\033[0m" : "";
+            printf(" %s%10lld%s", clr, timings[li], rst);
+        }
     }
     printf("\n");
     ctx->count++;
