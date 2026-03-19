@@ -74,7 +74,9 @@ def main():
     no_regtest     = "--no-regtest" in argv or no_test
     no_perftest    = "--no-perftest" in argv or no_test
 
-    passthrough = [a for a in argv if a not in OUR_FLAGS]
+    # Alias --indicator to --function
+    passthrough = [a.replace("--indicator=", "--function=", 1) if a.startswith("--indicator=") else a
+                   for a in argv if a not in OUR_FLAGS]
     func_filter = get_filter(passthrough, "--function")
     lang_filter = get_filter(passthrough, "--language")
 
@@ -116,8 +118,9 @@ def main():
             cmd.append(f"--backend={lang_filter}")
         subprocess.run(cmd, check=True, cwd=codegen_dir)
 
-    # 4. compile servers (unless test-only)
-    if not test_only:
+    # 4. compile servers (only if something was regenerated)
+    did_generate = not no_gen_ind or not no_gen_srv
+    if did_generate:
         print("\n=== Compiling servers ===")
         cmd = ["cargo", "run", "--release", "--", "build"]
         if lang_filter:
