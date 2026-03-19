@@ -332,7 +332,7 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     // Header
     s.push_str("/* Auto-generated JSON-RPC server for ta_codegen C output.\n");
     s.push_str(" * Reads JSON-RPC requests from stdin, writes responses to stdout.\n");
-    s.push_str(" * Build: gcc -o ta_codegen_serve_c ta_codegen_serve.c -lm -O3 -DNDEBUG\n");
+    s.push_str(" * Build: compile each ta_*.c separately, then link with this file.\n");
     s.push_str(" */\n");
     s.push_str("#include <stdio.h>\n");
     s.push_str("#include <stdlib.h>\n");
@@ -343,24 +343,8 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     s.push_str("#include <mach/mach_time.h>\n");
     s.push_str("#endif\n\n");
 
-    // Include globals (unstable period storage, candle settings)
-    s.push_str("#include \"ta_lib_globals.c\"\n\n");
-
-    // Include generated function implementations.
-    // Order matters: functions that are called by others must come first.
-    // Simple heuristic: include in sorted order, then move MA to the end
-    // since it dispatches to SMA, EMA, WMA, etc.
-    let mut sorted_names: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
-    sorted_names.sort_unstable();
-    // Move MA to end if present (it calls other functions)
-    if let Some(pos) = sorted_names.iter().position(|n| *n == "MA") {
-        let ma = sorted_names.remove(pos);
-        sorted_names.push(ma);
-    }
-    for name in &sorted_names {
-        s.push_str(&format!("#include \"ta_{name}.c\"\n"));
-    }
-    s.push('\n');
+    // Use extern declarations — each indicator is compiled separately
+    s.push_str("#include \"ta_func.h\"\n\n");
 
     // JSON helpers
     s.push_str(&generate_c_json_helpers());
