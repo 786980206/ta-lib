@@ -555,6 +555,28 @@ if(BUILD_DEV_TOOLS)
 		RUNTIME DESTINATION "${CMAKE_CURRENT_SOURCE_DIR}/bin"
 	)
 
+	############
+	# ta_bench #
+	############
+	add_executable(ta_bench
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_bench/ta_bench.c"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest/codegen_pipe.c"
+	)
+	target_include_directories(ta_bench PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_common"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_regtest"
+	)
+	if(WIN32)
+		target_link_libraries(ta_bench PRIVATE ta-lib-static)
+	else()
+		target_link_libraries(ta_bench PRIVATE ta-lib-static m)
+	endif()
+	set_target_properties(ta_bench PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
+	)
+	target_compile_options(ta_bench PRIVATE -O3)
+
 	# Add a custom target to ensure ta_regtest is copied to ta-lib/bin directory
 	add_custom_target(ensure_ta_regtest_in_bin ALL
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/bin"
