@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 
 #ifdef __APPLE__
 #include <mach/mach_time.h>
@@ -112,10 +113,10 @@ static const char *const argv_java[]   = {"java", "-cp", "ta_codegen_java", "TaC
 static const char *const argv_dotnet[] = {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
 
 static BenchLanguage LANGUAGES[] = {
-    {"c",      "C",      argv_c,      {{0}}, 0},
-    {"rust",   "Rust",   argv_rust,   {{0}}, 0},
-    {"java",   "Java",   argv_java,   {{0}}, 0},
-    {"dotnet", ".NET",   argv_dotnet, {{0}}, 0},
+    {"c",      "C",      argv_c,      {0}, 0},
+    {"rust",   "Rust",   argv_rust,   {0}, 0},
+    {"java",   "Java",   argv_java,   {0}, 0},
+    {"dotnet", ".NET",   argv_dotnet, {0}, 0},
 };
 #define NUM_LANGUAGES (sizeof(LANGUAGES)/sizeof(LANGUAGES[0]))
 
