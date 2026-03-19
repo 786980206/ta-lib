@@ -148,7 +148,7 @@ def main():
     if not no_perftest:
         print("\n" + "=" * 60)
         print("PERFTEST — performance (large dataset, averaged)")
-        print("=" * 60)
+        print("=" * 60, flush=True)
         bench_rc = subprocess.run(
             [os.path.join(bin_dir, "ta_bench")] + passthrough,
             cwd=bin_dir,
