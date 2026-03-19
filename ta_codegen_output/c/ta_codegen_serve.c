@@ -179,7 +179,7 @@
 
 /* ---- Minimal JSON helpers ---- */
 
-#define MAX_ARRAY_SIZE 65536
+#define MAX_ARRAY_SIZE 200000
 
 static int json_find_int(const char *json, const char *field) {
     char pattern[256];
@@ -282,11 +282,38 @@ static double g_inBuf1[MAX_ARRAY_SIZE];
 static double g_inBuf2[MAX_ARRAY_SIZE];
 static double g_inBuf3[MAX_ARRAY_SIZE];
 static double g_inBuf4[MAX_ARRAY_SIZE];
+static double g_inBuf5[MAX_ARRAY_SIZE];
 static double g_outBuf0[MAX_ARRAY_SIZE];
 static double g_outBuf1[MAX_ARRAY_SIZE];
 static double g_outBuf2[MAX_ARRAY_SIZE];
 static int g_outIntBuf0[MAX_ARRAY_SIZE];
 static int g_outIntBuf1[MAX_ARRAY_SIZE];
+
+/* Pre-loaded OHLCV reference data for perftest.
+ * Stored separately from working buffers to protect against mutation. */
+static double g_refOpen[MAX_ARRAY_SIZE];
+static double g_refHigh[MAX_ARRAY_SIZE];
+static double g_refLow[MAX_ARRAY_SIZE];
+static double g_refClose[MAX_ARRAY_SIZE];
+static double g_refVolume[MAX_ARRAY_SIZE];
+static double g_refOI[MAX_ARRAY_SIZE];
+static int g_refN = 0; /* number of pre-loaded points */
+
+static void preload_to_working(int nInputs, int isPriceInput) {
+    if( isPriceInput ) {
+        /* OHLCV — map into g_inBuf0..4 in OHLCV order */
+        memcpy(g_inBuf0, g_refOpen,   g_refN * sizeof(double));
+        memcpy(g_inBuf1, g_refHigh,   g_refN * sizeof(double));
+        memcpy(g_inBuf2, g_refLow,    g_refN * sizeof(double));
+        memcpy(g_inBuf3, g_refClose,  g_refN * sizeof(double));
+        memcpy(g_inBuf4, g_refVolume, g_refN * sizeof(double));
+        memcpy(g_inBuf5, g_refOI,     g_refN * sizeof(double));
+    } else {
+        /* Single/dual real input — use close (and high for 2nd) */
+        memcpy(g_inBuf0, g_refClose, g_refN * sizeof(double));
+        if( nInputs > 1 ) memcpy(g_inBuf1, g_refHigh, g_refN * sizeof(double));
+    }
+}
 
 static void handle_request(const char *json, char *resp, int resp_size) {
     int methodLen = 0;
@@ -296,27 +323,49 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         return;
     }
 
+    if ( methodLen == 9 && strncmp(method, "load_data", 9) == 0 ) {
+        g_refN = json_find_double_array(json, "open",   g_refOpen,   MAX_ARRAY_SIZE);
+        json_find_double_array(json, "high",          g_refHigh,   MAX_ARRAY_SIZE);
+        json_find_double_array(json, "low",           g_refLow,    MAX_ARRAY_SIZE);
+        json_find_double_array(json, "close",         g_refClose,  MAX_ARRAY_SIZE);
+        json_find_double_array(json, "volume",        g_refVolume, MAX_ARRAY_SIZE);
+        json_find_double_array(json, "openInterest",  g_refOI,     MAX_ARRAY_SIZE);
+        snprintf(resp, resp_size, "{\"status\":\"ok\",\"n\":%d}", g_refN);
+        return;
+    }
+
     if ( methodLen == 11 && strncmp(method, "TA_ACCBANDS", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ACCBANDS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ACCBANDS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -331,16 +380,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ACOS", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ACOS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ACOS(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -351,25 +413,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 5 && strncmp(method, "TA_AD", 5) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_AD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_AD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -380,19 +452,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_ADD", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ADD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ADD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -403,19 +487,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_ADOSC", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ADOSC(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ADOSC(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -424,8 +517,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastPeriod,
             optInSlowPeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -436,25 +530,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_ADX", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(0, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ADX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ADX(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -465,25 +570,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ADXR", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(1, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ADXR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ADXR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -494,22 +610,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_APO", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
         int optInMAType = json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_APO(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_APO(
             startIdx, endIdx,
             g_inBuf0,
             optInFastPeriod,
             optInSlowPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -520,21 +649,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_AROON", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_AROON(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_AROON(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -547,21 +688,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_AROONOSC", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_AROONOSC(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_AROONOSC(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -572,16 +725,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ASIN", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ASIN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ASIN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -592,16 +758,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ATAN", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ATAN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ATAN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -612,25 +791,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_ATR", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(2, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ATR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ATR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -641,18 +831,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_AVGDEV", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_AVGDEV(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_AVGDEV(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -663,25 +866,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_AVGPRICE", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_AVGPRICE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_AVGPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -692,15 +905,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_BBANDS", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInNbDevUp = json_find_double(json, "optInNbDevUp");
         double optInNbDevDn = json_find_double(json, "optInNbDevDn");
         int optInMAType = json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_BBANDS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_BBANDS(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
@@ -708,8 +933,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInNbDevDn,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -724,21 +950,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_BETA", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_BETA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_BETA(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -749,25 +987,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_BOP", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_BOP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_BOP(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -778,24 +1026,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_CCI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CCI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CCI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -806,25 +1065,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDL2CROWS", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL2CROWS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL2CROWS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -835,25 +1104,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDL3BLACKCROWS", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3BLACKCROWS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3BLACKCROWS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -864,25 +1143,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_CDL3INSIDE", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3INSIDE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3INSIDE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -893,25 +1182,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDL3LINESTRIKE", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3LINESTRIKE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3LINESTRIKE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -922,25 +1221,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDL3OUTSIDE", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3OUTSIDE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3OUTSIDE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -951,25 +1260,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "TA_CDL3STARSINSOUTH", 19) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3STARSINSOUTH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3STARSINSOUTH(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -980,25 +1299,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDL3WHITESOLDIERS", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDL3WHITESOLDIERS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDL3WHITESOLDIERS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1009,18 +1338,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "TA_CDLABANDONEDBABY", 19) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLABANDONEDBABY(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLABANDONEDBABY(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -1028,8 +1366,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1040,25 +1379,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_CDLADVANCEBLOCK", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLADVANCEBLOCK(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLADVANCEBLOCK(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1069,25 +1418,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLBELTHOLD", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLBELTHOLD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLBELTHOLD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1098,25 +1457,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_CDLBREAKAWAY", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLBREAKAWAY(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLBREAKAWAY(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1127,25 +1496,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLCLOSINGMARUBOZU", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLCLOSINGMARUBOZU(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLCLOSINGMARUBOZU(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1156,25 +1535,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 22 && strncmp(method, "TA_CDLCONCEALBABYSWALL", 22) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLCONCEALBABYSWALL(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLCONCEALBABYSWALL(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1185,25 +1574,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "TA_CDLCOUNTERATTACK", 19) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLCOUNTERATTACK(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLCOUNTERATTACK(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1214,18 +1613,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDLDARKCLOUDCOVER", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLDARKCLOUDCOVER(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLDARKCLOUDCOVER(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -1233,8 +1641,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1245,25 +1654,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_CDLDOJI", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLDOJI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLDOJI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1274,25 +1693,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLDOJISTAR", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLDOJISTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1303,25 +1732,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "TA_CDLDRAGONFLYDOJI", 19) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLDRAGONFLYDOJI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLDRAGONFLYDOJI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1332,25 +1771,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_CDLENGULFING", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLENGULFING(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLENGULFING(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1361,18 +1810,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLEVENINGDOJISTAR", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLEVENINGDOJISTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLEVENINGDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -1380,8 +1838,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1392,18 +1851,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLEVENINGSTAR", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLEVENINGSTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLEVENINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -1411,8 +1879,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1423,25 +1892,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 22 && strncmp(method, "TA_CDLGAPSIDESIDEWHITE", 22) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLGAPSIDESIDEWHITE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLGAPSIDESIDEWHITE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1452,25 +1931,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDLGRAVESTONEDOJI", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLGRAVESTONEDOJI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLGRAVESTONEDOJI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1481,25 +1970,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDLHAMMER", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHAMMER(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHAMMER(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1510,25 +2009,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 16 && strncmp(method, "TA_CDLHANGINGMAN", 16) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHANGINGMAN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHANGINGMAN(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1539,25 +2048,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDLHARAMI", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHARAMI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHARAMI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1568,25 +2087,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLHARAMICROSS", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHARAMICROSS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHARAMICROSS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1597,25 +2126,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLHIGHWAVE", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHIGHWAVE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHIGHWAVE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1626,25 +2165,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_CDLHIKKAKE", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHIKKAKE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHIKKAKE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1655,25 +2204,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 16 && strncmp(method, "TA_CDLHIKKAKEMOD", 16) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHIKKAKEMOD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHIKKAKEMOD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1684,25 +2243,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_CDLHOMINGPIGEON", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLHOMINGPIGEON(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLHOMINGPIGEON(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1713,25 +2282,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLIDENTICAL3CROWS", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLIDENTICAL3CROWS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLIDENTICAL3CROWS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1742,25 +2321,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDLINNECK", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLINNECK(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLINNECK(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1771,25 +2360,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDLINVERTEDHAMMER", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLINVERTEDHAMMER(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLINVERTEDHAMMER(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1800,25 +2399,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_CDLKICKING", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLKICKING(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLKICKING(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1829,25 +2438,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLKICKINGBYLENGTH", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLKICKINGBYLENGTH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLKICKINGBYLENGTH(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1858,25 +2477,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_CDLLADDERBOTTOM", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLLADDERBOTTOM(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLLADDERBOTTOM(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1887,25 +2516,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDLLONGLEGGEDDOJI", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLLONGLEGGEDDOJI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLLONGLEGGEDDOJI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1916,25 +2555,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLLONGLINE", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLLONGLINE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLLONGLINE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1945,25 +2594,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLMARUBOZU", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLMARUBOZU(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLMARUBOZU(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -1974,25 +2633,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLMATCHINGLOW", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLMATCHINGLOW(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLMATCHINGLOW(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2003,18 +2672,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_CDLMATHOLD", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLMATHOLD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLMATHOLD(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -2022,8 +2700,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2034,18 +2713,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLMORNINGDOJISTAR", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLMORNINGDOJISTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLMORNINGDOJISTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -2053,8 +2741,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2065,18 +2754,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLMORNINGSTAR", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         double optInPenetration = json_find_double(json, "optInPenetration");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLMORNINGSTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLMORNINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -2084,8 +2782,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInPenetration,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2096,25 +2795,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDLONNECK", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLONNECK(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLONNECK(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2125,25 +2834,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_CDLPIERCING", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLPIERCING(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLPIERCING(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2154,25 +2873,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLRICKSHAWMAN", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLRICKSHAWMAN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLRICKSHAWMAN(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2183,25 +2912,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 22 && strncmp(method, "TA_CDLRISEFALL3METHODS", 22) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLRISEFALL3METHODS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLRISEFALL3METHODS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2212,25 +2951,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLSEPARATINGLINES", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSEPARATINGLINES(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSEPARATINGLINES(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2241,25 +2990,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_CDLSHOOTINGSTAR", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSHOOTINGSTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSHOOTINGSTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2270,25 +3029,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_CDLSHORTLINE", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSHORTLINE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSHORTLINE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2299,25 +3068,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_CDLSPINNINGTOP", 17) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSPINNINGTOP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSPINNINGTOP(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2328,25 +3107,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 20 && strncmp(method, "TA_CDLSTALLEDPATTERN", 20) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSTALLEDPATTERN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSTALLEDPATTERN(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2357,25 +3146,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "TA_CDLSTICKSANDWICH", 19) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLSTICKSANDWICH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLSTICKSANDWICH(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2386,25 +3185,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_CDLTAKURI", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLTAKURI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLTAKURI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2415,25 +3224,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_CDLTASUKIGAP", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLTASUKIGAP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLTASUKIGAP(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2444,25 +3263,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_CDLTHRUSTING", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLTHRUSTING(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLTHRUSTING(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2473,25 +3302,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_CDLTRISTAR", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLTRISTAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLTRISTAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2502,25 +3341,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_CDLUNIQUE3RIVER", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLUNIQUE3RIVER(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLUNIQUE3RIVER(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2531,25 +3380,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 21 && strncmp(method, "TA_CDLUPSIDEGAP2CROWS", 21) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLUPSIDEGAP2CROWS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLUPSIDEGAP2CROWS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2560,25 +3419,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 22 && strncmp(method, "TA_CDLXSIDEGAP3METHODS", 22) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CDLXSIDEGAP3METHODS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CDLXSIDEGAP3METHODS(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             g_inBuf3,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2589,16 +3458,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_CEIL", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CEIL(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CEIL(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2609,19 +3491,32 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_CMO", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(3, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CMO(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CMO(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2632,21 +3527,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_CORREL", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_CORREL(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_CORREL(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2657,16 +3564,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_COS", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_COS(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_COS(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2677,16 +3597,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_COSH", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_COSH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_COSH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2697,18 +3630,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_DEMA", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_DEMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_DEMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2719,19 +3665,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_DIV", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_DIV(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_DIV(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2742,25 +3700,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 5 && strncmp(method, "TA_DX", 5) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(4, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_DX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_DX(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2771,19 +3740,32 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_EMA", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(5, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_EMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_EMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2794,16 +3776,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_EXP", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_EXP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_EXP(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2814,16 +3809,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_FLOOR", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_FLOOR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_FLOOR(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2834,17 +3842,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_HT_DCPERIOD", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(6, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_DCPERIOD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_DCPERIOD(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2855,17 +3876,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 13 && strncmp(method, "TA_HT_DCPHASE", 13) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(7, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_DCPHASE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_DCPHASE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2876,17 +3910,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_HT_PHASOR", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(8, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_PHASOR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_PHASOR(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2899,17 +3946,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_HT_SINE", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(9, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_SINE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_SINE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2922,17 +3982,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_HT_TRENDLINE", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(10, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_TRENDLINE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_TRENDLINE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2943,17 +4016,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_HT_TRENDMODE", 15) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         TA_SetUnstablePeriod(11, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_HT_TRENDMODE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_HT_TRENDMODE(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2964,22 +4050,34 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_IMI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inClose", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(12, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_IMI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_IMI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -2990,19 +4088,32 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_KAMA", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(13, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_KAMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_KAMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3013,18 +4124,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 12 && strncmp(method, "TA_LINEARREG", 12) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LINEARREG(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LINEARREG(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3035,18 +4159,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_LINEARREG_ANGLE", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LINEARREG_ANGLE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LINEARREG_ANGLE(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3057,18 +4194,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 22 && strncmp(method, "TA_LINEARREG_INTERCEPT", 22) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LINEARREG_INTERCEPT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LINEARREG_INTERCEPT(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3079,18 +4229,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_LINEARREG_SLOPE", 18) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LINEARREG_SLOPE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LINEARREG_SLOPE(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3101,16 +4264,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 5 && strncmp(method, "TA_LN", 5) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3121,16 +4297,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_LOG10", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_LOG10(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_LOG10(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3141,20 +4330,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 5 && strncmp(method, "TA_MA", 5) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int optInMAType = json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3165,22 +4367,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_MACD", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
         int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MACD(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MACD(
             startIdx, endIdx,
             g_inBuf0,
             optInFastPeriod,
             optInSlowPeriod,
             optInSignalPeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3195,8 +4410,12 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_MACDEXT", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInFastMAType = json_find_int(json, "optInFastMAType");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
@@ -3204,8 +4423,16 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
         int optInSignalMAType = json_find_int(json, "optInSignalMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MACDEXT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MACDEXT(
             startIdx, endIdx,
             g_inBuf0,
             optInFastPeriod,
@@ -3215,8 +4442,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSignalPeriod,
             optInSignalMAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3231,18 +4459,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_MACDFIX", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MACDFIX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MACDFIX(
             startIdx, endIdx,
             g_inBuf0,
             optInSignalPeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1, g_outBuf2);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3257,21 +4498,34 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_MAMA", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         double optInFastLimit = json_find_double(json, "optInFastLimit");
         double optInSlowLimit = json_find_double(json, "optInSlowLimit");
         TA_SetUnstablePeriod(14, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MAMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MAMA(
             startIdx, endIdx,
             g_inBuf0,
             optInFastLimit,
             optInSlowLimit,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3284,16 +4538,27 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_MAVP", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInMinPeriod = json_find_int(json, "optInMinPeriod");
         int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");
         int optInMAType = json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MAVP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MAVP(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -3301,8 +4566,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInMaxPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3313,18 +4579,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_MAX", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MAX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MAX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3335,18 +4614,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MAXINDEX", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MAXINDEX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MAXINDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3357,19 +4649,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MEDPRICE", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MEDPRICE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MEDPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3380,19 +4684,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_MFI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
-        int n3 = json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
-        (void)n3;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(4, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf3, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(15, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MFI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(4, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MFI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -3400,8 +4713,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             g_inBuf3,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3412,18 +4726,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MIDPOINT", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MIDPOINT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MIDPOINT(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3434,21 +4761,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MIDPRICE", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MIDPRICE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MIDPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3459,18 +4798,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_MIN", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MIN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MIN(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3481,18 +4833,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MININDEX", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MININDEX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MININDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3503,18 +4868,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_MINMAX", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MINMAX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MINMAX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3527,18 +4905,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 14 && strncmp(method, "TA_MINMAXINDEX", 14) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MINMAXINDEX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MINMAXINDEX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outIntBuf0, g_outIntBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3551,25 +4942,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MINUS_DI", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(16, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MINUS_DI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MINUS_DI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3580,22 +4982,34 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_MINUS_DM", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(17, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MINUS_DM(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MINUS_DM(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3606,18 +5020,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_MOM", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MOM(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MOM(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3628,19 +5055,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_MULT", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_MULT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_MULT(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3651,25 +5090,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_NATR", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(18, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_NATR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_NATR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3680,19 +5130,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_NVI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_NVI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_NVI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3703,19 +5165,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_OBV", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_OBV(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_OBV(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3726,25 +5200,36 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_PLUS_DI", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(19, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_PLUS_DI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_PLUS_DI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3755,22 +5240,34 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_PLUS_DM", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(20, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_PLUS_DM(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_PLUS_DM(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3781,22 +5278,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_PPO", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
         int optInMAType = json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_PPO(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_PPO(
             startIdx, endIdx,
             g_inBuf0,
             optInFastPeriod,
             optInSlowPeriod,
             optInMAType,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3807,19 +5317,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_PVI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_PVI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_PVI(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3830,18 +5352,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_ROC", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ROC(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ROC(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3852,18 +5387,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ROCP", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ROCP(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ROCP(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3874,18 +5422,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_ROCR", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ROCR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ROCR(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3896,18 +5457,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 10 && strncmp(method, "TA_ROCR100", 10) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ROCR100(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ROCR100(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3918,19 +5492,32 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_RSI", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         TA_SetUnstablePeriod(21, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_RSI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_RSI(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3941,23 +5528,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_SAR", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         double optInAcceleration = json_find_double(json, "optInAcceleration");
         double optInMaximum = json_find_double(json, "optInMaximum");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SAR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             optInAcceleration,
             optInMaximum,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -3968,10 +5567,13 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_SAREXT", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         double optInStartValue = json_find_double(json, "optInStartValue");
         double optInOffsetOnReverse = json_find_double(json, "optInOffsetOnReverse");
         double optInAccelerationInitLong = json_find_double(json, "optInAccelerationInitLong");
@@ -3981,8 +5583,16 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         double optInAccelerationShort = json_find_double(json, "optInAccelerationShort");
         double optInAccelerationMaxShort = json_find_double(json, "optInAccelerationMaxShort");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SAREXT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SAREXT(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -3995,8 +5605,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInAccelerationShort,
             optInAccelerationMaxShort,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4007,16 +5618,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_SIN", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SIN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SIN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4027,16 +5651,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_SINH", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SINH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SINH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4047,18 +5684,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_SMA", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4069,16 +5719,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_SQRT", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SQRT(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SQRT(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4089,20 +5752,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_STDDEV", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInNbDev = json_find_double(json, "optInNbDev");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_STDDEV(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_STDDEV(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInNbDev,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4113,20 +5789,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_STOCH", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInSlowK_Period = json_find_int(json, "optInSlowK_Period");
         int optInSlowK_MAType = json_find_int(json, "optInSlowK_MAType");
         int optInSlowD_Period = json_find_int(json, "optInSlowD_Period");
         int optInSlowD_MAType = json_find_int(json, "optInSlowD_MAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_STOCH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_STOCH(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -4137,8 +5823,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInSlowD_Period,
             optInSlowD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4151,18 +5838,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_STOCHF", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
         int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_STOCHF(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_STOCHF(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -4171,8 +5868,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastD_Period,
             optInFastD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4185,16 +5883,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_STOCHRSI", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
         int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
         TA_SetUnstablePeriod(22, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_STOCHRSI(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_STOCHRSI(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
@@ -4202,8 +5912,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastD_Period,
             optInFastD_MAType,
             &outBegIdx, &outNBElement, g_outBuf0, g_outBuf1);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4216,19 +5927,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_SUB", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(2, 0);
+        } else {
+            json_find_double_array(json, "inReal0", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inReal1", g_inBuf1, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SUB(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(2, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SUB(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4239,18 +5962,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_SUM", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_SUM(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_SUM(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4261,21 +5997,34 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 5 && strncmp(method, "TA_T3", 5) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInVFactor = json_find_double(json, "optInVFactor");
         TA_SetUnstablePeriod(23, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_T3(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_T3(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInVFactor,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4286,16 +6035,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_TAN", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TAN(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TAN(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4306,16 +6068,29 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_TANH", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TANH(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TANH(
             startIdx, endIdx,
             g_inBuf0,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4326,18 +6101,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_TEMA", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TEMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TEMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4348,22 +6136,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_TRANGE", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TRANGE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TRANGE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4374,18 +6173,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_TRIMA", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TRIMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TRIMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4396,18 +6208,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 7 && strncmp(method, "TA_TRIX", 7) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TRIX(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TRIX(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4418,18 +6243,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_TSF", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TSF(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TSF(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4440,22 +6278,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_TYPPRICE", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_TYPPRICE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_TYPPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4466,18 +6315,28 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 9 && strncmp(method, "TA_ULTOSC", 9) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod1 = json_find_int(json, "optInTimePeriod1");
         int optInTimePeriod2 = json_find_int(json, "optInTimePeriod2");
         int optInTimePeriod3 = json_find_int(json, "optInTimePeriod3");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_ULTOSC(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_ULTOSC(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
@@ -4486,8 +6345,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInTimePeriod2,
             optInTimePeriod3,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4498,20 +6358,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_VAR", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInNbDev = json_find_double(json, "optInNbDev");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_VAR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_VAR(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             optInNbDev,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4522,22 +6395,33 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 11 && strncmp(method, "TA_WCLPRICE", 11) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_WCLPRICE(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_WCLPRICE(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4548,24 +6432,35 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 8 && strncmp(method, "TA_WILLR", 8) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
-        int n1 = json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
-        (void)n1;
-        int n2 = json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
-        (void)n2;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(3, 0);
+        } else {
+            json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
+            json_find_double_array(json, "inClose", g_inBuf2, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_WILLR(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(3, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_WILLR(
             startIdx, endIdx,
             g_inBuf0,
             g_inBuf1,
             g_inBuf2,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -4576,18 +6471,31 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 6 && strncmp(method, "TA_WMA", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
-        int n0 = json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
-        (void)n0;
+        int use_preloaded = json_find_int(json, "use_preloaded");
+        if( use_preloaded && g_refN > 0 ) {
+            preload_to_working(1, 0);
+        } else {
+            json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
+        }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int outBegIdx = 0, outNBElement = 0;
-        long start_ns = get_nanotime();
-        TA_RetCode rc = TA_WMA(
+        int bench_iters = json_find_int(json, "iters");
+        if( bench_iters < 1 ) bench_iters = 1;
+        TA_RetCode rc = 0;
+        long total_ns = 0;
+        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
+            if( use_preloaded ) {
+                preload_to_working(1, 0);
+            }
+            long _t0 = get_nanotime();
+        rc = TA_WMA(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
             &outBegIdx, &outNBElement, g_outBuf0);
-        long end_ns = get_nanotime();
-        long elapsed_ns = end_ns - start_ns;
+            total_ns += get_nanotime() - _t0;
+        }
+        long elapsed_ns = total_ns / bench_iters;
         int pos = snprintf(resp, resp_size,
             "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
             (int)rc, outBegIdx, outNBElement, elapsed_ns);
@@ -5705,8 +7613,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 }
 
 int main(void) {
-    char line[262144];
-    char response[262144];
+    static char line[16*1024*1024];
+    static char response[16*1024*1024];
     while( fgets(line, sizeof(line), stdin) ) {
         handle_request(line, response, sizeof(response));
         printf("%s\n", response);
