@@ -625,23 +625,26 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        int outBegIdx = 0, outNBElement = 0;\n");
 
         // Benchmark iteration support: if request contains "iters", loop
-        // the function call that many times and report average timing.
-        // This avoids cache pollution from JSON parsing between iterations.
+        // the function call that many times. Copy input data before each
+        // iteration (outside timing) to ensure identical input state.
+        // Only the indicator call itself is timed.
         s.push_str("        int bench_iters = json_find_int(json, \"iters\");\n");
         s.push_str("        if( bench_iters < 1 ) bench_iters = 1;\n");
 
-        // Build the function call as a string we can reuse
         s.push_str("        TA_RetCode rc = 0;\n");
-        s.push_str("        long start_ns = get_nanotime();\n");
+        s.push_str("        long total_ns = 0;\n");
         s.push_str("        for( int _bi = 0; _bi < bench_iters; _bi++ ) {\n");
 
-        // Copy pre-loaded data before each iteration to protect against mutation
-        s.push_str("            if( use_preloaded && bench_iters > 1 ) {\n");
+        // Copy pre-loaded data OUTSIDE timing — ensures clean input per iteration
+        s.push_str("            if( use_preloaded ) {\n");
         s.push_str(&format!(
             "                preload_to_working({n_inputs}, {});\n",
             if is_price_input { 1 } else { 0 }
         ));
         s.push_str("            }\n");
+
+        // Time ONLY the indicator call
+        s.push_str("            long _t0 = get_nanotime();\n");
 
         // Call the function
         s.push_str(&format!("        rc = TA_{}(\n", func.name));
@@ -675,11 +678,11 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(");\n");
+        s.push_str("            total_ns += get_nanotime() - _t0;\n");
         s.push_str("        }\n"); // end bench_iters loop
 
-        // Calculate elapsed time (average over iterations)
-        s.push_str("        long end_ns = get_nanotime();\n");
-        s.push_str("        long elapsed_ns = (end_ns - start_ns) / bench_iters;\n");
+        // Average timing over iterations (only indicator call, not copy)
+        s.push_str("        long elapsed_ns = total_ns / bench_iters;\n");
 
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
