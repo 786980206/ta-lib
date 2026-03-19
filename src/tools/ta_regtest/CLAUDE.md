@@ -73,8 +73,7 @@ ta_regtest
         ├── ta_codegen_serve_c
         ├── ta_codegen serve        (Rust)
         ├── TaCodegenServe.class    (Java)
-        ├── TaCodegenServe          (.NET)
-        └── ta_codegen_serve.py     (Python/SWIG)
+        └── TaCodegenServe          (.NET)
 ```
 
 ### Current State

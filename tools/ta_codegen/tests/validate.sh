@@ -43,8 +43,7 @@ for dir in ../../ta_func_defs/*/; do
         "../../ta_codegen_output/c/ta_${UPPER}.c" \
         "../../ta_codegen_output/rust/${name}.rs" \
         "../../ta_codegen_output/java/Core_${UPPER}.java" \
-        "../../ta_codegen_output/dotnet/Core_${UPPER}.h" \
-        "../../ta_codegen_output/swig/ta_${UPPER}.swg"; do
+        "../../ta_codegen_output/dotnet/Core_${UPPER}.h"; do
         if [ -s "$f" ]; then
             pass "Generated file exists: $(basename "$f")"
         else

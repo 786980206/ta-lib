@@ -116,7 +116,6 @@ ta_regtest (C)
     ├── ta_codegen_serve_c      (C server)
     ├── TaCodegenServe.class    (Java server)
     ├── TaCodegenServe          (.NET server)
-    ├── ta_codegen_serve.py     (Python/SWIG server)
     └── (future: Rust server)
 ```
 
@@ -149,7 +148,7 @@ cargo run -- generate-servers --backend=c  # Generate for specific language
 cargo run -- build                         # Compile servers into bin/
 ```
 
-Output: `ta_codegen_output/{c,java,dotnet,swig}/`
+Output: `ta_codegen_output/{c,java,dotnet}/`
 
 ### `--function=CSV` Filter
 
@@ -304,7 +303,7 @@ LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback → self.rsi_lookba
 
 ### Source of Truth
 - `ta_func_defs/` is the single source of truth for ALL generated code
-- The codegen parses C + YAML → IR → renders per-backend (C, Java, .NET, Rust, SWIG)
+- The codegen parses C + YAML → IR → renders per-backend (C, Java, .NET, Rust)
 - No hand-coded string literals for type definitions or scaffolding in the codegen
 
 ### Generate vs Generate-Servers

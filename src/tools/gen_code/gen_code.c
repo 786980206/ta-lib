@@ -539,7 +539,6 @@ int main(int argc, char* argv[])
          printf( "     - ta-lib/src/ta_common/ta_retcode.*\n" );
          printf( "     - ta-lib/src/ta_abstract/ta_group_idx.c\n");
          printf( "     - ta-lib/src/ta_abstract/frames/*.*\n");
-         printf( "     - ta-lib/swig/src/interface/ta_func.swg\n" );
          printf( "     - ta-lib/dotnet/src/Core/TA-Lib-Core.vcproj (Win32 only)\n" );
          printf( "     - ta-lib/dotnet/src/Core/TA-Lib-Core.h (Win32 only)\n" );
          printf( "     - ta-lib/src/ta_abstract/java_defs.h (Win32 only)\n" );
@@ -995,16 +994,8 @@ static int genCode(int argc, char* argv[])
          printf( "\nCannot access ta_func_api.xml" );
       }
 
-      /* Create "ta_func.swg" */
-      gOutFunc_SWG = fileOpen( ta_fs_path(5, "..", "swig", "src", "interface", "ta_func.swg"),
-                              ta_fs_path(5, "..", "src", "ta_abstract", "templates", "ta_func.swg.template"),
-                           FILE_WRITE|WRITE_ON_CHANGE_ONLY );
-
-      if( gOutFunc_SWG == NULL )
-      {
-         printf( "\nCannot access [%s]\n", gToOpen );
-         return -1;
-      }
+      /* SWIG output disabled — swig/ directory removed. */
+      gOutFunc_SWG = NULL;
    #endif
 
    #if defined(ENABLE_C)

@@ -312,31 +312,6 @@ fn test_dotnet_backend_generates_mult() {
     );
 }
 
-// ---------------------------------------------------------------------------
-// SWIG backend
-// ---------------------------------------------------------------------------
-
-#[test]
-fn test_swig_backend_generates_mult() {
-    let func = load_mult();
-    let output = backends::swig::generate(&func, &no_enums(), &make_registry(), &HelperRegistry::empty());
-    assert!(
-        output.contains("TA_MULT") || output.contains("MULT"),
-        "SWIG output missing TA_MULT"
-    );
-    assert!(
-        output.contains("IN_ARRAY") || output.contains("INPUT"),
-        "SWIG output missing input array typemap"
-    );
-    assert!(
-        output.contains("OUT_ARRAY") || output.contains("OUTPUT"),
-        "SWIG output missing output array typemap"
-    );
-    assert!(
-        output.contains("Lookback") || output.contains("lookback") || output.contains("_Lookback"),
-        "SWIG output missing lookback"
-    );
-}
 
 // test_sma_from_c_generates_all_backends removed: covered by dynamic
 // test_all_backends_produce_nonempty_output + backend_suite variant checks
@@ -433,21 +408,19 @@ fn test_all_backends_produce_nonempty_output() {
             let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
             let java_out = backends::java::generate(&func, &enums, &registry, &helpers);
             let dotnet_out = backends::dotnet::generate(&func, &enums, &registry, &helpers);
-            let swig_out = backends::swig::generate(&func, &enums, &registry, &helpers);
-            (c_out, rust_out, java_out, dotnet_out, swig_out)
+            (c_out, rust_out, java_out, dotnet_out)
         })) {
             Ok(o) => o,
             Err(_) => continue,
         };
 
-        let (c_out, rust_out, java_out, dotnet_out, swig_out) = outputs;
+        let (c_out, rust_out, java_out, dotnet_out) = outputs;
 
         let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             assert!(!c_out.is_empty(), "{}: C output is empty", name);
             assert!(!rust_out.is_empty(), "{}: Rust output is empty", name);
             assert!(!java_out.is_empty(), "{}: Java output is empty", name);
             assert!(!dotnet_out.is_empty(), "{}: Dotnet output is empty", name);
-            assert!(!swig_out.is_empty(), "{}: SWIG output is empty", name);
 
             assert!(c_out.len() > 100, "{}: C output suspiciously short", name);
             assert!(
@@ -463,11 +436,6 @@ fn test_all_backends_produce_nonempty_output() {
             assert!(
                 dotnet_out.len() > 100,
                 "{}: Dotnet output suspiciously short",
-                name
-            );
-            assert!(
-                swig_out.len() > 100,
-                "{}: SWIG output suspiciously short",
                 name
             );
         }));

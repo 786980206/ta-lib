@@ -88,7 +88,6 @@ struct AllOutputs {
     rust: String,
     java: String,
     dotnet: String,
-    swig: String,
 }
 
 fn make_registry() -> Registry {
@@ -104,7 +103,6 @@ fn generate_all(func: &ir::FuncDef, enums: &HashMap<String, ir::EnumDef>) -> All
         rust: backends::rust_lang::generate(func, enums, &registry, &helpers),
         java: backends::java::generate(func, enums, &registry, &helpers),
         dotnet: backends::dotnet::generate(func, enums, &registry, &helpers),
-        swig: backends::swig::generate(func, enums, &registry, &helpers),
     }
 }
 
@@ -272,28 +270,6 @@ fn check_dotnet_variants(d: &str, pascal: &str, upper: &str, name: &str) {
     );
 }
 
-/// Check that all SWIG variants exist for a given indicator.
-fn check_swig_variants(s: &str, upper: &str, name: &str) {
-    assert!(
-        s.contains(&format!("TA_{}(", upper)) || s.contains(&format!("TA_{} (", upper)),
-        "{}: SWIG missing TA_{}",
-        name,
-        upper
-    );
-    assert!(
-        s.contains(&format!("TA_{}_Logic(", upper)),
-        "{}: SWIG missing TA_{}_Logic",
-        name,
-        upper
-    );
-    assert!(
-        s.contains(&format!("TA_{}_Lookback", upper)),
-        "{}: SWIG missing TA_{}_Lookback",
-        name,
-        upper
-    );
-}
-
 /// Check C #define TA_INT alias correctness for an indicator.
 fn check_c_int_alias(c: &str, upper: &str, name: &str) {
     assert!(
@@ -398,7 +374,6 @@ fn test_all_indicators_all_backends() {
             check_rust_generic_variants(&out.rust, &snake, &snake);
             check_java_variants(&out.java, &camel, &snake);
             check_dotnet_variants(&out.dotnet, &pascal, &upper, &snake);
-            check_swig_variants(&out.swig, &upper, &snake);
             check_c_int_alias(&out.c, &upper, &snake);
             check_dotnet_macros(&out.dotnet, &pascal, &upper, &snake);
         }));
@@ -868,7 +843,6 @@ fn test_all_indicators_nonempty_output() {
             assert!(!out.rust.is_empty(), "{}: Rust output is empty", name);
             assert!(!out.java.is_empty(), "{}: Java output is empty", name);
             assert!(!out.dotnet.is_empty(), "{}: .NET output is empty", name);
-            assert!(!out.swig.is_empty(), "{}: SWIG output is empty", name);
 
             assert!(out.c.len() > 200, "{}: C output suspiciously short", name);
             assert!(
@@ -884,11 +858,6 @@ fn test_all_indicators_nonempty_output() {
             assert!(
                 out.dotnet.len() > 100,
                 "{}: .NET output suspiciously short",
-                name
-            );
-            assert!(
-                out.swig.len() > 100,
-                "{}: SWIG output suspiciously short",
                 name
             );
         }));
@@ -924,60 +893,6 @@ fn test_all_indicators_nonempty_output() {
         "{} indicators produce non-empty output for all backends",
         tested
     );
-}
-
-// ---------------------------------------------------------------------------
-// 9. SWIG comment block contains function description (all indicators)
-// ---------------------------------------------------------------------------
-
-#[test]
-fn test_swig_comment_blocks() {
-    let indicators = discover_indicators();
-    let mut failures = Vec::new();
-
-    for name in &indicators {
-        let (func, enums) = match try_load_indicator(name) {
-            Some(v) => v,
-            None => continue,
-        };
-        let out = match try_generate_all(&func, &enums) {
-            Some(v) => v,
-            None => continue,
-        };
-
-        let func_name = func.name.clone();
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            assert!(
-                out.swig.contains("/*"),
-                "SWIG {}: missing comment block",
-                name
-            );
-            assert!(
-                out.swig.contains(&format!("TA_{}", func_name)),
-                "SWIG {}: comment block missing TA_{} reference",
-                name,
-                func_name
-            );
-        }));
-        if let Err(e) = result {
-            let msg = if let Some(s) = e.downcast_ref::<String>() {
-                s.clone()
-            } else if let Some(s) = e.downcast_ref::<&str>() {
-                s.to_string()
-            } else {
-                format!("Unknown panic for indicator {}", name)
-            };
-            failures.push(msg);
-        }
-    }
-
-    if !failures.is_empty() {
-        panic!(
-            "{} indicator(s) failed SWIG comment checks:\n{}",
-            failures.len(),
-            failures.join("\n")
-        );
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -1419,94 +1334,6 @@ fn rust_forc_emits_range_iteration_when_possible() {
         !rendered.contains("while "),
         "Simple ForC should not fall through to while: {rendered}"
     );
-}
-
-// ---------------------------------------------------------------------------
-// 14. SWIG naming alignment with C exports
-// ---------------------------------------------------------------------------
-
-/// Verify that every function name declared by the SWIG backend is also
-/// exported by the C backend.  Specifically:
-/// - `TA_{NAME}(` in SWIG → `TA_{NAME}(` in C
-/// - `TA_{NAME}_Logic(` in SWIG → `TA_{NAME}_Logic(` in C
-/// - `TA_{NAME}_Logic(` in SWIG → `#define TA_INT_{NAME}` in C (alias)
-#[test]
-fn swig_names_match_c_exports() {
-    let indicators = discover_indicators();
-    let registry = make_registry();
-    let mut failures = Vec::new();
-
-    for name in &indicators {
-        let loaded = try_load_indicator(name);
-        let (func, enums) = match loaded {
-            Some(v) => v,
-            None => continue,
-        };
-
-        let upper = func.name.clone();
-
-        let helpers = HelperRegistry::empty();
-        let c_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            backends::c::generate(&func, &enums, &registry, &helpers)
-        }));
-        let swig_out_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            backends::swig::generate(&func, &enums, &registry, &helpers)
-        }));
-
-        let (c_out, swig_out) = match (c_out_result, swig_out_result) {
-            (Ok(c), Ok(s)) => (c, s),
-            _ => continue,
-        };
-
-        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-            // SWIG declares TA_{NAME} — C must export it
-            if swig_out.contains(&format!("TA_{}(", upper)) {
-                assert!(
-                    c_out.contains(&format!("TA_{}(", upper))
-                        || c_out.contains(&format!("TA_{} (", upper)),
-                    "{}: SWIG declares TA_{} but C doesn't export it",
-                    name,
-                    upper
-                );
-            }
-
-            // SWIG declares TA_{NAME}_Logic — C must export it and alias it via TA_INT_{NAME}
-            if swig_out.contains(&format!("TA_{}_Logic(", upper)) {
-                assert!(
-                    c_out.contains(&format!("TA_{}_Logic(", upper)),
-                    "{}: SWIG declares TA_{}_Logic but C doesn't export it",
-                    name,
-                    upper
-                );
-                assert!(
-                    c_out.contains(&format!("#define TA_INT_{}", upper)),
-                    "{}: SWIG declares TA_{}_Logic but C is missing #define TA_INT_{}",
-                    name,
-                    upper,
-                    upper
-                );
-            }
-        }));
-
-        if let Err(e) = result {
-            let msg = if let Some(s) = e.downcast_ref::<String>() {
-                s.clone()
-            } else if let Some(s) = e.downcast_ref::<&str>() {
-                s.to_string()
-            } else {
-                format!("Unknown panic for indicator {}", name)
-            };
-            failures.push(msg);
-        }
-    }
-
-    if !failures.is_empty() {
-        panic!(
-            "{} indicator(s) failed SWIG/C naming alignment:\n{}",
-            failures.len(),
-            failures.join("\n")
-        );
-    }
 }
 
 // ---------------------------------------------------------------------------

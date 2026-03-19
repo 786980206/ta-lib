@@ -16,7 +16,7 @@ ta_func_defs/*.yaml          (extracted indicator definitions)
   ┌────┴────┐
 backends  server_gen
   ↓           ↓
-rust_lang.rs  JSON-RPC servers (C, Java, .NET, Python/SWIG)
+rust_lang.rs  JSON-RPC servers (C, Java, .NET)
   ↓
 rust/src/ta_func/*.rs        (generated indicator code)
 ```
@@ -68,7 +68,7 @@ Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expr
 **Fully working:**
 - `codegen_pipe.c/h` in ta_regtest — complete subprocess pipe abstraction (fork, exec, stdin/stdout JSON-RPC)
 - `test_codegen.c/h` in ta_regtest — full orchestration: multi-language loop, JSON helpers, `doRangeTest` integration, epsilon comparison (`1e-6`), language/function filters
-- Server generation for all 5 languages (C, Java, .NET, Python/SWIG, Rust)
+- Server generation for all 4 languages (C, Java, .NET, Rust)
 - `ta_codegen build` compiles servers into executables in `bin/`
 
 **What's working end-to-end:**

@@ -390,7 +390,7 @@ static void printUsage(void)
       printf( "\n" );
       printf( "    --codegen[=LANG[,LANG,...]]\n" );
       printf( "       After normal tests, verify ta_codegen output against C reference.\n" );
-      printf( "       Languages: rust, c, java, dotnet, swig (default: all)\n" );
+      printf( "       Languages: rust, c, java, dotnet (default: all)\n" );
       printf( "       Example: --codegen=rust,java\n" );
       printf( "\n" );
       printf( "    --codegen-only\n" );
@@ -400,7 +400,7 @@ static void printUsage(void)
       printf( "\n" );
       printf( "    --language=LANG[,LANG,...]\n" );
       printf( "       Filter which language servers to test with --codegen / --codegen-only.\n" );
-      printf( "       Valid values: rust, c, java, dotnet, swig (default: all)\n" );
+      printf( "       Valid values: rust, c, java, dotnet (default: all)\n" );
       printf( "       Example: --language=c,rust\n" );
       printf( "\n" );
       printf( "       Requires language server binaries in the bin directory.\n" );

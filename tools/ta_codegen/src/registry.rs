@@ -7,7 +7,6 @@ pub enum Lang {
     Rust,
     Java,
     DotNet,
-    Swig,
 }
 
 /// Registry of discovered indicators, used for cross-function call resolution.
@@ -66,7 +65,7 @@ impl Registry {
             if self.contains(base) {
                 return match lang {
                     Lang::Rust => format!("{base}_unguarded"),
-                    Lang::C | Lang::Swig => format!("TA_INT_{}", base.to_uppercase()),
+                    Lang::C => format!("TA_INT_{}", base.to_uppercase()),
                     Lang::Java => {
                         let camel = self.to_camel_case(base);
                         format!("{camel}Logic")
@@ -85,7 +84,7 @@ impl Registry {
         if self.contains(func_name) {
             return match lang {
                 Lang::Rust => func_name.to_string(),
-                Lang::C | Lang::Swig => format!("TA_{}", func_name.to_uppercase()),
+                Lang::C => format!("TA_{}", func_name.to_uppercase()),
                 Lang::Java => self.to_camel_case(func_name),
                 Lang::DotNet => capitalize(func_name),
             };
@@ -97,7 +96,7 @@ impl Registry {
 
         match lang {
             Lang::Rust => func_name.to_string(),
-            Lang::C | Lang::Swig => self.to_c_name(&indicator, &suffix),
+            Lang::C => self.to_c_name(&indicator, &suffix),
             Lang::Java => self.to_camel_case(func_name),
             Lang::DotNet => self.to_pascal_case(func_name),
         }
@@ -220,14 +219,6 @@ mod tests {
         );
         assert_eq!(registry.resolve_call("sma", Lang::DotNet), "Sma");
         assert_eq!(registry.resolve_call("sma_unguarded", Lang::DotNet), "SmaLogic");
-
-        // SWIG mirrors C
-        assert_eq!(
-            registry.resolve_call("rsi_lookback", Lang::Swig),
-            "TA_RSI_Lookback"
-        );
-        assert_eq!(registry.resolve_call("rsi", Lang::Swig), "TA_RSI");
-        assert_eq!(registry.resolve_call("rsi_unguarded", Lang::Swig), "TA_INT_RSI");
     }
 
     #[test]

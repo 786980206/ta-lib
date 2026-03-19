@@ -39,8 +39,8 @@ static long long get_nanotime(void) {
 /* ---- Language definitions ---- */
 
 typedef struct {
-    const char *name;           /* "rust", "c", "java", "dotnet", "swig" */
-    const char *display;        /* "Rust", "C", "Java", ".NET", "SWIG/Python" */
+    const char *name;           /* "rust", "c", "java", "dotnet" */
+    const char *display;        /* "Rust", "C", "Java", ".NET" */
     const char *const *argv;    /* NULL-terminated command array */
 } CodegenLanguage;
 
@@ -48,14 +48,11 @@ static const char *const argv_rust[]  = {"./ta_codegen_serve_rust", NULL};
 static const char *const argv_c[]     = {"./ta_codegen_serve_c", NULL};
 static const char *const argv_java[]  = {"java", "-cp", "ta_codegen_java", "TaCodegenServe", NULL};
 static const char *const argv_dotnet[]= {"dotnet", "ta_codegen_dotnet/TaCodegenServe.dll", NULL};
-static const char *const argv_swig[]  = {"python3", "ta_codegen_serve.py", NULL};
-
 static const CodegenLanguage ALL_LANGUAGES[] = {
     {"c",      "C",            argv_c},
     {"rust",   "Rust",         argv_rust},
     {"java",   "Java",         argv_java},
     {"dotnet", ".NET",         argv_dotnet},
-    {"swig",   "SWIG/Python",  argv_swig},
 };
 #define NUM_LANGUAGES (sizeof(ALL_LANGUAGES) / sizeof(ALL_LANGUAGES[0]))
 
