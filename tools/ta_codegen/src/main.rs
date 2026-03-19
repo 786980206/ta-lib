@@ -408,7 +408,6 @@ fn build_servers(backend_filter: Option<&str>) {
                         .args([
                             "-c",
                             "-O3",
-                            "-flto",
                             "-DNDEBUG",
                             "-Wno-parentheses-equality",
                             &include_flag,
@@ -442,7 +441,7 @@ fn build_servers(backend_filter: Option<&str>) {
 
                 // Link all .o files into final binary
                 let obj_strs: Vec<&str> = obj_files.iter().map(|p| p.to_str().unwrap()).collect();
-                let mut link_args = vec!["-flto", "-O3", "-o", dst.to_str().unwrap()];
+                let mut link_args = vec!["-o", dst.to_str().unwrap()];
                 link_args.extend_from_slice(&obj_strs);
                 link_args.push("-lm");
                 match std::process::Command::new("gcc").args(&link_args).status() {
