@@ -167,15 +167,23 @@ static int build_bench_request(char *buf, int sz, const TA_FuncInfo *fi,
 /* ---- C-ref: setup + call via ta_abstract ---- */
 
 static void setup_ref_inputs(TA_ParamHolder *ph, const TA_FuncInfo *fi) {
+    int realCount = 0;
     for( unsigned int i = 0; i < fi->nbInput; i++ ) {
         const TA_InputParameterInfo *info;
         TA_GetInputParameterInfo(fi->handle, i, &info);
-        if( info->type == TA_Input_Price )
+        if( info->type == TA_Input_Price ) {
             TA_SetInputParamPricePtr(ph, i, g_open, g_high, g_low, g_close, g_volume, g_oi);
-        else if( info->type == TA_Input_Real )
-            TA_SetInputParamRealPtr(ph, i, g_close);
-        else if( info->type == TA_Input_Integer )
-            TA_SetInputParamIntegerPtr(ph, i, (const TA_Integer *)g_close); /* rare */
+        } else if( info->type == TA_Input_Real ) {
+            /* Map multiple real inputs to different arrays (must match server) */
+            const TA_Real *data;
+            if( realCount == 0 )      data = g_close;
+            else if( realCount == 1 ) data = g_high;
+            else                      data = g_close;
+            TA_SetInputParamRealPtr(ph, i, data);
+            realCount++;
+        } else if( info->type == TA_Input_Integer ) {
+            TA_SetInputParamIntegerPtr(ph, i, (const TA_Integer *)g_close);
+        }
     }
 }
 
