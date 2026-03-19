@@ -370,8 +370,9 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
 
     // Main loop
     s.push_str("int main(void) {\n");
-    s.push_str("    char line[262144];\n");
-    s.push_str("    char response[262144];\n");
+    // Buffers sized for load_data: 100k points × 6 arrays × ~20 chars ≈ 12MB
+    s.push_str("    static char line[16*1024*1024];\n");
+    s.push_str("    static char response[16*1024*1024];\n");
     s.push_str("    while( fgets(line, sizeof(line), stdin) ) {\n");
     s.push_str("        handle_request(line, response, sizeof(response));\n");
     s.push_str("        printf(\"%s\\n\", response);\n");
@@ -386,7 +387,7 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
 fn generate_c_json_helpers() -> String {
     r#"/* ---- Minimal JSON helpers ---- */
 
-#define MAX_ARRAY_SIZE 65536
+#define MAX_ARRAY_SIZE 200000
 
 static int json_find_int(const char *json, const char *field) {
     char pattern[256];
@@ -492,20 +493,48 @@ static long get_nanotime(void) {
 fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     let mut s = String::new();
 
-    // Static buffers for input arrays — up to 5 for full OHLCV (open, high, low, close, volume)
-    // plus one extra for functions like BETA that take two real arrays.
+    // Static buffers for input arrays — up to 6 for full OHLCV + openInterest.
     s.push_str("static double g_inBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf1[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf2[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf3[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf4[MAX_ARRAY_SIZE];\n");
-    // Real output buffers — up to 3 for MACD/BBANDS (macd, signal, hist) or STOCH (slowK, slowD)
+    s.push_str("static double g_inBuf5[MAX_ARRAY_SIZE];\n");
+    // Real output buffers — up to 3 for MACD/BBANDS/STOCH
     s.push_str("static double g_outBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_outBuf1[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_outBuf2[MAX_ARRAY_SIZE];\n");
-    // Integer output buffers — for CDL* patterns (1 output) and MINMAXINDEX (2 outputs)
+    // Integer output buffers — for CDL* patterns and MINMAXINDEX
     s.push_str("static int g_outIntBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static int g_outIntBuf1[MAX_ARRAY_SIZE];\n\n");
+
+    // Pre-loaded reference data (immutable after load_data, copied to working buffers per call)
+    s.push_str("/* Pre-loaded OHLCV reference data for perftest.\n");
+    s.push_str(" * Stored separately from working buffers to protect against mutation. */\n");
+    s.push_str("static double g_refOpen[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_refHigh[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_refLow[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_refClose[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_refVolume[MAX_ARRAY_SIZE];\n");
+    s.push_str("static double g_refOI[MAX_ARRAY_SIZE];\n");
+    s.push_str("static int g_refN = 0; /* number of pre-loaded points */\n\n");
+
+    // Helper: copy pre-loaded data into working input buffers based on input type
+    s.push_str("static void preload_to_working(int nInputs, int isPriceInput) {\n");
+    s.push_str("    if( isPriceInput ) {\n");
+    s.push_str("        /* OHLCV — map into g_inBuf0..4 in OHLCV order */\n");
+    s.push_str("        memcpy(g_inBuf0, g_refOpen,   g_refN * sizeof(double));\n");
+    s.push_str("        memcpy(g_inBuf1, g_refHigh,   g_refN * sizeof(double));\n");
+    s.push_str("        memcpy(g_inBuf2, g_refLow,    g_refN * sizeof(double));\n");
+    s.push_str("        memcpy(g_inBuf3, g_refClose,  g_refN * sizeof(double));\n");
+    s.push_str("        memcpy(g_inBuf4, g_refVolume, g_refN * sizeof(double));\n");
+    s.push_str("        memcpy(g_inBuf5, g_refOI,     g_refN * sizeof(double));\n");
+    s.push_str("    } else {\n");
+    s.push_str("        /* Single/dual real input — use close (and high for 2nd) */\n");
+    s.push_str("        memcpy(g_inBuf0, g_refClose, g_refN * sizeof(double));\n");
+    s.push_str("        if( nInputs > 1 ) memcpy(g_inBuf1, g_refHigh, g_refN * sizeof(double));\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
 
     s.push_str("static void handle_request(const char *json, char *resp, int resp_size) {\n");
 
@@ -516,6 +545,18 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str(
         "        snprintf(resp, resp_size, \"{\\\"error\\\":\\\"Missing method field\\\"}\");\n",
     );
+    s.push_str("        return;\n");
+    s.push_str("    }\n\n");
+
+    // Handle load_data for perftest pre-loading
+    s.push_str("    if ( methodLen == 9 && strncmp(method, \"load_data\", 9) == 0 ) {\n");
+    s.push_str("        g_refN = json_find_double_array(json, \"open\",   g_refOpen,   MAX_ARRAY_SIZE);\n");
+    s.push_str("        json_find_double_array(json, \"high\",          g_refHigh,   MAX_ARRAY_SIZE);\n");
+    s.push_str("        json_find_double_array(json, \"low\",           g_refLow,    MAX_ARRAY_SIZE);\n");
+    s.push_str("        json_find_double_array(json, \"close\",         g_refClose,  MAX_ARRAY_SIZE);\n");
+    s.push_str("        json_find_double_array(json, \"volume\",        g_refVolume, MAX_ARRAY_SIZE);\n");
+    s.push_str("        json_find_double_array(json, \"openInterest\",  g_refOI,     MAX_ARRAY_SIZE);\n");
+    s.push_str("        snprintf(resp, resp_size, \"{\\\"status\\\":\\\"ok\\\",\\\"n\\\":%d}\", g_refN);\n");
     s.push_str("        return;\n");
     s.push_str("    }\n\n");
 
@@ -536,18 +577,27 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        int startIdx = json_find_int(json, \"startIdx\");\n");
         s.push_str("        int endIdx = json_find_int(json, \"endIdx\");\n");
 
-        // Extract input arrays — Real inputs use their own name; Price inputs expand to
-        // individual component arrays (e.g. "inHigh", "inLow", "inClose").
+        // Extract input arrays — either from pre-loaded reference data or inline JSON.
         let input_names = expand_input_names(&func.inputs);
+        let is_price_input = func.inputs.iter().any(|inp| {
+            matches!(inp.param_type, ParamType::Price(_))
+        });
+        let n_inputs = input_names.len();
 
+        s.push_str("        int use_preloaded = json_find_int(json, \"use_preloaded\");\n");
+        s.push_str("        if( use_preloaded && g_refN > 0 ) {\n");
+        s.push_str(&format!(
+            "            preload_to_working({n_inputs}, {});\n",
+            if is_price_input { 1 } else { 0 }
+        ));
+        s.push_str("        } else {\n");
         for (j, name) in input_names.iter().enumerate() {
             let buf = format!("g_inBuf{j}");
             s.push_str(&format!(
-                "        int n{j} = json_find_double_array(json, \"{name}\", {buf}, MAX_ARRAY_SIZE);\n",
+                "            json_find_double_array(json, \"{name}\", {buf}, MAX_ARRAY_SIZE);\n",
             ));
-            // Suppress unused warning
-            s.push_str(&format!("        (void)n{j};\n"));
         }
+        s.push_str("        }\n");
 
         // Extract optional params
         for opt in &func.optional_inputs {
@@ -584,6 +634,14 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        TA_RetCode rc = 0;\n");
         s.push_str("        long start_ns = get_nanotime();\n");
         s.push_str("        for( int _bi = 0; _bi < bench_iters; _bi++ ) {\n");
+
+        // Copy pre-loaded data before each iteration to protect against mutation
+        s.push_str("            if( use_preloaded && bench_iters > 1 ) {\n");
+        s.push_str(&format!(
+            "                preload_to_working({n_inputs}, {});\n",
+            if is_price_input { 1 } else { 0 }
+        ));
+        s.push_str("            }\n");
 
         // Call the function
         s.push_str(&format!("        rc = TA_{}(\n", func.name));
