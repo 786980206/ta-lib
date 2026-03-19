@@ -71,17 +71,22 @@ ErrorNumber codegen_pipe_call(CodegenPipe *cp,
                               char *response,
                               int response_size)
 {
-    /* Write request + newline */
+    /* Write request + newline (loop for large requests that exceed pipe buffer) */
     int req_len = (int)strlen(request);
-    ssize_t written = write(cp->to_child_fd, request, req_len);
-    if( written != req_len )
-        return TA_CODEGEN_PIPE_WRITE_FAILED;
+    int total_written = 0;
+    while( total_written < req_len )
+    {
+        ssize_t n = write(cp->to_child_fd, request + total_written, req_len - total_written);
+        if( n <= 0 )
+            return TA_CODEGEN_PIPE_WRITE_FAILED;
+        total_written += (int)n;
+    }
 
     /* Write newline if request doesn't end with one */
     if( req_len == 0 || request[req_len - 1] != '\n' )
     {
-        written = write(cp->to_child_fd, "\n", 1);
-        if( written != 1 )
+        ssize_t n = write(cp->to_child_fd, "\n", 1);
+        if( n != 1 )
             return TA_CODEGEN_PIPE_WRITE_FAILED;
     }
 

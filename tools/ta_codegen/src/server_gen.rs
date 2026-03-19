@@ -574,11 +574,19 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         // Declare output variables
         s.push_str("        int outBegIdx = 0, outNBElement = 0;\n");
 
-        // Timing capture
+        // Benchmark iteration support: if request contains "iters", loop
+        // the function call that many times and report average timing.
+        // This avoids cache pollution from JSON parsing between iterations.
+        s.push_str("        int bench_iters = json_find_int(json, \"iters\");\n");
+        s.push_str("        if( bench_iters < 1 ) bench_iters = 1;\n");
+
+        // Build the function call as a string we can reuse
+        s.push_str("        TA_RetCode rc = 0;\n");
         s.push_str("        long start_ns = get_nanotime();\n");
+        s.push_str("        for( int _bi = 0; _bi < bench_iters; _bi++ ) {\n");
 
         // Call the function
-        s.push_str(&format!("        TA_RetCode rc = TA_{}(\n", func.name));
+        s.push_str(&format!("        rc = TA_{}(\n", func.name));
         s.push_str("            startIdx, endIdx,\n");
 
         // Input arrays
@@ -609,10 +617,11 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(");\n");
+        s.push_str("        }\n"); // end bench_iters loop
 
-        // Calculate elapsed time
+        // Calculate elapsed time (average over iterations)
         s.push_str("        long end_ns = get_nanotime();\n");
-        s.push_str("        long elapsed_ns = end_ns - start_ns;\n");
+        s.push_str("        long elapsed_ns = (end_ns - start_ns) / bench_iters;\n");
 
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
