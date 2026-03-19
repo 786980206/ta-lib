@@ -51,7 +51,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     {
     circBuffer[circBuffer_Idx] = (inHigh[i]+inLow[i]+inClose[i])/3;
     i++;
-    circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+    circBuffer_Idx++; if( circBuffer_Idx >= optInTimePeriod ) circBuffer_Idx = 0;
     }
     }
 
@@ -89,7 +89,7 @@ TA_RetCode cci(int startIdx, int endIdx, const double inHigh[], const double inL
     outReal[outIdx++] = 0.0;
 
     /* Move forward the circular buffer indexes. */
-    circBuffer_Idx = (circBuffer_Idx + 1) % optInTimePeriod;
+    circBuffer_Idx++; if( circBuffer_Idx >= optInTimePeriod ) circBuffer_Idx = 0;
 
     i++;
     } while( i <= endIdx );

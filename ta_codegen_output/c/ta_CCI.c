@@ -87,7 +87,11 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
       {
          circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
          i += 1;
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) )
+         {
+            circBuffer_Idx = 0;
+         }
       }
    }
    outIdx = 0;
@@ -114,7 +118,11 @@ TA_LIB_API TA_RetCode TA_CCI( int    startIdx,
       {
          outReal[outIdx++] = 0.0;
       }
-      circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+      circBuffer_Idx += 1;
+      if( (circBuffer_Idx>=optInTimePeriod) )
+      {
+         circBuffer_Idx = 0;
+      }
       i += 1;
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
@@ -166,7 +174,11 @@ TA_LIB_API TA_RetCode TA_CCI_Logic( int    startIdx,
       {
          circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
          i += 1;
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) )
+         {
+            circBuffer_Idx = 0;
+         }
       }
    }
    outIdx = 0;
@@ -193,7 +205,11 @@ TA_LIB_API TA_RetCode TA_CCI_Logic( int    startIdx,
       {
          outReal[outIdx++] = 0.0;
       }
-      circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+      circBuffer_Idx += 1;
+      if( (circBuffer_Idx>=optInTimePeriod) )
+      {
+         circBuffer_Idx = 0;
+      }
       i += 1;
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
@@ -252,7 +268,11 @@ TA_RetCode TA_S_CCI( int    startIdx,
       {
          circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
          i += 1;
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) )
+         {
+            circBuffer_Idx = 0;
+         }
       }
    }
    outIdx = 0;
@@ -279,7 +299,11 @@ TA_RetCode TA_S_CCI( int    startIdx,
       {
          outReal[outIdx++] = 0.0;
       }
-      circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+      circBuffer_Idx += 1;
+      if( (circBuffer_Idx>=optInTimePeriod) )
+      {
+         circBuffer_Idx = 0;
+      }
       i += 1;
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
@@ -331,7 +355,11 @@ TA_RetCode TA_S_CCI_Logic( int    startIdx,
       {
          circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
          i += 1;
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) )
+         {
+            circBuffer_Idx = 0;
+         }
       }
    }
    outIdx = 0;
@@ -358,7 +386,11 @@ TA_RetCode TA_S_CCI_Logic( int    startIdx,
       {
          outReal[outIdx++] = 0.0;
       }
-      circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+      circBuffer_Idx += 1;
+      if( (circBuffer_Idx>=optInTimePeriod) )
+      {
+         circBuffer_Idx = 0;
+      }
       i += 1;
    } while( (i<=endIdx) );
    *outNBElement= outIdx;
