@@ -329,22 +329,88 @@ fn build_servers(backend_filter: Option<&str>) {
         match *backend {
             "c" => {
                 print!("  Building C server... ");
-                let src = out_base.join("c/ta_codegen_serve.c");
+                let c_dir = out_base.join("c");
+                let obj_dir = c_dir.join("obj");
                 let dst = bin_dir.join("ta_codegen_serve_c");
-                match std::process::Command::new("gcc")
-                    .args([
-                        "-o",
-                        dst.to_str().unwrap(),
-                        src.to_str().unwrap(),
-                        "-lm",
-                        "-O3",
-                        "-DNDEBUG",
-                        "-Wno-parentheses-equality",
-                    ])
-                    .status()
-                {
-                    Ok(s) if s.success() => println!("OK"),
-                    Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+
+                // Collect source files: globals first, then indicators, then serve
+                let mut c_files: Vec<std::path::PathBuf> = Vec::new();
+                c_files.push(c_dir.join("ta_lib_globals.c"));
+                if let Ok(entries) = std::fs::read_dir(&c_dir) {
+                    let mut indicator_files: Vec<std::path::PathBuf> = entries
+                        .filter_map(|e| e.ok())
+                        .map(|e| e.path())
+                        .filter(|p| {
+                            let name = p.file_name().and_then(|n| n.to_str()).unwrap_or("");
+                            name.starts_with("ta_")
+                                && name.ends_with(".c")
+                                && name != "ta_lib_globals.c"
+                                && name != "ta_codegen_serve.c"
+                                && name != "ta_codegen_funcs.c"
+                        })
+                        .collect();
+                    indicator_files.sort();
+                    c_files.extend(indicator_files);
+                }
+                c_files.push(c_dir.join("ta_codegen_serve.c"));
+
+                // Clean and recreate obj/ directory
+                let _ = std::fs::remove_dir_all(&obj_dir);
+                if let Err(e) = std::fs::create_dir_all(&obj_dir) {
+                    println!("FAILED (cannot create obj/: {})", e);
+                    continue;
+                }
+
+                // Compile each .c to .o
+                let include_flag = format!("-I{}", c_dir.to_str().unwrap());
+                let mut obj_files: Vec<std::path::PathBuf> = Vec::new();
+                let mut compile_ok = true;
+                for src in &c_files {
+                    let stem = src.file_stem().and_then(|s| s.to_str()).unwrap_or("out");
+                    let obj = obj_dir.join(format!("{stem}.o"));
+                    let status = std::process::Command::new("gcc")
+                        .args([
+                            "-c",
+                            "-O3",
+                            "-DNDEBUG",
+                            "-Wno-parentheses-equality",
+                            &include_flag,
+                            "-o",
+                            obj.to_str().unwrap(),
+                            src.to_str().unwrap(),
+                        ])
+                        .status();
+                    match status {
+                        Ok(s) if s.success() => obj_files.push(obj),
+                        Ok(s) => {
+                            println!(
+                                "FAILED (compile {} exit {})",
+                                src.file_name().unwrap_or_default().to_string_lossy(),
+                                s.code().unwrap_or(-1)
+                            );
+                            compile_ok = false;
+                            break;
+                        }
+                        Err(e) => {
+                            println!("FAILED (gcc not found: {})", e);
+                            compile_ok = false;
+                            break;
+                        }
+                    }
+                }
+
+                if !compile_ok {
+                    continue;
+                }
+
+                // Link all .o files into final binary
+                let obj_strs: Vec<&str> = obj_files.iter().map(|p| p.to_str().unwrap()).collect();
+                let mut link_args = vec!["-o", dst.to_str().unwrap()];
+                link_args.extend_from_slice(&obj_strs);
+                link_args.push("-lm");
+                match std::process::Command::new("gcc").args(&link_args).status() {
+                    Ok(s) if s.success() => println!("OK ({} files)", c_files.len()),
+                    Ok(s) => println!("FAILED (link exit {})", s.code().unwrap_or(-1)),
                     Err(e) => println!("FAILED (gcc not found: {})", e),
                 }
             }
