@@ -105,10 +105,6 @@
 #define ENABLE_JAVA
 #define ENABLE_C
 #define ENABLE_DOTNET
-#define ENABLE_RUST
-
-// Comment to genereate all functions.
-#define RUST_SINGLE_FUNC "MULT"
 
 #if !defined(__WIN32__) && !defined(__MSDOS__) && !defined(WIN32)
    #include <unistd.h>
@@ -131,8 +127,6 @@ const char *gmcpp_exec = "..\\src\\tools\\gen_code\\mcpp.exe";
 #define PATH_SEPARATOR "/"
 const char *gmcpp_exec = "/usr/bin/mcpp";
 #endif
-
-int hello(FILE *out);
 
 int gmcpp_installed = 0; // 0 = mcpp not installed, 1 = verified installed
 
@@ -291,11 +285,6 @@ FileHandle *gOutMSVCProjFile = NULL;    /* For MSVC project file */
 static void create_dirs( void );
 static void create_dir_recursively( const char *dir );
 
-static void writeRustMod( void );
-static void genRustCodePhase2( const TA_FuncInfo *funcInfo );
-void rustCargoFix( void );
-void rustCargoFormat( void );
-
 static void genJavaCodePhase1( const TA_FuncInfo *funcInfo );
 static void genJavaCodePhase2( const TA_FuncInfo *funcInfo );
 
@@ -335,16 +324,6 @@ typedef struct {
 	const char *prefix;
 	const TA_FuncInfo *funcInfo;
 } PrintFuncParamStruct;
-
-static void printRustLookbackFunctionSignature(FILE *out,
-                      const char *prefix, /* Can be NULL */
-                      const TA_FuncInfo *funcInfo);
-static void printRustDoublePrecisionFunctionSignature(FILE *out,
-                      const char *prefix, /* Can be NULL */
-                      const TA_FuncInfo *funcInfo);
-static void printRustSinglePrecisionFunctionSignature(FILE *out,
-                      const char *prefix, /* Can be NULL */
-                      const TA_FuncInfo *funcInfo);
 
 static void printFunc(FILE *out,
                       const char *prefix, /* Can be NULL */
@@ -582,19 +561,6 @@ int main(int argc, char* argv[])
 
    // Detect if mcpp is installed.
    gmcpp_installed = 0;
-   #if defined(ENABLE_RUST)
-      #if defined(_WIN32)
-        // TODO
-        gmcpp_installed = 1;
-      #else
-        gmcpp_installed = (system("which mcpp >/dev/null 2>&1") == 0);
-        run_command("which mcpp", temp_buffer, sizeof(temp_buffer));
-        if (temp_buffer[0] != '\0') {
-          gmcpp_exec = temp_buffer;
-          printf("mcpp found at %s\n", gmcpp_exec);
-        }
-      #endif
-   #endif
 
    retCode = TA_Initialize();
    if( retCode != TA_SUCCESS )
@@ -612,14 +578,6 @@ int main(int argc, char* argv[])
    {
       printf( "Shutdown failed (%d)\n", retCode );
    }
-
-   #if defined(ENABLE_RUST)
-      if( gmcpp_installed == 0 )
-      {
-         printf( "\nWarning: mcpp is not installed. Rust code generation skipped.\n" );
-         printf("To install do 'sudo apt install mcpp' or 'brew install mcpp'.\n");
-      }
-   #endif
 
    return retValue;
 }
@@ -1130,10 +1088,6 @@ static int genCode(int argc, char* argv[])
       fprintf(gOutFunc_XML->file, "<FinancialFunctions>\n");
       retCode = TA_ForEachFunc( doForEachFunctionXml, NULL );
       fprintf(gOutFunc_XML->file, "</FinancialFunctions>\n");
-   #endif
-
-   #if defined(ENABLE_RUST)
-      writeRustMod();
    #endif
 
    /* Close all files who were updated with the list of TA functions. */
@@ -1853,9 +1807,6 @@ static void doForEachFunctionPhase2( const TA_FuncInfo *funcInfo,
      genJavaCodePhase2( funcInfo );
    #endif
 
-   #if defined(ENABLE_RUST)
-     genRustCodePhase2( funcInfo );
-   #endif
 
 
    firstTime = 0;
@@ -2344,10 +2295,10 @@ static void printFunc(FILE *out,
                   fprintf( out, "!inOpenInterest%s", k != j? "||":")");
                }
 
-               fprintf( out, "{\n" );
+               fprintf( out, "\n" );
                printIndent( out, indent );
                fprintf( out, "   return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);\n" );
-               print( out, "}\n" );
+               print( out, "\n" );
             }
             else
             {
@@ -2503,7 +2454,7 @@ static void printFunc(FILE *out,
          {
             printIndent( out, indent );
             if( validationCode )
-               fprintf( out, "if( !%s ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }\n", inputParamInfo->paramName );
+               fprintf( out, "if( !%s ) return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);\n", inputParamInfo->paramName );
             else
             {
 
@@ -3110,8 +3061,6 @@ static void doFuncFile( const TA_FuncInfo *funcInfo )
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0);
    print( gOutFunc_C->file, "#elif defined( _JAVA )\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0);
-   print( gOutFunc_C->file, "#elif defined( _RUST )\n" );
-   printRustSinglePrecisionFunctionSignature(gOutFunc_C->file, NULL, funcInfo);
    print( gOutFunc_C->file, "#else\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
    print( gOutFunc_C->file, "#endif\n" );
@@ -3133,8 +3082,6 @@ static void doFuncFile( const TA_FuncInfo *funcInfo )
    /* Add the suffix at the end of the file. */
    print( gOutFunc_C->file, "#if defined( _MANAGED )\n" );
    print( gOutFunc_C->file, "}}} // Close namespace TicTacTec.TA.Lib\n" );
-   print( gOutFunc_C->file, "#elif defined( _RUST )\n" );
-   print( gOutFunc_C->file, "} // Close impl Core\n" );
    print( gOutFunc_C->file, "#endif\n" );
 
    fileClose( gOutFunc_C );
@@ -3373,10 +3320,6 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "   #include \"ta_defs.h\"\n" );
    print( out, "   #include \"ta_java_defs.h\"\n" );
    print( out, "   #define TA_INTERNAL_ERROR(Id) (RetCode.InternalError)\n" );
-   print( out, "#elif defined( _RUST )\n" );
-   print( out, "   #include \"ta_defs.h\"\n" );
-   print( out, "   #define TA_INTERNAL_ERROR(Id) (RetCode.InternalError)\n" );
-   print( out, "   impl Core {\n" );
    print( out, "#else\n" );
    print( out, "   #include <string.h>\n" );
    print( out, "   #include <math.h>\n" );
@@ -3398,8 +3341,6 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0);
    print( out, "#elif defined( _JAVA )\n" );
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0);
-   print( out, "#elif defined( _RUST )\n" );
-   printRustLookbackFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
    print( out, "#endif\n" );
@@ -3438,8 +3379,6 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    }
 
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);
-   print( out, "#elif defined( _RUST )\n" );
-   printRustDoublePrecisionFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
    print( out, "#endif\n" );
@@ -3452,30 +3391,16 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "#ifndef TA_FUNC_NO_RANGE_CHECK\n" );
    print( out, "\n" );
    print( out, "   /* Validate the requested output range. */\n" );
-   print( out, "#if defined( _RUST )\n" );
-   print( out, "   /* Skip negative checks for Rust since startIdx/endIdx are usize (unsigned) */\n" );
-   print( out, "   if( endIdx < startIdx ) {\n" );
-   print( out, "      return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);\n" );
-   print( out, "   }\n");
-   print( out, "#else\n" );
-   print( out, "   if( startIdx < 0 ) {\n" );
+   print( out, "   if( startIdx < 0 )\n" );
    print( out, "      return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_START_INDEX,OutOfRangeStartIndex);\n" );
-   print( out, "   }\n");
-   print( out, "   if( (endIdx < 0) || (endIdx < startIdx)) {\n" );
+   print( out, "   if( (endIdx < 0) || (endIdx < startIdx))\n" );
    print( out, "      return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);\n" );
-   print( out, "   }\n");
-   print( out, "#endif\n");
    print( out, "\n" );
    /* Generate the code for checking the parameters.
     * Also generates the code for setting up the
     * default values.
     */
-   print( out, "#if defined( _RUST )\n" );
-   // printRustRangeCheckValidationCode();
-   print( out, "\n" );
-   print( out, "#else\n" );
    printFunc( out, NULL, funcInfo, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-   print( out, "#endif\n" );
 
    print( out, "#endif /* TA_FUNC_NO_RANGE_CHECK */\n" );
    print( out, "\n" );
@@ -3546,37 +3471,33 @@ static void printOptInputValidation( FILE *out,
   else
      isMAType = 0;
 
-   switch (optInputParamInfo->type)
+   switch( optInputParamInfo->type )
    {
    case TA_OptInput_RealList:
-		print(out, "   /* min/max are checked for %s. */\n", name);
+      print( out, "   /* min/max are checked for %s. */\n", name );
    case TA_OptInput_RealRange:
-	   print(out, "   if( %s == TA_REAL_DEFAULT ) {\n", name);
-	   print(out, "	  %s = %s;\n", name, doubleToStr(optInputParamInfo->defaultValue));
-	   print(out, "   } else if( (%s < %s) ||", name, doubleToStr(minReal));
-	   print(out, " (%s > %s) ) {\n", name, doubleToStr(maxReal));
-	   break;
+      print( out, "   if( %s == TA_REAL_DEFAULT )\n", name  );
+      print( out, "      %s = %s;\n", name, doubleToStr(optInputParamInfo->defaultValue) );
+      print( out, "   else if( (%s < %s) ||", name, doubleToStr(minReal) );
+      print( out, " (%s > %s) )\n", name, doubleToStr(maxReal) );
+      break;
    case TA_OptInput_IntegerRange:
-	   print(out, "   /* min/max are checked for %s. */\n", name);
+      print( out, "   /* min/max are checked for %s. */\n", name );
    case TA_OptInput_IntegerList:
-	   print(out, "   if( (int)%s == TA_INTEGER_DEFAULT ) {\n", name);
-	   print(out, "	  %s = %s%d;\n", name, isMAType ? "(TA_MAType)" : "", (int)optInputParamInfo->defaultValue);
-	   print(out, "   } else if( ((int)%s < %d) || ((int)%s > %d) ) {\n",
-	         name, minInt,
-	         name, maxInt);
-	   break;
+      print( out, "   if( (int)%s == TA_INTEGER_DEFAULT )\n", name );
+	  print( out, "      %s = %s%d;\n", name, isMAType?"(TA_MAType)":"", (int)optInputParamInfo->defaultValue );
+      print( out, "   else if( ((int)%s < %d) || ((int)%s > %d) )\n",
+              name, minInt,
+              name, maxInt );
+      break;
    }
 
-	if (lookbackValidationCode)
-	{
-		print(out, "	  return -1;\n");
-	}
-	else
-	{
-		print(out, "	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);\n");
-	}
+   if( lookbackValidationCode )
+      print( out, "      return -1;\n" );
+   else
+      print( out, "      return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);\n" );
 
-	print(out, "}\n");
+   print( out, "\n" );
 }
 
 
@@ -3977,38 +3898,6 @@ const char *doubleToStr( double value )
    gTempDoubleToStr[outIdx] = '\0';
 
    return gTempDoubleToStr;
-}
-
-
-static char* toLowerSnakeCase(const char* input, char* output)
-{
-	if (!input || !output)
-	{
-		return NULL;
-	}
-
-	const char* inPtr = input;
-	char* outPtr = output;
-
-	while (*inPtr != '\0')
-	{
-		if (isspace(*inPtr) || *inPtr == '-' || *inPtr == '.')
-		{
-			*outPtr++ = '_'; // Replace spaces, hyphens, and dots with underscores
-		}
-		else if (isupper(*inPtr))
-		{
-			*outPtr++ = (char)tolower(*inPtr); // Convert uppercase to lowercase
-		}
-		else
-		{
-			*outPtr++ = *inPtr; // Copy other characters as-is
-		}
-		inPtr++;
-	}
-
-	*outPtr = '\0'; // Null-terminate the output string
-	return output;
 }
 
 
@@ -4871,16 +4760,6 @@ void create_dir_recursively(const char *path) {
 
 void create_dirs(void) {
    // Make sure output/temp directories exists.
-   #define DIR_RUST ".." PATH_SEPARATOR "rust" PATH_SEPARATOR "src" PATH_SEPARATOR "ta_func"
    #define DIR_TEMP ".." PATH_SEPARATOR "temp"
-   create_dir_recursively(DIR_RUST);
    create_dir_recursively(DIR_TEMP);
 }
-
-struct WriteRustModLinesParams {
-   FileHandle *out;
-   int writePubUse; // 0 to write "pub mod", 1 to write "pub use"
-};
-
-
-#include "gen_rust.c"
