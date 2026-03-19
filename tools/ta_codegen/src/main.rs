@@ -185,6 +185,14 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         generate_rust_crate_scaffolding(out_base, &generated_funcs);
     }
 
+    // Generate ta_func_list.txt (always, regardless of --func filter)
+    if func_filter.is_some() {
+        let all_func_defs = load_all_yaml_defs(base);
+        backends::func_list::generate(&all_func_defs, Path::new("../../ta_func_list.txt"));
+    } else {
+        backends::func_list::generate(&generated_funcs, Path::new("../../ta_func_list.txt"));
+    }
+
     // Copy hand-written C library types + globals when C is one of the backends
     if backends_to_run.contains(&"c") {
         let c_lib_src = Path::new("../../ta_func_defs/lib/c");
@@ -199,6 +207,34 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
             }
         }
     }
+}
+
+/// Load all YAML function definitions (no C source parsing, no filter).
+/// Used for cross-function outputs like `ta_func_list.txt`.
+fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
+    let mut dirs: Vec<_> = std::fs::read_dir(base)
+        .expect("Cannot read ta_func_defs directory")
+        .filter_map(|e| e.ok())
+        .filter(|e| e.path().is_dir())
+        .collect();
+    dirs.sort_by_key(|e| e.file_name());
+
+    let mut funcs = Vec::new();
+    for entry in &dirs {
+        let dir = entry.path();
+        let dir_name = entry.file_name().to_string_lossy().to_string();
+
+        if dir_name == "helpers" || dir_name == "lib" {
+            continue;
+        }
+
+        let yaml_path = dir.join(format!("{}.yaml", dir_name));
+        if yaml_path.exists() {
+            funcs.push(parser::yaml::parse_yaml(&yaml_path));
+        }
+    }
+
+    funcs
 }
 
 fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
