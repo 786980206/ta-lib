@@ -98,15 +98,9 @@
 /* Generated */                       double        optInMaximum )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::sar`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInAcceleration` - Acceleration Factor used up to the Maximum value (default: 0.02)
-@RUSTDOC@* `optInMaximum` - Acceleration Factor Maximum value (default: 0.2)
-/* Generated */ pub fn sar_lookback(&self,
-mut optInAcceleration: f64,
-/* Generated */                            mut optInMaximum: f64) -> i32
+/* Generated */ pub fn sar_lookback(
+optInAcceleration: f64,
+/* Generated */                      optInMaximum: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAR_Lookback( double        optInAcceleration, /* From 0 to TA_REAL_MAX */
 /* Generated */                                          double        optInMaximum )  /* From 0 to TA_REAL_MAX */
@@ -190,57 +184,13 @@ mut optInAcceleration: f64,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Parabolic SAR
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `optInAcceleration` - Acceleration Factor used up to the Maximum value (default: 0.02)
-@RUSTDOC@* `optInMaximum` - Acceleration Factor Maximum value (default: 0.2)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.sar(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    0, // optInAcceleration
-@RUSTDOC@    0, // optInMaximum
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn sar(&self, mut startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   mut optInAcceleration: f64,
-/* Generated */                   mut optInMaximum: f64,
-/* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sar(startIdx: usize,
+/* Generated */            endIdx: usize,
+/* Generated */            /* Generated */            optInAcceleration: f64,
+/* Generated */            optInMaximum: f64,
+/* Generated */            outBegIdx: &mut usize,
+/* Generated */            outNBElement: &mut usize,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -285,12 +235,15 @@ mut optInAcceleration: f64,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    if( optInAcceleration == TA_REAL_DEFAULT ) {
 /* Generated */ 	  optInAcceleration = 2.000000e-2;
 /* Generated */    } else if( (optInAcceleration < 0.000000e+0) ||/* Generated */  (optInAcceleration > 3.000000e+37) ) {
@@ -301,11 +254,12 @@ mut optInAcceleration: f64,
 /* Generated */    } else if( (optInMaximum < 0.000000e+0) ||/* Generated */  (optInMaximum > 3.000000e+37) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -615,14 +569,13 @@ mut optInAcceleration: f64,
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::sar`].
-/* Generated */ pub fn sar_s(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     mut optInAcceleration: f32,
-/* Generated */                     mut optInMaximum: f32,
-/* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sar_s(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              /* Generated */              optInAcceleration: f32,
+/* Generated */              optInMaximum: f32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAR( int    startIdx,
 /* Generated */                      int    endIdx,
@@ -655,7 +608,9 @@ mut optInAcceleration: f64,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
@@ -670,10 +625,11 @@ mut optInAcceleration: f64,
 /* Generated */     } else if( (optInMaximum < 0.000000e+0) ||  (optInMaximum > 3.000000e+37) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( startIdx < 1 )
 /* Generated */       startIdx = 1;

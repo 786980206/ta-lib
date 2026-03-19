@@ -89,13 +89,8 @@
 /* Generated */ public int aroonLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::aroon`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-/* Generated */ pub fn aroon_lookback(&self,
-mut optInTimePeriod: i32) -> i32
+/* Generated */ pub fn aroon_lookback(
+optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_AROON_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -107,9 +102,9 @@ mut optInTimePeriod: i32) -> i32
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 14;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -165,58 +160,13 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Aroon
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outAroonDown` - Output values
-@RUSTDOC@* `outAroonUp` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let mut outAroonDown = [0.0_f64; 50];
-@RUSTDOC@let mut outAroonUp = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.aroon(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    14, // optInTimePeriod
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut outAroonDown,
-@RUSTDOC@    &mut outAroonUp,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn aroon(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     mut optInTimePeriod: i32,
-/* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outAroonDown: &mut [f64],
-/* Generated */                     outAroonUp: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroon(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              /* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outAroonDown: &mut [f64],
+/* Generated */              outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -254,26 +204,30 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 14;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outAroonDown )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
 /* Generated */    if( !outAroonUp )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -422,14 +376,13 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                       double        outAroonDown[],
 /* Generated */                       double        outAroonUp[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::aroon`].
-/* Generated */ pub fn aroon_s(&self, mut startIdx: usize,
-/* Generated */                       endIdx: usize,
-/* Generated */                       /* Generated */                       mut optInTimePeriod: i32,
-/* Generated */                       outBegIdx: &mut usize,
-/* Generated */                       outNBElement: &mut usize,
-/* Generated */                       outAroonDown: &mut [f64],
-/* Generated */                       outAroonUp: &mut [f64]) -> RetCode
+/* Generated */ pub fn aroon_s(startIdx: usize,
+/* Generated */                endIdx: usize,
+/* Generated */                /* Generated */                optInTimePeriod: i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
+/* Generated */                outAroonDown: &mut [f64],
+/* Generated */                outAroonUp: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_AROON( int    startIdx,
 /* Generated */                        int    endIdx,
@@ -458,22 +411,25 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInTimePeriod = 14;
-/* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */     } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outAroonDown )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outAroonUp )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( startIdx < optInTimePeriod )
 /* Generated */       startIdx = optInTimePeriod;

@@ -107,9 +107,8 @@
 #define ENABLE_DOTNET
 #define ENABLE_RUST
 
-// Comma-separated list of functions to generate for Rust.
-// Comment out to generate all functions.
-#define RUST_SUPPORTED_FUNCS "SMA,MULT,RSI"
+// Comment to genereate all functions.
+#define RUST_SINGLE_FUNC "MULT"
 
 #if !defined(__WIN32__) && !defined(__MSDOS__) && !defined(WIN32)
    #include <unistd.h>
@@ -337,14 +336,6 @@ typedef struct {
 	const TA_FuncInfo *funcInfo;
 } PrintFuncParamStruct;
 
-/* Doc types for printRustFuncDoc */
-#define RUST_DOC_LOOKBACK 0
-#define RUST_DOC_MAIN     1
-#define RUST_DOC_SINGLE   2
-
-static void printRustFuncDoc(FILE *out,
-                      const TA_FuncInfo *funcInfo,
-                      int docType);
 static void printRustLookbackFunctionSignature(FILE *out,
                       const char *prefix, /* Can be NULL */
                       const TA_FuncInfo *funcInfo);
@@ -2261,7 +2252,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#if !defined(_JAVA) && !defined(_RUST)\n" );
+         fprintf( out, "#if !defined(_JAVA)\n" );
       }
 
       paramNb = 0;
@@ -2552,7 +2543,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#endif /* !defined(_JAVA) && !defined(_RUST)*/\n" );
+         fprintf( out, "#endif /* !defined(_JAVA)*/\n" );
       }
    }
 
@@ -2778,7 +2769,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#if !defined(_JAVA) && !defined(_RUST)\n" );
+         fprintf( out, "#if !defined(_JAVA)\n" );
       }
 
       for( i=0; i < funcInfo->nbOutput; i++ )
@@ -2869,7 +2860,7 @@ static void printFunc(FILE *out,
       if( validationCode )
       {
          printIndent( out, indent );
-         fprintf( out, "#endif /* !defined(_JAVA) && !defined(_RUST) */\n" );
+         fprintf( out, "#endif /* !defined(_JAVA) */\n" );
       }
 
    }
@@ -3120,7 +3111,6 @@ static void doFuncFile( const TA_FuncInfo *funcInfo )
    print( gOutFunc_C->file, "#elif defined( _JAVA )\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0);
    print( gOutFunc_C->file, "#elif defined( _RUST )\n" );
-   printRustFuncDoc(gOutFunc_C->file, funcInfo, RUST_DOC_SINGLE);
    printRustSinglePrecisionFunctionSignature(gOutFunc_C->file, NULL, funcInfo);
    print( gOutFunc_C->file, "#else\n" );
    printFunc( gOutFunc_C->file, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0);
@@ -3409,7 +3399,6 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
    print( out, "#elif defined( _JAVA )\n" );
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0);
    print( out, "#elif defined( _RUST )\n" );
-   printRustFuncDoc(out, funcInfo, RUST_DOC_LOOKBACK);
    printRustLookbackFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -3450,7 +3439,6 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
 
    printFunc( out, NULL, funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0);
    print( out, "#elif defined( _RUST )\n" );
-   printRustFuncDoc(out, funcInfo, RUST_DOC_MAIN);
    printRustDoublePrecisionFunctionSignature(out, NULL, funcInfo);
    print( out, "#else\n" );
    printFunc( out, "TA_LIB_API ", funcInfo, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
@@ -3482,7 +3470,12 @@ static void writeFuncFile( const TA_FuncInfo *funcInfo )
     * Also generates the code for setting up the
     * default values.
     */
+   print( out, "#if defined( _RUST )\n" );
+   // printRustRangeCheckValidationCode();
+   print( out, "\n" );
+   print( out, "#else\n" );
    printFunc( out, NULL, funcInfo, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+   print( out, "#endif\n" );
 
    print( out, "#endif /* TA_FUNC_NO_RANGE_CHECK */\n" );
    print( out, "\n" );
@@ -3566,9 +3559,9 @@ static void printOptInputValidation( FILE *out,
    case TA_OptInput_IntegerRange:
 	   print(out, "   /* min/max are checked for %s. */\n", name);
    case TA_OptInput_IntegerList:
-	   print(out, "   if( CAST_TO_I32(%s) == TA_INTEGER_DEFAULT ) {\n", name);
+	   print(out, "   if( (int)%s == TA_INTEGER_DEFAULT ) {\n", name);
 	   print(out, "	  %s = %s%d;\n", name, isMAType ? "(TA_MAType)" : "", (int)optInputParamInfo->defaultValue);
-	   print(out, "   } else if( (CAST_TO_I32(%s) < %d) || (CAST_TO_I32(%s) > %d) ) {\n",
+	   print(out, "   } else if( ((int)%s < %d) || ((int)%s > %d) ) {\n",
 	         name, minInt,
 	         name, maxInt);
 	   break;

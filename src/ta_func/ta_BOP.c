@@ -88,11 +88,7 @@
 /* Generated */ public int bopLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::bop`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-/* Generated */ pub fn bop_lookback(&self,
+/* Generated */ pub fn bop_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_BOP_Lookback( void )
@@ -150,57 +146,11 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Balance Of Power
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inOpen` - Open price series
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `inClose` - Close price series
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_open = [1.0_f64; 50];
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let in_close = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.bop(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_open,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    &in_close,
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn bop(&self, mut startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   /* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn bop(startIdx: usize,
+/* Generated */            endIdx: usize,
+/* Generated */            /* Generated */            outBegIdx: &mut usize,
+/* Generated */            outNBElement: &mut usize,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_BOP( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -237,17 +187,21 @@
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inOpen||!inHigh||!inLow||!inClose){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -313,12 +267,11 @@
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::bop`].
-/* Generated */ pub fn bop_s(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn bop_s(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              /* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_BOP( int    startIdx,
 /* Generated */                      int    endIdx,
@@ -346,15 +299,18 @@
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inOpen||!inHigh||!inLow||!inClose){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    outIdx = 0;
 /* Generated */    for( i=startIdx; i <= endIdx; i++ )

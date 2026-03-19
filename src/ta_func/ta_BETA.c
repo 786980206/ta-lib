@@ -87,13 +87,8 @@
 /* Generated */ public int betaLookback( int           optInTimePeriod )  /* From 1 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::beta`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
-/* Generated */ pub fn beta_lookback(&self,
-mut optInTimePeriod: i32) -> i32
+/* Generated */ pub fn beta_lookback(
+optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_BETA_Lookback( int           optInTimePeriod )  /* From 1 to 100000 */
 /* Generated */ 
@@ -105,9 +100,9 @@ mut optInTimePeriod: i32) -> i32
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 5;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -158,56 +153,14 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Beta
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inReal0` - Input price series
-@RUSTDOC@* `inReal1` - Input price series
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let input = [1.0_f64; 50];
-@RUSTDOC@let input = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.beta(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &input,
-@RUSTDOC@    &input,
-@RUSTDOC@    5, // optInTimePeriod
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn beta(&self, mut startIdx: usize,
-/* Generated */                    endIdx: usize,
-/* Generated */                    inReal0: &[f64],
-/* Generated */                    inReal1: &[f64],
-/* Generated */                    mut optInTimePeriod: i32,
-/* Generated */                    outBegIdx: &mut usize,
-/* Generated */                    outNBElement: &mut usize,
-/* Generated */                    outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn beta(startIdx: usize,
+/* Generated */             endIdx: usize,
+/* Generated */             inReal0: &[f64],
+/* Generated */             inReal1: &[f64],
+/* Generated */             optInTimePeriod: i32,
+/* Generated */             outBegIdx: &mut usize,
+/* Generated */             outNBElement: &mut usize,
+/* Generated */             outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_BETA( int    startIdx,
 /* Generated */                                int    endIdx,
@@ -255,21 +208,25 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !inReal0 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */    if( !inReal1 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 5;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -437,15 +394,14 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                      MInteger     outNBElement,
 /* Generated */                      double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::beta`].
-/* Generated */ pub fn beta_s(&self, mut startIdx: usize,
-/* Generated */                      endIdx: usize,
-/* Generated */                      inReal0: &[f32],
-/* Generated */                      inReal1: &[f32],
-/* Generated */                      mut optInTimePeriod: i32,
-/* Generated */                      outBegIdx: &mut usize,
-/* Generated */                      outNBElement: &mut usize,
-/* Generated */                      outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn beta_s(startIdx: usize,
+/* Generated */               endIdx: usize,
+/* Generated */               inReal0: &[f32],
+/* Generated */               inReal1: &[f32],
+/* Generated */               optInTimePeriod: i32,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_BETA( int    startIdx,
 /* Generated */                       int    endIdx,
@@ -484,19 +440,22 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !inReal0 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     if( !inReal1 ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInTimePeriod = 5;
-/* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 1) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */     } else if( ((int)optInTimePeriod < 1) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    nbInitialElementNeeded = optInTimePeriod;
 /* Generated */    if( startIdx < nbInitialElementNeeded )

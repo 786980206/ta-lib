@@ -95,21 +95,12 @@
 /* Generated */                         int           optInSlowD_Period, /* From 1 to 100000 */
 /* Generated */                         MAType        optInSlowD_MAType ) /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::stoch`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
-@RUSTDOC@* `optInSlowK_Period` - Smoothing for making the Slow-K line. Usually set to 3 (default: 3, range: 1..=100000)
-@RUSTDOC@* `optInSlowK_MAType` - Type of Moving Average for Slow-K
-@RUSTDOC@* `optInSlowD_Period` - Smoothing for making the Slow-D line (default: 3, range: 1..=100000)
-@RUSTDOC@* `optInSlowD_MAType` - Type of Moving Average for Slow-D
-/* Generated */ pub fn stoch_lookback(&self,
-mut optInFastK_Period: i32,
-/* Generated */                              mut optInSlowK_Period: i32,
-/* Generated */                              mut optInSlowK_MAType: i32,
-/* Generated */                              mut optInSlowD_Period: i32,
-/* Generated */                              mut optInSlowD_MAType: i32) -> i32
+/* Generated */ pub fn stoch_lookback(
+optInFastK_Period: i32,
+/* Generated */                        optInSlowK_Period: i32,
+/* Generated */                        optInSlowK_MAType: i32,
+/* Generated */                        optInSlowD_Period: i32,
+/* Generated */                        optInSlowD_MAType: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_STOCH_Lookback( int           optInFastK_Period, /* From 1 to 100000 */
 /* Generated */                                            int           optInSlowK_Period, /* From 1 to 100000 */
@@ -125,34 +116,34 @@ mut optInFastK_Period: i32,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInFastK_Period. */
-/* Generated */    if( CAST_TO_I32(optInFastK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInFastK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastK_Period = 5;
-/* Generated */    } else if( (CAST_TO_I32(optInFastK_Period) < 1) || (CAST_TO_I32(optInFastK_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowK_Period. */
-/* Generated */    if( CAST_TO_I32(optInSlowK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowK_Period = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowK_Period) < 1) || (CAST_TO_I32(optInSlowK_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( CAST_TO_I32(optInSlowK_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowK_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowK_MAType = (TA_MAType)0;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowK_MAType) < 0) || (CAST_TO_I32(optInSlowK_MAType) > 8) ) {
+/* Generated */    } else if( ((int)optInSlowK_MAType < 0) || ((int)optInSlowK_MAType > 8) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInSlowD_Period. */
-/* Generated */    if( CAST_TO_I32(optInSlowD_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowD_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowD_Period = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowD_Period) < 1) || (CAST_TO_I32(optInSlowD_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( CAST_TO_I32(optInSlowD_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowD_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowD_MAType = (TA_MAType)0;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowD_MAType) < 0) || (CAST_TO_I32(optInSlowD_MAType) > 8) ) {
+/* Generated */    } else if( ((int)optInSlowD_MAType < 0) || ((int)optInSlowD_MAType > 8) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
@@ -246,73 +237,17 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Stochastic
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `inClose` - Close price series
-@RUSTDOC@* `optInFastK_Period` - Time period for building the Fast-K line (default: 5, range: 1..=100000)
-@RUSTDOC@* `optInSlowK_Period` - Smoothing for making the Slow-K line. Usually set to 3 (default: 3, range: 1..=100000)
-@RUSTDOC@* `optInSlowK_MAType` - Type of Moving Average for Slow-K
-@RUSTDOC@* `optInSlowD_Period` - Smoothing for making the Slow-D line (default: 3, range: 1..=100000)
-@RUSTDOC@* `optInSlowD_MAType` - Type of Moving Average for Slow-D
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outSlowK` - Output values
-@RUSTDOC@* `outSlowD` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let in_close = [1.0_f64; 50];
-@RUSTDOC@let mut outSlowK = [0.0_f64; 50];
-@RUSTDOC@let mut outSlowD = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.stoch(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    &in_close,
-@RUSTDOC@    5, // optInFastK_Period
-@RUSTDOC@    3, // optInSlowK_Period
-@RUSTDOC@    0, // optInSlowK_MAType
-@RUSTDOC@    3, // optInSlowD_Period
-@RUSTDOC@    0, // optInSlowD_MAType
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut outSlowK,
-@RUSTDOC@    &mut outSlowD,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn stoch(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     mut optInFastK_Period: i32,
-/* Generated */                     mut optInSlowK_Period: i32,
-/* Generated */                     mut optInSlowK_MAType: i32,
-/* Generated */                     mut optInSlowD_Period: i32,
-/* Generated */                     mut optInSlowD_MAType: i32,
-/* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outSlowK: &mut [f64],
-/* Generated */                     outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              /* Generated */              optInFastK_Period: i32,
+/* Generated */              optInSlowK_Period: i32,
+/* Generated */              optInSlowK_MAType: i32,
+/* Generated */              optInSlowD_Period: i32,
+/* Generated */              optInSlowD_MAType: i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outSlowK: &mut [f64],
+/* Generated */              outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -361,52 +296,56 @@ mut optInFastK_Period: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow||!inClose){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInFastK_Period. */
-/* Generated */    if( CAST_TO_I32(optInFastK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInFastK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastK_Period = 5;
-/* Generated */    } else if( (CAST_TO_I32(optInFastK_Period) < 1) || (CAST_TO_I32(optInFastK_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowK_Period. */
-/* Generated */    if( CAST_TO_I32(optInSlowK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowK_Period = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowK_Period) < 1) || (CAST_TO_I32(optInSlowK_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( CAST_TO_I32(optInSlowK_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowK_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowK_MAType = (TA_MAType)0;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowK_MAType) < 0) || (CAST_TO_I32(optInSlowK_MAType) > 8) ) {
+/* Generated */    } else if( ((int)optInSlowK_MAType < 0) || ((int)optInSlowK_MAType > 8) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInSlowD_Period. */
-/* Generated */    if( CAST_TO_I32(optInSlowD_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowD_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowD_Period = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowD_Period) < 1) || (CAST_TO_I32(optInSlowD_Period) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */    if( CAST_TO_I32(optInSlowD_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowD_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowD_MAType = (TA_MAType)0;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowD_MAType) < 0) || (CAST_TO_I32(optInSlowD_MAType) > 8) ) {
+/* Generated */    } else if( ((int)optInSlowD_MAType < 0) || ((int)optInSlowD_MAType > 8) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    #endif /* !defined(_MANAGED) && !defined(_JAVA)*/
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outSlowK )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
 /* Generated */    if( !outSlowD )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -709,18 +648,17 @@ mut optInFastK_Period: i32,
 /* Generated */                       double        outSlowK[],
 /* Generated */                       double        outSlowD[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::stoch`].
-/* Generated */ pub fn stoch_s(&self, mut startIdx: usize,
-/* Generated */                       endIdx: usize,
-/* Generated */                       /* Generated */                       mut optInFastK_Period: i32,
-/* Generated */                       mut optInSlowK_Period: i32,
-/* Generated */                       mut optInSlowK_MAType: i32,
-/* Generated */                       mut optInSlowD_Period: i32,
-/* Generated */                       mut optInSlowD_MAType: i32,
-/* Generated */                       outBegIdx: &mut usize,
-/* Generated */                       outNBElement: &mut usize,
-/* Generated */                       outSlowK: &mut [f64],
-/* Generated */                       outSlowD: &mut [f64]) -> RetCode
+/* Generated */ pub fn stoch_s(startIdx: usize,
+/* Generated */                endIdx: usize,
+/* Generated */                /* Generated */                optInFastK_Period: i32,
+/* Generated */                optInSlowK_Period: i32,
+/* Generated */                optInSlowK_MAType: i32,
+/* Generated */                optInSlowD_Period: i32,
+/* Generated */                optInSlowD_MAType: i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
+/* Generated */                outSlowK: &mut [f64],
+/* Generated */                outSlowD: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_STOCH( int    startIdx,
 /* Generated */                        int    endIdx,
@@ -760,46 +698,49 @@ mut optInFastK_Period: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inHigh||!inLow||!inClose){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInFastK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInFastK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInFastK_Period = 5;
-/* Generated */     } else if( (CAST_TO_I32(optInFastK_Period) < 1) || (CAST_TO_I32(optInFastK_Period) > 100000) ) {
+/* Generated */     } else if( ((int)optInFastK_Period < 1) || ((int)optInFastK_Period > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     if( CAST_TO_I32(optInSlowK_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInSlowK_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowK_Period = 3;
-/* Generated */     } else if( (CAST_TO_I32(optInSlowK_Period) < 1) || (CAST_TO_I32(optInSlowK_Period) > 100000) ) {
+/* Generated */     } else if( ((int)optInSlowK_Period < 1) || ((int)optInSlowK_Period > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */     if( CAST_TO_I32(optInSlowK_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInSlowK_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowK_MAType = (TA_MAType)0;
-/* Generated */     } else if( (CAST_TO_I32(optInSlowK_MAType) < 0) || (CAST_TO_I32(optInSlowK_MAType) > 8) ) {
+/* Generated */     } else if( ((int)optInSlowK_MAType < 0) || ((int)optInSlowK_MAType > 8) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInSlowD_Period) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInSlowD_Period == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowD_Period = 3;
-/* Generated */     } else if( (CAST_TO_I32(optInSlowD_Period) < 1) || (CAST_TO_I32(optInSlowD_Period) > 100000) ) {
+/* Generated */     } else if( ((int)optInSlowD_Period < 1) || ((int)optInSlowD_Period > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #if !defined(_MANAGED) && !defined(_JAVA)
-/* Generated */     if( CAST_TO_I32(optInSlowD_MAType) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInSlowD_MAType == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowD_MAType = (TA_MAType)0;
-/* Generated */     } else if( (CAST_TO_I32(optInSlowD_MAType) < 0) || (CAST_TO_I32(optInSlowD_MAType) > 8) ) {
+/* Generated */     } else if( ((int)optInSlowD_MAType < 0) || ((int)optInSlowD_MAType > 8) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outSlowK )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outSlowD )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    lookbackK      = optInFastK_Period-1;
 /* Generated */    lookbackKSlow  = LOOKBACK_CALL(MA)( optInSlowK_Period, optInSlowK_MAType );

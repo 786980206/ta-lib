@@ -89,13 +89,8 @@
 /* Generated */ public int rsiLookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::rsi`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-/* Generated */ pub fn rsi_lookback(&self,
-mut optInTimePeriod: i32) -> i32
+/* Generated */ pub fn rsi_lookback(
+optInTimePeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_RSI_Lookback( int           optInTimePeriod )  /* From 2 to 100000 */
 /* Generated */ 
@@ -103,14 +98,14 @@ mut optInTimePeriod: i32) -> i32
 /**** END GENCODE SECTION 1 - DO NOT DELETE THIS LINE ****/
 {
    /* insert local variable here */
-   DECLARE_INT_VAR(retValue)
+   int retValue;
 
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 14;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -120,9 +115,7 @@ mut optInTimePeriod: i32) -> i32
 
    retValue = optInTimePeriod + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
    if( TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock) )
-   {
-      retValue = retValue - 1;
-   }
+      retValue--;
 
    return retValue;
 }
@@ -167,65 +160,13 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Relative Strength Index
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inReal` - Input price series
-@RUSTDOC@* `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@// Calculate 14-period RSI over a price series
-@RUSTDOC@let prices = [
-@RUSTDOC@    44.0, 44.34, 44.09, 43.61, 44.33, 44.83, 44.32, 44.55,
-@RUSTDOC@    43.93, 44.05, 43.80, 43.64, 43.82, 44.29, 44.09, 44.15,
-@RUSTDOC@    43.61, 44.33, 44.83, 44.32, 44.55, 43.93, 44.05, 43.80,
-@RUSTDOC@    43.64, 43.82, 44.29, 44.09, 44.15, 43.61_f64,
-@RUSTDOC@];
-@RUSTDOC@let mut out = [0.0_f64; 30];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.rsi(
-@RUSTDOC@    0,
-@RUSTDOC@    prices.len() - 1,
-@RUSTDOC@    &prices,
-@RUSTDOC@    14,
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@assert_eq!(out_beg_idx, 14);
-@RUSTDOC@assert!(out_nb_element > 0);
-@RUSTDOC@
-@RUSTDOC@// RSI values are bounded between 0 and 100
-@RUSTDOC@for i in 0..out_nb_element {
-@RUSTDOC@    assert!(out[i] >= 0.0 && out[i] <= 100.0);
-@RUSTDOC@}
-@RUSTDOC@```
-/* Generated */ pub fn rsi(&self, mut startIdx: usize,
-/* Generated */                   endIdx: usize,
-/* Generated */                   inReal: &[f64],
-/* Generated */                   mut optInTimePeriod: i32,
-/* Generated */                   outBegIdx: &mut usize,
-/* Generated */                   outNBElement: &mut usize,
-/* Generated */                   outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn rsi(startIdx: usize,
+/* Generated */            endIdx: usize,
+/* Generated */            inReal: &[f64],
+/* Generated */            optInTimePeriod: i32,
+/* Generated */            outBegIdx: &mut usize,
+/* Generated */            outNBElement: &mut usize,
+/* Generated */            outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
 /* Generated */                               int    endIdx,
@@ -238,17 +179,11 @@ mut optInTimePeriod: i32) -> i32
 /**** END GENCODE SECTION 3 - DO NOT DELETE THIS LINE ****/
 {
    /* Insert local variables here. */
-   DECLARE_INDEX_VAR(outIdx)
-   DECLARE_INDEX_VAR(today)
-   DECLARE_INDEX_VAR(lookbackTotal)
-   DECLARE_INT_VAR(unstablePeriod)
-   DECLARE_INT_VAR(i)
-   DECLARE_DOUBLE_VAR(prevGain)
-   DECLARE_DOUBLE_VAR(prevLoss)
-   DECLARE_DOUBLE_VAR(prevValue)
-   DECLARE_DOUBLE_VAR(savePrevValue)
-   DECLARE_DOUBLE_VAR(tempValue1)
-   DECLARE_DOUBLE_VAR(tempValue2)
+   int outIdx;
+
+   int today, lookbackTotal, unstablePeriod, i;
+   double prevGain, prevLoss, prevValue, savePrevValue;
+   double tempValue1, tempValue2;
 
    #if defined( USE_SINGLE_PRECISION_INPUT )
         ARRAY_MEMMOVEMIX_VAR;
@@ -273,20 +208,24 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInTimePeriod. */
-/* Generated */    if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInTimePeriod = 14;
-/* Generated */    } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -312,18 +251,14 @@ mut optInTimePeriod: i32) -> i32
    VALUE_HANDLE_DEREF_TO_ZERO(outNBElement);
 
    /* Adjust startIdx to account for the lookback period. */
-   lookbackTotal = CAST_TO_INDEX(LOOKBACK_CALL(RSI)( optInTimePeriod ));
+   lookbackTotal = LOOKBACK_CALL(RSI)( optInTimePeriod );
 
    if( startIdx < lookbackTotal )
-   {
       startIdx = lookbackTotal;
-   }
 
    /* Make sure there is still something to evaluate. */
    if( startIdx > endIdx )
-   {
       return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
-   }
 
    outIdx = 0; /* Index into the output. */
 
@@ -334,8 +269,8 @@ mut optInTimePeriod: i32) -> i32
    if( optInTimePeriod == 1 )
    {
       VALUE_HANDLE_DEREF(outBegIdx) = startIdx;
-      i = CAST_TO_I32((endIdx-startIdx)+1);
-      VALUE_HANDLE_DEREF(outNBElement) = CAST_TO_INDEX(i);
+      i = (endIdx-startIdx)+1;
+      VALUE_HANDLE_DEREF(outNBElement) = i;
       #if defined( USE_SINGLE_PRECISION_INPUT )
         ARRAY_MEMMOVEMIX( outReal, 0, inReal, startIdx, i );
       #else
@@ -348,7 +283,7 @@ mut optInTimePeriod: i32) -> i32
     * among the initial period.
     */
    today = startIdx-lookbackTotal;
-   prevValue = CAST_TO_F64(inReal[today]);
+   prevValue = inReal[today];
 
    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
 
@@ -377,34 +312,27 @@ mut optInTimePeriod: i32) -> i32
        */
       prevGain = 0.0;
       prevLoss = 0.0;
-      FOR_COUNTDOWN(optInTimePeriod, i)
-         tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+      for( i=optInTimePeriod; i > 0; i-- )
+      {
+         tempValue1 = inReal[today++];
          tempValue2 = tempValue1 - prevValue;
          prevValue  = tempValue1;
-         if( tempValue2 < 0.0 )
-         {
+         if( tempValue2 < 0 )
             prevLoss -= tempValue2;
-         }
          else
-         {
             prevGain += tempValue2;
-         }
-      FOR_COUNTDOWN_END
+      }
 
 
-      tempValue1 = prevLoss/CAST_TO_F64(optInTimePeriod);
-      tempValue2 = prevGain/CAST_TO_F64(optInTimePeriod);
+      tempValue1 = prevLoss/optInTimePeriod;
+      tempValue2 = prevGain/optInTimePeriod;
 
       /* Write the output. */
       tempValue1 = tempValue2+tempValue1;
       if( !TA_IS_ZERO(tempValue1) )
-      {
-         outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 100*(tempValue2/tempValue1);
       else
-      {
-         outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 0.0;
 
       /* Are we done? */
       if( today > endIdx )
@@ -415,7 +343,7 @@ mut optInTimePeriod: i32) -> i32
       }
 
       /* Start over for the next price bar. */
-      today = today - CAST_TO_INDEX(optInTimePeriod);
+      today -= optInTimePeriod;
       prevValue = savePrevValue;
    }
 
@@ -425,20 +353,17 @@ mut optInTimePeriod: i32) -> i32
     */
    prevGain = 0.0;
    prevLoss = 0.0;
-   today = today + 1;
-   FOR_COUNTDOWN(optInTimePeriod, i)
-      tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+   today++;
+   for( i=optInTimePeriod; i > 0; i-- )
+   {
+      tempValue1 = inReal[today++];
       tempValue2 = tempValue1 - prevValue;
       prevValue  = tempValue1;
-      if( tempValue2 < 0.0 )
-      {
+      if( tempValue2 < 0 )
          prevLoss -= tempValue2;
-      }
       else
-      {
          prevGain += tempValue2;
-      }
-   FOR_COUNTDOWN_END
+   }
 
 
    /* Subsequent prevLoss and prevGain are smoothed
@@ -447,8 +372,8 @@ mut optInTimePeriod: i32) -> i32
     *  2) Add today value.
     *  3) Divide by 'period'.
     */
-   prevLoss /= CAST_TO_F64(optInTimePeriod);
-   prevGain /= CAST_TO_F64(optInTimePeriod);
+   prevLoss /= optInTimePeriod;
+   prevGain /= optInTimePeriod;
 
    /* Often documentation present the RSI calculation as follow:
     *    RSI = 100 - (100 / 1 + (prevGain/prevLoss))
@@ -462,13 +387,9 @@ mut optInTimePeriod: i32) -> i32
    {
       tempValue1 = prevGain+prevLoss;
       if( !TA_IS_ZERO(tempValue1) )
-      {
-         outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 100.0*(prevGain/tempValue1);
       else
-      {
-         outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 0.0;
    }
    else
    {
@@ -477,25 +398,21 @@ mut optInTimePeriod: i32) -> i32
        */
       while( today < startIdx )
       {
-         tempValue1 = CAST_TO_F64(inReal[today]);
+         tempValue1 = inReal[today];
          tempValue2 = tempValue1 - prevValue;
          prevValue  = tempValue1;
 
-         prevLoss *= CAST_TO_F64(optInTimePeriod-1);
-         prevGain *= CAST_TO_F64(optInTimePeriod-1);
-         if( tempValue2 < 0.0 )
-         {
+         prevLoss *= (optInTimePeriod-1);
+         prevGain *= (optInTimePeriod-1);
+         if( tempValue2 < 0 )
             prevLoss -= tempValue2;
-         }
          else
-         {
             prevGain += tempValue2;
-         }
 
-         prevLoss /= CAST_TO_F64(optInTimePeriod);
-         prevGain /= CAST_TO_F64(optInTimePeriod);
+         prevLoss /= optInTimePeriod;
+         prevGain /= optInTimePeriod;
 
-         today = today + 1;
+         today++;
       }
    }
 
@@ -504,32 +421,24 @@ mut optInTimePeriod: i32) -> i32
     */
    while( today <= endIdx )
    {
-      tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+      tempValue1 = inReal[today++];
       tempValue2 = tempValue1 - prevValue;
       prevValue  = tempValue1;
 
-      prevLoss *= CAST_TO_F64(optInTimePeriod-1);
-      prevGain *= CAST_TO_F64(optInTimePeriod-1);
-      if( tempValue2 < 0.0 )
-      {
+      prevLoss *= (optInTimePeriod-1);
+      prevGain *= (optInTimePeriod-1);
+      if( tempValue2 < 0 )
          prevLoss -= tempValue2;
-      }
       else
-      {
          prevGain += tempValue2;
-      }
 
-      prevLoss /= CAST_TO_F64(optInTimePeriod);
-      prevGain /= CAST_TO_F64(optInTimePeriod);
+      prevLoss /= optInTimePeriod;
+      prevGain /= optInTimePeriod;
       tempValue1 = prevGain+prevLoss;
       if( !TA_IS_ZERO(tempValue1) )
-      {
-         outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 100.0*(prevGain/tempValue1);
       else
-      {
-         outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-      }
+         outReal[outIdx++] = 0.0;
    }
 
    VALUE_HANDLE_DEREF(outBegIdx) = startIdx;
@@ -573,14 +482,13 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                     MInteger     outNBElement,
 /* Generated */                     double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::rsi`].
-/* Generated */ pub fn rsi_s(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     inReal: &[f32],
-/* Generated */                     mut optInTimePeriod: i32,
-/* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn rsi_s(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              inReal: &[f32],
+/* Generated */              optInTimePeriod: i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_RSI( int    startIdx,
 /* Generated */                      int    endIdx,
@@ -591,17 +499,10 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */                      double        outReal[] )
 /* Generated */ #endif
 /* Generated */ {
-/* Generated */    DECLARE_INDEX_VAR(outIdx)
-/* Generated */    DECLARE_INDEX_VAR(today)
-/* Generated */    DECLARE_INDEX_VAR(lookbackTotal)
-/* Generated */    DECLARE_INT_VAR(unstablePeriod)
-/* Generated */    DECLARE_INT_VAR(i)
-/* Generated */    DECLARE_DOUBLE_VAR(prevGain)
-/* Generated */    DECLARE_DOUBLE_VAR(prevLoss)
-/* Generated */    DECLARE_DOUBLE_VAR(prevValue)
-/* Generated */    DECLARE_DOUBLE_VAR(savePrevValue)
-/* Generated */    DECLARE_DOUBLE_VAR(tempValue1)
-/* Generated */    DECLARE_DOUBLE_VAR(tempValue2)
+/* Generated */    int outIdx;
+/* Generated */    int today, lookbackTotal, unstablePeriod, i;
+/* Generated */    double prevGain, prevLoss, prevValue, savePrevValue;
+/* Generated */    double tempValue1, tempValue2;
 /* Generated */    #if defined( USE_SINGLE_PRECISION_INPUT )
 /* Generated */         ARRAY_MEMMOVEMIX_VAR;
 /* Generated */    #endif
@@ -618,36 +519,35 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInTimePeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInTimePeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInTimePeriod = 14;
-/* Generated */     } else if( (CAST_TO_I32(optInTimePeriod) < 2) || (CAST_TO_I32(optInTimePeriod) > 100000) ) {
+/* Generated */     } else if( ((int)optInTimePeriod < 2) || ((int)optInTimePeriod > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    VALUE_HANDLE_DEREF_TO_ZERO(outBegIdx);
 /* Generated */    VALUE_HANDLE_DEREF_TO_ZERO(outNBElement);
-/* Generated */    lookbackTotal = CAST_TO_INDEX(LOOKBACK_CALL(RSI)( optInTimePeriod ));
+/* Generated */    lookbackTotal = LOOKBACK_CALL(RSI)( optInTimePeriod );
 /* Generated */    if( startIdx < lookbackTotal )
-/* Generated */    {
 /* Generated */       startIdx = lookbackTotal;
-/* Generated */    }
 /* Generated */    if( startIdx > endIdx )
-/* Generated */    {
 /* Generated */       return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
-/* Generated */    }
 /* Generated */    outIdx = 0; 
 /* Generated */    if( optInTimePeriod == 1 )
 /* Generated */    {
 /* Generated */       VALUE_HANDLE_DEREF(outBegIdx) = startIdx;
-/* Generated */       i = CAST_TO_I32((endIdx-startIdx)+1);
-/* Generated */       VALUE_HANDLE_DEREF(outNBElement) = CAST_TO_INDEX(i);
+/* Generated */       i = (endIdx-startIdx)+1;
+/* Generated */       VALUE_HANDLE_DEREF(outNBElement) = i;
 /* Generated */       #if defined( USE_SINGLE_PRECISION_INPUT )
 /* Generated */         ARRAY_MEMMOVEMIX( outReal, 0, inReal, startIdx, i );
 /* Generated */       #else
@@ -656,7 +556,7 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */       return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
 /* Generated */    }
 /* Generated */    today = startIdx-lookbackTotal;
-/* Generated */    prevValue = CAST_TO_F64(inReal[today]);
+/* Generated */    prevValue = inReal[today];
 /* Generated */    unstablePeriod = TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_RSI,Rsi);
 /* Generated */    if( (unstablePeriod == 0) &&
 /* Generated */        (TA_GLOBALS_COMPATIBILITY == ENUM_VALUE(Compatibility,TA_COMPATIBILITY_METASTOCK,Metastock)))
@@ -664,117 +564,91 @@ mut optInTimePeriod: i32) -> i32
 /* Generated */       savePrevValue = prevValue;
 /* Generated */       prevGain = 0.0;
 /* Generated */       prevLoss = 0.0;
-/* Generated */       FOR_COUNTDOWN(optInTimePeriod, i)
-/* Generated */          tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+/* Generated */       for( i=optInTimePeriod; i > 0; i-- )
+/* Generated */       {
+/* Generated */          tempValue1 = inReal[today++];
 /* Generated */          tempValue2 = tempValue1 - prevValue;
 /* Generated */          prevValue  = tempValue1;
-/* Generated */          if( tempValue2 < 0.0 )
-/* Generated */          {
+/* Generated */          if( tempValue2 < 0 )
 /* Generated */             prevLoss -= tempValue2;
-/* Generated */          }
 /* Generated */          else
-/* Generated */          {
 /* Generated */             prevGain += tempValue2;
-/* Generated */          }
-/* Generated */       FOR_COUNTDOWN_END
-/* Generated */       tempValue1 = prevLoss/CAST_TO_F64(optInTimePeriod);
-/* Generated */       tempValue2 = prevGain/CAST_TO_F64(optInTimePeriod);
+/* Generated */       }
+/* Generated */       tempValue1 = prevLoss/optInTimePeriod;
+/* Generated */       tempValue2 = prevGain/optInTimePeriod;
 /* Generated */       tempValue1 = tempValue2+tempValue1;
 /* Generated */       if( !TA_IS_ZERO(tempValue1) )
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 100*(tempValue2/tempValue1);
 /* Generated */       else
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 0.0;
 /* Generated */       if( today > endIdx )
 /* Generated */       {
 /* Generated */          VALUE_HANDLE_DEREF(outBegIdx)    = startIdx;
 /* Generated */          VALUE_HANDLE_DEREF(outNBElement) = outIdx;
 /* Generated */          return ENUM_VALUE(RetCode,TA_SUCCESS,Success);
 /* Generated */       }
-/* Generated */       today = today - CAST_TO_INDEX(optInTimePeriod);
+/* Generated */       today -= optInTimePeriod;
 /* Generated */       prevValue = savePrevValue;
 /* Generated */    }
 /* Generated */    prevGain = 0.0;
 /* Generated */    prevLoss = 0.0;
-/* Generated */    today = today + 1;
-/* Generated */    FOR_COUNTDOWN(optInTimePeriod, i)
-/* Generated */       tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+/* Generated */    today++;
+/* Generated */    for( i=optInTimePeriod; i > 0; i-- )
+/* Generated */    {
+/* Generated */       tempValue1 = inReal[today++];
 /* Generated */       tempValue2 = tempValue1 - prevValue;
 /* Generated */       prevValue  = tempValue1;
-/* Generated */       if( tempValue2 < 0.0 )
-/* Generated */       {
+/* Generated */       if( tempValue2 < 0 )
 /* Generated */          prevLoss -= tempValue2;
-/* Generated */       }
 /* Generated */       else
-/* Generated */       {
 /* Generated */          prevGain += tempValue2;
-/* Generated */       }
-/* Generated */    FOR_COUNTDOWN_END
-/* Generated */    prevLoss /= CAST_TO_F64(optInTimePeriod);
-/* Generated */    prevGain /= CAST_TO_F64(optInTimePeriod);
+/* Generated */    }
+/* Generated */    prevLoss /= optInTimePeriod;
+/* Generated */    prevGain /= optInTimePeriod;
 /* Generated */    if( today > startIdx )
 /* Generated */    {
 /* Generated */       tempValue1 = prevGain+prevLoss;
 /* Generated */       if( !TA_IS_ZERO(tempValue1) )
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 100.0*(prevGain/tempValue1);
 /* Generated */       else
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 0.0;
 /* Generated */    }
 /* Generated */    else
 /* Generated */    {
 /* Generated */       while( today < startIdx )
 /* Generated */       {
-/* Generated */          tempValue1 = CAST_TO_F64(inReal[today]);
+/* Generated */          tempValue1 = inReal[today];
 /* Generated */          tempValue2 = tempValue1 - prevValue;
 /* Generated */          prevValue  = tempValue1;
-/* Generated */          prevLoss *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */          prevGain *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */          if( tempValue2 < 0.0 )
-/* Generated */          {
+/* Generated */          prevLoss *= (optInTimePeriod-1);
+/* Generated */          prevGain *= (optInTimePeriod-1);
+/* Generated */          if( tempValue2 < 0 )
 /* Generated */             prevLoss -= tempValue2;
-/* Generated */          }
 /* Generated */          else
-/* Generated */          {
 /* Generated */             prevGain += tempValue2;
-/* Generated */          }
-/* Generated */          prevLoss /= CAST_TO_F64(optInTimePeriod);
-/* Generated */          prevGain /= CAST_TO_F64(optInTimePeriod);
-/* Generated */          today = today + 1;
+/* Generated */          prevLoss /= optInTimePeriod;
+/* Generated */          prevGain /= optInTimePeriod;
+/* Generated */          today++;
 /* Generated */       }
 /* Generated */    }
 /* Generated */    while( today <= endIdx )
 /* Generated */    {
-/* Generated */       tempValue1 = CAST_TO_F64(inReal[today]); today = today + 1;
+/* Generated */       tempValue1 = inReal[today++];
 /* Generated */       tempValue2 = tempValue1 - prevValue;
 /* Generated */       prevValue  = tempValue1;
-/* Generated */       prevLoss *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */       prevGain *= CAST_TO_F64(optInTimePeriod-1);
-/* Generated */       if( tempValue2 < 0.0 )
-/* Generated */       {
+/* Generated */       prevLoss *= (optInTimePeriod-1);
+/* Generated */       prevGain *= (optInTimePeriod-1);
+/* Generated */       if( tempValue2 < 0 )
 /* Generated */          prevLoss -= tempValue2;
-/* Generated */       }
 /* Generated */       else
-/* Generated */       {
 /* Generated */          prevGain += tempValue2;
-/* Generated */       }
-/* Generated */       prevLoss /= CAST_TO_F64(optInTimePeriod);
-/* Generated */       prevGain /= CAST_TO_F64(optInTimePeriod);
+/* Generated */       prevLoss /= optInTimePeriod;
+/* Generated */       prevGain /= optInTimePeriod;
 /* Generated */       tempValue1 = prevGain+prevLoss;
 /* Generated */       if( !TA_IS_ZERO(tempValue1) )
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 100.0*(prevGain/tempValue1);
 /* Generated */       else
-/* Generated */       {
-/* Generated */          outReal[outIdx] = 0.0; outIdx = outIdx + 1;
-/* Generated */       }
+/* Generated */          outReal[outIdx++] = 0.0;
 /* Generated */    }
 /* Generated */    VALUE_HANDLE_DEREF(outBegIdx) = startIdx;
 /* Generated */    VALUE_HANDLE_DEREF(outNBElement) = outIdx;

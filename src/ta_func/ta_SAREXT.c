@@ -115,27 +115,15 @@
 /* Generated */                          double        optInAccelerationMaxShort )  /* From 0 to TA_REAL_MAX */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::sarext`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInStartValue` - Start value and direction. 0 for Auto, >0 for Long, <0 for Short (default: 0)
-@RUSTDOC@* `optInOffsetOnReverse` - Percent offset added/removed to initial stop on short/long reversal (default: 0)
-@RUSTDOC@* `optInAccelerationInitLong` - Acceleration Factor initial value for the Long direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationLong` - Acceleration Factor for the Long direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationMaxLong` - Acceleration Factor maximum value for the Long direction (default: 0.2)
-@RUSTDOC@* `optInAccelerationInitShort` - Acceleration Factor initial value for the Short direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationShort` - Acceleration Factor for the Short direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationMaxShort` - Acceleration Factor maximum value for the Short direction (default: 0.2)
-/* Generated */ pub fn sarext_lookback(&self,
-mut optInStartValue: f64,
-/* Generated */                               mut optInOffsetOnReverse: f64,
-/* Generated */                               mut optInAccelerationInitLong: f64,
-/* Generated */                               mut optInAccelerationLong: f64,
-/* Generated */                               mut optInAccelerationMaxLong: f64,
-/* Generated */                               mut optInAccelerationInitShort: f64,
-/* Generated */                               mut optInAccelerationShort: f64,
-/* Generated */                               mut optInAccelerationMaxShort: f64) -> i32
+/* Generated */ pub fn sarext_lookback(
+optInStartValue: f64,
+/* Generated */                         optInOffsetOnReverse: f64,
+/* Generated */                         optInAccelerationInitLong: f64,
+/* Generated */                         optInAccelerationLong: f64,
+/* Generated */                         optInAccelerationMaxLong: f64,
+/* Generated */                         optInAccelerationInitShort: f64,
+/* Generated */                         optInAccelerationShort: f64,
+/* Generated */                         optInAccelerationMaxShort: f64) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_SAREXT_Lookback( double        optInStartValue, /* From TA_REAL_MIN to TA_REAL_MAX */
 /* Generated */                                             double        optInOffsetOnReverse, /* From 0 to TA_REAL_MAX */
@@ -298,75 +286,19 @@ mut optInStartValue: f64,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Parabolic SAR - Extended
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `optInStartValue` - Start value and direction. 0 for Auto, >0 for Long, <0 for Short (default: 0)
-@RUSTDOC@* `optInOffsetOnReverse` - Percent offset added/removed to initial stop on short/long reversal (default: 0)
-@RUSTDOC@* `optInAccelerationInitLong` - Acceleration Factor initial value for the Long direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationLong` - Acceleration Factor for the Long direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationMaxLong` - Acceleration Factor maximum value for the Long direction (default: 0.2)
-@RUSTDOC@* `optInAccelerationInitShort` - Acceleration Factor initial value for the Short direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationShort` - Acceleration Factor for the Short direction (default: 0.02)
-@RUSTDOC@* `optInAccelerationMaxShort` - Acceleration Factor maximum value for the Short direction (default: 0.2)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.sarext(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    0, // optInStartValue
-@RUSTDOC@    0, // optInOffsetOnReverse
-@RUSTDOC@    0, // optInAccelerationInitLong
-@RUSTDOC@    0, // optInAccelerationLong
-@RUSTDOC@    0, // optInAccelerationMaxLong
-@RUSTDOC@    0, // optInAccelerationInitShort
-@RUSTDOC@    0, // optInAccelerationShort
-@RUSTDOC@    0, // optInAccelerationMaxShort
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn sarext(&self, mut startIdx: usize,
-/* Generated */                      endIdx: usize,
-/* Generated */                      /* Generated */                      mut optInStartValue: f64,
-/* Generated */                      mut optInOffsetOnReverse: f64,
-/* Generated */                      mut optInAccelerationInitLong: f64,
-/* Generated */                      mut optInAccelerationLong: f64,
-/* Generated */                      mut optInAccelerationMaxLong: f64,
-/* Generated */                      mut optInAccelerationInitShort: f64,
-/* Generated */                      mut optInAccelerationShort: f64,
-/* Generated */                      mut optInAccelerationMaxShort: f64,
-/* Generated */                      outBegIdx: &mut usize,
-/* Generated */                      outNBElement: &mut usize,
-/* Generated */                      outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sarext(startIdx: usize,
+/* Generated */               endIdx: usize,
+/* Generated */               /* Generated */               optInStartValue: f64,
+/* Generated */               optInOffsetOnReverse: f64,
+/* Generated */               optInAccelerationInitLong: f64,
+/* Generated */               optInAccelerationLong: f64,
+/* Generated */               optInAccelerationMaxLong: f64,
+/* Generated */               optInAccelerationInitShort: f64,
+/* Generated */               optInAccelerationShort: f64,
+/* Generated */               optInAccelerationMaxShort: f64,
+/* Generated */               outBegIdx: &mut usize,
+/* Generated */               outNBElement: &mut usize,
+/* Generated */               outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_SAREXT( int    startIdx,
 /* Generated */                                  int    endIdx,
@@ -417,12 +349,15 @@ mut optInStartValue: f64,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    if( optInStartValue == TA_REAL_DEFAULT ) {
 /* Generated */ 	  optInStartValue = 0.000000e+0;
 /* Generated */    } else if( (optInStartValue < -3.000000e+37) ||/* Generated */  (optInStartValue > 3.000000e+37) ) {
@@ -463,11 +398,12 @@ mut optInStartValue: f64,
 /* Generated */    } else if( (optInAccelerationMaxShort < 0.000000e+0) ||/* Generated */  (optInAccelerationMaxShort > 3.000000e+37) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -859,20 +795,19 @@ mut optInStartValue: f64,
 /* Generated */                        MInteger     outNBElement,
 /* Generated */                        double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::sarext`].
-/* Generated */ pub fn sarext_s(&self, mut startIdx: usize,
-/* Generated */                        endIdx: usize,
-/* Generated */                        /* Generated */                        mut optInStartValue: f32,
-/* Generated */                        mut optInOffsetOnReverse: f32,
-/* Generated */                        mut optInAccelerationInitLong: f32,
-/* Generated */                        mut optInAccelerationLong: f32,
-/* Generated */                        mut optInAccelerationMaxLong: f32,
-/* Generated */                        mut optInAccelerationInitShort: f32,
-/* Generated */                        mut optInAccelerationShort: f32,
-/* Generated */                        mut optInAccelerationMaxShort: f32,
-/* Generated */                        outBegIdx: &mut usize,
-/* Generated */                        outNBElement: &mut usize,
-/* Generated */                        outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn sarext_s(startIdx: usize,
+/* Generated */                 endIdx: usize,
+/* Generated */                 /* Generated */                 optInStartValue: f32,
+/* Generated */                 optInOffsetOnReverse: f32,
+/* Generated */                 optInAccelerationInitLong: f32,
+/* Generated */                 optInAccelerationLong: f32,
+/* Generated */                 optInAccelerationMaxLong: f32,
+/* Generated */                 optInAccelerationInitShort: f32,
+/* Generated */                 optInAccelerationShort: f32,
+/* Generated */                 optInAccelerationMaxShort: f32,
+/* Generated */                 outBegIdx: &mut usize,
+/* Generated */                 outNBElement: &mut usize,
+/* Generated */                 outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_SAREXT( int    startIdx,
 /* Generated */                         int    endIdx,
@@ -911,7 +846,9 @@ mut optInStartValue: f64,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inHigh||!inLow){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
@@ -956,10 +893,11 @@ mut optInStartValue: f64,
 /* Generated */     } else if( (optInAccelerationMaxShort < 0.000000e+0) ||  (optInAccelerationMaxShort > 3.000000e+37) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( startIdx < 1 )
 /* Generated */       startIdx = 1;

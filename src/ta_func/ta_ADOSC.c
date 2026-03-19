@@ -91,15 +91,9 @@
 /* Generated */                         int           optInSlowPeriod )  /* From 2 to 100000 */
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::adosc`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `optInFastPeriod` - Number of period for the fast MA (default: 3, range: 2..=100000)
-@RUSTDOC@* `optInSlowPeriod` - Number of period for the slow MA (default: 10, range: 2..=100000)
-/* Generated */ pub fn adosc_lookback(&self,
-mut optInFastPeriod: i32,
-/* Generated */                              mut optInSlowPeriod: i32) -> i32
+/* Generated */ pub fn adosc_lookback(
+optInFastPeriod: i32,
+/* Generated */                        optInSlowPeriod: i32) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_ADOSC_Lookback( int           optInFastPeriod, /* From 2 to 100000 */
 /* Generated */                                            int           optInSlowPeriod )  /* From 2 to 100000 */
@@ -113,15 +107,15 @@ mut optInFastPeriod: i32,
 /**** START GENCODE SECTION 2 - DO NOT DELETE THIS LINE ****/
 /* Generated */ #ifndef TA_FUNC_NO_RANGE_CHECK
 /* Generated */    /* min/max are checked for optInFastPeriod. */
-/* Generated */    if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastPeriod = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
-/* Generated */    if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowPeriod = 10;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
 /* Generated */ 	  return -1;
 /* Generated */ }
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
@@ -194,63 +188,13 @@ mut optInFastPeriod: i32,
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Chaikin A/D Oscillator
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inHigh` - High price series
-@RUSTDOC@* `inLow` - Low price series
-@RUSTDOC@* `inClose` - Close price series
-@RUSTDOC@* `inVolume` - Volume price series
-@RUSTDOC@* `optInFastPeriod` - Number of period for the fast MA (default: 3, range: 2..=100000)
-@RUSTDOC@* `optInSlowPeriod` - Number of period for the slow MA (default: 10, range: 2..=100000)
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outReal` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let in_high = [1.0_f64; 50];
-@RUSTDOC@let in_low = [1.0_f64; 50];
-@RUSTDOC@let in_close = [1.0_f64; 50];
-@RUSTDOC@let in_volume = [1.0_f64; 50];
-@RUSTDOC@let mut out = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.adosc(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &in_high,
-@RUSTDOC@    &in_low,
-@RUSTDOC@    &in_close,
-@RUSTDOC@    &in_volume,
-@RUSTDOC@    3, // optInFastPeriod
-@RUSTDOC@    10, // optInSlowPeriod
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut out,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn adosc(&self, mut startIdx: usize,
-/* Generated */                     endIdx: usize,
-/* Generated */                     /* Generated */                     mut optInFastPeriod: i32,
-/* Generated */                     mut optInSlowPeriod: i32,
-/* Generated */                     outBegIdx: &mut usize,
-/* Generated */                     outNBElement: &mut usize,
-/* Generated */                     outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adosc(startIdx: usize,
+/* Generated */              endIdx: usize,
+/* Generated */              /* Generated */              optInFastPeriod: i32,
+/* Generated */              optInSlowPeriod: i32,
+/* Generated */              outBegIdx: &mut usize,
+/* Generated */              outNBElement: &mut usize,
+/* Generated */              outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_ADOSC( int    startIdx,
 /* Generated */                                 int    endIdx,
@@ -295,29 +239,33 @@ mut optInFastPeriod: i32,
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    /* Verify required price component. */
 /* Generated */    if(!inHigh||!inLow||!inClose||!inVolume){
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
+/* Generated */    #endif /* !defined(_JAVA)*/
 /* Generated */    /* min/max are checked for optInFastPeriod. */
-/* Generated */    if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInFastPeriod = 3;
-/* Generated */    } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
 /* Generated */    /* min/max are checked for optInSlowPeriod. */
-/* Generated */    if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */    if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */ 	  optInSlowPeriod = 10;
-/* Generated */    } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
+/* Generated */    } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
 /* Generated */ 	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ }
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outReal )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -474,14 +422,13 @@ mut optInFastPeriod: i32,
 /* Generated */                       MInteger     outNBElement,
 /* Generated */                       double        outReal[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::adosc`].
-/* Generated */ pub fn adosc_s(&self, mut startIdx: usize,
-/* Generated */                       endIdx: usize,
-/* Generated */                       /* Generated */                       mut optInFastPeriod: i32,
-/* Generated */                       mut optInSlowPeriod: i32,
-/* Generated */                       outBegIdx: &mut usize,
-/* Generated */                       outNBElement: &mut usize,
-/* Generated */                       outReal: &mut [f64]) -> RetCode
+/* Generated */ pub fn adosc_s(startIdx: usize,
+/* Generated */                endIdx: usize,
+/* Generated */                /* Generated */                optInFastPeriod: i32,
+/* Generated */                optInSlowPeriod: i32,
+/* Generated */                outBegIdx: &mut usize,
+/* Generated */                outNBElement: &mut usize,
+/* Generated */                outReal: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_ADOSC( int    startIdx,
 /* Generated */                        int    endIdx,
@@ -515,25 +462,28 @@ mut optInFastPeriod: i32,
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if(!inHigh||!inLow||!inClose||!inVolume){
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
 /* Generated */     #endif 
-/* Generated */     if( CAST_TO_I32(optInFastPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInFastPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInFastPeriod = 3;
-/* Generated */     } else if( (CAST_TO_I32(optInFastPeriod) < 2) || (CAST_TO_I32(optInFastPeriod) > 100000) ) {
+/* Generated */     } else if( ((int)optInFastPeriod < 2) || ((int)optInFastPeriod > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     if( CAST_TO_I32(optInSlowPeriod) == TA_INTEGER_DEFAULT ) {
+/* Generated */     if( (int)optInSlowPeriod == TA_INTEGER_DEFAULT ) {
 /* Generated */  	  optInSlowPeriod = 10;
-/* Generated */     } else if( (CAST_TO_I32(optInSlowPeriod) < 2) || (CAST_TO_I32(optInSlowPeriod) > 100000) ) {
+/* Generated */     } else if( ((int)optInSlowPeriod < 2) || ((int)optInSlowPeriod > 100000) ) {
 /* Generated */  	  return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */  }
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outReal )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    if( optInFastPeriod < optInSlowPeriod )
 /* Generated */       slowestPeriod = optInSlowPeriod;

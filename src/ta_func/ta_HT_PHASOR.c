@@ -89,11 +89,7 @@
 /* Generated */ public int htPhasorLookback(  )
 /* Generated */ 
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Lookback period for [`Core::ht_phasor`].
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-/* Generated */ pub fn ht_phasor_lookback(&self,
+/* Generated */ pub fn ht_phasor_lookback(
 ) -> i32
 /* Generated */ #else
 /* Generated */ TA_LIB_API int TA_HT_PHASOR_Lookback( void )
@@ -147,53 +143,13 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Hilbert Transform - Phasor Components
-@RUSTDOC@
-@RUSTDOC@# Arguments
-@RUSTDOC@
-@RUSTDOC@* `startIdx` - Start index for calculation range
-@RUSTDOC@* `endIdx` - End index for calculation range (inclusive)
-@RUSTDOC@* `inReal` - Input price series
-@RUSTDOC@* `outBegIdx` - First valid output index
-@RUSTDOC@* `outNBElement` - Number of valid output elements
-@RUSTDOC@* `outInPhase` - Output values
-@RUSTDOC@* `outQuadrature` - Output values
-@RUSTDOC@
-@RUSTDOC@# Returns
-@RUSTDOC@
-@RUSTDOC@[`RetCode::Success`] on success, or an error code on failure.
-@RUSTDOC@
-@RUSTDOC@# Example
-@RUSTDOC@
-@RUSTDOC@```
-@RUSTDOC@use ta_lib::ta_func::{Core, RetCode};
-@RUSTDOC@
-@RUSTDOC@let input = [1.0_f64; 50];
-@RUSTDOC@let mut outInPhase = [0.0_f64; 50];
-@RUSTDOC@let mut outQuadrature = [0.0_f64; 50];
-@RUSTDOC@let mut out_beg_idx: usize = 0;
-@RUSTDOC@let mut out_nb_element: usize = 0;
-@RUSTDOC@
-@RUSTDOC@let core = Core::new();
-@RUSTDOC@let result = core.ht_phasor(
-@RUSTDOC@    0,
-@RUSTDOC@    49,
-@RUSTDOC@    &input,
-@RUSTDOC@    &mut out_beg_idx,
-@RUSTDOC@    &mut out_nb_element,
-@RUSTDOC@    &mut outInPhase,
-@RUSTDOC@    &mut outQuadrature,
-@RUSTDOC@);
-@RUSTDOC@
-@RUSTDOC@assert_eq!(result, RetCode::Success);
-@RUSTDOC@```
-/* Generated */ pub fn ht_phasor(&self, mut startIdx: usize,
-/* Generated */                         endIdx: usize,
-/* Generated */                         inReal: &[f64],
-/* Generated */                         outBegIdx: &mut usize,
-/* Generated */                         outNBElement: &mut usize,
-/* Generated */                         outInPhase: &mut [f64],
-/* Generated */                         outQuadrature: &mut [f64]) -> RetCode
+/* Generated */ pub fn ht_phasor(startIdx: usize,
+/* Generated */                  endIdx: usize,
+/* Generated */                  inReal: &[f64],
+/* Generated */                  outBegIdx: &mut usize,
+/* Generated */                  outNBElement: &mut usize,
+/* Generated */                  outInPhase: &mut [f64],
+/* Generated */                  outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
 /* Generated */                                     int    endIdx,
@@ -257,17 +213,21 @@
 /* Generated */    }
 /* Generated */ #endif
 /* Generated */ 
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */ #if defined( _RUST )
+/* Generated */ 
+/* Generated */ #else
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST)*/
-/* Generated */    #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */    #endif /* !defined(_JAVA)*/
+/* Generated */    #if !defined(_JAVA)
 /* Generated */    if( !outInPhase )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
 /* Generated */    if( !outQuadrature )
 /* Generated */       return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */ 
-/* Generated */    #endif /* !defined(_JAVA) && !defined(_RUST) */
+/* Generated */    #endif /* !defined(_JAVA) */
+/* Generated */ #endif
 /* Generated */ #endif /* TA_FUNC_NO_RANGE_CHECK */
 /* Generated */ 
 /**** END GENCODE SECTION 4 - DO NOT DELETE THIS LINE ****/
@@ -495,14 +455,13 @@
 /* Generated */                          double        outInPhase[],
 /* Generated */                          double        outQuadrature[] )
 /* Generated */ #elif defined( _RUST )
-@RUSTDOC@Single-precision variant of [`Core::ht_phasor`].
-/* Generated */ pub fn ht_phasor_s(&self, mut startIdx: usize,
-/* Generated */                           endIdx: usize,
-/* Generated */                           inReal: &[f32],
-/* Generated */                           outBegIdx: &mut usize,
-/* Generated */                           outNBElement: &mut usize,
-/* Generated */                           outInPhase: &mut [f64],
-/* Generated */                           outQuadrature: &mut [f64]) -> RetCode
+/* Generated */ pub fn ht_phasor_s(startIdx: usize,
+/* Generated */                    endIdx: usize,
+/* Generated */                    inReal: &[f32],
+/* Generated */                    outBegIdx: &mut usize,
+/* Generated */                    outNBElement: &mut usize,
+/* Generated */                    outInPhase: &mut [f64],
+/* Generated */                    outQuadrature: &mut [f64]) -> RetCode
 /* Generated */ #else
 /* Generated */ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
 /* Generated */                            int    endIdx,
@@ -546,15 +505,18 @@
 /* Generated */        return ENUM_VALUE(RetCode,TA_OUT_OF_RANGE_END_INDEX,OutOfRangeEndIndex);
 /* Generated */     }
 /* Generated */  #endif
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */  #if defined( _RUST )
+/* Generated */  #else
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !inReal ) { return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam); }
 /* Generated */     #endif 
-/* Generated */     #if !defined(_JAVA) && !defined(_RUST)
+/* Generated */     #if !defined(_JAVA)
 /* Generated */     if( !outInPhase )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     if( !outQuadrature )
 /* Generated */        return ENUM_VALUE(RetCode,TA_BAD_PARAM,BadParam);
 /* Generated */     #endif 
+/* Generated */  #endif
 /* Generated */  #endif 
 /* Generated */    rad2Deg = 180.0 / (4.0 * std_atan(1));
 /* Generated */    lookbackTotal = 32 + TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_HT_PHASOR,HtPhasor);
