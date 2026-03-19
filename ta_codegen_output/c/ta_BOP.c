@@ -63,7 +63,7 @@ TA_LIB_API TA_RetCode TA_BOP( int    startIdx,
    for( i = startIdx; (i<=endIdx); i += 1 )
    {
       tempReal = (inHigh[i]-inLow[i]);
-      if( (tempReal<0.00000001) )
+      if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
@@ -96,7 +96,7 @@ TA_LIB_API TA_RetCode TA_BOP_Logic( int    startIdx,
    for( i = startIdx; (i<=endIdx); i += 1 )
    {
       tempReal = (inHigh[i]-inLow[i]);
-      if( (tempReal<0.00000001) )
+      if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
@@ -136,7 +136,7 @@ TA_RetCode TA_S_BOP( int    startIdx,
    for( i = startIdx; (i<=endIdx); i += 1 )
    {
       tempReal = (inHigh[i]-inLow[i]);
-      if( (tempReal<0.00000001) )
+      if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 
@@ -169,7 +169,7 @@ TA_RetCode TA_S_BOP_Logic( int    startIdx,
    for( i = startIdx; (i<=endIdx); i += 1 )
    {
       tempReal = (inHigh[i]-inLow[i]);
-      if( (tempReal<0.00000001) )
+      if( TA_IS_ZERO_OR_NEG(tempReal) )
       {
          outReal[outIdx++] = 0.0;
       } else 

@@ -152,7 +152,7 @@ impl Core {
         tempReal2 = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
         periodROC = tempReal - tempReal2;
         trailingValue = tempReal2;
-        if sumROC1 <= periodROC || 0_f64 - 0.00000001 < sumROC1 && sumROC1 < 0.00000001 {
+        if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
             tempReal = 1.0;
         } else {
             tempReal = (periodROC / sumROC1).abs();
@@ -167,7 +167,7 @@ impl Core {
             sumROC1 -= (trailingValue - tempReal2).abs();
             sumROC1 += (tempReal - (*inReal.get_unchecked(today - 1))).abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0_f64 - 0.00000001 < sumROC1 && sumROC1 < 0.00000001 {
+            if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
             } else {
                 tempReal = (periodROC / sumROC1).abs();
@@ -186,7 +186,7 @@ impl Core {
             sumROC1 -= (trailingValue - tempReal2).abs();
             sumROC1 += (tempReal - (*inReal.get_unchecked(today - 1))).abs();
             trailingValue = tempReal2;
-            if sumROC1 <= periodROC || 0_f64 - 0.00000001 < sumROC1 && sumROC1 < 0.00000001 {
+            if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
             } else {
                 tempReal = (periodROC / sumROC1).abs();

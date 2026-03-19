@@ -681,10 +681,10 @@ fn test_rsi_c_unstable_period() {
         out.c.contains("TA_GLOBALS_COMPATIBILITY"),
         "C RSI should use TA_GLOBALS_COMPATIBILITY"
     );
-    // TA_IS_ZERO was expanded in source to its inline form by replace_macros.py
+    // TA_IS_ZERO is preserved as a macro call — the C backend emits TA_IS_ZERO(x)
     assert!(
-        out.c.contains("-0.00000001"),
-        "C RSI should use inline zero-check (TA_IS_ZERO was expanded)"
+        out.c.contains("TA_IS_ZERO("),
+        "C RSI should use TA_IS_ZERO macro"
     );
 }
 
@@ -3496,6 +3496,27 @@ fn rust_func_call_is_zero() {
     assert!(
         rendered.contains(".abs() < 1e-14"),
         "IS_ZERO should render as abs() < 1e-14: {rendered}"
+    );
+}
+
+#[test]
+fn rust_func_call_is_zero_or_neg() {
+    let stmt = ir::Statement::Assign {
+        target: ir::Expr::Var("x".to_string()),
+        value: ir::Expr::FuncCall(
+            "IS_ZERO_OR_NEG".to_string(),
+            vec![ir::Expr::Var("val".to_string())],
+        ),
+        compound: false,
+    };
+    let rendered = render_rust_stmt(&stmt);
+    assert!(
+        rendered.contains("< 1e-14"),
+        "IS_ZERO_OR_NEG should render with 1e-14 epsilon: {rendered}"
+    );
+    assert!(
+        !rendered.contains(".abs()"),
+        "IS_ZERO_OR_NEG should not use .abs(): {rendered}"
     );
 }
 

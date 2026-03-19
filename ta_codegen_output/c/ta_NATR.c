@@ -105,7 +105,7 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+   if( !(TA_IS_ZERO(tempValue)) )
    {
       outReal[0] = ((prevATR/tempValue)*100.0);
    } else 
@@ -119,7 +119,7 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue)) )
       {
          outReal[outIdx] = ((prevATR/tempValue)*100.0);
       } else 
@@ -196,7 +196,7 @@ TA_LIB_API TA_RetCode TA_NATR_Logic( int    startIdx,
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+   if( !(TA_IS_ZERO(tempValue)) )
    {
       outReal[0] = ((prevATR/tempValue)*100.0);
    } else 
@@ -210,7 +210,7 @@ TA_LIB_API TA_RetCode TA_NATR_Logic( int    startIdx,
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue)) )
       {
          outReal[outIdx] = ((prevATR/tempValue)*100.0);
       } else 
@@ -294,7 +294,7 @@ TA_RetCode TA_S_NATR( int    startIdx,
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+   if( !(TA_IS_ZERO(tempValue)) )
    {
       outReal[0] = ((prevATR/tempValue)*100.0);
    } else 
@@ -308,7 +308,7 @@ TA_RetCode TA_S_NATR( int    startIdx,
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue)) )
       {
          outReal[outIdx] = ((prevATR/tempValue)*100.0);
       } else 
@@ -385,7 +385,7 @@ TA_RetCode TA_S_NATR_Logic( int    startIdx,
    }
    outIdx = 1;
    tempValue = inClose[today];
-   if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+   if( !(TA_IS_ZERO(tempValue)) )
    {
       outReal[0] = ((prevATR/tempValue)*100.0);
    } else 
@@ -399,7 +399,7 @@ TA_RetCode TA_S_NATR_Logic( int    startIdx,
       prevATR += tempBuffer[today++];
       prevATR /= optInTimePeriod;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue)) )
       {
          outReal[outIdx] = ((prevATR/tempValue)*100.0);
       } else 

@@ -157,7 +157,7 @@ impl Core {
         i = startIdx - lookbackTotal;
         while i <= endIdx {
             tempReal = (*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i));
-            if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+            if !((tempReal).abs() < 1e-14) {
                 tempReal = 4_f64 * ((*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i))) / tempReal;
                 (*tempBuffer1.get_unchecked_mut(j)) = (*inHigh.get_unchecked(i)) * (1_f64 + tempReal);
                 (*tempBuffer2.get_unchecked_mut(j)) = (*inLow.get_unchecked(i)) * (1_f64 - tempReal);

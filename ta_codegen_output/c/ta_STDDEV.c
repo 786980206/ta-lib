@@ -68,7 +68,7 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = (sqrt(tempReal)*optInNbDev);
          } else 
@@ -81,7 +81,7 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
@@ -118,7 +118,7 @@ TA_LIB_API TA_RetCode TA_STDDEV_Logic( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = (sqrt(tempReal)*optInNbDev);
          } else 
@@ -131,7 +131,7 @@ TA_LIB_API TA_RetCode TA_STDDEV_Logic( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
@@ -175,7 +175,7 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = (sqrt(tempReal)*optInNbDev);
          } else 
@@ -188,7 +188,7 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = sqrt(tempReal);
          } else 
@@ -225,7 +225,7 @@ TA_RetCode TA_S_STDDEV_Logic( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = (sqrt(tempReal)*optInNbDev);
          } else 
@@ -238,7 +238,7 @@ TA_RetCode TA_S_STDDEV_Logic( int    startIdx,
       for( i = 0; (i<((int)*outNBElement)); i += 1 )
       {
          tempReal = outReal[i];
-         if( !((tempReal<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
          {
             outReal[i] = sqrt(tempReal);
          } else 

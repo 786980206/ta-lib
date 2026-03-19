@@ -154,9 +154,9 @@ TA_RetCode ultosc(int startIdx, int endIdx, const double inHigh[], const double 
     /* Calculate the oscillator value for today */
     output = 0.0;
 
-    if( !((-0.00000001 < (b1Total)) && ((b1Total) < 0.00000001)) ) output += 4.0*(a1Total/b1Total);
-    if( !((-0.00000001 < (b2Total)) && ((b2Total) < 0.00000001)) ) output += 2.0*(a2Total/b2Total);
-    if( !((-0.00000001 < (b3Total)) && ((b3Total) < 0.00000001)) ) output += a3Total/b3Total;
+    if( !TA_IS_ZERO(b1Total) ) output += 4.0*(a1Total/b1Total);
+    if( !TA_IS_ZERO(b2Total) ) output += 2.0*(a2Total/b2Total);
+    if( !TA_IS_ZERO(b3Total) ) output += a3Total/b3Total;
 
     /* Remove the trailing terms to prepare for next day */
     tempLT = inLow[trailingIdx1];

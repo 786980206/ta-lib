@@ -129,7 +129,7 @@ impl Core {
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
                 tempReal = (*outReal.get_unchecked(i));
-                if !(tempReal < 0.00000001) {
+                if !((tempReal) < 1e-14) {
                     (*outReal.get_unchecked_mut(i)) = (tempReal).sqrt() * optInNbDev;
                 } else {
                     (*outReal.get_unchecked_mut(i)) = (0.0) as f64;
@@ -141,7 +141,7 @@ impl Core {
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
                 tempReal = (*outReal.get_unchecked(i));
-                if !(tempReal < 0.00000001) {
+                if !((tempReal) < 1e-14) {
                     (*outReal.get_unchecked_mut(i)) = (tempReal).sqrt();
                 } else {
                     (*outReal.get_unchecked_mut(i)) = (0.0) as f64;

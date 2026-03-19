@@ -76,7 +76,7 @@
             _tempReal = tempBuffer1[_outIdx];
             _tempReal *= _tempReal;
             _meanValue2 -= _tempReal;
-            if( !((_meanValue2<0.00000001)) ) {
+            if( !((_meanValue2 < 0.00000000000001)) ) {
                tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
             } else {
                tempBuffer2[_outIdx] = 0.0;
@@ -198,7 +198,7 @@
             _tempReal = tempBuffer1[_outIdx];
             _tempReal *= _tempReal;
             _meanValue2 -= _tempReal;
-            if( !((_meanValue2<0.00000001)) ) {
+            if( !((_meanValue2 < 0.00000000000001)) ) {
                tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
             } else {
                tempBuffer2[_outIdx] = 0.0;
@@ -326,7 +326,7 @@
             _tempReal = tempBuffer1[_outIdx];
             _tempReal *= _tempReal;
             _meanValue2 -= _tempReal;
-            if( !((_meanValue2<0.00000001)) ) {
+            if( !((_meanValue2 < 0.00000000000001)) ) {
                tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
             } else {
                tempBuffer2[_outIdx] = 0.0;
@@ -448,7 +448,7 @@
             _tempReal = tempBuffer1[_outIdx];
             _tempReal *= _tempReal;
             _meanValue2 -= _tempReal;
-            if( !((_meanValue2<0.00000001)) ) {
+            if( !((_meanValue2 < 0.00000000000001)) ) {
                tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
             } else {
                tempBuffer2[_outIdx] = 0.0;

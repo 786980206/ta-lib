@@ -111,7 +111,7 @@ class Core {
           tempBuffer2 = new double[(int)((bufferSize*1))];
           for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
              tempReal = (inHigh[i]+inLow[i]);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
                 tempBuffer1[j] = (inHigh[i]*(1+tempReal));
                 tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -180,7 +180,7 @@ class Core {
           tempBuffer2 = new double[(int)((bufferSize*1))];
           for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
              tempReal = (inHigh[i]+inLow[i]);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
                 tempBuffer1[j] = (inHigh[i]*(1+tempReal));
                 tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -255,7 +255,7 @@ class Core {
           tempBuffer2 = new double[(int)((bufferSize*1))];
           for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
              tempReal = (inHigh[i]+inLow[i]);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
                 tempBuffer1[j] = (inHigh[i]*(1+tempReal));
                 tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -324,7 +324,7 @@ class Core {
           tempBuffer2 = new double[(int)((bufferSize*1))];
           for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
              tempReal = (inHigh[i]+inLow[i]);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
                 tempBuffer1[j] = (inHigh[i]*(1+tempReal));
                 tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -1184,11 +1184,11 @@ class Core {
              tempReal = _true_range_1;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 }
              }
@@ -1224,11 +1224,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1265,11 +1265,11 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1386,11 +1386,11 @@ class Core {
              tempReal = _true_range_1;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 }
              }
@@ -1426,11 +1426,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1467,11 +1467,11 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1594,11 +1594,11 @@ class Core {
              tempReal = _true_range_1;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 }
              }
@@ -1634,11 +1634,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1675,11 +1675,11 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1796,11 +1796,11 @@ class Core {
              tempReal = _true_range_1;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 }
              }
@@ -1836,11 +1836,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -1877,11 +1877,11 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                    prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
                 }
@@ -3711,7 +3711,7 @@ class Core {
                 _tempReal = tempBuffer1[_outIdx];
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
-                if( !((_meanValue2<0.00000001)) ) {
+                if( !((_meanValue2 < 0.00000000000001)) ) {
                    tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
                 } else {
                    tempBuffer2[_outIdx] = 0.0;
@@ -3833,7 +3833,7 @@ class Core {
                 _tempReal = tempBuffer1[_outIdx];
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
-                if( !((_meanValue2<0.00000001)) ) {
+                if( !((_meanValue2 < 0.00000000000001)) ) {
                    tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
                 } else {
                    tempBuffer2[_outIdx] = 0.0;
@@ -3961,7 +3961,7 @@ class Core {
                 _tempReal = tempBuffer1[_outIdx];
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
-                if( !((_meanValue2<0.00000001)) ) {
+                if( !((_meanValue2 < 0.00000000000001)) ) {
                    tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
                 } else {
                    tempBuffer2[_outIdx] = 0.0;
@@ -4083,7 +4083,7 @@ class Core {
                 _tempReal = tempBuffer1[_outIdx];
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
-                if( !((_meanValue2<0.00000001)) ) {
+                if( !((_meanValue2 < 0.00000000000001)) ) {
                    tempBuffer2[_outIdx] = Math.sqrt(_meanValue2);
                 } else {
                    tempBuffer2[_outIdx] = 0.0;
@@ -4203,14 +4203,14 @@ class Core {
           i = ++trailingIdx;
           while( (i<startIdx) ) {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4225,14 +4225,14 @@ class Core {
           n = ((double)optInTimePeriod);
           do {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4243,21 +4243,21 @@ class Core {
              S_x += x;
              S_y += y;
              tmp_real = inReal0[trailingIdx];
-             if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
              } else {
                 x = 0.0;
              }
              trailing_last_price_x = tmp_real;
              tmp_real = inReal1[trailingIdx++];
-             if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
              } else {
                 y = 0.0;
              }
              trailing_last_price_y = tmp_real;
              tmp_real = ((n*S_xx)-(S_x*S_x));
-             if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
                 outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
              } else {
                 outReal[outIdx++] = 0.0;
@@ -4323,14 +4323,14 @@ class Core {
           i = ++trailingIdx;
           while( (i<startIdx) ) {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4345,14 +4345,14 @@ class Core {
           n = ((double)optInTimePeriod);
           do {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4363,21 +4363,21 @@ class Core {
              S_x += x;
              S_y += y;
              tmp_real = inReal0[trailingIdx];
-             if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
              } else {
                 x = 0.0;
              }
              trailing_last_price_x = tmp_real;
              tmp_real = inReal1[trailingIdx++];
-             if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
              } else {
                 y = 0.0;
              }
              trailing_last_price_y = tmp_real;
              tmp_real = ((n*S_xx)-(S_x*S_x));
-             if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
                 outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
              } else {
                 outReal[outIdx++] = 0.0;
@@ -4449,14 +4449,14 @@ class Core {
           i = ++trailingIdx;
           while( (i<startIdx) ) {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4471,14 +4471,14 @@ class Core {
           n = ((double)optInTimePeriod);
           do {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4489,21 +4489,21 @@ class Core {
              S_x += x;
              S_y += y;
              tmp_real = inReal0[trailingIdx];
-             if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
              } else {
                 x = 0.0;
              }
              trailing_last_price_x = tmp_real;
              tmp_real = inReal1[trailingIdx++];
-             if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
              } else {
                 y = 0.0;
              }
              trailing_last_price_y = tmp_real;
              tmp_real = ((n*S_xx)-(S_x*S_x));
-             if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
                 outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
              } else {
                 outReal[outIdx++] = 0.0;
@@ -4569,14 +4569,14 @@ class Core {
           i = ++trailingIdx;
           while( (i<startIdx) ) {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4591,14 +4591,14 @@ class Core {
           n = ((double)optInTimePeriod);
           do {
              tmp_real = inReal0[i];
-             if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-last_price_x)/last_price_x);
              } else {
                 x = 0.0;
              }
              last_price_x = tmp_real;
              tmp_real = inReal1[i++];
-             if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-last_price_y)/last_price_y);
              } else {
                 y = 0.0;
@@ -4609,21 +4609,21 @@ class Core {
              S_x += x;
              S_y += y;
              tmp_real = inReal0[trailingIdx];
-             if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
                 x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
              } else {
                 x = 0.0;
              }
              trailing_last_price_x = tmp_real;
              tmp_real = inReal1[trailingIdx++];
-             if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+             if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
                 y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
              } else {
                 y = 0.0;
              }
              trailing_last_price_y = tmp_real;
              tmp_real = ((n*S_xx)-(S_x*S_x));
-             if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
                 outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
              } else {
                 outReal[outIdx++] = 0.0;
@@ -4665,7 +4665,7 @@ class Core {
           outIdx = 0;
           for( i = startIdx; (i<=endIdx); i += 1 ) {
              tempReal = (inHigh[i]-inLow[i]);
-             if( (tempReal<0.00000001) ) {
+             if( (tempReal < 0.00000000000001) ) {
                 outReal[outIdx++] = 0.0;
              } else {
                 outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -4691,7 +4691,7 @@ class Core {
           outIdx = 0;
           for( i = startIdx; (i<=endIdx); i += 1 ) {
              tempReal = (inHigh[i]-inLow[i]);
-             if( (tempReal<0.00000001) ) {
+             if( (tempReal < 0.00000000000001) ) {
                 outReal[outIdx++] = 0.0;
              } else {
                 outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -4723,7 +4723,7 @@ class Core {
           outIdx = 0;
           for( i = startIdx; (i<=endIdx); i += 1 ) {
              tempReal = (inHigh[i]-inLow[i]);
-             if( (tempReal<0.00000001) ) {
+             if( (tempReal < 0.00000000000001) ) {
                 outReal[outIdx++] = 0.0;
              } else {
                 outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -4749,7 +4749,7 @@ class Core {
           outIdx = 0;
           for( i = startIdx; (i<=endIdx); i += 1 ) {
              tempReal = (inHigh[i]-inLow[i]);
-             if( (tempReal<0.00000001) ) {
+             if( (tempReal < 0.00000000000001) ) {
                 outReal[outIdx++] = 0.0;
              } else {
                 outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -63669,7 +63669,7 @@ class Core {
              tempValue2 = (prevGain/optInTimePeriod);
              tempValue3 = (tempValue2-tempValue1);
              tempValue4 = (tempValue1+tempValue2);
-             if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue4) && (tempValue4 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100*(tempValue3/tempValue4));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63699,7 +63699,7 @@ class Core {
           prevGain /= optInTimePeriod;
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63735,7 +63735,7 @@ class Core {
              prevLoss /= optInTimePeriod;
              prevGain /= optInTimePeriod;
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63804,7 +63804,7 @@ class Core {
              tempValue2 = (prevGain/optInTimePeriod);
              tempValue3 = (tempValue2-tempValue1);
              tempValue4 = (tempValue1+tempValue2);
-             if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue4) && (tempValue4 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100*(tempValue3/tempValue4));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63834,7 +63834,7 @@ class Core {
           prevGain /= optInTimePeriod;
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63870,7 +63870,7 @@ class Core {
              prevLoss /= optInTimePeriod;
              prevGain /= optInTimePeriod;
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63945,7 +63945,7 @@ class Core {
              tempValue2 = (prevGain/optInTimePeriod);
              tempValue3 = (tempValue2-tempValue1);
              tempValue4 = (tempValue1+tempValue2);
-             if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue4) && (tempValue4 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100*(tempValue3/tempValue4));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -63975,7 +63975,7 @@ class Core {
           prevGain /= optInTimePeriod;
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64011,7 +64011,7 @@ class Core {
              prevLoss /= optInTimePeriod;
              prevGain /= optInTimePeriod;
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64080,7 +64080,7 @@ class Core {
              tempValue2 = (prevGain/optInTimePeriod);
              tempValue3 = (tempValue2-tempValue1);
              tempValue4 = (tempValue1+tempValue2);
-             if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue4) && (tempValue4 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100*(tempValue3/tempValue4));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64110,7 +64110,7 @@ class Core {
           prevGain /= optInTimePeriod;
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64146,7 +64146,7 @@ class Core {
              prevLoss /= optInTimePeriod;
              prevGain /= optInTimePeriod;
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64219,7 +64219,7 @@ class Core {
           trailingX = inReal0[trailingIdx];
           trailingY = inReal1[trailingIdx++];
           tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-          if( !((tempReal<0.00000001)) ) {
+          if( !((tempReal < 0.00000000000001)) ) {
              outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
           } else {
              outReal[0] = 0.0;
@@ -64241,7 +64241,7 @@ class Core {
              trailingX = inReal0[trailingIdx];
              trailingY = inReal1[trailingIdx++];
              tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-             if( !((tempReal<0.00000001)) ) {
+             if( !((tempReal < 0.00000000000001)) ) {
                 outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64301,7 +64301,7 @@ class Core {
           trailingX = inReal0[trailingIdx];
           trailingY = inReal1[trailingIdx++];
           tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-          if( !((tempReal<0.00000001)) ) {
+          if( !((tempReal < 0.00000000000001)) ) {
              outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
           } else {
              outReal[0] = 0.0;
@@ -64323,7 +64323,7 @@ class Core {
              trailingX = inReal0[trailingIdx];
              trailingY = inReal1[trailingIdx++];
              tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-             if( !((tempReal<0.00000001)) ) {
+             if( !((tempReal < 0.00000000000001)) ) {
                 outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64389,7 +64389,7 @@ class Core {
           trailingX = inReal0[trailingIdx];
           trailingY = inReal1[trailingIdx++];
           tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-          if( !((tempReal<0.00000001)) ) {
+          if( !((tempReal < 0.00000000000001)) ) {
              outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
           } else {
              outReal[0] = 0.0;
@@ -64411,7 +64411,7 @@ class Core {
              trailingX = inReal0[trailingIdx];
              trailingY = inReal1[trailingIdx++];
              tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-             if( !((tempReal<0.00000001)) ) {
+             if( !((tempReal < 0.00000000000001)) ) {
                 outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -64471,7 +64471,7 @@ class Core {
           trailingX = inReal0[trailingIdx];
           trailingY = inReal1[trailingIdx++];
           tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-          if( !((tempReal<0.00000001)) ) {
+          if( !((tempReal < 0.00000000000001)) ) {
              outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
           } else {
              outReal[0] = 0.0;
@@ -64493,7 +64493,7 @@ class Core {
              trailingX = inReal0[trailingIdx];
              trailingY = inReal1[trailingIdx++];
              tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-             if( !((tempReal<0.00000001)) ) {
+             if( !((tempReal < 0.00000000000001)) ) {
                 outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -65139,11 +65139,11 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              minusDI = (100.0*(prevMinusDM/prevTR));
              plusDI = (100.0*(prevPlusDM/prevTR));
              tempReal = (minusDI+plusDI);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 outReal[0] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
              } else {
                 outReal[0] = 0.0;
@@ -65181,11 +65181,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    outReal[outIdx] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 } else {
                    outReal[outIdx] = outReal[(outIdx-1)];
@@ -65307,11 +65307,11 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              minusDI = (100.0*(prevMinusDM/prevTR));
              plusDI = (100.0*(prevPlusDM/prevTR));
              tempReal = (minusDI+plusDI);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 outReal[0] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
              } else {
                 outReal[0] = 0.0;
@@ -65349,11 +65349,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    outReal[outIdx] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 } else {
                    outReal[outIdx] = outReal[(outIdx-1)];
@@ -65481,11 +65481,11 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              minusDI = (100.0*(prevMinusDM/prevTR));
              plusDI = (100.0*(prevPlusDM/prevTR));
              tempReal = (minusDI+plusDI);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 outReal[0] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
              } else {
                 outReal[0] = 0.0;
@@ -65523,11 +65523,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    outReal[outIdx] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 } else {
                    outReal[outIdx] = outReal[(outIdx-1)];
@@ -65649,11 +65649,11 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              minusDI = (100.0*(prevMinusDM/prevTR));
              plusDI = (100.0*(prevPlusDM/prevTR));
              tempReal = (minusDI+plusDI);
-             if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                 outReal[0] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
              } else {
                 outReal[0] = 0.0;
@@ -65691,11 +65691,11 @@ class Core {
              tempReal = _true_range_2;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 minusDI = (100.0*(prevMinusDM/prevTR));
                 plusDI = (100.0*(prevPlusDM/prevTR));
                 tempReal = (minusDI+plusDI);
-                if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                    outReal[outIdx] = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                 } else {
                    outReal[outIdx] = outReal[(outIdx-1)];
@@ -74150,7 +74150,7 @@ class Core {
           tempReal2 = inReal[trailingIdx++];
           periodROC = (tempReal-tempReal2);
           trailingValue = tempReal2;
-          if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
              tempReal = 1.0;
           } else {
              tempReal = Math.abs((periodROC/sumROC1));
@@ -74165,7 +74165,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74184,7 +74184,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74245,7 +74245,7 @@ class Core {
           tempReal2 = inReal[trailingIdx++];
           periodROC = (tempReal-tempReal2);
           trailingValue = tempReal2;
-          if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
              tempReal = 1.0;
           } else {
              tempReal = Math.abs((periodROC/sumROC1));
@@ -74260,7 +74260,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74279,7 +74279,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74346,7 +74346,7 @@ class Core {
           tempReal2 = inReal[trailingIdx++];
           periodROC = (tempReal-tempReal2);
           trailingValue = tempReal2;
-          if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
              tempReal = 1.0;
           } else {
              tempReal = Math.abs((periodROC/sumROC1));
@@ -74361,7 +74361,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74380,7 +74380,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74441,7 +74441,7 @@ class Core {
           tempReal2 = inReal[trailingIdx++];
           periodROC = (tempReal-tempReal2);
           trailingValue = tempReal2;
-          if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+          if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
              tempReal = 1.0;
           } else {
              tempReal = Math.abs((periodROC/sumROC1));
@@ -74456,7 +74456,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -74475,7 +74475,7 @@ class Core {
              sumROC1 -= Math.abs((trailingValue-tempReal2));
              sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
              trailingValue = tempReal2;
-             if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+             if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
                 tempReal = 1.0;
              } else {
                 tempReal = Math.abs((periodROC/sumROC1));
@@ -80950,7 +80950,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffM/tempReal);
@@ -81027,7 +81027,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevMinusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -81060,7 +81060,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -81133,7 +81133,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffM/tempReal);
@@ -81210,7 +81210,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevMinusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -81243,7 +81243,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -81322,7 +81322,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffM/tempReal);
@@ -81399,7 +81399,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevMinusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -81432,7 +81432,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -81505,7 +81505,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffM/tempReal);
@@ -81582,7 +81582,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevMinusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -81615,7 +81615,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -82377,7 +82377,7 @@ class Core {
           }
           outIdx = 1;
           tempValue = inClose[today];
-          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+          if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
              outReal[0] = ((prevATR[0]/tempValue)*100.0);
           } else {
              outReal[0] = 0.0;
@@ -82388,7 +82388,7 @@ class Core {
              prevATR[0] += tempBuffer[today++];
              prevATR[0] /= optInTimePeriod;
              tempValue = inClose[today];
-             if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
                 outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
              } else {
                 outReal[0] = 0.0;
@@ -82450,7 +82450,7 @@ class Core {
           }
           outIdx = 1;
           tempValue = inClose[today];
-          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+          if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
              outReal[0] = ((prevATR[0]/tempValue)*100.0);
           } else {
              outReal[0] = 0.0;
@@ -82461,7 +82461,7 @@ class Core {
              prevATR[0] += tempBuffer[today++];
              prevATR[0] /= optInTimePeriod;
              tempValue = inClose[today];
-             if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
                 outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
              } else {
                 outReal[0] = 0.0;
@@ -82529,7 +82529,7 @@ class Core {
           }
           outIdx = 1;
           tempValue = inClose[today];
-          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+          if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
              outReal[0] = ((prevATR[0]/tempValue)*100.0);
           } else {
              outReal[0] = 0.0;
@@ -82540,7 +82540,7 @@ class Core {
              prevATR[0] += tempBuffer[today++];
              prevATR[0] /= optInTimePeriod;
              tempValue = inClose[today];
-             if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
                 outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
              } else {
                 outReal[0] = 0.0;
@@ -82602,7 +82602,7 @@ class Core {
           }
           outIdx = 1;
           tempValue = inClose[today];
-          if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+          if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
              outReal[0] = ((prevATR[0]/tempValue)*100.0);
           } else {
              outReal[0] = 0.0;
@@ -82613,7 +82613,7 @@ class Core {
              prevATR[0] += tempBuffer[today++];
              prevATR[0] /= optInTimePeriod;
              tempValue = inClose[today];
-             if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
                 outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
              } else {
                 outReal[0] = 0.0;
@@ -82908,7 +82908,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffP/tempReal);
@@ -82985,7 +82985,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevPlusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -83018,7 +83018,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -83091,7 +83091,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffP/tempReal);
@@ -83168,7 +83168,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevPlusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -83201,7 +83201,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -83280,7 +83280,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffP/tempReal);
@@ -83357,7 +83357,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevPlusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -83390,7 +83390,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -83463,7 +83463,7 @@ class Core {
                    }
                    _true_range_0 = range_0;
                    tempReal = _true_range_0;
-                   if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+                   if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                       outReal[outIdx++] = ((double)0.0);
                    } else {
                       outReal[outIdx++] = (diffP/tempReal);
@@ -83540,7 +83540,7 @@ class Core {
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
           }
-          if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+          if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
              outReal[0] = (100.0*(prevPlusDM/prevTR));
           } else {
              outReal[0] = 0.0;
@@ -83573,7 +83573,7 @@ class Core {
              tempReal = _true_range_3;
              prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
              prevClose = inClose[today];
-             if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+             if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
                 outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
              } else {
                 outReal[outIdx++] = 0.0;
@@ -84081,7 +84081,7 @@ class Core {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                    tempReal = outReal[i];
-                   if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                   if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                       outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                    } else {
                       outReal[i] = 0.0;
@@ -84126,7 +84126,7 @@ class Core {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                    tempReal = outReal[i];
-                   if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                   if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                       outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                    } else {
                       outReal[i] = 0.0;
@@ -84177,7 +84177,7 @@ class Core {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                    tempReal = outReal[i];
-                   if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                   if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                       outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                    } else {
                       outReal[i] = 0.0;
@@ -84222,7 +84222,7 @@ class Core {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                    tempReal = outReal[i];
-                   if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+                   if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                       outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                    } else {
                       outReal[i] = 0.0;
@@ -85022,7 +85022,7 @@ class Core {
              tempValue1 = (prevLoss/((double)optInTimePeriod));
              tempValue2 = (prevGain/((double)optInTimePeriod));
              tempValue1 = (tempValue2+tempValue1);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(tempValue2/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85055,7 +85055,7 @@ class Core {
           prevGain /= ((double)optInTimePeriod);
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85094,7 +85094,7 @@ class Core {
              prevLoss /= ((double)optInTimePeriod);
              prevGain /= ((double)optInTimePeriod);
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85163,7 +85163,7 @@ class Core {
              tempValue1 = (prevLoss/((double)optInTimePeriod));
              tempValue2 = (prevGain/((double)optInTimePeriod));
              tempValue1 = (tempValue2+tempValue1);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(tempValue2/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85196,7 +85196,7 @@ class Core {
           prevGain /= ((double)optInTimePeriod);
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85235,7 +85235,7 @@ class Core {
              prevLoss /= ((double)optInTimePeriod);
              prevGain /= ((double)optInTimePeriod);
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85310,7 +85310,7 @@ class Core {
              tempValue1 = (prevLoss/((double)optInTimePeriod));
              tempValue2 = (prevGain/((double)optInTimePeriod));
              tempValue1 = (tempValue2+tempValue1);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(tempValue2/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85343,7 +85343,7 @@ class Core {
           prevGain /= ((double)optInTimePeriod);
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85382,7 +85382,7 @@ class Core {
              prevLoss /= ((double)optInTimePeriod);
              prevGain /= ((double)optInTimePeriod);
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85451,7 +85451,7 @@ class Core {
              tempValue1 = (prevLoss/((double)optInTimePeriod));
              tempValue2 = (prevGain/((double)optInTimePeriod));
              tempValue1 = (tempValue2+tempValue1);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(tempValue2/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85484,7 +85484,7 @@ class Core {
           prevGain /= ((double)optInTimePeriod);
           if( (today>startIdx) ) {
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -85523,7 +85523,7 @@ class Core {
              prevLoss /= ((double)optInTimePeriod);
              prevGain /= ((double)optInTimePeriod);
              tempValue1 = (prevGain+prevLoss);
-             if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+             if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
                 outReal[outIdx] = (100.0*(prevGain/tempValue1));
                 outIdx = (outIdx+1);
              } else {
@@ -87354,7 +87354,7 @@ class Core {
           if( (optInNbDev!=1.0) ) {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87363,7 +87363,7 @@ class Core {
           } else {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = Math.sqrt(tempReal);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87391,7 +87391,7 @@ class Core {
           if( (optInNbDev!=1.0) ) {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87400,7 +87400,7 @@ class Core {
           } else {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = Math.sqrt(tempReal);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87434,7 +87434,7 @@ class Core {
           if( (optInNbDev!=1.0) ) {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87443,7 +87443,7 @@ class Core {
           } else {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = Math.sqrt(tempReal);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87471,7 +87471,7 @@ class Core {
           if( (optInNbDev!=1.0) ) {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -87480,7 +87480,7 @@ class Core {
           } else {
              for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
                 tempReal = outReal[i];
-                if( !((tempReal<0.00000001)) ) {
+                if( !((tempReal < 0.00000000000001)) ) {
                    outReal[i] = Math.sqrt(tempReal);
                 } else {
                    outReal[i] = ((double)0.0);
@@ -91300,13 +91300,13 @@ class Core {
              b2Total += trueRange;
              b3Total += trueRange;
              output = 0.0;
-             if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
                 output += (4.0*(a1Total/b1Total));
              }
-             if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
                 output += (2.0*(a2Total/b2Total));
              }
-             if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
                 output += (a3Total/b3Total);
              }
              tempLT = inLow[trailingIdx1];
@@ -91524,13 +91524,13 @@ class Core {
              b2Total += trueRange;
              b3Total += trueRange;
              output = 0.0;
-             if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
                 output += (4.0*(a1Total/b1Total));
              }
-             if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
                 output += (2.0*(a2Total/b2Total));
              }
-             if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
                 output += (a3Total/b3Total);
              }
              tempLT = inLow[trailingIdx1];
@@ -91754,13 +91754,13 @@ class Core {
              b2Total += trueRange;
              b3Total += trueRange;
              output = 0.0;
-             if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
                 output += (4.0*(a1Total/b1Total));
              }
-             if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
                 output += (2.0*(a2Total/b2Total));
              }
-             if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
                 output += (a3Total/b3Total);
              }
              tempLT = inLow[trailingIdx1];
@@ -91978,13 +91978,13 @@ class Core {
              b2Total += trueRange;
              b3Total += trueRange;
              output = 0.0;
-             if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
                 output += (4.0*(a1Total/b1Total));
              }
-             if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
                 output += (2.0*(a2Total/b2Total));
              }
-             if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+             if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
                 output += (a3Total/b3Total);
              }
              tempLT = inLow[trailingIdx1];

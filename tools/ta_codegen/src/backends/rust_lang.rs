@@ -2739,7 +2739,7 @@ fn expr_is_float_typed_ctx(expr: &Expr, ctx: Option<&RustRenderCtx>) -> bool {
                     "sqrt" | "sin" | "cos" | "tan" | "asin" | "acos" | "atan"
                     | "exp" | "log" | "log10" | "ceil" | "floor" | "abs" | "fabs"
                     | "cosh" | "sinh" | "tanh" | "max" | "fmax" | "min" | "fmin"
-                    | "IS_ZERO" | "PER_TO_K"
+                    | "IS_ZERO" | "IS_ZERO_OR_NEG" | "PER_TO_K"
                 )
         }
         Expr::BinOp(left, op, right) => {
@@ -3172,6 +3172,12 @@ fn render_func_call(
         if let Some(arg) = args.first() {
             let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
             return format!("({x}).abs() < 1e-14");
+        }
+        "false".to_string()
+    } else if fname == "IS_ZERO_OR_NEG" {
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, ctx, opt_real_params, registry, helpers);
+            return format!("({x}) < 1e-14");
         }
         "false".to_string()
     } else if fname == "ARRAY_COPY" {
@@ -3691,6 +3697,7 @@ fn is_ta_function(name: &str) -> bool {
             name,
             "UNSTABLE_PERIOD"
                 | "IS_ZERO"
+                | "IS_ZERO_OR_NEG"
                 | "ARRAY_COPY"
                 | "PER_TO_K"
                 | "COMPATIBILITY"

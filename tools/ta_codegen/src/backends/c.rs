@@ -1130,6 +1130,13 @@ fn render_func_call(
             return format!("TA_IS_ZERO({x})");
         }
         "TA_IS_ZERO(0)".to_string()
+    } else if fname == "IS_ZERO_OR_NEG" {
+        // IS_ZERO_OR_NEG(x) -> TA_IS_ZERO_OR_NEG(x)
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision, registry, helpers);
+            return format!("TA_IS_ZERO_OR_NEG({x})");
+        }
+        "TA_IS_ZERO_OR_NEG(0)".to_string()
     } else if fname == "ARRAY_COPY" {
         // ARRAY_COPY(dst, dstOff, src, srcOff, count)
         if args.len() == 5 {

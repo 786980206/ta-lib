@@ -17,7 +17,7 @@ TA_RetCode bop(int startIdx, int endIdx, const double inOpen[], const double inH
     for( i=startIdx; i <= endIdx; i++ )
     {
     tempReal = inHigh[i]-inLow[i];
-    if( ((tempReal) < 0.00000001) )
+    if( TA_IS_ZERO_OR_NEG(tempReal) )
     outReal[outIdx++] = 0.0;
     else
     outReal[outIdx++] = (inClose[i] - inOpen[i])/tempReal;

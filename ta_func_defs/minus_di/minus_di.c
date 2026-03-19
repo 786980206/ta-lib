@@ -157,7 +157,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     {
     /* Case 2 and 4: +DM=0,-DM=diffM */
     tempReal = ta_true_range(prevHigh, prevLow, prevClose);
-    if( ((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( TA_IS_ZERO(tempReal) )
     outReal[outIdx++] = (double)0.0;
     else
     outReal[outIdx++] = diffM/tempReal;
@@ -239,7 +239,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     /* Now start to write the output in
     * the caller provided outReal.
     */
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     outReal[0] = ta_round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[0] = 0.0;
@@ -272,7 +272,7 @@ TA_RetCode minus_di(int startIdx, int endIdx, const double inHigh[], const doubl
     prevClose = inClose[today];
 
     /* Calculate the DI. The value is rounded (see Wilder book). */
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     outReal[outIdx++] = ta_round_pos(100.0*(prevMinusDM/prevTR));
     else
     outReal[outIdx++] = 0.0;

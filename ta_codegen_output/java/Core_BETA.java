@@ -62,14 +62,14 @@
       i = ++trailingIdx;
       while( (i<startIdx) ) {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -84,14 +84,14 @@
       n = ((double)optInTimePeriod);
       do {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -102,21 +102,21 @@
          S_x += x;
          S_y += y;
          tmp_real = inReal0[trailingIdx];
-         if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
          } else {
             x = 0.0;
          }
          trailing_last_price_x = tmp_real;
          tmp_real = inReal1[trailingIdx++];
-         if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
          } else {
             y = 0.0;
          }
          trailing_last_price_y = tmp_real;
          tmp_real = ((n*S_xx)-(S_x*S_x));
-         if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
             outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
          } else {
             outReal[outIdx++] = 0.0;
@@ -182,14 +182,14 @@
       i = ++trailingIdx;
       while( (i<startIdx) ) {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -204,14 +204,14 @@
       n = ((double)optInTimePeriod);
       do {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -222,21 +222,21 @@
          S_x += x;
          S_y += y;
          tmp_real = inReal0[trailingIdx];
-         if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
          } else {
             x = 0.0;
          }
          trailing_last_price_x = tmp_real;
          tmp_real = inReal1[trailingIdx++];
-         if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
          } else {
             y = 0.0;
          }
          trailing_last_price_y = tmp_real;
          tmp_real = ((n*S_xx)-(S_x*S_x));
-         if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
             outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
          } else {
             outReal[outIdx++] = 0.0;
@@ -308,14 +308,14 @@
       i = ++trailingIdx;
       while( (i<startIdx) ) {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -330,14 +330,14 @@
       n = ((double)optInTimePeriod);
       do {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -348,21 +348,21 @@
          S_x += x;
          S_y += y;
          tmp_real = inReal0[trailingIdx];
-         if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
          } else {
             x = 0.0;
          }
          trailing_last_price_x = tmp_real;
          tmp_real = inReal1[trailingIdx++];
-         if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
          } else {
             y = 0.0;
          }
          trailing_last_price_y = tmp_real;
          tmp_real = ((n*S_xx)-(S_x*S_x));
-         if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
             outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
          } else {
             outReal[outIdx++] = 0.0;
@@ -428,14 +428,14 @@
       i = ++trailingIdx;
       while( (i<startIdx) ) {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -450,14 +450,14 @@
       n = ((double)optInTimePeriod);
       do {
          tmp_real = inReal0[i];
-         if( !((((0-0.00000001)<last_price_x)&&(last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_x) && (last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-last_price_x)/last_price_x);
          } else {
             x = 0.0;
          }
          last_price_x = tmp_real;
          tmp_real = inReal1[i++];
-         if( !((((0-0.00000001)<last_price_y)&&(last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < last_price_y) && (last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-last_price_y)/last_price_y);
          } else {
             y = 0.0;
@@ -468,21 +468,21 @@
          S_x += x;
          S_y += y;
          tmp_real = inReal0[trailingIdx];
-         if( !((((0-0.00000001)<trailing_last_price_x)&&(trailing_last_price_x<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_x) && (trailing_last_price_x < 0.00000000000001))) ) {
             x = ((tmp_real-trailing_last_price_x)/trailing_last_price_x);
          } else {
             x = 0.0;
          }
          trailing_last_price_x = tmp_real;
          tmp_real = inReal1[trailingIdx++];
-         if( !((((0-0.00000001)<trailing_last_price_y)&&(trailing_last_price_y<0.00000001))) ) {
+         if( !(((-0.00000000000001 < trailing_last_price_y) && (trailing_last_price_y < 0.00000000000001))) ) {
             y = ((tmp_real-trailing_last_price_y)/trailing_last_price_y);
          } else {
             y = 0.0;
          }
          trailing_last_price_y = tmp_real;
          tmp_real = ((n*S_xx)-(S_x*S_x));
-         if( !((((0-0.00000001)<tmp_real)&&(tmp_real<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tmp_real) && (tmp_real < 0.00000000000001))) ) {
             outReal[outIdx++] = (((n*S_xy)-(S_x*S_y))/tmp_real);
          } else {
             outReal[outIdx++] = 0.0;

@@ -57,7 +57,7 @@ TA_RetCode ppo(int startIdx, int endIdx, const double inReal[], int optInFastPer
     for( i=0,j=tempInteger; i < outNbElement1; i++, j++ )
     {
     tempReal = outReal[i];
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     outReal[i] = ((tempBuffer[j]-tempReal)/tempReal)*100.0;
     else
     outReal[i] = 0.0;

@@ -109,8 +109,9 @@ static TA_GlobalsType ta_globals_data = {
 static TA_GlobalsType *TA_Globals = &ta_globals_data;
 
 /* Utility macros */
-#define TA_IS_ZERO(v) ((-(0.00000001)) < (v) && (v) < (0.00000001))
-#define TA_IS_ZERO_OR_NEG(v) ((v) < (0.00000001))
+#define TA_EPSILON (0.00000000000001)
+#define TA_IS_ZERO(v)        (((-TA_EPSILON)<v)&&(v<TA_EPSILON))
+#define TA_IS_ZERO_OR_NEG(v) (v<TA_EPSILON)
 
 #define ARRAY_MEMMOVE(dst, dstIdx, src, srcIdx, count) \
     memmove(&(dst)[dstIdx], &(src)[srcIdx], (count) * sizeof(double))

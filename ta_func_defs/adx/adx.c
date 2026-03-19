@@ -220,13 +220,13 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevClose = inClose[today];
 
     /* Calculate the DX. The value is rounded (see Wilder book). */
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     {
     minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
     plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
     /* This loop is just to accumulate the initial DX */
     tempReal = minusDI+plusDI;
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     sumDX  += ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
     }
     }
@@ -267,13 +267,13 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
     minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
     plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     {
     tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */
@@ -318,13 +318,13 @@ TA_RetCode adx(int startIdx, int endIdx, const double inHigh[], const double inL
     prevTR = prevTR - (prevTR/optInTimePeriod) + tempReal;
     prevClose = inClose[today];
 
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     {
     /* Calculate the DX. The value is rounded (see Wilder book). */
     minusDI  = ta_round_pos(100.0*(prevMinusDM/prevTR));
     plusDI   = ta_round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     {
     tempReal = ta_round_pos(100.0*(fabs(minusDI-plusDI)/tempReal));
     /* Calculate the ADX */

@@ -191,7 +191,7 @@ impl Core {
                 _tempReal = (*tempBuffer1.get_unchecked(_outIdx));
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
-                if !(_meanValue2 < 0.00000001) {
+                if !((_meanValue2) < 1e-14) {
                     (*tempBuffer2.get_unchecked_mut(_outIdx)) = (_meanValue2).sqrt();
                 } else {
                     (*tempBuffer2.get_unchecked_mut(_outIdx)) = 0.0;

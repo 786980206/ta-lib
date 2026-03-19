@@ -26,7 +26,7 @@
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);
-         if( (tempReal<0.00000001) ) {
+         if( (tempReal < 0.00000000000001) ) {
             outReal[outIdx++] = 0.0;
          } else {
             outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -52,7 +52,7 @@
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);
-         if( (tempReal<0.00000001) ) {
+         if( (tempReal < 0.00000000000001) ) {
             outReal[outIdx++] = 0.0;
          } else {
             outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -84,7 +84,7 @@
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);
-         if( (tempReal<0.00000001) ) {
+         if( (tempReal < 0.00000000000001) ) {
             outReal[outIdx++] = 0.0;
          } else {
             outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);
@@ -110,7 +110,7 @@
       outIdx = 0;
       for( i = startIdx; (i<=endIdx); i += 1 ) {
          tempReal = (inHigh[i]-inLow[i]);
-         if( (tempReal<0.00000001) ) {
+         if( (tempReal < 0.00000000000001) ) {
             outReal[outIdx++] = 0.0;
          } else {
             outReal[outIdx++] = ((inClose[i]-inOpen[i])/tempReal);

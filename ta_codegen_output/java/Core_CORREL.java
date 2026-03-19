@@ -61,7 +61,7 @@
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) ) {
+      if( !((tempReal < 0.00000000000001)) ) {
          outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
       } else {
          outReal[0] = 0.0;
@@ -83,7 +83,7 @@
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal<0.00000001)) ) {
+         if( !((tempReal < 0.00000000000001)) ) {
             outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
          } else {
             outReal[outIdx++] = 0.0;
@@ -143,7 +143,7 @@
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) ) {
+      if( !((tempReal < 0.00000000000001)) ) {
          outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
       } else {
          outReal[0] = 0.0;
@@ -165,7 +165,7 @@
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal<0.00000001)) ) {
+         if( !((tempReal < 0.00000000000001)) ) {
             outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
          } else {
             outReal[outIdx++] = 0.0;
@@ -231,7 +231,7 @@
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) ) {
+      if( !((tempReal < 0.00000000000001)) ) {
          outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
       } else {
          outReal[0] = 0.0;
@@ -253,7 +253,7 @@
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal<0.00000001)) ) {
+         if( !((tempReal < 0.00000000000001)) ) {
             outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
          } else {
             outReal[outIdx++] = 0.0;
@@ -313,7 +313,7 @@
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) ) {
+      if( !((tempReal < 0.00000000000001)) ) {
          outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
       } else {
          outReal[0] = 0.0;
@@ -335,7 +335,7 @@
          trailingX = inReal0[trailingIdx];
          trailingY = inReal1[trailingIdx++];
          tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-         if( !((tempReal<0.00000001)) ) {
+         if( !((tempReal < 0.00000000000001)) ) {
             outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/Math.sqrt(tempReal));
          } else {
             outReal[outIdx++] = 0.0;

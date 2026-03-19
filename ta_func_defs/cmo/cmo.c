@@ -112,7 +112,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     tempValue4 = tempValue1+tempValue2;
 
     /* Write the output. */
-    if( !((-0.00000001 < (tempValue4)) && ((tempValue4) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue4) )
     outReal[outIdx++] = 100*(tempValue3/tempValue4);
     else
     outReal[outIdx++] = 0.0;
@@ -169,7 +169,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     if( today > startIdx )
     {
     tempValue1 = prevGain+prevLoss;
-    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue1) )
     outReal[outIdx++] = 100.0*((prevGain-prevLoss)/tempValue1);
     else
     outReal[outIdx++] = 0.0;
@@ -218,7 +218,7 @@ TA_RetCode cmo(int startIdx, int endIdx, const double inReal[], int optInTimePer
     prevLoss /= optInTimePeriod;
     prevGain /= optInTimePeriod;
     tempValue1 = prevGain+prevLoss;
-    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue1) )
     outReal[outIdx++] = 100.0*((prevGain-prevLoss)/tempValue1);
     else
     outReal[outIdx++] = 0.0;

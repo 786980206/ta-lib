@@ -123,7 +123,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     */
     outIdx = 1;
     tempValue = inClose[today];
-    if( !((-0.00000001 < (tempValue)) && ((tempValue) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue) )
     outReal[0] = (prevATR/tempValue)*100.0;
     else
     outReal[0] = 0.0;
@@ -137,7 +137,7 @@ TA_RetCode natr(int startIdx, int endIdx, const double inHigh[], const double in
     prevATR += tempBuffer[today++];
     prevATR /= optInTimePeriod;
     tempValue = inClose[today];
-    if( !((-0.00000001 < (tempValue)) && ((tempValue) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue) )
     outReal[outIdx] = (prevATR/tempValue)*100.0;
     else
     outReal[0] = 0.0;

@@ -48,7 +48,7 @@
       tempBuffer2 = new double[(int)((bufferSize*1))];
       for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
          tempReal = (inHigh[i]+inLow[i]);
-         if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
             tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
             tempBuffer1[j] = (inHigh[i]*(1+tempReal));
             tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -117,7 +117,7 @@
       tempBuffer2 = new double[(int)((bufferSize*1))];
       for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
          tempReal = (inHigh[i]+inLow[i]);
-         if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
             tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
             tempBuffer1[j] = (inHigh[i]*(1+tempReal));
             tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -192,7 +192,7 @@
       tempBuffer2 = new double[(int)((bufferSize*1))];
       for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
          tempReal = (inHigh[i]+inLow[i]);
-         if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
             tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
             tempBuffer1[j] = (inHigh[i]*(1+tempReal));
             tempBuffer2[j] = (inLow[i]*(1-tempReal));
@@ -261,7 +261,7 @@
       tempBuffer2 = new double[(int)((bufferSize*1))];
       for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 ) {
          tempReal = (inHigh[i]+inLow[i]);
-         if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
             tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
             tempBuffer1[j] = (inHigh[i]*(1+tempReal));
             tempBuffer2[j] = (inLow[i]*(1-tempReal));

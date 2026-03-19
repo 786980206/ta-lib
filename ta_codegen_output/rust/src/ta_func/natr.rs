@@ -161,7 +161,7 @@ impl Core {
         }
         outIdx = 1;
         tempValue = (*inClose.get_unchecked(today));
-        if !(0_f64 - 0.00000001 < tempValue && tempValue < 0.00000001) {
+        if !((tempValue).abs() < 1e-14) {
             (*outReal.get_unchecked_mut(0)) = prevATR / tempValue * 100.0;
         } else {
             (*outReal.get_unchecked_mut(0)) = 0.0;
@@ -172,7 +172,7 @@ impl Core {
             prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
             prevATR /= ((optInTimePeriod) as f64);
             tempValue = (*inClose.get_unchecked(today));
-            if !(0_f64 - 0.00000001 < tempValue && tempValue < 0.00000001) {
+            if !((tempValue).abs() < 1e-14) {
                 (*outReal.get_unchecked_mut(outIdx)) = prevATR / tempValue * 100.0;
             } else {
                 (*outReal.get_unchecked_mut(0)) = 0.0;

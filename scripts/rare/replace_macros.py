@@ -36,19 +36,9 @@ def replace_simple_macros(content: str) -> str:
     # CAST_TO_F64(expr) -> (double)(expr)
     content = re.sub(r"CAST_TO_F64\(([^)]+)\)", r"(double)(\1)", content)
 
-    # TA_IS_ZERO(x)
-    content = re.sub(
-        r"TA_IS_ZERO\(([^)]+)\)",
-        r"((-0.00000001 < (\1)) && ((\1) < 0.00000001))",
-        content,
-    )
+    # TA_IS_ZERO(x) — preserved as-is (codegen handles per-language rendering)
 
-    # TA_IS_ZERO_OR_NEG(x)
-    content = re.sub(
-        r"TA_IS_ZERO_OR_NEG\(([^)]+)\)",
-        r"((\1) < 0.00000001)",
-        content,
-    )
+    # TA_IS_ZERO_OR_NEG(x) — preserved as-is (codegen handles per-language rendering)
 
     # TA_PER_TO_K(period)
     content = re.sub(

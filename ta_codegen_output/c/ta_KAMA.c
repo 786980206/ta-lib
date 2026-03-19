@@ -97,7 +97,7 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
    tempReal2 = inReal[trailingIdx++];
    periodROC = (tempReal-tempReal2);
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
    {
       tempReal = 1.0;
    } else 
@@ -115,7 +115,7 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -137,7 +137,7 @@ TA_LIB_API TA_RetCode TA_KAMA( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -207,7 +207,7 @@ TA_LIB_API TA_RetCode TA_KAMA_Logic( int    startIdx,
    tempReal2 = inReal[trailingIdx++];
    periodROC = (tempReal-tempReal2);
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
    {
       tempReal = 1.0;
    } else 
@@ -225,7 +225,7 @@ TA_LIB_API TA_RetCode TA_KAMA_Logic( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -247,7 +247,7 @@ TA_LIB_API TA_RetCode TA_KAMA_Logic( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -324,7 +324,7 @@ TA_RetCode TA_S_KAMA( int    startIdx,
    tempReal2 = inReal[trailingIdx++];
    periodROC = (tempReal-tempReal2);
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
    {
       tempReal = 1.0;
    } else 
@@ -342,7 +342,7 @@ TA_RetCode TA_S_KAMA( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -364,7 +364,7 @@ TA_RetCode TA_S_KAMA( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -434,7 +434,7 @@ TA_RetCode TA_S_KAMA_Logic( int    startIdx,
    tempReal2 = inReal[trailingIdx++];
    periodROC = (tempReal-tempReal2);
    trailingValue = tempReal2;
-   if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+   if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
    {
       tempReal = 1.0;
    } else 
@@ -452,7 +452,7 @@ TA_RetCode TA_S_KAMA_Logic( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 
@@ -474,7 +474,7 @@ TA_RetCode TA_S_KAMA_Logic( int    startIdx,
       sumROC1 -= fabs((trailingValue-tempReal2));
       sumROC1 += fabs((tempReal-inReal[(today-1)]));
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) )
+      if( ((sumROC1<=periodROC)||TA_IS_ZERO(sumROC1)) )
       {
          tempReal = 1.0;
       } else 

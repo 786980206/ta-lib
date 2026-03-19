@@ -159,7 +159,7 @@ impl Core {
         trailingX = (*inReal0.get_unchecked(trailingIdx));
         trailingY = (*inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
         tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
-        if !(tempReal < 0.00000001) {
+        if !((tempReal) < 1e-14) {
             (*outReal.get_unchecked_mut(0)) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
         } else {
             (*outReal.get_unchecked_mut(0)) = 0.0;
@@ -181,7 +181,7 @@ impl Core {
             trailingX = (*inReal0.get_unchecked(trailingIdx));
             trailingY = (*inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
             tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
-            if !(tempReal < 0.00000001) {
+            if !((tempReal) < 1e-14) {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
             } else {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;

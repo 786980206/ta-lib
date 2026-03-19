@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
    tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !((tempReal<0.00000001)) )
+   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
    {
       outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
    } else 
@@ -125,7 +125,7 @@ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) )
+      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
       {
          outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
       } else 
@@ -194,7 +194,7 @@ TA_LIB_API TA_RetCode TA_CORREL_Logic( int    startIdx,
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
    tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !((tempReal<0.00000001)) )
+   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
    {
       outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
    } else 
@@ -219,7 +219,7 @@ TA_LIB_API TA_RetCode TA_CORREL_Logic( int    startIdx,
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) )
+      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
       {
          outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
       } else 
@@ -295,7 +295,7 @@ TA_RetCode TA_S_CORREL( int    startIdx,
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
    tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !((tempReal<0.00000001)) )
+   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
    {
       outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
    } else 
@@ -320,7 +320,7 @@ TA_RetCode TA_S_CORREL( int    startIdx,
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) )
+      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
       {
          outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
       } else 
@@ -389,7 +389,7 @@ TA_RetCode TA_S_CORREL_Logic( int    startIdx,
    trailingX = inReal0[trailingIdx];
    trailingY = inReal1[trailingIdx++];
    tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-   if( !((tempReal<0.00000001)) )
+   if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
    {
       outReal[0] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
    } else 
@@ -414,7 +414,7 @@ TA_RetCode TA_S_CORREL_Logic( int    startIdx,
       trailingX = inReal0[trailingIdx];
       trailingY = inReal1[trailingIdx++];
       tempReal = ((sumX2-((sumX*sumX)/optInTimePeriod))*(sumY2-((sumY*sumY)/optInTimePeriod)));
-      if( !((tempReal<0.00000001)) )
+      if( !(TA_IS_ZERO_OR_NEG(tempReal)) )
       {
          outReal[outIdx++] = ((sumXY-((sumX*sumY)/optInTimePeriod))/sqrt(tempReal));
       } else 

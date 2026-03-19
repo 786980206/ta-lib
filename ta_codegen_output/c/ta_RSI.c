@@ -116,7 +116,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
@@ -156,7 +156,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -204,7 +204,7 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -286,7 +286,7 @@ TA_LIB_API TA_RetCode TA_RSI_Logic( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
@@ -326,7 +326,7 @@ TA_LIB_API TA_RetCode TA_RSI_Logic( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -374,7 +374,7 @@ TA_LIB_API TA_RetCode TA_RSI_Logic( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -463,7 +463,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
@@ -503,7 +503,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -551,7 +551,7 @@ TA_RetCode TA_S_RSI( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -633,7 +633,7 @@ TA_RetCode TA_S_RSI_Logic( int    startIdx,
       tempValue1 = (prevLoss/((double)optInTimePeriod));
       tempValue2 = (prevGain/((double)optInTimePeriod));
       tempValue1 = (tempValue2+tempValue1);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(tempValue2/tempValue1));
          outIdx = (outIdx+1);
@@ -673,7 +673,7 @@ TA_RetCode TA_S_RSI_Logic( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);
@@ -721,7 +721,7 @@ TA_RetCode TA_S_RSI_Logic( int    startIdx,
       prevLoss /= ((double)optInTimePeriod);
       prevGain /= ((double)optInTimePeriod);
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx] = (100.0*(prevGain/tempValue1));
          outIdx = (outIdx+1);

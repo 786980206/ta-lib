@@ -73,7 +73,7 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)))
+    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1))
     tempReal = 1.0;
     else
     tempReal = fabs(periodROC/sumROC1);
@@ -113,7 +113,7 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)) )
+    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1) )
     tempReal = 1.0;
     else
     tempReal = fabs(periodROC/sumROC1);
@@ -153,7 +153,7 @@ TA_RetCode kama(int startIdx, int endIdx, const double inReal[], int optInTimePe
     trailingValue = tempReal2;
 
     /* Calculate the efficiency ratio */
-    if( (sumROC1 <= periodROC) || ((-0.00000001 < (sumROC1)) && ((sumROC1) < 0.00000001)) )
+    if( (sumROC1 <= periodROC) || TA_IS_ZERO(sumROC1) )
     tempReal = 1.0;
     else
     tempReal = fabs(periodROC / sumROC1);

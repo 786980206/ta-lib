@@ -174,7 +174,7 @@ impl Core {
             tempValue1 = prevLoss / ((optInTimePeriod) as f64);
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
             tempValue1 = tempValue2 + tempValue1;
-            if !(0_f64 - 0.00000001 < tempValue1 && tempValue1 < 0.00000001) {
+            if !((tempValue1).abs() < 1e-14) {
                 (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -210,7 +210,7 @@ impl Core {
         prevGain /= (optInTimePeriod) as f64;
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
-            if !(0_f64 - 0.00000001 < tempValue1 && tempValue1 < 0.00000001) {
+            if !((tempValue1).abs() < 1e-14) {
                 (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
@@ -249,7 +249,7 @@ impl Core {
             prevLoss /= (optInTimePeriod) as f64;
             prevGain /= (optInTimePeriod) as f64;
             tempValue1 = prevGain + prevLoss;
-            if !(0_f64 - 0.00000001 < tempValue1 && tempValue1 < 0.00000001) {
+            if !((tempValue1).abs() < 1e-14) {
                 (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {

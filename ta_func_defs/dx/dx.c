@@ -213,12 +213,12 @@ TA_RetCode dx(int startIdx, int endIdx, const double inHigh[], const double inLo
     }
 
     /* Write the first DX output */
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)) )
+    if( !TA_IS_ZERO(prevTR) )
     {
     minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
     plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
     tempReal = minusDI+plusDI;
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     outReal[0] = ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
     else
     outReal[0] = 0.0;
@@ -259,13 +259,13 @@ TA_RetCode dx(int startIdx, int endIdx, const double inHigh[], const double inLo
     prevClose = inClose[today];
 
     /* Calculate the DX. The value is rounded (see Wilder book). */
-    if( !((-0.00000001 < (prevTR)) && ((prevTR) < 0.00000001)))
+    if( !TA_IS_ZERO(prevTR))
     {
     minusDI = ta_round_pos(100.0*(prevMinusDM/prevTR));
     plusDI  = ta_round_pos(100.0*(prevPlusDM/prevTR));
     /* This loop is just to accumulate the initial DX */
     tempReal = minusDI+plusDI;
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)))
+    if( !TA_IS_ZERO(tempReal))
     outReal[outIdx] = ta_round_pos( 100.0 * (fabs(minusDI-plusDI)/tempReal) );
     else
     outReal[outIdx] = outReal[outIdx-1];

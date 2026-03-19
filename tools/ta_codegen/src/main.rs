@@ -130,6 +130,18 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         None => vec!["c", "rust", "java", "dotnet", "swig"],
     };
 
+    // Clean stale per-function output files before generating.
+    // This prevents generate-servers from picking up outdated artifacts
+    // (e.g., stale Core_*.java files that were generated with old code).
+    // Only clean when generating all functions (no filter) to avoid
+    // accidentally removing files for functions not being regenerated.
+    if func_filter.is_none() {
+        let out_base = Path::new("../../ta_codegen_output");
+        for backend in &backends_to_run {
+            clean_generated_files(out_base, backend);
+        }
+    }
+
     let mut generated_funcs: Vec<ir::FuncDef> = Vec::new();
 
     for entry in &func_dirs {
@@ -508,25 +520,29 @@ fn build_servers(backend_filter: Option<&str>) {
                     "-shared"
                 };
 
+                let mut gcc_args: Vec<String> = vec![
+                    shared_flag.to_string(),
+                    "-fPIC".to_string(),
+                    "-o".to_string(),
+                    so_path.to_str().unwrap().to_string(),
+                    swig_dir.join("ta_lib_wrap.c").to_str().unwrap().to_string(),
+                    swig_unity_path.to_str().unwrap().to_string(),
+                    format!("-I{}", python_include),
+                    format!("-I{}", c_dir.to_str().unwrap()),
+                    format!("-I{}", swig_dir.to_str().unwrap()),
+                    "-lm".to_string(),
+                    "-O3".to_string(),
+                    "-DNDEBUG".to_string(),
+                    "-Wno-unused-function".to_string(),
+                ];
+                if cfg!(target_os = "macos") {
+                    gcc_args.push("-Wno-parentheses-equality".to_string());
+                    gcc_args.push("-undefined".to_string());
+                    gcc_args.push("dynamic_lookup".to_string());
+                }
+
                 match std::process::Command::new("gcc")
-                    .args([
-                        shared_flag,
-                        "-fPIC",
-                        "-o",
-                        so_path.to_str().unwrap(),
-                        swig_dir.join("ta_lib_wrap.c").to_str().unwrap(),
-                        swig_unity_path.to_str().unwrap(),
-                        &format!("-I{}", python_include),
-                        &format!("-I{}", c_dir.to_str().unwrap()),
-                        &format!("-I{}", swig_dir.to_str().unwrap()),
-                        "-lm",
-                        "-O3",
-                        "-DNDEBUG",
-                        "-Wno-parentheses-equality",
-                        "-Wno-unused-function",
-                        "-undefined",
-                        "dynamic_lookup",
-                    ])
+                    .args(&gcc_args)
                     .status()
                 {
                     Ok(s) if s.success() => println!("OK"),
@@ -1222,6 +1238,41 @@ impl Core {
     }
 
     println!("  Rust crate scaffolding generated ({} indicators)", func_names.len());
+}
+
+/// Remove per-function generated files for a backend so stale artifacts
+/// from a previous run cannot leak into `generate-servers`.
+fn clean_generated_files(out_base: &Path, backend: &str) {
+    let (dir, prefix, suffix) = match backend {
+        "c" => (out_base.join("c"), "ta_", ".c"),
+        "java" => (out_base.join("java"), "Core_", ".java"),
+        "dotnet" => (out_base.join("dotnet"), "Core_", ".h"),
+        "rust" => (out_base.join("rust/src/ta_func"), "", ".rs"),
+        "swig" => (out_base.join("swig"), "ta_", ".swg"),
+        _ => return,
+    };
+    if !dir.exists() {
+        return;
+    }
+    // Keep hand-written / scaffolding files (types.rs, mod.rs, ta_lib_types.h, etc.)
+    let keep: &[&str] = match backend {
+        "rust" => &["types.rs", "mod.rs"],
+        _ => &[],
+    };
+    let mut count = 0;
+    if let Ok(entries) = std::fs::read_dir(&dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with(prefix) && name.ends_with(suffix) && !keep.contains(&name.as_str())
+            {
+                std::fs::remove_file(entry.path()).ok();
+                count += 1;
+            }
+        }
+    }
+    if count > 0 {
+        println!("  Cleaned {count} stale {backend} files from {}", dir.display());
+    }
 }
 
 fn generate_backend(

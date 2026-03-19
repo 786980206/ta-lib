@@ -66,14 +66,14 @@ TA_RetCode beta(int startIdx, int endIdx, const double inReal0[], const double i
     while( i < startIdx )
     {
     tmp_real = inReal0[i];
-    if( !((-0.00000001 < (last_price_x)) && ((last_price_x) < 0.00000001)) )
+    if( !TA_IS_ZERO(last_price_x) )
     x = (tmp_real-last_price_x)/last_price_x;
     else
     x = 0.0;
     last_price_x = tmp_real;
 
     tmp_real = inReal1[i++];
-    if( !((-0.00000001 < (last_price_y)) && ((last_price_y) < 0.00000001)) )
+    if( !TA_IS_ZERO(last_price_y) )
     y = (tmp_real-last_price_y)/last_price_y;
     else
     y = 0.0;
@@ -91,14 +91,14 @@ TA_RetCode beta(int startIdx, int endIdx, const double inReal0[], const double i
     do
     {
     tmp_real = inReal0[i];
-    if( !((-0.00000001 < (last_price_x)) && ((last_price_x) < 0.00000001)) )
+    if( !TA_IS_ZERO(last_price_x) )
     x = (tmp_real-last_price_x)/last_price_x;
     else
     x = 0.0;
     last_price_x = tmp_real;
 
     tmp_real = inReal1[i++];
-    if( !((-0.00000001 < (last_price_y)) && ((last_price_y) < 0.00000001)) )
+    if( !TA_IS_ZERO(last_price_y) )
     y = (tmp_real-last_price_y)/last_price_y;
     else
     y = 0.0;
@@ -113,14 +113,14 @@ TA_RetCode beta(int startIdx, int endIdx, const double inReal0[], const double i
     * buffer can be the same.
     */
     tmp_real = inReal0[trailingIdx];
-    if( !((-0.00000001 < (trailing_last_price_x)) && ((trailing_last_price_x) < 0.00000001)) )
+    if( !TA_IS_ZERO(trailing_last_price_x) )
     x = (tmp_real-trailing_last_price_x)/trailing_last_price_x;
     else
     x = 0.0;
     trailing_last_price_x = tmp_real;
 
     tmp_real = inReal1[trailingIdx++];
-    if( !((-0.00000001 < (trailing_last_price_y)) && ((trailing_last_price_y) < 0.00000001)) )
+    if( !TA_IS_ZERO(trailing_last_price_y) )
     y = (tmp_real-trailing_last_price_y)/trailing_last_price_y;
     else
     y = 0.0;
@@ -128,7 +128,7 @@ TA_RetCode beta(int startIdx, int endIdx, const double inReal0[], const double i
 
     /* Write the output */
     tmp_real = (n * S_xx) - (S_x * S_x);
-    if( !((-0.00000001 < (tmp_real)) && ((tmp_real) < 0.00000001)) )
+    if( !TA_IS_ZERO(tmp_real) )
     outReal[outIdx++] = ((n * S_xy) - (S_x * S_y)) / tmp_real;
     else
     outReal[outIdx++] = 0.0;

@@ -72,7 +72,7 @@
          tempValue1 = (prevLoss/((double)optInTimePeriod));
          tempValue2 = (prevGain/((double)optInTimePeriod));
          tempValue1 = (tempValue2+tempValue1);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(tempValue2/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -105,7 +105,7 @@
       prevGain /= ((double)optInTimePeriod);
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -144,7 +144,7 @@
          prevLoss /= ((double)optInTimePeriod);
          prevGain /= ((double)optInTimePeriod);
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -213,7 +213,7 @@
          tempValue1 = (prevLoss/((double)optInTimePeriod));
          tempValue2 = (prevGain/((double)optInTimePeriod));
          tempValue1 = (tempValue2+tempValue1);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(tempValue2/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -246,7 +246,7 @@
       prevGain /= ((double)optInTimePeriod);
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -285,7 +285,7 @@
          prevLoss /= ((double)optInTimePeriod);
          prevGain /= ((double)optInTimePeriod);
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -360,7 +360,7 @@
          tempValue1 = (prevLoss/((double)optInTimePeriod));
          tempValue2 = (prevGain/((double)optInTimePeriod));
          tempValue1 = (tempValue2+tempValue1);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(tempValue2/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -393,7 +393,7 @@
       prevGain /= ((double)optInTimePeriod);
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -432,7 +432,7 @@
          prevLoss /= ((double)optInTimePeriod);
          prevGain /= ((double)optInTimePeriod);
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -501,7 +501,7 @@
          tempValue1 = (prevLoss/((double)optInTimePeriod));
          tempValue2 = (prevGain/((double)optInTimePeriod));
          tempValue1 = (tempValue2+tempValue1);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(tempValue2/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -534,7 +534,7 @@
       prevGain /= ((double)optInTimePeriod);
       if( (today>startIdx) ) {
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {
@@ -573,7 +573,7 @@
          prevLoss /= ((double)optInTimePeriod);
          prevGain /= ((double)optInTimePeriod);
          tempValue1 = (prevGain+prevLoss);
-         if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue1) && (tempValue1 < 0.00000000000001))) ) {
             outReal[outIdx] = (100.0*(prevGain/tempValue1));
             outIdx = (outIdx+1);
          } else {

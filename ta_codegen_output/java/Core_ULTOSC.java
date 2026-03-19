@@ -168,13 +168,13 @@
          b2Total += trueRange;
          b3Total += trueRange;
          output = 0.0;
-         if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
          }
-         if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
             output += (2.0*(a2Total/b2Total));
          }
-         if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
          tempLT = inLow[trailingIdx1];
@@ -392,13 +392,13 @@
          b2Total += trueRange;
          b3Total += trueRange;
          output = 0.0;
-         if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
          }
-         if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
             output += (2.0*(a2Total/b2Total));
          }
-         if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
          tempLT = inLow[trailingIdx1];
@@ -622,13 +622,13 @@
          b2Total += trueRange;
          b3Total += trueRange;
          output = 0.0;
-         if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
          }
-         if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
             output += (2.0*(a2Total/b2Total));
          }
-         if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
          tempLT = inLow[trailingIdx1];
@@ -846,13 +846,13 @@
          b2Total += trueRange;
          b3Total += trueRange;
          output = 0.0;
-         if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b1Total) && (b1Total < 0.00000000000001))) ) {
             output += (4.0*(a1Total/b1Total));
          }
-         if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b2Total) && (b2Total < 0.00000000000001))) ) {
             output += (2.0*(a2Total/b2Total));
          }
-         if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) ) {
+         if( !(((-0.00000000000001 < b3Total) && (b3Total < 0.00000000000001))) ) {
             output += (a3Total/b3Total);
          }
          tempLT = inLow[trailingIdx1];

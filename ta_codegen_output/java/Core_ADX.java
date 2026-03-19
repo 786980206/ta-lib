@@ -117,11 +117,11 @@
          tempReal = _true_range_1;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
             }
          }
@@ -157,11 +157,11 @@
          tempReal = _true_range_2;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -198,11 +198,11 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -319,11 +319,11 @@
          tempReal = _true_range_1;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
             }
          }
@@ -359,11 +359,11 @@
          tempReal = _true_range_2;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -400,11 +400,11 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -527,11 +527,11 @@
          tempReal = _true_range_1;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
             }
          }
@@ -567,11 +567,11 @@
          tempReal = _true_range_2;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -608,11 +608,11 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -729,11 +729,11 @@
          tempReal = _true_range_1;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                sumDX += (100.0*(Math.abs((minusDI-plusDI))/tempReal));
             }
          }
@@ -769,11 +769,11 @@
          tempReal = _true_range_2;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }
@@ -810,11 +810,11 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             minusDI = (100.0*(prevMinusDM/prevTR));
             plusDI = (100.0*(prevPlusDM/prevTR));
             tempReal = (minusDI+plusDI);
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+            if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                tempReal = (100.0*(Math.abs((minusDI-plusDI))/tempReal));
                prevADX = (((prevADX*(optInTimePeriod-1))+tempReal)/optInTimePeriod);
             }

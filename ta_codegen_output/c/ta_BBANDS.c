@@ -121,7 +121,7 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !((_meanValue2<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -272,7 +272,7 @@ TA_LIB_API TA_RetCode TA_BBANDS_Logic( int    startIdx,
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !((_meanValue2<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -430,7 +430,7 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !((_meanValue2<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 
@@ -581,7 +581,7 @@ TA_RetCode TA_S_BBANDS_Logic( int    startIdx,
          _tempReal = tempBuffer1[_outIdx];
          _tempReal *= _tempReal;
          _meanValue2 -= _tempReal;
-         if( !((_meanValue2<0.00000001)) )
+         if( !(TA_IS_ZERO_OR_NEG(_meanValue2)) )
          {
             tempBuffer2[_outIdx] = sqrt(_meanValue2);
          } else 

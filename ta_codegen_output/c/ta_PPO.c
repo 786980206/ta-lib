@@ -87,7 +87,7 @@ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
          for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+            if( !(TA_IS_ZERO(tempReal)) )
             {
                outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
             } else 
@@ -147,7 +147,7 @@ TA_LIB_API TA_RetCode TA_PPO_Logic( int    startIdx,
          for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+            if( !(TA_IS_ZERO(tempReal)) )
             {
                outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
             } else 
@@ -214,7 +214,7 @@ TA_RetCode TA_S_PPO( int    startIdx,
          for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+            if( !(TA_IS_ZERO(tempReal)) )
             {
                outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
             } else 
@@ -274,7 +274,7 @@ TA_RetCode TA_S_PPO_Logic( int    startIdx,
          for( i = 0, j = tempInteger; (i<outNbElement1); i += 1, j += 1 )
          {
             tempReal = outReal[i];
-            if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+            if( !(TA_IS_ZERO(tempReal)) )
             {
                outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
             } else 

@@ -130,7 +130,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
 
     /* Write the output. */
     tempValue1 = tempValue2+tempValue1;
-    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue1) )
     {
     outReal[outIdx] = 100.0*(tempValue2/tempValue1); outIdx = outIdx + 1;
     }
@@ -194,7 +194,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     if( today > startIdx )
     {
     tempValue1 = prevGain+prevLoss;
-    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue1) )
     {
     outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
     }
@@ -255,7 +255,7 @@ TA_RetCode rsi(int startIdx, int endIdx, const double inReal[], int optInTimePer
     prevLoss /= (double)optInTimePeriod;
     prevGain /= (double)optInTimePeriod;
     tempValue1 = prevGain+prevLoss;
-    if( !((-0.00000001 < (tempValue1)) && ((tempValue1) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempValue1) )
     {
     outReal[outIdx] = 100.0*(prevGain/tempValue1); outIdx = outIdx + 1;
     }

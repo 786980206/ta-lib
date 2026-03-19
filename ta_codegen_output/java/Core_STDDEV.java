@@ -29,7 +29,7 @@
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
             } else {
                outReal[i] = ((double)0.0);
@@ -38,7 +38,7 @@
       } else {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
                outReal[i] = ((double)0.0);
@@ -66,7 +66,7 @@
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
             } else {
                outReal[i] = ((double)0.0);
@@ -75,7 +75,7 @@
       } else {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
                outReal[i] = ((double)0.0);
@@ -109,7 +109,7 @@
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
             } else {
                outReal[i] = ((double)0.0);
@@ -118,7 +118,7 @@
       } else {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
                outReal[i] = ((double)0.0);
@@ -146,7 +146,7 @@
       if( (optInNbDev!=1.0) ) {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = (Math.sqrt(tempReal)*optInNbDev);
             } else {
                outReal[i] = ((double)0.0);
@@ -155,7 +155,7 @@
       } else {
          for( i = 0; (i<((int)outNBElement.value)); i += 1 ) {
             tempReal = outReal[i];
-            if( !((tempReal<0.00000001)) ) {
+            if( !((tempReal < 0.00000000000001)) ) {
                outReal[i] = Math.sqrt(tempReal);
             } else {
                outReal[i] = ((double)0.0);

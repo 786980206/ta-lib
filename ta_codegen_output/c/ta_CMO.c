@@ -118,7 +118,7 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
       tempValue2 = (prevGain/optInTimePeriod);
       tempValue3 = (tempValue2-tempValue1);
       tempValue4 = (tempValue1+tempValue2);
-      if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue4)) )
       {
          outReal[outIdx++] = (100*(tempValue3/tempValue4));
       } else 
@@ -155,7 +155,7 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -200,7 +200,7 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -282,7 +282,7 @@ TA_LIB_API TA_RetCode TA_CMO_Logic( int    startIdx,
       tempValue2 = (prevGain/optInTimePeriod);
       tempValue3 = (tempValue2-tempValue1);
       tempValue4 = (tempValue1+tempValue2);
-      if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue4)) )
       {
          outReal[outIdx++] = (100*(tempValue3/tempValue4));
       } else 
@@ -319,7 +319,7 @@ TA_LIB_API TA_RetCode TA_CMO_Logic( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -364,7 +364,7 @@ TA_LIB_API TA_RetCode TA_CMO_Logic( int    startIdx,
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -453,7 +453,7 @@ TA_RetCode TA_S_CMO( int    startIdx,
       tempValue2 = (prevGain/optInTimePeriod);
       tempValue3 = (tempValue2-tempValue1);
       tempValue4 = (tempValue1+tempValue2);
-      if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue4)) )
       {
          outReal[outIdx++] = (100*(tempValue3/tempValue4));
       } else 
@@ -490,7 +490,7 @@ TA_RetCode TA_S_CMO( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -535,7 +535,7 @@ TA_RetCode TA_S_CMO( int    startIdx,
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -617,7 +617,7 @@ TA_RetCode TA_S_CMO_Logic( int    startIdx,
       tempValue2 = (prevGain/optInTimePeriod);
       tempValue3 = (tempValue2-tempValue1);
       tempValue4 = (tempValue1+tempValue2);
-      if( !((((0-0.00000001)<tempValue4)&&(tempValue4<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue4)) )
       {
          outReal[outIdx++] = (100*(tempValue3/tempValue4));
       } else 
@@ -654,7 +654,7 @@ TA_RetCode TA_S_CMO_Logic( int    startIdx,
    if( (today>startIdx) )
    {
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 
@@ -699,7 +699,7 @@ TA_RetCode TA_S_CMO_Logic( int    startIdx,
       prevLoss /= optInTimePeriod;
       prevGain /= optInTimePeriod;
       tempValue1 = (prevGain+prevLoss);
-      if( !((((0-0.00000001)<tempValue1)&&(tempValue1<0.00000001))) )
+      if( !(TA_IS_ZERO(tempValue1)) )
       {
          outReal[outIdx++] = (100.0*((prevGain-prevLoss)/tempValue1));
       } else 

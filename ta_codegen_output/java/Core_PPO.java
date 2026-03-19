@@ -43,7 +43,7 @@
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                   outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                } else {
                   outReal[i] = 0.0;
@@ -88,7 +88,7 @@
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                   outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                } else {
                   outReal[i] = 0.0;
@@ -139,7 +139,7 @@
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                   outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                } else {
                   outReal[i] = 0.0;
@@ -184,7 +184,7 @@
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
                tempReal = outReal[i];
-               if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) ) {
+               if( !(((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001))) ) {
                   outReal[i] = (((tempBuffer[j]-tempReal)/tempReal)*100.0);
                } else {
                   outReal[i] = 0.0;

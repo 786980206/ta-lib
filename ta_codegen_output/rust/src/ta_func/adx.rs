@@ -217,11 +217,11 @@ impl Core {
             tempReal = _true_range_1;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
-            if !(0_f64 - 0.00000001 < prevTR && prevTR < 0.00000001) {
+            if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
-                if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                if !((tempReal).abs() < 1e-14) {
                     sumDX += (100.0 * ((minusDI - plusDI).abs() / tempReal));
                 }
             }
@@ -257,11 +257,11 @@ impl Core {
             tempReal = _true_range_2;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
-            if !(0_f64 - 0.00000001 < prevTR && prevTR < 0.00000001) {
+            if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
-                if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                if !((tempReal).abs() < 1e-14) {
                     tempReal = (100.0 * ((minusDI - plusDI).abs() / tempReal));
                     prevADX = ((prevADX * (((optInTimePeriod - 1)) as f64) + tempReal) / ((optInTimePeriod) as f64));
                 }
@@ -298,11 +298,11 @@ impl Core {
             tempReal = _true_range_3;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
-            if !(0_f64 - 0.00000001 < prevTR && prevTR < 0.00000001) {
+            if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
-                if !(0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001) {
+                if !((tempReal).abs() < 1e-14) {
                     tempReal = (100.0 * ((minusDI - plusDI).abs() / tempReal));
                     prevADX = ((prevADX * (((optInTimePeriod - 1)) as f64) + tempReal) / ((optInTimePeriod) as f64));
                 }

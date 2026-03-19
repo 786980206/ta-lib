@@ -62,7 +62,7 @@ TA_RetCode accbands(int startIdx, int endIdx, const double inHigh[], const doubl
     for(j=0, i=startIdx-lookbackTotal; i<=endIdx; i++, j++)
     {
     tempReal = inHigh[i]+inLow[i];
-    if( !((-0.00000001 < (tempReal)) && ((tempReal) < 0.00000001)) )
+    if( !TA_IS_ZERO(tempReal) )
     {
     tempReal = 4*(inHigh[i]-inLow[i])/tempReal;
     tempBuffer1[j] = inHigh[i]*(1+tempReal);

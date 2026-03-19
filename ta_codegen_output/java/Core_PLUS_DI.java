@@ -78,7 +78,7 @@
                }
                _true_range_0 = range_0;
                tempReal = _true_range_0;
-               if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+               if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                   outReal[outIdx++] = ((double)0.0);
                } else {
                   outReal[outIdx++] = (diffP/tempReal);
@@ -155,7 +155,7 @@
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+      if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevPlusDM/prevTR));
       } else {
          outReal[0] = 0.0;
@@ -188,7 +188,7 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
          } else {
             outReal[outIdx++] = 0.0;
@@ -261,7 +261,7 @@
                }
                _true_range_0 = range_0;
                tempReal = _true_range_0;
-               if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+               if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                   outReal[outIdx++] = ((double)0.0);
                } else {
                   outReal[outIdx++] = (diffP/tempReal);
@@ -338,7 +338,7 @@
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+      if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevPlusDM/prevTR));
       } else {
          outReal[0] = 0.0;
@@ -371,7 +371,7 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
          } else {
             outReal[outIdx++] = 0.0;
@@ -450,7 +450,7 @@
                }
                _true_range_0 = range_0;
                tempReal = _true_range_0;
-               if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+               if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                   outReal[outIdx++] = ((double)0.0);
                } else {
                   outReal[outIdx++] = (diffP/tempReal);
@@ -527,7 +527,7 @@
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+      if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevPlusDM/prevTR));
       } else {
          outReal[0] = 0.0;
@@ -560,7 +560,7 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
          } else {
             outReal[outIdx++] = 0.0;
@@ -633,7 +633,7 @@
                }
                _true_range_0 = range_0;
                tempReal = _true_range_0;
-               if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) ) {
+               if( ((-0.00000000000001 < tempReal) && (tempReal < 0.00000000000001)) ) {
                   outReal[outIdx++] = ((double)0.0);
                } else {
                   outReal[outIdx++] = (diffP/tempReal);
@@ -710,7 +710,7 @@
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
       }
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+      if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
          outReal[0] = (100.0*(prevPlusDM/prevTR));
       } else {
          outReal[0] = 0.0;
@@ -743,7 +743,7 @@
          tempReal = _true_range_3;
          prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
          prevClose = inClose[today];
-         if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) ) {
+         if( !(((-0.00000000000001 < prevTR) && (prevTR < 0.00000000000001))) ) {
             outReal[outIdx++] = (100.0*(prevPlusDM/prevTR));
          } else {
             outReal[outIdx++] = 0.0;

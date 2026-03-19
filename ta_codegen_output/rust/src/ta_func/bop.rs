@@ -115,7 +115,7 @@ impl Core {
         outIdx = 0;
         for i in (startIdx as usize)..=(endIdx as usize) {
             tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
-            if tempReal < 0.00000001 {
+            if (tempReal) < 1e-14 {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             } else {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))) / tempReal) as f64);

@@ -28,6 +28,7 @@ fn is_boolean_expr(expr: &Expr) -> bool {
                 | BinOp::Or
         ),
         Expr::Not(_) => true,
+        Expr::FuncCall(name, _) => matches!(name.as_str(), "IS_ZERO" | "IS_ZERO_OR_NEG"),
         _ => false,
     }
 }
@@ -1561,6 +1562,13 @@ fn render_func_call(
         if let Some(arg) = args.first() {
             let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
             return format!("((-0.00000000000001 < {x}) && ({x} < 0.00000000000001))");
+        }
+        "false".to_string()
+    } else if fname == "IS_ZERO_OR_NEG" {
+        // IS_ZERO_OR_NEG(x) -> (x < epsilon)
+        if let Some(arg) = args.first() {
+            let x = render_expr(arg, single_precision, registry, helpers, address_of_vars, double_address_of_vars, float_input_params);
+            return format!("({x} < 0.00000000000001)");
         }
         "false".to_string()
     } else if fname == "ARRAY_COPY" {

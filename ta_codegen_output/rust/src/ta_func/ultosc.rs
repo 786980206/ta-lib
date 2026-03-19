@@ -311,13 +311,13 @@ impl Core {
             b2Total += trueRange;
             b3Total += trueRange;
             output = 0.0;
-            if !(0_f64 - 0.00000001 < b1Total && b1Total < 0.00000001) {
+            if !((b1Total).abs() < 1e-14) {
                 output += 4.0 * (a1Total / b1Total);
             }
-            if !(0_f64 - 0.00000001 < b2Total && b2Total < 0.00000001) {
+            if !((b2Total).abs() < 1e-14) {
                 output += 2.0 * (a2Total / b2Total);
             }
-            if !(0_f64 - 0.00000001 < b3Total && b3Total < 0.00000001) {
+            if !((b3Total).abs() < 1e-14) {
                 output += a3Total / b3Total;
             }
             tempLT = (*inLow.get_unchecked(trailingIdx1));

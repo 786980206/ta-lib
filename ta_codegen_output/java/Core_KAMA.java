@@ -58,7 +58,7 @@
       tempReal2 = inReal[trailingIdx++];
       periodROC = (tempReal-tempReal2);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
          tempReal = 1.0;
       } else {
          tempReal = Math.abs((periodROC/sumROC1));
@@ -73,7 +73,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -92,7 +92,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -153,7 +153,7 @@
       tempReal2 = inReal[trailingIdx++];
       periodROC = (tempReal-tempReal2);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
          tempReal = 1.0;
       } else {
          tempReal = Math.abs((periodROC/sumROC1));
@@ -168,7 +168,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -187,7 +187,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -254,7 +254,7 @@
       tempReal2 = inReal[trailingIdx++];
       periodROC = (tempReal-tempReal2);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
          tempReal = 1.0;
       } else {
          tempReal = Math.abs((periodROC/sumROC1));
@@ -269,7 +269,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -288,7 +288,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -349,7 +349,7 @@
       tempReal2 = inReal[trailingIdx++];
       periodROC = (tempReal-tempReal2);
       trailingValue = tempReal2;
-      if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+      if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
          tempReal = 1.0;
       } else {
          tempReal = Math.abs((periodROC/sumROC1));
@@ -364,7 +364,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));
@@ -383,7 +383,7 @@
          sumROC1 -= Math.abs((trailingValue-tempReal2));
          sumROC1 += Math.abs((tempReal-inReal[(today-1)]));
          trailingValue = tempReal2;
-         if( ((sumROC1<=periodROC)||(((0-0.00000001)<sumROC1)&&(sumROC1<0.00000001))) ) {
+         if( ((sumROC1<=periodROC)||((-0.00000000000001 < sumROC1) && (sumROC1 < 0.00000000000001))) ) {
             tempReal = 1.0;
          } else {
             tempReal = Math.abs((periodROC/sumROC1));

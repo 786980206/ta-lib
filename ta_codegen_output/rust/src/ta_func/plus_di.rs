@@ -178,7 +178,7 @@ impl Core {
                     }
                     _true_range_0 = range_0;
                     tempReal = _true_range_0;
-                    if 0_f64 - 0.00000001 < tempReal && tempReal < 0.00000001 {
+                    if (tempReal).abs() < 1e-14 {
                         (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (0.0) as f64;
                     } else {
                         (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = diffP / tempReal;
@@ -255,7 +255,7 @@ impl Core {
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
         }
-        if !(0_f64 - 0.00000001 < prevTR && prevTR < 0.00000001) {
+        if !((prevTR).abs() < 1e-14) {
             (*outReal.get_unchecked_mut(0)) = (100.0 * (prevPlusDM / prevTR));
         } else {
             (*outReal.get_unchecked_mut(0)) = 0.0;
@@ -288,7 +288,7 @@ impl Core {
             tempReal = _true_range_3;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
-            if !(0_f64 - 0.00000001 < prevTR && prevTR < 0.00000001) {
+            if !((prevTR).abs() < 1e-14) {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (100.0 * (prevPlusDM / prevTR));
             } else {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;

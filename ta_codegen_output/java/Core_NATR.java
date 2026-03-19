@@ -61,7 +61,7 @@
       }
       outIdx = 1;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+      if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
          outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
@@ -72,7 +72,7 @@
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
-         if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
             outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
@@ -134,7 +134,7 @@
       }
       outIdx = 1;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+      if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
          outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
@@ -145,7 +145,7 @@
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
-         if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
             outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
@@ -213,7 +213,7 @@
       }
       outIdx = 1;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+      if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
          outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
@@ -224,7 +224,7 @@
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
-         if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
             outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;
@@ -286,7 +286,7 @@
       }
       outIdx = 1;
       tempValue = inClose[today];
-      if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+      if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
          outReal[0] = ((prevATR[0]/tempValue)*100.0);
       } else {
          outReal[0] = 0.0;
@@ -297,7 +297,7 @@
          prevATR[0] += tempBuffer[today++];
          prevATR[0] /= optInTimePeriod;
          tempValue = inClose[today];
-         if( !((((0-0.00000001)<tempValue)&&(tempValue<0.00000001))) ) {
+         if( !(((-0.00000000000001 < tempValue) && (tempValue < 0.00000000000001))) ) {
             outReal[outIdx] = ((prevATR[0]/tempValue)*100.0);
          } else {
             outReal[0] = 0.0;

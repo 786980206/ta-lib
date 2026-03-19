@@ -606,7 +606,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
 %typemap(argout) int *BEG_IDX {
     if (result == TA_SUCCESS) {
         PyObject *o = PyLong_FromLong((long)(*$1));
-        $result = SWIG_Python_AppendOutput($result, o, 0);
+        $result = SWIG_Python_AppendOutput($result, o);
     }
 }
 
@@ -634,7 +634,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
             PyObject *o = PyFloat_FromDouble($1[idx]);
             PyList_SET_ITEM(list, idx, o);
         }
-        $result = SWIG_Python_AppendOutput($result, list, 0);
+        $result = SWIG_Python_AppendOutput($result, list);
     }
 }
 
@@ -646,7 +646,7 @@ static int convert_darray(PyObject *input, double *ptr, int size) {
             PyObject *o = PyLong_FromLong($1[idx]);
             PyList_SET_ITEM(list, idx, o);
         }
-        $result = SWIG_Python_AppendOutput($result, list, 0);
+        $result = SWIG_Python_AppendOutput($result, list);
     }
 }
 

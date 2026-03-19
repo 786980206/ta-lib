@@ -30,7 +30,7 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
     for( i=0; i < (int)*outNBElement; i++ )
     {
     tempReal = outReal[i];
-    if( !((tempReal) < 0.00000001) )
+    if( !TA_IS_ZERO_OR_NEG(tempReal) )
     outReal[i] = sqrt(tempReal) * optInNbDev;
     else
     outReal[i] = (double)0.0;
@@ -41,7 +41,7 @@ TA_RetCode stddev(int startIdx, int endIdx, const double inReal[], int optInTime
     for( i=0; i < (int)*outNBElement; i++ )
     {
     tempReal = outReal[i];
-    if( !((tempReal) < 0.00000001) )
+    if( !TA_IS_ZERO_OR_NEG(tempReal) )
     outReal[i] = sqrt(tempReal);
     else
     outReal[i] = (double)0.0;
@@ -91,7 +91,7 @@ void stddev_using_precalc_ma( const double inReal[],
         tempReal *= tempReal;
         meanValue2 -= tempReal;
 
-        if( !((meanValue2) < (0.00000001)) )
+        if( !TA_IS_ZERO_OR_NEG(meanValue2) )
             output[outIdx] = sqrt(meanValue2);
         else
             output[outIdx] = (double)0.0;

@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
    {
       tempReal = (inHigh[i]+inLow[i]);
-      if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+      if( !(TA_IS_ZERO(tempReal)) )
       {
          tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
          tempBuffer1[j] = (inHigh[i]*(1+tempReal));
@@ -200,7 +200,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
    for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
    {
       tempReal = (inHigh[i]+inLow[i]);
-      if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+      if( !(TA_IS_ZERO(tempReal)) )
       {
          tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
          tempBuffer1[j] = (inHigh[i]*(1+tempReal));
@@ -307,7 +307,7 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
    for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
    {
       tempReal = (inHigh[i]+inLow[i]);
-      if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+      if( !(TA_IS_ZERO(tempReal)) )
       {
          tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
          tempBuffer1[j] = (inHigh[i]*(1+tempReal));
@@ -407,7 +407,7 @@ TA_RetCode TA_S_ACCBANDS_Logic( int    startIdx,
    for( j = 0, i = (startIdx-lookbackTotal); (i<=endIdx); i += 1, j += 1 )
    {
       tempReal = (inHigh[i]+inLow[i]);
-      if( !((((0-0.00000001)<tempReal)&&(tempReal<0.00000001))) )
+      if( !(TA_IS_ZERO(tempReal)) )
       {
          tempReal = ((4*(inHigh[i]-inLow[i]))/tempReal);
          tempBuffer1[j] = (inHigh[i]*(1+tempReal));

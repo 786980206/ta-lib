@@ -125,7 +125,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI( int    startIdx,
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
-            if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) )
+            if( TA_IS_ZERO(tempReal) )
             {
                outReal[outIdx++] = ((double)0.0);
             } else 
@@ -214,7 +214,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI( int    startIdx,
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
    }
-   if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+   if( !(TA_IS_ZERO(prevTR)) )
    {
       outReal[0] = (100.0*(prevMinusDM/prevTR));
    } else 
@@ -254,7 +254,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI( int    startIdx,
       tempReal = _true_range_3;
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+      if( !(TA_IS_ZERO(prevTR)) )
       {
          outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
       } else 
@@ -342,7 +342,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI_Logic( int    startIdx,
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
-            if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) )
+            if( TA_IS_ZERO(tempReal) )
             {
                outReal[outIdx++] = ((double)0.0);
             } else 
@@ -431,7 +431,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI_Logic( int    startIdx,
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
    }
-   if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+   if( !(TA_IS_ZERO(prevTR)) )
    {
       outReal[0] = (100.0*(prevMinusDM/prevTR));
    } else 
@@ -471,7 +471,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DI_Logic( int    startIdx,
       tempReal = _true_range_3;
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+      if( !(TA_IS_ZERO(prevTR)) )
       {
          outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
       } else 
@@ -566,7 +566,7 @@ TA_RetCode TA_S_MINUS_DI( int    startIdx,
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
-            if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) )
+            if( TA_IS_ZERO(tempReal) )
             {
                outReal[outIdx++] = ((double)0.0);
             } else 
@@ -655,7 +655,7 @@ TA_RetCode TA_S_MINUS_DI( int    startIdx,
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
    }
-   if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+   if( !(TA_IS_ZERO(prevTR)) )
    {
       outReal[0] = (100.0*(prevMinusDM/prevTR));
    } else 
@@ -695,7 +695,7 @@ TA_RetCode TA_S_MINUS_DI( int    startIdx,
       tempReal = _true_range_3;
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+      if( !(TA_IS_ZERO(prevTR)) )
       {
          outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
       } else 
@@ -783,7 +783,7 @@ TA_RetCode TA_S_MINUS_DI_Logic( int    startIdx,
             }
             _true_range_0 = range_0;
             tempReal = _true_range_0;
-            if( (((0-0.00000001)<tempReal)&&(tempReal<0.00000001)) )
+            if( TA_IS_ZERO(tempReal) )
             {
                outReal[outIdx++] = ((double)0.0);
             } else 
@@ -872,7 +872,7 @@ TA_RetCode TA_S_MINUS_DI_Logic( int    startIdx,
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
    }
-   if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+   if( !(TA_IS_ZERO(prevTR)) )
    {
       outReal[0] = (100.0*(prevMinusDM/prevTR));
    } else 
@@ -912,7 +912,7 @@ TA_RetCode TA_S_MINUS_DI_Logic( int    startIdx,
       tempReal = _true_range_3;
       prevTR = ((prevTR-(prevTR/optInTimePeriod))+tempReal);
       prevClose = inClose[today];
-      if( !((((0-0.00000001)<prevTR)&&(prevTR<0.00000001))) )
+      if( !(TA_IS_ZERO(prevTR)) )
       {
          outReal[outIdx++] = (100.0*(prevMinusDM/prevTR));
       } else 

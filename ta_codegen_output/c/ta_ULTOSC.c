@@ -221,15 +221,15 @@ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
       b2Total += trueRange;
       b3Total += trueRange;
       output = 0.0;
-      if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b1Total)) )
       {
          output += (4.0*(a1Total/b1Total));
       }
-      if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b2Total)) )
       {
          output += (2.0*(a2Total/b2Total));
       }
-      if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b3Total)) )
       {
          output += (a3Total/b3Total);
       }
@@ -475,15 +475,15 @@ TA_LIB_API TA_RetCode TA_ULTOSC_Logic( int    startIdx,
       b2Total += trueRange;
       b3Total += trueRange;
       output = 0.0;
-      if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b1Total)) )
       {
          output += (4.0*(a1Total/b1Total));
       }
-      if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b2Total)) )
       {
          output += (2.0*(a2Total/b2Total));
       }
-      if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b3Total)) )
       {
          output += (a3Total/b3Total);
       }
@@ -736,15 +736,15 @@ TA_RetCode TA_S_ULTOSC( int    startIdx,
       b2Total += trueRange;
       b3Total += trueRange;
       output = 0.0;
-      if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b1Total)) )
       {
          output += (4.0*(a1Total/b1Total));
       }
-      if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b2Total)) )
       {
          output += (2.0*(a2Total/b2Total));
       }
-      if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b3Total)) )
       {
          output += (a3Total/b3Total);
       }
@@ -990,15 +990,15 @@ TA_RetCode TA_S_ULTOSC_Logic( int    startIdx,
       b2Total += trueRange;
       b3Total += trueRange;
       output = 0.0;
-      if( !((((0-0.00000001)<b1Total)&&(b1Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b1Total)) )
       {
          output += (4.0*(a1Total/b1Total));
       }
-      if( !((((0-0.00000001)<b2Total)&&(b2Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b2Total)) )
       {
          output += (2.0*(a2Total/b2Total));
       }
-      if( !((((0-0.00000001)<b3Total)&&(b3Total<0.00000001))) )
+      if( !(TA_IS_ZERO(b3Total)) )
       {
          output += (a3Total/b3Total);
       }
