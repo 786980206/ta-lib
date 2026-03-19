@@ -166,6 +166,35 @@ static int build_bench_request(char *buf, int sz, const TA_FuncInfo *fi,
     return pos;
 }
 
+/* ---- Thermal canary ---- */
+
+/* Run SMA on the C-ref server as a thermal probe.
+ * Returns the timing in ns, or 0 on error. */
+static long long g_canary_baseline = 0;
+static const char *CANARY_REQ =
+    "{\"method\":\"TA_SMA\",\"params\":{\"startIdx\":0,\"endIdx\":99999,"
+    "\"use_preloaded\":1,\"iters\":50,\"optInTimePeriod\":30}}";
+
+static long long run_canary(char *respBuf, int respSz) {
+    /* Find the C-ref server (index 0) */
+    if( !LANGUAGES[0].active ) return 0;
+    if( codegen_pipe_call(&LANGUAGES[0].cp, CANARY_REQ, respBuf, respSz) != TA_TEST_PASS )
+        return 0;
+    int len;
+    const char *t = json_find_field(respBuf, "timing_ns", &len);
+    return t ? strtoll(t, NULL, 10) : 0;
+}
+
+static void thermal_wait(char *respBuf, int respSz) {
+    if( g_canary_baseline <= 0 ) return;
+    long long threshold = (long long)(g_canary_baseline * 1.05);
+    for( int attempt = 0; attempt < 20; attempt++ ) {
+        long long t = run_canary(respBuf, respSz);
+        if( t > 0 && t <= threshold ) return;
+        /* Still hot — the canary run itself is a gentle cooldown */
+    }
+}
+
 /* ---- Per-indicator benchmark callback ---- */
 
 typedef struct {
@@ -194,6 +223,9 @@ static int func_matches(const char *filter, const char *name) {
 static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
     BenchContext *ctx = (BenchContext *)opaque;
     if( !func_matches(ctx->functionFilter, fi->name) ) return;
+
+    /* Wait for thermal equilibrium before each indicator */
+    thermal_wait(ctx->respBuf, JSON_BUF_SIZE);
 
     int startIdx = 0;
     int endIdx = g_nPoints - 1;
@@ -285,13 +317,25 @@ int main(int argc, char *argv[]) {
     }
     printf("\n");
 
+    /* Establish thermal canary baseline (run SMA several times, take minimum) */
+    {
+        long long best = 0;
+        for( int w = 0; w < 5; w++ ) {
+            long long t = run_canary(respBuf, JSON_BUF_SIZE);
+            if( t > 0 && (best == 0 || t < best) ) best = t;
+        }
+        g_canary_baseline = best;
+        if( best > 0 )
+            printf("  Thermal canary (SMA): %lld ns baseline\n\n", best);
+    }
+
     /* Header */
-    printf("%-20s %10s", "Function", "C-ref");
+    printf("%-20s", "Function");
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
         if( LANGUAGES[li].active )
             printf(" %10s", LANGUAGES[li].display);
     printf("\n");
-    printf("%-20s %10s", "--------", "------");
+    printf("%-20s", "--------");
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
         if( LANGUAGES[li].active )
             printf(" %10s", "------");
