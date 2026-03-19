@@ -343,28 +343,41 @@ static BenchIndicator INDICATORS[] = {
 
 /* ---- Server benchmarking ---- */
 
+/* Inject "iters":N into the JSON request before the closing "}}".
+ * Returns new length written to out_buf. */
+static int inject_iters(const char *request, char *out_buf, int out_size, int iters)
+{
+    /* Find the closing "}}" and insert before it */
+    int len = (int)strlen(request);
+    if( len < 2 ) return 0;
+    memcpy(out_buf, request, len - 2); /* copy everything except trailing }} */
+    int pos = len - 2;
+    pos += snprintf(out_buf + pos, out_size - pos, ",\"iters\":%d}}", iters);
+    return pos;
+}
+
 static long long bench_server(BenchLanguage *lang, const char *request,
                               char *response, int resp_size, int iters, int warmup)
 {
-    /* Warmup calls */
-    for( int i = 0; i < warmup; i++ )
-        codegen_pipe_call(&lang->cp, request, response, resp_size);
+    char *bench_req = malloc(strlen(request) + 64);
 
-    /* Timed calls — extract timing_ns from server response */
-    long long total_ns = 0;
-    int count = 0;
-    for( int i = 0; i < iters; i++ )
+    /* Warmup: single call with iters=warmup */
+    inject_iters(request, bench_req, (int)strlen(request) + 64, warmup);
+    codegen_pipe_call(&lang->cp, bench_req, response, resp_size);
+
+    /* Benchmark: single call with iters=N — server loops internally,
+     * returns average timing_ns without JSON cache pollution between iterations */
+    inject_iters(request, bench_req, (int)strlen(request) + 64, iters);
+    if( codegen_pipe_call(&lang->cp, bench_req, response, resp_size) != TA_TEST_PASS )
     {
-        if( codegen_pipe_call(&lang->cp, request, response, resp_size) != TA_TEST_PASS )
-            continue;
-        int len;
-        const char *t = json_find_field(response, "timing_ns", &len);
-        if( t ) {
-            total_ns += strtoll(t, NULL, 10);
-            count++;
-        }
+        free(bench_req);
+        return -1;
     }
-    return (count > 0) ? total_ns / count : -1;
+    free(bench_req);
+
+    int len;
+    const char *t = json_find_field(response, "timing_ns", &len);
+    return t ? strtoll(t, NULL, 10) : -1;
 }
 
 /* ---- CLI parsing ---- */
