@@ -21,8 +21,10 @@ The C codegen server compiles all 163 indicator `.c` files into one translation 
 - Already has `ta_unstable_period[]` and `TA_SetUnstablePeriod()`
 
 **`tools/ta_codegen/src/server_gen.rs`**
-- C server generation: replace `#include "ta_*.c"` lines with `#include "ta_func.h"`
-- `ta_func.h` already has all extern function declarations
+- Remove `#include "ta_lib_globals.c"` line (globals now compiled separately)
+- Remove all `#include "ta_*.c"` indicator lines
+- Add `#include "ta_func.h"` (already has all extern function declarations)
+- Update build comment in generated header
 
 **`tools/ta_codegen/src/main.rs`**
 - C build step: compile each `.c` file separately with `gcc -c -O3`, then link all `.o` files
@@ -52,6 +54,7 @@ ta_codegen build --backend=c
 - Generated indicator `.c` files (already self-contained, include `ta_func.h`)
 - `ta_func.h` (already has all extern declarations)
 - `ta_regtest`, `ta_bench` (unchanged consumers)
+- Shared library unity build (`build_shared_lib` / `ta_codegen_funcs.c`) — still uses `#include` for the `.c` files, which works fine with extern globals since `ta_lib_globals.c` is also included and provides the definitions within that TU
 
 ### Verification
 
