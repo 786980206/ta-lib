@@ -37,9 +37,9 @@
 
 TA_LIB_API int TA_CDLHIKKAKEMOD_Lookback( void )
 {
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
    return (fmax(1,Near_avgPeriod)+5);
 }
 
@@ -60,9 +60,9 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD( int    startIdx,
    int lookbackTotal;
    int patternIdx;
    int patternResult;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -195,9 +195,9 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKEMOD_Logic( int    startIdx,
    int lookbackTotal;
    int patternIdx;
    int patternResult;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLHIKKAKEMOD_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -316,9 +316,9 @@ TA_RetCode TA_S_CDLHIKKAKEMOD( int    startIdx,
    int lookbackTotal;
    int patternIdx;
    int patternResult;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -451,9 +451,9 @@ TA_RetCode TA_S_CDLHIKKAKEMOD_Logic( int    startIdx,
    int lookbackTotal;
    int patternIdx;
    int patternResult;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLHIKKAKEMOD_Lookback();
    if( (startIdx<lookbackTotal) )

@@ -37,18 +37,18 @@
 
 TA_LIB_API int TA_CDL3WHITESOLDIERS_Lookback( void )
 {
-   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   int Far_rangeType = TA_Globals->candleSettings[TA_Far].rangeType;
-   int Far_avgPeriod = TA_Globals->candleSettings[TA_Far].avgPeriod;
-   double Far_factor = TA_Globals->candleSettings[TA_Far].factor;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int Far_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].rangeType;
+   int Far_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].avgPeriod;
+   double Far_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
    return (fmax(fmax(ShadowVeryShort_avgPeriod,BodyShort_avgPeriod),fmax(Far_avgPeriod,Near_avgPeriod))+2);
 }
 
@@ -74,18 +74,18 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS( int    startIdx,
    int FarTrailingIdx;
    int BodyShortTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   int Far_rangeType = TA_Globals->candleSettings[TA_Far].rangeType;
-   int Far_avgPeriod = TA_Globals->candleSettings[TA_Far].avgPeriod;
-   double Far_factor = TA_Globals->candleSettings[TA_Far].factor;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int Far_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].rangeType;
+   int Far_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].avgPeriod;
+   double Far_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -292,18 +292,18 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS_Logic( int    startIdx,
    int FarTrailingIdx;
    int BodyShortTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   int Far_rangeType = TA_Globals->candleSettings[TA_Far].rangeType;
-   int Far_avgPeriod = TA_Globals->candleSettings[TA_Far].avgPeriod;
-   double Far_factor = TA_Globals->candleSettings[TA_Far].factor;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int Far_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].rangeType;
+   int Far_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].avgPeriod;
+   double Far_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDL3WHITESOLDIERS_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -496,18 +496,18 @@ TA_RetCode TA_S_CDL3WHITESOLDIERS( int    startIdx,
    int FarTrailingIdx;
    int BodyShortTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   int Far_rangeType = TA_Globals->candleSettings[TA_Far].rangeType;
-   int Far_avgPeriod = TA_Globals->candleSettings[TA_Far].avgPeriod;
-   double Far_factor = TA_Globals->candleSettings[TA_Far].factor;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int Far_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].rangeType;
+   int Far_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].avgPeriod;
+   double Far_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -714,18 +714,18 @@ TA_RetCode TA_S_CDL3WHITESOLDIERS_Logic( int    startIdx,
    int FarTrailingIdx;
    int BodyShortTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
-   int Far_rangeType = TA_Globals->candleSettings[TA_Far].rangeType;
-   int Far_avgPeriod = TA_Globals->candleSettings[TA_Far].avgPeriod;
-   double Far_factor = TA_Globals->candleSettings[TA_Far].factor;
-   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int Far_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].rangeType;
+   int Far_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].avgPeriod;
+   double Far_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Far].factor;
+   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDL3WHITESOLDIERS_Lookback();
    if( (startIdx<lookbackTotal) )

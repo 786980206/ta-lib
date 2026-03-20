@@ -37,12 +37,12 @@
 
 TA_LIB_API int TA_CDLGRAVESTONEDOJI_Lookback( void )
 {
-   int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
-   int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
-   double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyDoji_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].rangeType;
+   int BodyDoji_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].avgPeriod;
+   double BodyDoji_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
    return fmax(BodyDoji_avgPeriod,ShadowVeryShort_avgPeriod);
 }
 
@@ -63,12 +63,12 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
    int BodyDojiTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
-   int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
-   double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyDoji_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].rangeType;
+   int BodyDoji_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].avgPeriod;
+   double BodyDoji_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -183,12 +183,12 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    int BodyDojiTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
-   int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
-   double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyDoji_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].rangeType;
+   int BodyDoji_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].avgPeriod;
+   double BodyDoji_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLGRAVESTONEDOJI_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -289,12 +289,12 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
    int BodyDojiTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
-   int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
-   double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyDoji_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].rangeType;
+   int BodyDoji_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].avgPeriod;
+   double BodyDoji_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -409,12 +409,12 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    int BodyDojiTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyDoji_rangeType = TA_Globals->candleSettings[TA_BodyDoji].rangeType;
-   int BodyDoji_avgPeriod = TA_Globals->candleSettings[TA_BodyDoji].avgPeriod;
-   double BodyDoji_factor = TA_Globals->candleSettings[TA_BodyDoji].factor;
-   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyDoji_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].rangeType;
+   int BodyDoji_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].avgPeriod;
+   double BodyDoji_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyDoji].factor;
+   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLGRAVESTONEDOJI_Lookback();
    if( (startIdx<lookbackTotal) )

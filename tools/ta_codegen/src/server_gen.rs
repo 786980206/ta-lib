@@ -372,8 +372,22 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     s.push_str("#include <mach/mach_time.h>\n");
     s.push_str("#endif\n\n");
 
-    // Use extern declarations — each indicator is compiled separately
-    s.push_str("#include \"ta_func.h\"\n\n");
+    // Include globals (unstable period storage, candle settings)
+    s.push_str("#include \"ta_lib_globals.c\"\n\n");
+
+    // Include generated function implementations (single TU for best optimization).
+    // Order matters: functions that are called by others must come first.
+    let mut sorted_names: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
+    sorted_names.sort_unstable();
+    // Move MA to end if present (it calls other functions)
+    if let Some(pos) = sorted_names.iter().position(|n| *n == "MA") {
+        let ma = sorted_names.remove(pos);
+        sorted_names.push(ma);
+    }
+    for name in &sorted_names {
+        s.push_str(&format!("#include \"ta_{name}.c\"\n"));
+    }
+    s.push('\n');
 
     // JSON helpers
     s.push_str(&generate_c_json_helpers());

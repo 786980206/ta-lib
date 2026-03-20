@@ -104,6 +104,37 @@ def main():
         if os.path.exists(src):
             shutil.copy2(src, os.path.join(bin_dir, "ta_bench"))
 
+        # Rebuild ta_ref_serve against the fresh libta-lib.a
+        # (statically linked, must be rebuilt whenever the library changes)
+        print("=== Rebuilding ta_ref_serve ===")
+        c_out = os.path.join(root, "ta_codegen_output", "c")
+        ref_serve_src = os.path.join(c_out, "ta_codegen_serve.c")
+        if os.path.exists(ref_serve_src):
+            import re as _re
+            with open(ref_serve_src) as f:
+                src_text = f.read()
+            # Strip indicator includes, keep globals + server dispatch
+            src_text = _re.sub(r'#include "ta_[A-Z][^"]*\.c"\n', '', src_text)
+            # Add TA_Initialize() call
+            src_text = src_text.replace(
+                'int main(void) {',
+                'extern int TA_Initialize(void);\n'
+                'extern int TA_RestoreCandleDefaultSettings(int settingType);\n'
+                'int main(void) { TA_Initialize(); TA_RestoreCandleDefaultSettings(11);'
+            )
+            tmp_ref = os.path.join(bin_dir, "_ta_ref_serve.c")
+            with open(tmp_ref, "w") as f:
+                f.write(src_text)
+            lib_a = os.path.join(build_dir, "libta-lib.a")
+            rc_ref = subprocess.run([
+                "cc", "-O3", "-DNDEBUG", "-Wno-everything",
+                f"-I{c_out}",
+                "-o", os.path.join(bin_dir, "ta_ref_serve"),
+                tmp_ref, lib_a, "-lm"
+            ]).returncode
+            os.unlink(tmp_ref)
+            print("  ta_ref_serve:", "OK" if rc_ref == 0 else f"FAILED (exit {rc_ref})")
+
     # 2. generate indicators
     if not no_gen_ind:
         print("\n=== Regenerating indicator files ===")
