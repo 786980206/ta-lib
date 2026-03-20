@@ -232,23 +232,35 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
 
     build_bench_request(ctx->reqBuf, JSON_BUF_SIZE, fi, startIdx, endIdx, ctx->iters);
 
-    /* Collect timing from all active servers (including C-ref server) */
-    long long ref_ns = 0; /* from cref server, for ratio coloring */
+    /* Collect timing from all active servers.
+     * Run 3 passes and keep the minimum per server — eliminates icache noise
+     * from running all 161 indicators back-to-back in one binary. */
+    long long ref_ns = 0;
     long long timings[16] = {0};
     int has_timing[16] = {0};
 
-    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
-        if( !LANGUAGES[li].active ) continue;
-        if( codegen_pipe_call(&LANGUAGES[li].cp, ctx->reqBuf, ctx->respBuf, JSON_BUF_SIZE) != TA_TEST_PASS )
-            continue;
-        int len;
-        const char *t = json_find_field(ctx->respBuf, "timing_ns", &len);
-        if( t ) {
-            timings[li] = strtoll(t, NULL, 10);
-            has_timing[li] = 1;
-            if( strcmp(LANGUAGES[li].name, "cref") == 0 )
-                ref_ns = timings[li];
+    #define BENCH_PASSES 3
+    for( int pass = 0; pass < BENCH_PASSES; pass++ ) {
+        if( pass > 0 ) thermal_wait(ctx->respBuf, JSON_BUF_SIZE);
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+            if( !LANGUAGES[li].active ) continue;
+            if( codegen_pipe_call(&LANGUAGES[li].cp, ctx->reqBuf, ctx->respBuf, JSON_BUF_SIZE) != TA_TEST_PASS )
+                continue;
+            int len;
+            const char *t = json_find_field(ctx->respBuf, "timing_ns", &len);
+            if( t ) {
+                long long ns = strtoll(t, NULL, 10);
+                if( !has_timing[li] || ns < timings[li] )
+                    timings[li] = ns;
+                has_timing[li] = 1;
+            }
         }
+    }
+
+    /* Extract ref timing for ratio coloring */
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( has_timing[li] && strcmp(LANGUAGES[li].name, "cref") == 0 )
+            ref_ns = timings[li];
     }
 
     /* Print row */
