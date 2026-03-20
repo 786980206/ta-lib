@@ -448,3 +448,18 @@ ta-lib/
         ├── gen_code.c     # Main generator
         └── gen_rust.c     # Rust signature generation
 ```
+
+## Performance Testing
+
+```bash
+# Full pipeline (builds everything, regens, tests, benchmarks)
+scripts/regtest.py
+
+# Benchmark specific indicators (trustworthy — isolated, high iterations)
+cd bin && ./ta_bench --language=cref,c --function=RSI,SMA --points=100000 --iters=500
+
+# Full benchmark (noisy — use for overview, verify outliers in isolation)
+cd bin && ./ta_bench --language=cref,c --points=100000 --iters=200
+```
+
+**Gotcha:** `ta_ref_serve` is statically linked — rebuild when `libta-lib.a` changes or benchmarks are invalid. `regtest.py` handles this automatically.

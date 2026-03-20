@@ -161,3 +161,15 @@ Strict Clippy pedantic lints are enabled in `src/lib.rs`. Allowed exceptions:
 - `doc_markdown` — generated doc comments come from upstream C
 
 `rustfmt.toml`: edition 2021, max_width 100, use_field_init_shorthand true.
+
+## Performance: C Server Compilation
+
+- Server is single-TU (`#include .c` files) — do NOT switch to separate compilation, it causes CDL binary layout issues
+- Candle settings reads use `volatile` cast in `emit_c_unpacking()` to prevent constant propagation that kills loop unswitching
+- Ternary chains (not switch statements) for numeric-case switches — matches reference macro pattern for compiler optimization
+- CCI uses conditional reset (`idx++; if(idx>=max) idx=0`) not modulo — modulo costs ~10 cycles on ARM
+- Full parameter validation (NULL checks, INTEGER_DEFAULT, range) is required — missing validation changes compiler register allocation
+- `ta_ref_serve` is statically linked against `libta-lib.a` — MUST rebuild when cmake rebuilds the library, or benchmarks compare against stale code
+- `regtest.py` auto-rebuilds ta_ref_serve in the cmake step
+- Benchmark noise: full 161-indicator runs have 10-20% variance from icache pressure. Use `ta_bench --function=NAME --iters=500` for ground truth.
+- Thermal canary (SMA) runs between each indicator in ta_bench to normalize CPU thermal state
