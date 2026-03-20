@@ -185,16 +185,22 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         generate_rust_crate_scaffolding(out_base, &generated_funcs);
     }
 
-    // Generate ta_func_list.txt (always, regardless of --func filter)
-    if func_filter.is_some() {
-        let all_func_defs = load_all_yaml_defs(base);
-        backends::func_list::generate(&all_func_defs, Path::new("../../ta_func_list.txt"));
+    // For cross-function outputs (func_list, Makefile.am), use all definitions
+    // regardless of --func filter. Reuse already-parsed data when unfiltered.
+    let all_yaml_defs;
+    let all_funcs: &[ir::FuncDef] = if func_filter.is_some() {
+        all_yaml_defs = load_all_yaml_defs(base);
+        &all_yaml_defs
     } else {
-        backends::func_list::generate(&generated_funcs, Path::new("../../ta_func_list.txt"));
-    }
+        &generated_funcs
+    };
 
-    // Copy hand-written C library types + globals when C is one of the backends
+    backends::func_list::generate(all_funcs, Path::new("../../ta_func_list.txt"));
+
+    // Generate Makefile.am and copy C library files when C is one of the backends
     if backends_to_run.contains(&"c") {
+        backends::makefile_am::generate(all_funcs, Path::new("../../src/ta_func/Makefile.am"));
+
         let c_lib_src = Path::new("../../ta_func_defs/lib/c");
         let c_dir = Path::new("../../ta_codegen_output/c");
         std::fs::create_dir_all(c_dir).unwrap();
