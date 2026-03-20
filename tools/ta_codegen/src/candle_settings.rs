@@ -180,20 +180,15 @@ fn check_candle_var(name: &str, found: &mut BTreeSet<String>) {
 pub fn emit_c_unpacking(settings: &BTreeSet<String>, indent: usize) -> String {
     let pad = " ".repeat(indent);
     let mut out = String::new();
-    // Use volatile reads to prevent the compiler from constant-propagating
-    // candle settings values. Without volatile, the compiler sees the static
-    // globals, folds the values into constants, and eliminates the ternary
-    // branches that would otherwise get loop-unswitched into specialized tight
-    // loops. With volatile, the compiler keeps all branches and unswitches them.
     for setting in settings {
         out.push_str(&format!(
-            "{pad}int {setting}_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_{setting}].rangeType;\n"
+            "{pad}int {setting}_rangeType = TA_Globals->candleSettings[TA_{setting}].rangeType;\n"
         ));
         out.push_str(&format!(
-            "{pad}int {setting}_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_{setting}].avgPeriod;\n"
+            "{pad}int {setting}_avgPeriod = TA_Globals->candleSettings[TA_{setting}].avgPeriod;\n"
         ));
         out.push_str(&format!(
-            "{pad}double {setting}_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_{setting}].factor;\n"
+            "{pad}double {setting}_factor = TA_Globals->candleSettings[TA_{setting}].factor;\n"
         ));
     }
     out

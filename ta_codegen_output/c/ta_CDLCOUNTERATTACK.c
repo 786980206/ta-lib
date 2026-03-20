@@ -37,12 +37,12 @@
 
 TA_LIB_API int TA_CDLCOUNTERATTACK_Lookback( void )
 {
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
    return (fmax(Equal_avgPeriod,BodyLong_avgPeriod)+1);
 }
 
@@ -64,12 +64,12 @@ TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK( int    startIdx,
    int EqualTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -199,12 +199,12 @@ TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK_Logic( int    startIdx,
    int EqualTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLCOUNTERATTACK_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -320,12 +320,12 @@ TA_RetCode TA_S_CDLCOUNTERATTACK( int    startIdx,
    int EqualTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -455,12 +455,12 @@ TA_RetCode TA_S_CDLCOUNTERATTACK_Logic( int    startIdx,
    int EqualTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLCOUNTERATTACK_Lookback();
    if( (startIdx<lookbackTotal) )

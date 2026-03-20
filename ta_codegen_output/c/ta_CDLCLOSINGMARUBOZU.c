@@ -37,12 +37,12 @@
 
 TA_LIB_API int TA_CDLCLOSINGMARUBOZU_Lookback( void )
 {
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
    return fmax(BodyLong_avgPeriod,ShadowVeryShort_avgPeriod);
 }
 
@@ -63,12 +63,12 @@ TA_LIB_API TA_RetCode TA_CDLCLOSINGMARUBOZU( int    startIdx,
    int BodyLongTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -183,12 +183,12 @@ TA_LIB_API TA_RetCode TA_CDLCLOSINGMARUBOZU_Logic( int    startIdx,
    int BodyLongTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLCLOSINGMARUBOZU_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -289,12 +289,12 @@ TA_RetCode TA_S_CDLCLOSINGMARUBOZU( int    startIdx,
    int BodyLongTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -409,12 +409,12 @@ TA_RetCode TA_S_CDLCLOSINGMARUBOZU_Logic( int    startIdx,
    int BodyLongTrailingIdx;
    int ShadowVeryShortTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int ShadowVeryShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].rangeType;
-   int ShadowVeryShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].avgPeriod;
-   double ShadowVeryShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_ShadowVeryShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int ShadowVeryShort_rangeType = TA_Globals->candleSettings[TA_ShadowVeryShort].rangeType;
+   int ShadowVeryShort_avgPeriod = TA_Globals->candleSettings[TA_ShadowVeryShort].avgPeriod;
+   double ShadowVeryShort_factor = TA_Globals->candleSettings[TA_ShadowVeryShort].factor;
 
    lookbackTotal = TA_CDLCLOSINGMARUBOZU_Lookback();
    if( (startIdx<lookbackTotal) )

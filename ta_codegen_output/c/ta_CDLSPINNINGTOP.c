@@ -37,9 +37,9 @@
 
 TA_LIB_API int TA_CDLSPINNINGTOP_Lookback( void )
 {
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
    return BodyShort_avgPeriod;
 }
 
@@ -58,9 +58,9 @@ TA_LIB_API TA_RetCode TA_CDLSPINNINGTOP( int    startIdx,
    int outIdx;
    int BodyTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -145,9 +145,9 @@ TA_LIB_API TA_RetCode TA_CDLSPINNINGTOP_Logic( int    startIdx,
    int outIdx;
    int BodyTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLSPINNINGTOP_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -218,9 +218,9 @@ TA_RetCode TA_S_CDLSPINNINGTOP( int    startIdx,
    int outIdx;
    int BodyTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -305,9 +305,9 @@ TA_RetCode TA_S_CDLSPINNINGTOP_Logic( int    startIdx,
    int outIdx;
    int BodyTrailingIdx;
    int lookbackTotal;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLSPINNINGTOP_Lookback();
    if( (startIdx<lookbackTotal) )

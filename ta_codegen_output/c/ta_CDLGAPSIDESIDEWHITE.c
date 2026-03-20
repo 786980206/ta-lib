@@ -37,12 +37,12 @@
 
 TA_LIB_API int TA_CDLGAPSIDESIDEWHITE_Lookback( void )
 {
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
-   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
+   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
    return (fmax(Near_avgPeriod,Equal_avgPeriod)+2);
 }
 
@@ -63,12 +63,12 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE( int    startIdx,
    int NearTrailingIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
-   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
+   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -190,12 +190,12 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE_Logic( int    startIdx,
    int NearTrailingIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
-   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
+   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLGAPSIDESIDEWHITE_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -303,12 +303,12 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE( int    startIdx,
    int NearTrailingIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
-   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
+   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -430,12 +430,12 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE_Logic( int    startIdx,
    int NearTrailingIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
-   int Near_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].rangeType;
-   int Near_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].avgPeriod;
-   double Near_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Near].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
+   int Near_rangeType = TA_Globals->candleSettings[TA_Near].rangeType;
+   int Near_avgPeriod = TA_Globals->candleSettings[TA_Near].avgPeriod;
+   double Near_factor = TA_Globals->candleSettings[TA_Near].factor;
 
    lookbackTotal = TA_CDLGAPSIDESIDEWHITE_Lookback();
    if( (startIdx<lookbackTotal) )

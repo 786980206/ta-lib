@@ -37,12 +37,12 @@
 
 TA_LIB_API int TA_CDLEVENINGSTAR_Lookback( double optInPenetration )
 {
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
    return (fmax(BodyShort_avgPeriod,BodyLong_avgPeriod)+2);
 }
 
@@ -65,12 +65,12 @@ TA_LIB_API TA_RetCode TA_CDLEVENINGSTAR( int    startIdx,
    int BodyShortTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -201,12 +201,12 @@ TA_LIB_API TA_RetCode TA_CDLEVENINGSTAR_Logic( int    startIdx,
    int BodyShortTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLEVENINGSTAR_Lookback(optInPenetration);
    if( (startIdx<lookbackTotal) )
@@ -319,12 +319,12 @@ TA_RetCode TA_S_CDLEVENINGSTAR( int    startIdx,
    int BodyShortTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -455,12 +455,12 @@ TA_RetCode TA_S_CDLEVENINGSTAR_Logic( int    startIdx,
    int BodyShortTrailingIdx;
    int BodyLongTrailingIdx;
    int lookbackTotal;
-   int BodyLong_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].rangeType;
-   int BodyLong_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].avgPeriod;
-   double BodyLong_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyLong].factor;
-   int BodyShort_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].rangeType;
-   int BodyShort_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].avgPeriod;
-   double BodyShort_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_BodyShort].factor;
+   int BodyLong_rangeType = TA_Globals->candleSettings[TA_BodyLong].rangeType;
+   int BodyLong_avgPeriod = TA_Globals->candleSettings[TA_BodyLong].avgPeriod;
+   double BodyLong_factor = TA_Globals->candleSettings[TA_BodyLong].factor;
+   int BodyShort_rangeType = TA_Globals->candleSettings[TA_BodyShort].rangeType;
+   int BodyShort_avgPeriod = TA_Globals->candleSettings[TA_BodyShort].avgPeriod;
+   double BodyShort_factor = TA_Globals->candleSettings[TA_BodyShort].factor;
 
    lookbackTotal = TA_CDLEVENINGSTAR_Lookback(optInPenetration);
    if( (startIdx<lookbackTotal) )

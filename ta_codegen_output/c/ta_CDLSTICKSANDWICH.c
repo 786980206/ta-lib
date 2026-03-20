@@ -37,9 +37,9 @@
 
 TA_LIB_API int TA_CDLSTICKSANDWICH_Lookback( void )
 {
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
    return (Equal_avgPeriod+2);
 }
 
@@ -58,9 +58,9 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    int outIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -152,9 +152,9 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Logic( int    startIdx,
    int outIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
    if( (startIdx<lookbackTotal) )
@@ -232,9 +232,9 @@ TA_RetCode TA_S_CDLSTICKSANDWICH( int    startIdx,
    int outIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    if( startIdx < 0 )
       return TA_OUT_OF_RANGE_START_INDEX;
@@ -326,9 +326,9 @@ TA_RetCode TA_S_CDLSTICKSANDWICH_Logic( int    startIdx,
    int outIdx;
    int EqualTrailingIdx;
    int lookbackTotal;
-   int Equal_rangeType = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].rangeType;
-   int Equal_avgPeriod = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].avgPeriod;
-   double Equal_factor = ((volatile TA_GlobalsType *)TA_Globals)->candleSettings[TA_Equal].factor;
+   int Equal_rangeType = TA_Globals->candleSettings[TA_Equal].rangeType;
+   int Equal_avgPeriod = TA_Globals->candleSettings[TA_Equal].avgPeriod;
+   double Equal_factor = TA_Globals->candleSettings[TA_Equal].factor;
 
    lookbackTotal = TA_CDLSTICKSANDWICH_Lookback();
    if( (startIdx<lookbackTotal) )
