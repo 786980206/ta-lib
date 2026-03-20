@@ -9,7 +9,27 @@ use ta_codegen_lib::registry::Registry;
 use ta_codegen_lib::server_gen;
 
 use std::collections::HashMap;
-use std::path::Path;
+use std::path::{Path, PathBuf};
+
+/// Find the repository root by walking up from the current directory
+/// looking for `ta_func_defs/`.
+fn repo_root() -> PathBuf {
+    if let Ok(cwd) = std::env::current_dir() {
+        let mut dir = cwd.as_path();
+        loop {
+            if dir.join("ta_func_defs").is_dir() {
+                return dir.to_path_buf();
+            }
+            match dir.parent() {
+                Some(parent) => dir = parent,
+                None => break,
+            }
+        }
+    }
+    eprintln!("error: cannot find ta_func_defs/ in any parent directory.");
+    eprintln!("       Run ta_codegen from within the ta-lib repository.");
+    std::process::exit(1);
+}
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
@@ -98,13 +118,14 @@ fn find_arg(args: &[String], prefix: &str) -> Option<String> {
 }
 
 fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
-    let base = Path::new("../../ta_func_defs");
+    let root = repo_root();
+    let base = root.join("ta_func_defs");
 
     // Load indicator registry for cross-call resolution
-    let registry = Registry::from_dir(base);
+    let registry = Registry::from_dir(&base);
 
     // Load helper registry for expression inlining
-    let helper_registry = HelperRegistry::from_dir(base);
+    let helper_registry = HelperRegistry::from_dir(&base);
 
     // Load enum definitions
     let enums_path = base.join("enums.yaml");
@@ -115,7 +136,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     };
 
     // Discover all function definition directories
-    let mut func_dirs: Vec<_> = std::fs::read_dir(base)
+    let mut func_dirs: Vec<_> = std::fs::read_dir(&base)
         .expect("Cannot read ta_func_defs directory")
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_dir())
@@ -135,10 +156,11 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     // (e.g., stale Core_*.java files that were generated with old code).
     // Only clean when generating all functions (no filter) to avoid
     // accidentally removing files for functions not being regenerated.
+    let out_base = root.join("ta_codegen_output");
+
     if func_filter.is_none() {
-        let out_base = Path::new("../../ta_codegen_output");
         for backend in &backends_to_run {
-            clean_generated_files(out_base, backend);
+            clean_generated_files(&out_base, backend);
         }
     }
 
@@ -173,7 +195,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         wire_parsed_source(&mut func_def, &parsed);
 
         for backend in &backends_to_run {
-            generate_backend(&func_def, backend, &enums, &registry, &helper_registry);
+            generate_backend(&func_def, backend, &enums, &registry, &helper_registry, &out_base);
         }
 
         generated_funcs.push(func_def);
@@ -181,29 +203,29 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
 
     // Generate Rust crate scaffolding when Rust is one of the backends
     if backends_to_run.contains(&"rust") {
-        let out_base = Path::new("../../ta_codegen_output");
-        generate_rust_crate_scaffolding(out_base, &generated_funcs);
+        let types_src = root.join("ta_func_defs/lib/rust/types.rs");
+        generate_rust_crate_scaffolding(&out_base, &generated_funcs, &types_src);
     }
 
     // For cross-function outputs (func_list, Makefile.am), use all definitions
     // regardless of --func filter. Reuse already-parsed data when unfiltered.
     let all_yaml_defs;
     let all_funcs: &[ir::FuncDef] = if func_filter.is_some() {
-        all_yaml_defs = load_all_yaml_defs(base);
+        all_yaml_defs = load_all_yaml_defs(&base);
         &all_yaml_defs
     } else {
         &generated_funcs
     };
 
-    backends::func_list::generate(all_funcs, Path::new("../../ta_func_list.txt"));
+    backends::func_list::generate(all_funcs, &root.join("ta_func_list.txt"));
 
     // Generate Makefile.am and copy C library files when C is one of the backends
     if backends_to_run.contains(&"c") {
-        backends::makefile_am::generate(all_funcs, Path::new("../../src/ta_func/Makefile.am"));
+        backends::makefile_am::generate(all_funcs, &root.join("src/ta_func/Makefile.am"));
 
-        let c_lib_src = Path::new("../../ta_func_defs/lib/c");
-        let c_dir = Path::new("../../ta_codegen_output/c");
-        std::fs::create_dir_all(c_dir).unwrap();
+        let c_lib_src = root.join("ta_func_defs/lib/c");
+        let c_dir = root.join("ta_codegen_output/c");
+        std::fs::create_dir_all(&c_dir).unwrap();
         for filename in &["ta_lib_types.h", "ta_lib_globals.c"] {
             let src = c_lib_src.join(filename);
             if src.exists() {
@@ -243,10 +265,10 @@ fn load_all_yaml_defs(base: &Path) -> Vec<ir::FuncDef> {
     funcs
 }
 
-fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
-    let base = Path::new("../../ta_func_defs");
+fn load_func_defs(func_filter: Option<&str>, root: &Path) -> Vec<ir::FuncDef> {
+    let base = root.join("ta_func_defs");
 
-    let mut func_dirs: Vec<_> = std::fs::read_dir(base)
+    let mut func_dirs: Vec<_> = std::fs::read_dir(&base)
         .expect("Cannot read ta_func_defs directory")
         .filter_map(|e| e.ok())
         .filter(|e| e.path().is_dir())
@@ -286,7 +308,8 @@ fn load_func_defs(func_filter: Option<&str>) -> Vec<ir::FuncDef> {
 }
 
 fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
-    let funcs = load_func_defs(func_filter);
+    let root = repo_root();
+    let funcs = load_func_defs(func_filter, &root);
 
     if funcs.is_empty() {
         eprintln!("No function definitions found");
@@ -298,7 +321,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
         None => vec!["c", "java", "dotnet", "rust"],
     };
 
-    let out_base = Path::new("../../ta_codegen_output");
+    let out_base = root.join("ta_codegen_output");
 
     for backend in &backends_to_run {
         match *backend {
@@ -356,13 +379,14 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
 }
 
 fn build_servers(backend_filter: Option<&str>) {
+    let root = repo_root();
     let backends_to_build: Vec<&str> = match backend_filter {
         Some(b) => b.split(',').map(|s| s.trim()).collect(),
         None => vec!["c", "java", "dotnet", "rust"],
     };
 
-    let out_base = Path::new("../../ta_codegen_output");
-    let bin_dir = Path::new("../../bin");
+    let out_base = root.join("ta_codegen_output");
+    let bin_dir = root.join("bin");
 
     // Remove stale shared-lib marker so it rebuilds fresh each invocation.
     let _ = std::fs::remove_file(bin_dir.join(".shared_lib_built"));
@@ -476,7 +500,7 @@ fn build_servers(backend_filter: Option<&str>) {
             }
             "dotnet" => {
                 // Build shared library from generated C files (needed by .NET P/Invoke)
-                build_shared_lib(out_base, bin_dir);
+                build_shared_lib(&out_base, &bin_dir);
 
                 print!("  Building .NET server... ");
                 let dotnet_dir = out_base.join("dotnet");
@@ -641,7 +665,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
 }
 
 fn extract(func_filter: Option<&str>) {
-    let base = Path::new("../../"); // repo root from tools/ta_codegen/
+    let base = repo_root();
     let tables_dir = base.join("src/ta_abstract/tables");
     let def_ui_path = base.join("src/ta_abstract/ta_def_ui.c");
     let func_dir = base.join("src/ta_func");
@@ -854,7 +878,7 @@ fn format_yaml_num(v: f64) -> String {
     }
 }
 
-fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef]) {
+fn generate_rust_crate_scaffolding(out_base: &Path, funcs: &[ir::FuncDef], types_src: &Path) {
     let rust_dir = out_base.join("rust");
     let src_dir = rust_dir.join("src");
     let ta_func_dir = src_dir.join("ta_func");
@@ -894,10 +918,9 @@ pub use ta_func::*;
     println!("  Scaffolding -> {}", lib_path.display());
 
     // --- Copy hand-written types.rs from ta_func_defs/lib/rust/ ---
-    let lib_src = Path::new("../../ta_func_defs/lib/rust/types.rs");
-    if lib_src.exists() {
+    if types_src.exists() {
         let types_dest = ta_func_dir.join("types.rs");
-        std::fs::copy(lib_src, &types_dest).unwrap();
+        std::fs::copy(types_src, &types_dest).unwrap();
         println!("  Copied types.rs -> {}", types_dest.display());
     }
 
@@ -1237,8 +1260,8 @@ fn generate_backend(
     enums: &HashMap<String, ir::EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
+    out_base: &Path,
 ) {
-    let out_base = Path::new("../../ta_codegen_output");
 
     match backend {
         "c" => {
