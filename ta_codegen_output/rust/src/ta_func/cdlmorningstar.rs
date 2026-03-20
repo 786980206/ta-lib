@@ -53,7 +53,7 @@ impl Core {
     ///
     /// # Arguments
     ///
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=2147483647)
+    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
     pub fn cdlmorningstar_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -79,7 +79,7 @@ impl Core {
     /// * `inHigh` - Input price series
     /// * `inLow` - Input price series
     /// * `inClose` - Input price series
-    /// * `optInPenetration` - Number of period (default: 0, range: 0..=2147483647)
+    /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outInteger` - Output values

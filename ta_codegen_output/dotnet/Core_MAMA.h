@@ -1,4 +1,4 @@
-         static int MamaLookback( double           optInFastLimit  /* From 0 to 0 */, double           optInSlowLimit  /* From 0 to 0 */ );
+         static int MamaLookback( double           optInFastLimit  /* From 0.01 to 0.99 */, double           optInSlowLimit  /* From 0.01 to 0.99 */ );
 
 #if defined( _MANAGED ) && defined( USE_SUBARRAY )
          static enum class RetCode Mama( int    startIdx,

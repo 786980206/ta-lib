@@ -53,8 +53,8 @@ impl Core {
     ///
     /// # Arguments
     ///
-    /// * `optInFastLimit` - Number of period (default: 0, range: 0..=0)
-    /// * `optInSlowLimit` - Number of period (default: 0, range: 0..=0)
+    /// * `optInFastLimit` - Number of period (default: 0, range: 0.01..=0.99)
+    /// * `optInSlowLimit` - Number of period (default: 0, range: 0.01..=0.99)
     pub fn mama_lookback(&self, mut optInFastLimit: f64, mut optInSlowLimit: f64) -> usize {
         return (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
     }
@@ -65,8 +65,8 @@ impl Core {
     /// * `startIdx` - Start index for calculation range
     /// * `endIdx` - End index for calculation range (inclusive)
     /// * `inReal` - Input price series
-    /// * `optInFastLimit` - Number of period (default: 0, range: 0..=0)
-    /// * `optInSlowLimit` - Number of period (default: 0, range: 0..=0)
+    /// * `optInFastLimit` - Number of period (default: 0, range: 0.01..=0.99)
+    /// * `optInSlowLimit` - Number of period (default: 0, range: 0.01..=0.99)
     /// * `outBegIdx` - First valid output index
     /// * `outNBElement` - Number of valid output elements
     /// * `outMAMA` - Output values
