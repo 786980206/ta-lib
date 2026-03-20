@@ -1,35 +1,44 @@
 # Performance Iteration Log
 
-## Session Start: 2026-03-19 22:10 EDT
+## Session: 2026-03-19 22:10 - 23:xx EDT
 
-### ROOT CAUSE FOUND: Stale ta_ref_serve binary
+### Final Results (Cycle 5 — volatile removed, fresh ref server)
 
-The CDL "10x slowdown" was a measurement artifact. The ta_ref_serve binary at bin/ta_ref_serve was built at 15:42 against a version of libta-lib.a that had different CDL code. After rebuilding fresh:
+**Complex CDL patterns 1.5-1.9x FASTER than reference:**
+- CDLMORNINGDOJISTAR: 0.55x
+- CDLHARAMI: 0.52x
+- CDLEVENINGDOJISTAR: 0.56x
+- CDLHARAMICROSS: 0.63x
 
-**CDL patterns at parity or FASTER:**
-- CDL2CROWS: 0.94x (codegen faster)
-- CDLENGULFING: 1.02x (parity)
-- CDL3WHITESOLDIERS: 1.16x (slight slow — investigate further)
-- CDLSHORTLINE: 1.23x (slight slow — investigate further)
+**Simple CDL patterns at parity:**
+- CDL2CROWS: 0.97x
+- CDLENGULFING: 1.01x
 
 **Core indicators at parity:**
 - RSI: 1.00x
 - SMA: 1.01x
-- EMA: 0.97x (codegen faster)
-- MINMAX: 1.01x (FIXED from 1.25x!)
+- MINMAX: 1.24x (binary layout — assembly identical, not fixable in source)
 
-### Changes That Helped
-1. Volatile cast on candle settings reads — prevents constant propagation
-2. Ternary chains for numeric switch cases — matches reference macro pattern
-3. Full parameter validation (NULL checks, default/range) — matches reference
-4. CCI circular buffer conditional reset — replaces modulo
-5. Thermal canary in ta_bench — eliminates thermal noise
-6. **Rebuilding ta_ref_serve** — most critical! Stale binary was measuring different code.
+**Remaining slow:**
+- CDL3BLACKCROWS: 1.21x — investigate
+- MINMAX: 1.24x — known, unfixable
 
-### Lesson Learned
-ALWAYS rebuild ta_ref_serve when cmake rebuilds libta-lib.a. The ref server is statically linked — it doesn't pick up library changes automatically.
+### What Worked
+1. Static globals + constant propagation = compact, fast CDL code
+2. NO volatile — volatile forces memory reloads that kill complex patterns
+3. Ternary chains for numeric switches (minor effect, mostly cosmetic)
+4. Full parameter validation (NULL checks, INTEGER_DEFAULT, range)
+5. CCI conditional reset instead of modulo
+6. Fresh ta_ref_serve binary (auto-rebuilt by regtest.py)
+7. Thermal canary in ta_bench
 
-### Remaining
-- CDL3WHITESOLDIERS 1.16x and CDLSHORTLINE 1.23x — investigate if consistent
-- Run full regtest.py pipeline
-- Automate ta_ref_serve rebuild in regtest.py
+### What Didn't Work
+1. Separate compilation — binary layout issues, CDL 10x slower
+2. LTO with extern globals — didn't recover CDL performance
+3. volatile candle reads — helped simple CDL, KILLED complex CDL
+4. Ternary vs switch at source level — compiler produces identical assembly
+
+### Key Lesson
+The stale ta_ref_serve was the biggest red herring. ALWAYS rebuild when cmake runs.
+The codegen produces FASTER code than the reference for complex CDL patterns
+thanks to constant propagation eliminating runtime dispatch overhead.
