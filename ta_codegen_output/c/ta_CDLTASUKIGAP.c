@@ -95,21 +95,7 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       NearPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -119,41 +105,13 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP( int    startIdx,
    {
       double _candleaverage_1;
       double _candlerange_3;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_3 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_3 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_3 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_3 = 0.0;
-         break;
-      }
+      _candlerange_3 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_1 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_3));
       double divisor_1 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_1 = ((Near_factor*avg_1)/divisor_1);
       double _candleaverage_2;
       double _candlerange_4;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_4 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_4 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_4 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_4 = 0.0;
-         break;
-      }
+      _candlerange_4 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_4));
       double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
@@ -165,37 +123,9 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_5;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double _candlerange_6;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((Near_rangeType==0) ? (fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]))) : (((Near_rangeType==1) ? ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])) : (((Near_rangeType==2) ? (((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])))) : (0.0))))));
       NearPeriodTotal += (_candlerange_5-_candlerange_6);
       i += 1;
       NearTrailingIdx += 1;
@@ -243,21 +173,7 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       NearPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -267,41 +183,13 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP_Logic( int    startIdx,
    {
       double _candleaverage_1;
       double _candlerange_3;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_3 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_3 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_3 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_3 = 0.0;
-         break;
-      }
+      _candlerange_3 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_1 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_3));
       double divisor_1 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_1 = ((Near_factor*avg_1)/divisor_1);
       double _candleaverage_2;
       double _candlerange_4;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_4 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_4 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_4 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_4 = 0.0;
-         break;
-      }
+      _candlerange_4 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_4));
       double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
@@ -313,37 +201,9 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP_Logic( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_5;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double _candlerange_6;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((Near_rangeType==0) ? (fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]))) : (((Near_rangeType==1) ? ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])) : (((Near_rangeType==2) ? (((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])))) : (0.0))))));
       NearPeriodTotal += (_candlerange_5-_candlerange_6);
       i += 1;
       NearTrailingIdx += 1;
@@ -409,21 +269,7 @@ TA_RetCode TA_S_CDLTASUKIGAP( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       NearPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -433,41 +279,13 @@ TA_RetCode TA_S_CDLTASUKIGAP( int    startIdx,
    {
       double _candleaverage_1;
       double _candlerange_3;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_3 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_3 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_3 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_3 = 0.0;
-         break;
-      }
+      _candlerange_3 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_1 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_3));
       double divisor_1 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_1 = ((Near_factor*avg_1)/divisor_1);
       double _candleaverage_2;
       double _candlerange_4;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_4 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_4 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_4 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_4 = 0.0;
-         break;
-      }
+      _candlerange_4 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_4));
       double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
@@ -479,37 +297,9 @@ TA_RetCode TA_S_CDLTASUKIGAP( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_5;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double _candlerange_6;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((Near_rangeType==0) ? (fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]))) : (((Near_rangeType==1) ? ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])) : (((Near_rangeType==2) ? (((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])))) : (0.0))))));
       NearPeriodTotal += (_candlerange_5-_candlerange_6);
       i += 1;
       NearTrailingIdx += 1;
@@ -557,21 +347,7 @@ TA_RetCode TA_S_CDLTASUKIGAP_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       NearPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -581,41 +357,13 @@ TA_RetCode TA_S_CDLTASUKIGAP_Logic( int    startIdx,
    {
       double _candleaverage_1;
       double _candlerange_3;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_3 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_3 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_3 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_3 = 0.0;
-         break;
-      }
+      _candlerange_3 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_1 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_3));
       double divisor_1 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_1 = ((Near_factor*avg_1)/divisor_1);
       double _candleaverage_2;
       double _candlerange_4;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_4 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_4 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_4 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_4 = 0.0;
-         break;
-      }
+      _candlerange_4 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double avg_2 = (((Near_avgPeriod!=0)) ? ((NearPeriodTotal/Near_avgPeriod)) : (_candlerange_4));
       double divisor_2 = (((Near_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((Near_factor*avg_2)/divisor_2);
@@ -627,37 +375,9 @@ TA_RetCode TA_S_CDLTASUKIGAP_Logic( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_5;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[(i-1)]-inOpen[(i-1)]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[(i-1)]-inLow[(i-1)]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((Near_rangeType==0) ? (fabs((inClose[(i-1)]-inOpen[(i-1)]))) : (((Near_rangeType==1) ? ((inHigh[(i-1)]-inLow[(i-1)])) : (((Near_rangeType==2) ? (((inHigh[(i-1)]-inLow[(i-1)])-fabs((inClose[(i-1)]-inOpen[(i-1)])))) : (0.0))))));
       double _candlerange_6;
-      switch( Near_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((Near_rangeType==0) ? (fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)]))) : (((Near_rangeType==1) ? ((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])) : (((Near_rangeType==2) ? (((inHigh[(NearTrailingIdx-1)]-inLow[(NearTrailingIdx-1)])-fabs((inClose[(NearTrailingIdx-1)]-inOpen[(NearTrailingIdx-1)])))) : (0.0))))));
       NearPeriodTotal += (_candlerange_5-_candlerange_6);
       i += 1;
       NearTrailingIdx += 1;

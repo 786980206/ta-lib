@@ -832,6 +832,16 @@ pub fn render_statement(
             cases,
             default,
         } => {
+            // Detect candle rangeType switches: each case assigns to the same
+            // variable. Emit as a ternary chain instead of a switch — the compiler
+            // loop-unswitches ternary chains much more aggressively, producing
+            // specialized tight loops like the reference library's macro expansion.
+            if let Some(ternary) = try_render_switch_as_ternary(
+                expr, cases, default, &pad, single_precision, registry, helpers,
+            ) {
+                return ternary;
+            }
+
             let mut out = format!(
                 "{}switch( {} )\n{}{{\n",
                 pad,
@@ -873,6 +883,95 @@ pub fn render_statement(
             out
         }
     }
+}
+
+/// Try to render a switch as a ternary chain.
+///
+/// Detects the pattern where every case (and default) assigns to the SAME target variable.
+/// This is the candle rangeType switch pattern. Ternary chains get loop-unswitched by
+/// the compiler much more aggressively than switch statements, matching the reference
+/// library's `TA_CandleRange()` macro behavior.
+///
+/// Returns `Some(rendered)` if the switch can be converted, `None` otherwise.
+#[allow(clippy::too_many_arguments)]
+fn try_render_switch_as_ternary(
+    expr: &Expr,
+    cases: &[(String, Vec<Statement>)],
+    default: &[Statement],
+    pad: &str,
+    single_precision: bool,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> Option<String> {
+    // Only convert switches with numeric case labels (candle rangeType pattern).
+    // Enum switches (like MA's MAType dispatch) must stay as switch statements.
+    for (label, _) in cases {
+        if label.parse::<i32>().is_err() {
+            return None;
+        }
+    }
+
+    // Each case must be exactly one Assign statement to the same target.
+    let mut target_name: Option<String> = None;
+    let mut case_exprs: Vec<(&str, String)> = Vec::new();
+
+    for (label, body) in cases {
+        if body.len() != 1 {
+            return None;
+        }
+        if let Statement::Assign {
+            target,
+            value,
+            compound: false,
+        } = &body[0]
+        {
+            let tgt = render_expr(target, single_precision, registry, helpers);
+            if let Some(ref prev) = target_name {
+                if *prev != tgt {
+                    return None; // Different targets — not a simple switch
+                }
+            } else {
+                target_name = Some(tgt.clone());
+            }
+            let val = render_expr(value, single_precision, registry, helpers);
+            case_exprs.push((label.as_str(), val));
+        } else {
+            return None; // Not a simple assignment
+        }
+    }
+
+    // Default must also be a single assignment to the same target (or empty)
+    let default_expr = if default.len() == 1 {
+        if let Statement::Assign {
+            target,
+            value,
+            compound: false,
+        } = &default[0]
+        {
+            let tgt = render_expr(target, single_precision, registry, helpers);
+            if target_name.as_ref().is_some_and(|t| *t != tgt) {
+                return None;
+            }
+            render_expr(value, single_precision, registry, helpers)
+        } else {
+            return None;
+        }
+    } else if default.is_empty() {
+        "0.0".to_string()
+    } else {
+        return None;
+    };
+
+    let target = target_name?;
+    let switch_expr = render_expr(expr, single_precision, registry, helpers);
+
+    // Build nested ternary: (expr==0 ? val0 : (expr==1 ? val1 : (expr==2 ? val2 : default)))
+    let mut ternary = default_expr;
+    for (label, val) in case_exprs.iter().rev() {
+        ternary = format!("(({switch_expr}=={label}) ? ({val}) : ({ternary}))");
+    }
+
+    Some(format!("{pad}{target} = {ternary};\n"))
 }
 
 /// Render a switch case label for C output.

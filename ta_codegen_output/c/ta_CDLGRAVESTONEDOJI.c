@@ -105,21 +105,7 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       BodyDojiPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -127,21 +113,7 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_1;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_1 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_1 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_1 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_1 = 0.0;
-         break;
-      }
+      _candlerange_1 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += _candlerange_1;
       i += 1;
    }
@@ -150,61 +122,19 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
    {
       double _candleaverage_2;
       double _candlerange_5;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_2 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (_candlerange_5));
       double divisor_2 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((BodyDoji_factor*avg_2)/divisor_2);
       double _candleaverage_3;
       double _candlerange_6;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_3 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_6));
       double divisor_3 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_3 = ((ShadowVeryShort_factor*avg_3)/divisor_3);
       double _candleaverage_4;
       double _candlerange_7;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_7 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_7 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_7 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_7 = 0.0;
-         break;
-      }
+      _candlerange_7 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_4 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_7));
       double divisor_4 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_4 = ((ShadowVeryShort_factor*avg_4)/divisor_4);
@@ -216,70 +146,14 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_8;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_8 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_8 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_8 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_8 = 0.0;
-         break;
-      }
+      _candlerange_8 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_9;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_9 = fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_9 = (inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_9 = ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])));
-         break;
-      default:
-         _candlerange_9 = 0.0;
-         break;
-      }
+      _candlerange_9 = ((BodyDoji_rangeType==0) ? (fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]))) : (((BodyDoji_rangeType==1) ? ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])) : (((BodyDoji_rangeType==2) ? (((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])))) : (0.0))))));
       BodyDojiPeriodTotal += (_candlerange_8-_candlerange_9);
       double _candlerange_10;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_10 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_10 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_10 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_10 = 0.0;
-         break;
-      }
+      _candlerange_10 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_11;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_11 = fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_11 = (inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_11 = ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])));
-         break;
-      default:
-         _candlerange_11 = 0.0;
-         break;
-      }
+      _candlerange_11 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += (_candlerange_10-_candlerange_11);
       i += 1;
       BodyDojiTrailingIdx += 1;
@@ -335,21 +209,7 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       BodyDojiPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -357,21 +217,7 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_1;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_1 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_1 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_1 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_1 = 0.0;
-         break;
-      }
+      _candlerange_1 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += _candlerange_1;
       i += 1;
    }
@@ -380,61 +226,19 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    {
       double _candleaverage_2;
       double _candlerange_5;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_2 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (_candlerange_5));
       double divisor_2 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((BodyDoji_factor*avg_2)/divisor_2);
       double _candleaverage_3;
       double _candlerange_6;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_3 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_6));
       double divisor_3 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_3 = ((ShadowVeryShort_factor*avg_3)/divisor_3);
       double _candleaverage_4;
       double _candlerange_7;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_7 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_7 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_7 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_7 = 0.0;
-         break;
-      }
+      _candlerange_7 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_4 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_7));
       double divisor_4 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_4 = ((ShadowVeryShort_factor*avg_4)/divisor_4);
@@ -446,70 +250,14 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_8;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_8 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_8 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_8 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_8 = 0.0;
-         break;
-      }
+      _candlerange_8 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_9;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_9 = fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_9 = (inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_9 = ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])));
-         break;
-      default:
-         _candlerange_9 = 0.0;
-         break;
-      }
+      _candlerange_9 = ((BodyDoji_rangeType==0) ? (fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]))) : (((BodyDoji_rangeType==1) ? ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])) : (((BodyDoji_rangeType==2) ? (((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])))) : (0.0))))));
       BodyDojiPeriodTotal += (_candlerange_8-_candlerange_9);
       double _candlerange_10;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_10 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_10 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_10 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_10 = 0.0;
-         break;
-      }
+      _candlerange_10 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_11;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_11 = fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_11 = (inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_11 = ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])));
-         break;
-      default:
-         _candlerange_11 = 0.0;
-         break;
-      }
+      _candlerange_11 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += (_candlerange_10-_candlerange_11);
       i += 1;
       BodyDojiTrailingIdx += 1;
@@ -583,21 +331,7 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       BodyDojiPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -605,21 +339,7 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_1;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_1 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_1 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_1 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_1 = 0.0;
-         break;
-      }
+      _candlerange_1 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += _candlerange_1;
       i += 1;
    }
@@ -628,61 +348,19 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
    {
       double _candleaverage_2;
       double _candlerange_5;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_2 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (_candlerange_5));
       double divisor_2 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((BodyDoji_factor*avg_2)/divisor_2);
       double _candleaverage_3;
       double _candlerange_6;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_3 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_6));
       double divisor_3 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_3 = ((ShadowVeryShort_factor*avg_3)/divisor_3);
       double _candleaverage_4;
       double _candlerange_7;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_7 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_7 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_7 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_7 = 0.0;
-         break;
-      }
+      _candlerange_7 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_4 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_7));
       double divisor_4 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_4 = ((ShadowVeryShort_factor*avg_4)/divisor_4);
@@ -694,70 +372,14 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_8;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_8 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_8 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_8 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_8 = 0.0;
-         break;
-      }
+      _candlerange_8 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_9;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_9 = fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_9 = (inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_9 = ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])));
-         break;
-      default:
-         _candlerange_9 = 0.0;
-         break;
-      }
+      _candlerange_9 = ((BodyDoji_rangeType==0) ? (fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]))) : (((BodyDoji_rangeType==1) ? ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])) : (((BodyDoji_rangeType==2) ? (((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])))) : (0.0))))));
       BodyDojiPeriodTotal += (_candlerange_8-_candlerange_9);
       double _candlerange_10;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_10 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_10 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_10 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_10 = 0.0;
-         break;
-      }
+      _candlerange_10 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_11;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_11 = fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_11 = (inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_11 = ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])));
-         break;
-      default:
-         _candlerange_11 = 0.0;
-         break;
-      }
+      _candlerange_11 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += (_candlerange_10-_candlerange_11);
       i += 1;
       BodyDojiTrailingIdx += 1;
@@ -813,21 +435,7 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_0;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_0 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_0 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_0 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_0 = 0.0;
-         break;
-      }
+      _candlerange_0 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       BodyDojiPeriodTotal += _candlerange_0;
       i += 1;
    }
@@ -835,21 +443,7 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    while( (i<startIdx) )
    {
       double _candlerange_1;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_1 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_1 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_1 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_1 = 0.0;
-         break;
-      }
+      _candlerange_1 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += _candlerange_1;
       i += 1;
    }
@@ -858,61 +452,19 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    {
       double _candleaverage_2;
       double _candlerange_5;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_5 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_5 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_5 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_5 = 0.0;
-         break;
-      }
+      _candlerange_5 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_2 = (((BodyDoji_avgPeriod!=0)) ? ((BodyDojiPeriodTotal/BodyDoji_avgPeriod)) : (_candlerange_5));
       double divisor_2 = (((BodyDoji_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_2 = ((BodyDoji_factor*avg_2)/divisor_2);
       double _candleaverage_3;
       double _candlerange_6;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_6 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_6 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_6 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_6 = 0.0;
-         break;
-      }
+      _candlerange_6 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_3 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_6));
       double divisor_3 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_3 = ((ShadowVeryShort_factor*avg_3)/divisor_3);
       double _candleaverage_4;
       double _candlerange_7;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_7 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_7 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_7 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_7 = 0.0;
-         break;
-      }
+      _candlerange_7 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double avg_4 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_7));
       double divisor_4 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
       _candleaverage_4 = ((ShadowVeryShort_factor*avg_4)/divisor_4);
@@ -924,70 +476,14 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
          outInteger[outIdx++] = 0;
       }
       double _candlerange_8;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_8 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_8 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_8 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_8 = 0.0;
-         break;
-      }
+      _candlerange_8 = ((BodyDoji_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((BodyDoji_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((BodyDoji_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_9;
-      switch( BodyDoji_rangeType )
-      {
-      case 0:
-         _candlerange_9 = fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_9 = (inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_9 = ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])));
-         break;
-      default:
-         _candlerange_9 = 0.0;
-         break;
-      }
+      _candlerange_9 = ((BodyDoji_rangeType==0) ? (fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx]))) : (((BodyDoji_rangeType==1) ? ((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])) : (((BodyDoji_rangeType==2) ? (((inHigh[BodyDojiTrailingIdx]-inLow[BodyDojiTrailingIdx])-fabs((inClose[BodyDojiTrailingIdx]-inOpen[BodyDojiTrailingIdx])))) : (0.0))))));
       BodyDojiPeriodTotal += (_candlerange_8-_candlerange_9);
       double _candlerange_10;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_10 = fabs((inClose[i]-inOpen[i]));
-         break;
-      case 1:
-         _candlerange_10 = (inHigh[i]-inLow[i]);
-         break;
-      case 2:
-         _candlerange_10 = ((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])));
-         break;
-      default:
-         _candlerange_10 = 0.0;
-         break;
-      }
+      _candlerange_10 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[i]-inOpen[i]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[i]-inLow[i])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[i]-inLow[i])-fabs((inClose[i]-inOpen[i])))) : (0.0))))));
       double _candlerange_11;
-      switch( ShadowVeryShort_rangeType )
-      {
-      case 0:
-         _candlerange_11 = fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]));
-         break;
-      case 1:
-         _candlerange_11 = (inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx]);
-         break;
-      case 2:
-         _candlerange_11 = ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])));
-         break;
-      default:
-         _candlerange_11 = 0.0;
-         break;
-      }
+      _candlerange_11 = ((ShadowVeryShort_rangeType==0) ? (fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx]))) : (((ShadowVeryShort_rangeType==1) ? ((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])) : (((ShadowVeryShort_rangeType==2) ? (((inHigh[ShadowVeryShortTrailingIdx]-inLow[ShadowVeryShortTrailingIdx])-fabs((inClose[ShadowVeryShortTrailingIdx]-inOpen[ShadowVeryShortTrailingIdx])))) : (0.0))))));
       ShadowVeryShortPeriodTotal += (_candlerange_10-_candlerange_11);
       i += 1;
       BodyDojiTrailingIdx += 1;

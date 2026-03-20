@@ -2082,9 +2082,10 @@ fn c_backend_inlines_candlerange_switch() {
         !output.contains("ta_candlerange("),
         "ta_candlerange should be inlined: {output}"
     );
+    // Candle range switches render as ternary chains for better loop unswitching
     assert!(
-        output.contains("switch("),
-        "Inlined candlerange should contain switch: {output}"
+        output.contains("rangeType==0") || output.contains("switch("),
+        "Inlined candlerange should contain ternary or switch: {output}"
     );
     assert!(
         output.contains("_candlerange_"),
@@ -5755,21 +5756,24 @@ fn c_switch_renders_with_cases() {
         }],
     };
     let rendered = render_c_stmt(&stmt);
+    // Switch with all cases assigning to same target renders as ternary chain
     assert!(
-        rendered.contains("switch(") || rendered.contains("switch ("),
-        "C Switch should render as switch(): {rendered}"
+        rendered.contains("mode==0") && rendered.contains("mode==1"),
+        "Simple switch should render as ternary chain: {rendered}"
     );
     assert!(
-        rendered.contains("case") || rendered.contains("ENUM_CASE"),
-        "C Switch should have case labels: {rendered}"
+        rendered.contains("x ="),
+        "Ternary should assign to target variable: {rendered}"
     );
+    // Default case is the innermost fallback in the ternary chain
     assert!(
-        rendered.contains("default:"),
-        "C Switch should have default label: {rendered}"
+        rendered.contains("(0)") || rendered.contains("default:"),
+        "Should have default value in ternary or default label: {rendered}"
     );
+    // Ternary rendering doesn't need break statements
     assert!(
-        rendered.contains("break;"),
-        "C Switch cases should have break: {rendered}"
+        rendered.contains("break;") || rendered.contains("?"),
+        "Should have break (switch) or ternary operator: {rendered}"
     );
 }
 
