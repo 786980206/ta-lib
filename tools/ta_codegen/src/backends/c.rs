@@ -280,11 +280,15 @@ fn gen_func(
                             name = opt.name,
                             val = default_val
                         ));
+                        // Real param ranges are stored as (i32,i32) which truncates
+                        // float bounds. Only emit range check if bounds are meaningful.
                         if let Some((min, max)) = opt.range {
-                            out.push_str(&format!(
-                                "   else if( {name} < {min}.0 || {name} > {max}.0 )\n      return TA_BAD_PARAM;\n",
-                                name = opt.name
-                            ));
+                            if min != 0 || max != 0 {
+                                out.push_str(&format!(
+                                    "   else if( {name} < {min}.0 || {name} > {max}.0 )\n      return TA_BAD_PARAM;\n",
+                                    name = opt.name
+                                ));
+                            }
                         }
                     }
                 }
