@@ -395,13 +395,15 @@ fn build_servers(backend_filter: Option<&str>) {
         match *backend {
             "c" => {
                 print!("  Building C server... ");
-                let src = out_base.join("c/ta_codegen_serve.c");
+                let c_dir = out_base.join("c");
+                let src = c_dir.join("ta_codegen_serve.c");
                 let dst = bin_dir.join("ta_codegen_serve_c");
                 match std::process::Command::new("gcc")
                     .args([
                         "-o",
                         dst.to_str().unwrap(),
                         src.to_str().unwrap(),
+                        &format!("-I{}", c_dir.to_str().unwrap()),
                         "-lm",
                         "-O3",
                         "-DNDEBUG",
@@ -521,7 +523,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     }
 
     print!("  Building shared library... ");
-    let c_dir = out_base.join("c");
+    let c_dir = out_base.join("c/ta_func");
     let lib_name = if cfg!(target_os = "macos") {
         "libta_codegen_funcs.dylib"
     } else {
@@ -581,7 +583,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         "-o".to_string(),
         dst.to_str().unwrap().to_string(),
         unity_path.to_str().unwrap().to_string(),
-        format!("-I{}", c_dir.to_str().unwrap()),
+        format!("-I{}", c_dir.parent().unwrap().to_str().unwrap()),
         "-lm".to_string(),
         "-O3".to_string(),
         "-DNDEBUG".to_string(),
@@ -1158,7 +1160,7 @@ impl Core {
 /// from a previous run cannot leak into `generate-servers`.
 fn clean_generated_files(out_base: &Path, backend: &str) {
     let (dir, prefix, suffix) = match backend {
-        "c" => (out_base.join("c"), "ta_", ".c"),
+        "c" => (out_base.join("c/ta_func"), "ta_", ".c"),
         "java" => (out_base.join("java"), "Core_", ".java"),
         "dotnet" => (out_base.join("dotnet"), "Core_", ".h"),
         "rust" => (out_base.join("rust/src/ta_func"), "", ".rs"),
@@ -1200,7 +1202,7 @@ fn generate_backend(
     match backend {
         "c" => {
             let output = backends::c::generate(func_def, enums, registry, helpers);
-            let dir = out_base.join("c");
+            let dir = out_base.join("c/ta_func");
             std::fs::create_dir_all(&dir).unwrap();
             let path = dir.join(format!("ta_{}.c", func_def.name));
             std::fs::write(&path, &output).unwrap();

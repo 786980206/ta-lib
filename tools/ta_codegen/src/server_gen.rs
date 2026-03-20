@@ -385,7 +385,7 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
         sorted_names.push(ma);
     }
     for name in &sorted_names {
-        s.push_str(&format!("#include \"ta_{name}.c\"\n"));
+        s.push_str(&format!("#include \"ta_func/ta_{name}.c\"\n"));
     }
     s.push('\n');
 
