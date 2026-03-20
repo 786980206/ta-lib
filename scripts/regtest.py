@@ -74,9 +74,13 @@ def main():
     no_regtest     = "--no-regtest" in argv or no_test
     no_perftest    = "--no-perftest" in argv or no_test
 
-    # Alias --indicator to --function
-    passthrough = [a.replace("--indicator=", "--function=", 1) if a.startswith("--indicator=") else a
-                   for a in argv if a not in OUR_FLAGS]
+    # Alias --indicator(s) and --functions to --function
+    def normalize_flag(a):
+        for prefix in ("--indicators=", "--indicator=", "--functions="):
+            if a.startswith(prefix):
+                return "--function=" + a.split("=", 1)[1]
+        return a
+    passthrough = [normalize_flag(a) for a in argv if a not in OUR_FLAGS]
     func_filter = get_filter(passthrough, "--function")
     lang_filter = get_filter(passthrough, "--language")
 

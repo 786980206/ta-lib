@@ -115,28 +115,6 @@ impl Core {
         return RetCode::Success;
         } // unsafe
     }
-    // TODO: unsafe variant — thin wrapper around mult with raw pointer API
-    // pub unsafe fn mult_unsafe(
-    //     &self,
-    //     startIdx: usize,
-    //     endIdx: usize,
-    //     inReal0: *const f64,
-    //     inReal1: *const f64,
-    //     outBegIdx: *mut usize,
-    //     outNBElement: *mut usize,
-    //     outReal: *mut f64,
-    // ) -> RetCode { ... }
-    // TODO: unsafe variant — thin wrapper around mult_s with raw pointer API
-    // pub unsafe fn mult_unsafe_s(
-    //     &self,
-    //     startIdx: usize,
-    //     endIdx: usize,
-    //     inReal0: *const f32,
-    //     inReal1: *const f32,
-    //     outBegIdx: *mut usize,
-    //     outNBElement: *mut usize,
-    //     outReal: *mut f64,
-    // ) -> RetCode { ... }
 }
 /* Generated */
 
