@@ -509,8 +509,6 @@ int main(int argc, char* argv[])
          printf( "     - ta-lib/src/ta_common/ta_retcode.*\n" );
          printf( "     - ta-lib/src/ta_abstract/ta_group_idx.c\n");
          printf( "     - ta-lib/src/ta_abstract/frames/*.*\n");
-         printf( "     - ta-lib/dotnet/src/Core/TA-Lib-Core.vcproj (Win32 only)\n" );
-         printf( "     - ta-lib/dotnet/src/Core/TA-Lib-Core.h (Win32 only)\n" );
          printf( "     - ta-lib/src/ta_abstract/java_defs.h (Win32 only)\n" );
          printf( "     - ta-lib/ide/msvc/lib_proj/ta_func/ta_func.dsp (Win32 only)\n" );
          printf( "     - ta-lib/java/src/com/tictactec/ta/lib/Core.java\n" );
