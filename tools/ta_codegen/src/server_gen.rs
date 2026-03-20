@@ -115,6 +115,35 @@ fn expand_input_names(inputs: &[Input]) -> Vec<String> {
     names
 }
 
+/// Map a price-component input name to its reference array name prefix.
+/// Returns None for non-price input names.
+/// Used by Java and .NET servers (e.g., "inHigh" -> "refHigh").
+fn price_input_to_ref(name: &str) -> Option<&'static str> {
+    match name {
+        "inOpen" => Some("refOpen"),
+        "inHigh" => Some("refHigh"),
+        "inLow" => Some("refLow"),
+        "inClose" => Some("refClose"),
+        "inVolume" => Some("refVolume"),
+        "inOpenInterest" => Some("refOI"),
+        _ => None,
+    }
+}
+
+/// Map a price-component input name to its RefData field name (Rust server).
+/// Returns None for non-price input names.
+fn price_input_to_rust_ref(name: &str) -> Option<&'static str> {
+    match name {
+        "inOpen" => Some("open"),
+        "inHigh" => Some("high"),
+        "inLow" => Some("low"),
+        "inClose" => Some("close"),
+        "inVolume" => Some("volume"),
+        "inOpenInterest" => Some("oi"),
+        _ => None,
+    }
+}
+
 /// Map function name to its unstable period ID (integer value).
 /// Returns None for functions without unstable period.
 /// IDs must match the `TA_FuncUnstId` enum in `include/ta_defs.h`.
@@ -563,8 +592,11 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
 
         // Extract input arrays — either from pre-loaded reference data or inline JSON.
         let input_names = expand_input_names(&func.inputs);
-        let is_price_input = func.inputs.iter().any(|inp| {
-            matches!(inp.param_type, ParamType::Price(_))
+        let is_price_input = input_names.iter().any(|n| {
+            matches!(
+                n.as_str(),
+                "inOpen" | "inHigh" | "inLow" | "inClose" | "inVolume" | "inOpenInterest"
+            )
         });
         let n_inputs = input_names.len();
 
@@ -859,7 +891,15 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
 
     // Main server class
     s.push_str("public class TaCodegenServe {\n");
-    s.push_str("    static Core core = new Core();\n\n");
+    s.push_str("    static Core core = new Core();\n");
+    s.push_str("    static final int MAX_ARRAY_SIZE = 200000;\n");
+    s.push_str("    static double[] refOpen = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refHigh = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refLow = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refClose = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refVolume = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refOI = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static int refN = 0;\n\n");
 
     // JSON helpers
     s.push_str("    static int jsonInt(String json, String field) {\n");
@@ -919,9 +959,27 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     // Dispatch method
     s.push_str("    static String handleRequest(String json) {\n");
 
+    // Handle load_data for perftest pre-loading
+    s.push_str("        if (json.contains(\"\\\"load_data\\\"\")) {\n");
+    s.push_str("            double[] tmp = jsonDoubleArray(json, \"open\");\n");
+    s.push_str("            refN = tmp.length;\n");
+    s.push_str("            System.arraycopy(tmp, 0, refOpen, 0, refN);\n");
+    s.push_str("            tmp = jsonDoubleArray(json, \"high\");\n");
+    s.push_str("            System.arraycopy(tmp, 0, refHigh, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));\n");
+    s.push_str("            tmp = jsonDoubleArray(json, \"low\");\n");
+    s.push_str("            System.arraycopy(tmp, 0, refLow, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));\n");
+    s.push_str("            tmp = jsonDoubleArray(json, \"close\");\n");
+    s.push_str("            System.arraycopy(tmp, 0, refClose, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));\n");
+    s.push_str("            tmp = jsonDoubleArray(json, \"volume\");\n");
+    s.push_str("            System.arraycopy(tmp, 0, refVolume, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));\n");
+    s.push_str("            tmp = jsonDoubleArray(json, \"openInterest\");\n");
+    s.push_str("            System.arraycopy(tmp, 0, refOI, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));\n");
+    s.push_str("            return \"{\\\"status\\\":\\\"ok\\\",\\\"n\\\":\" + refN + \"}\";\n");
+    s.push_str("        }\n");
+
     for (i, func) in funcs.iter().enumerate() {
         let method_name = format!("TA_{}", func.name);
-        let cond = if i == 0 { "if" } else { "else if" };
+        let cond = if i == 0 { "else if" } else { "else if" };
         let func_lower = to_java_camel_case(&func.name);
 
         s.push_str(&format!(
@@ -934,11 +992,40 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         // component arrays (e.g. "inHigh", "inLow", "inClose").
         let input_names = expand_input_names(&func.inputs);
 
+        // Check use_preloaded flag
+        s.push_str("            int use_preloaded = jsonInt(json, \"use_preloaded\");\n");
+        s.push_str("            int bench_iters = jsonInt(json, \"iters\");\n");
+        s.push_str("            if (bench_iters < 1) bench_iters = 1;\n");
+
+        // Parse input arrays or use pre-loaded data
         for name in &input_names {
             s.push_str(&format!(
-                "            double[] {name} = jsonDoubleArray(json, \"{name}\");\n"
+                "            double[] {name} = new double[MAX_ARRAY_SIZE];\n"
             ));
         }
+        s.push_str("            if (use_preloaded != 0 && refN > 0) {\n");
+        for (j, name) in input_names.iter().enumerate() {
+            let ref_src = if let Some(r) = price_input_to_ref(name) {
+                r.to_string()
+            } else if j == 0 {
+                "refClose".to_string()
+            } else {
+                "refHigh".to_string()
+            };
+            s.push_str(&format!(
+                "                System.arraycopy({ref_src}, 0, {name}, 0, refN);\n"
+            ));
+        }
+        s.push_str("            } else {\n");
+        for name in &input_names {
+            s.push_str(&format!(
+                "                double[] _tmp_{name} = jsonDoubleArray(json, \"{name}\");\n"
+            ));
+            s.push_str(&format!(
+                "                {name} = _tmp_{name};\n"
+            ));
+        }
+        s.push_str("            }\n");
 
         // Optional params
         for opt in &func.optional_inputs {
@@ -984,12 +1071,14 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         }
         s.push_str("            MInteger outBegIdx = new MInteger();\n");
         s.push_str("            MInteger outNBElement = new MInteger();\n");
+        s.push_str("            RetCode rc = RetCode.Success;\n");
 
-        // Timing capture
+        // Benchmark iteration loop with timing
         s.push_str("            long startNs = System.nanoTime();\n");
+        s.push_str("            for (int _bi = 0; _bi < bench_iters; _bi++) {\n");
 
         // Call
-        s.push_str(&format!("            RetCode rc = core.{func_lower}(\n"));
+        s.push_str(&format!("            rc = core.{func_lower}(\n"));
         s.push_str("                startIdx, endIdx,\n");
         for name in &input_names {
             s.push_str(&format!("                {name},\n"));
@@ -1002,10 +1091,10 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
+        s.push_str("            }\n"); // end bench_iters loop
 
         // Timing capture
-        s.push_str("            long endNs = System.nanoTime();\n");
-        s.push_str("            long elapsedNs = endNs - startNs;\n");
+        s.push_str("            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;\n");
 
         // Response — use correct key names and serialisers per output type
         s.push_str("            StringBuilder sb = new StringBuilder();\n");
@@ -1099,7 +1188,15 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("using System.Runtime.InteropServices;\n");
     s.push_str("using System.Diagnostics;\n\n");
 
-    s.push_str("public class TaCodegenServe {\n\n");
+    s.push_str("public class TaCodegenServe {\n");
+    s.push_str("    const int MAX_ARRAY_SIZE = 200000;\n");
+    s.push_str("    static double[] refOpen = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refHigh = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refLow = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refClose = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refVolume = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static double[] refOI = new double[MAX_ARRAY_SIZE];\n");
+    s.push_str("    static int refN = 0;\n\n");
 
     // Cross-platform high-resolution nanosecond timer via Stopwatch
     s.push_str("    static long GetNanoTime() {\n");
@@ -1151,7 +1248,21 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("            using var doc = JsonDocument.Parse(json);\n");
     s.push_str("            var root = doc.RootElement;\n");
     s.push_str("            string method = root.GetProperty(\"method\").GetString()!;\n");
-    s.push_str("            var p = root.GetProperty(\"params\");\n");
+    s.push_str("            var p = root.GetProperty(\"params\");\n\n");
+
+    // Handle load_data before extracting startIdx/endIdx (which load_data doesn't have)
+    s.push_str("            if (method == \"load_data\") {\n");
+    s.push_str("                double[] tmpOpen = GetDoubleArray(p, \"open\");\n");
+    s.push_str("                refN = tmpOpen.Length;\n");
+    s.push_str("                Array.Copy(tmpOpen, refOpen, refN);\n");
+    s.push_str("                Array.Copy(GetDoubleArray(p, \"high\"), refHigh, refN);\n");
+    s.push_str("                Array.Copy(GetDoubleArray(p, \"low\"), refLow, refN);\n");
+    s.push_str("                Array.Copy(GetDoubleArray(p, \"close\"), refClose, refN);\n");
+    s.push_str("                Array.Copy(GetDoubleArray(p, \"volume\"), refVolume, refN);\n");
+    s.push_str("                Array.Copy(GetDoubleArray(p, \"openInterest\"), refOI, refN);\n");
+    s.push_str("                return $\"{{\\\"status\\\":\\\"ok\\\",\\\"n\\\":{refN}}}\";\n");
+    s.push_str("            }\n\n");
+
     s.push_str("            int startIdx = p.GetProperty(\"startIdx\").GetInt32();\n");
     s.push_str("            int endIdx = p.GetProperty(\"endIdx\").GetInt32();\n");
     s.push_str("            int n = endIdx - startIdx + 1;\n\n");
@@ -1167,13 +1278,39 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             "            {cond} (method == \"{method_name}\") {{\n"
         ));
 
-        // Extract input arrays — Real inputs use their own name; Price inputs expand
-        // to individual component arrays (e.g. "inHigh", "inLow", "inClose").
+        // Check use_preloaded and iters
+        s.push_str("                int use_preloaded = p.TryGetProperty(\"use_preloaded\", out var _upre) ? _upre.GetInt32() : 0;\n");
+        s.push_str("                int bench_iters = p.TryGetProperty(\"iters\", out var _iters) ? _iters.GetInt32() : 1;\n");
+        s.push_str("                if (bench_iters < 1) bench_iters = 1;\n");
+
+        // Declare input arrays with default initialization (satisfies C# definite assignment)
         for name in &input_names {
             s.push_str(&format!(
-                "                double[] {name} = GetDoubleArray(p, \"{name}\");\n"
+                "                double[] {name} = Array.Empty<double>();\n"
             ));
         }
+
+        // Populate from preloaded or JSON
+        s.push_str("                if (use_preloaded != 0 && refN > 0) {\n");
+        for (j, name) in input_names.iter().enumerate() {
+            let ref_src = if let Some(r) = price_input_to_ref(name) {
+                r.to_string()
+            } else if j == 0 {
+                "refClose".to_string()
+            } else {
+                "refHigh".to_string()
+            };
+            s.push_str(&format!(
+                "                    {name} = new double[refN]; Array.Copy({ref_src}, {name}, refN);\n"
+            ));
+        }
+        s.push_str("                } else {\n");
+        for name in &input_names {
+            s.push_str(&format!(
+                "                    {name} = GetDoubleArray(p, \"{name}\");\n"
+            ));
+        }
+        s.push_str("                }\n");
 
         // Extract optional params
         for opt in &func.optional_inputs {
@@ -1216,12 +1353,15 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             }
         }
 
-        // Time the function call
+        // Benchmark iteration loop with timing
+        s.push_str("                int rc = 0;\n");
+        s.push_str("                int outBegIdx = 0, outNBElement = 0;\n");
         s.push_str("                long _t0 = GetNanoTime();\n");
+        s.push_str("                for (int _bi = 0; _bi < bench_iters; _bi++) {\n");
 
         // Call
         s.push_str(&format!(
-            "                int rc = TA_{}(startIdx, endIdx, ",
+            "                rc = TA_{}(startIdx, endIdx, ",
             func.name
         ));
         for name in &input_names {
@@ -1230,12 +1370,13 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
         for opt in &func.optional_inputs {
             s.push_str(&format!("{}, ", opt.name));
         }
-        s.push_str("out int outBegIdx, out int outNBElement");
+        s.push_str("out outBegIdx, out outNBElement");
         for k in 0..outputs.len() {
             s.push_str(&format!(", outArr{k}"));
         }
         s.push_str(");\n");
-        s.push_str("                long elapsedNs = GetNanoTime() - _t0;\n");
+        s.push_str("                }\n"); // end bench_iters loop
+        s.push_str("                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;\n");
 
         // Build response — correct key names and serialisers per output type
         s.push_str("                var sb = new System.Text.StringBuilder();\n");
@@ -1358,6 +1499,31 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     s.push_str("use std::time::Instant;\n");
     s.push_str("use ta_lib::{Core, RetCode, FuncUnstId, Compatibility};\n\n");
 
+    // Pre-loaded reference data struct
+    s.push_str("const MAX_ARRAY_SIZE: usize = 200000;\n\n");
+    s.push_str("struct RefData {\n");
+    s.push_str("    open: Vec<f64>,\n");
+    s.push_str("    high: Vec<f64>,\n");
+    s.push_str("    low: Vec<f64>,\n");
+    s.push_str("    close: Vec<f64>,\n");
+    s.push_str("    volume: Vec<f64>,\n");
+    s.push_str("    oi: Vec<f64>,\n");
+    s.push_str("    n: usize,\n");
+    s.push_str("}\n\n");
+    s.push_str("impl RefData {\n");
+    s.push_str("    fn new() -> Self {\n");
+    s.push_str("        RefData {\n");
+    s.push_str("            open: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            high: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            low: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            close: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            volume: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            oi: vec![0.0; MAX_ARRAY_SIZE],\n");
+    s.push_str("            n: 0,\n");
+    s.push_str("        }\n");
+    s.push_str("    }\n");
+    s.push_str("}\n\n");
+
     // Helper: parse f64 array from JSON value
     s.push_str("fn parse_f64_array(val: &Value) -> Vec<f64> {\n");
     s.push_str("    match val.as_array() {\n");
@@ -1410,7 +1576,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     s.push_str("}\n\n");
 
     // handle_request function
-    s.push_str("fn handle_request(core: &mut Core, line: &str) -> String {\n");
+    s.push_str("fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String {\n");
     s.push_str("    let req: Value = match serde_json::from_str(line) {\n");
     s.push_str("        Ok(v) => v,\n");
     s.push_str(
@@ -1428,6 +1594,24 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     // Dispatch match
     s.push_str("    match method {\n");
 
+    // load_data handler
+    s.push_str("        \"load_data\" => {\n");
+    s.push_str("            let open = parse_f64_array(&params[\"open\"]);\n");
+    s.push_str("            ref_data.n = open.len().min(MAX_ARRAY_SIZE);\n");
+    s.push_str("            ref_data.open[..ref_data.n].copy_from_slice(&open[..ref_data.n]);\n");
+    s.push_str("            let high = parse_f64_array(&params[\"high\"]);\n");
+    s.push_str("            ref_data.high[..ref_data.n].copy_from_slice(&high[..ref_data.n]);\n");
+    s.push_str("            let low = parse_f64_array(&params[\"low\"]);\n");
+    s.push_str("            ref_data.low[..ref_data.n].copy_from_slice(&low[..ref_data.n]);\n");
+    s.push_str("            let close = parse_f64_array(&params[\"close\"]);\n");
+    s.push_str("            ref_data.close[..ref_data.n].copy_from_slice(&close[..ref_data.n]);\n");
+    s.push_str("            let volume = parse_f64_array(&params[\"volume\"]);\n");
+    s.push_str("            ref_data.volume[..ref_data.n].copy_from_slice(&volume[..ref_data.n]);\n");
+    s.push_str("            let oi = parse_f64_array(&params[\"openInterest\"]);\n");
+    s.push_str("            ref_data.oi[..ref_data.n].copy_from_slice(&oi[..ref_data.n]);\n");
+    s.push_str("            format!(\"{{\\\"status\\\":\\\"ok\\\",\\\"n\\\":{}}}\", ref_data.n)\n");
+    s.push_str("        }\n");
+
     // Per-function dispatch
     for func in funcs {
         let method_name = format!("TA_{}", func.name);
@@ -1443,13 +1627,40 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
             "            let endIdx = params[\"endIdx\"].as_u64().unwrap_or(0) as usize;\n",
         );
 
-        // Parse input arrays
+        // Parse use_preloaded and iters
         let input_names = expand_input_names(&func.inputs);
+
+        s.push_str("            let use_preloaded = params[\"use_preloaded\"].as_i64().unwrap_or(0);\n");
+        s.push_str("            let bench_iters = std::cmp::max(1, params[\"iters\"].as_i64().unwrap_or(1)) as u64;\n");
+
+        // Declare input arrays with default init (Rust definite-assignment)
         for name in &input_names {
             s.push_str(&format!(
-                "            let {name}: Vec<f64> = parse_f64_array(&params[\"{name}\"]);\n"
+                "            let mut {name}: Vec<f64> = Vec::new();\n"
             ));
         }
+
+        // Populate from preloaded or JSON
+        s.push_str("            if use_preloaded != 0 && ref_data.n > 0 {\n");
+        for (j, name) in input_names.iter().enumerate() {
+            let ref_field = if let Some(f) = price_input_to_rust_ref(name) {
+                f.to_string()
+            } else if j == 0 {
+                "close".to_string()
+            } else {
+                "high".to_string()
+            };
+            s.push_str(&format!(
+                "                {name} = ref_data.{ref_field}[..ref_data.n].to_vec();\n"
+            ));
+        }
+        s.push_str("            } else {\n");
+        for name in &input_names {
+            s.push_str(&format!(
+                "                {name} = parse_f64_array(&params[\"{name}\"]);\n"
+            ));
+        }
+        s.push_str("            }\n");
 
         // Parse optional params
         for opt in &func.optional_inputs {
@@ -1503,19 +1714,21 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         // Declare output scalars
         s.push_str("            let mut outBegIdx: usize = 0;\n");
         s.push_str("            let mut outNBElement: usize = 0;\n");
+        s.push_str("            let mut rc = RetCode::Success;\n");
 
-        // Timing
+        // Benchmark iteration loop with timing
         s.push_str("            let start_time = Instant::now();\n");
+        s.push_str("            for _bi in 0..bench_iters {\n");
 
         // Call the unguarded variant (no param validation — server handles that).
         // For functions with extra unguarded params (e.g., EMA's k), use guarded instead.
         if func.has_explicit_unguarded {
             s.push_str(&format!(
-                "            let rc = core.{fn_name}(\n"
+                "            rc = core.{fn_name}(\n"
             ));
         } else {
             s.push_str(&format!(
-                "            let rc = core.{fn_name}_unguarded(\n"
+                "            rc = core.{fn_name}_unguarded(\n"
             ));
         }
         s.push_str("                startIdx, endIdx,\n");
@@ -1545,9 +1758,10 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         }
         s.push_str(",\n");
         s.push_str("            );\n");
+        s.push_str("            }\n"); // end bench_iters loop
 
         // Calculate elapsed
-        s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64;\n");
+        s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;\n");
 
         // Build response JSON
         s.push_str("            let mut resp = serde_json::json!({\n");
@@ -1639,6 +1853,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     // Main function
     s.push_str("fn main() {\n");
     s.push_str("    let mut core = Core::new();\n");
+    s.push_str("    let mut ref_data = RefData::new();\n");
     s.push_str("    let stdin = io::stdin();\n");
     s.push_str("    let stdout = io::stdout();\n");
     s.push_str("    let mut stdout = stdout.lock();\n");
@@ -1651,7 +1866,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
     s.push_str("        if line.is_empty() {\n");
     s.push_str("            continue;\n");
     s.push_str("        }\n");
-    s.push_str("        let resp = handle_request(&mut core, line);\n");
+    s.push_str("        let resp = handle_request(&mut core, &mut ref_data, line);\n");
     s.push_str("        writeln!(stdout, \"{}\", resp).ok();\n");
     s.push_str("        stdout.flush().ok();\n");
     s.push_str("    }\n");

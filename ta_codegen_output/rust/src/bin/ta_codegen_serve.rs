@@ -5,6 +5,32 @@ use std::io::{self, BufRead, Write};
 use std::time::Instant;
 use ta_lib::{Core, RetCode, FuncUnstId, Compatibility};
 
+const MAX_ARRAY_SIZE: usize = 200000;
+
+struct RefData {
+    open: Vec<f64>,
+    high: Vec<f64>,
+    low: Vec<f64>,
+    close: Vec<f64>,
+    volume: Vec<f64>,
+    oi: Vec<f64>,
+    n: usize,
+}
+
+impl RefData {
+    fn new() -> Self {
+        RefData {
+            open: vec![0.0; MAX_ARRAY_SIZE],
+            high: vec![0.0; MAX_ARRAY_SIZE],
+            low: vec![0.0; MAX_ARRAY_SIZE],
+            close: vec![0.0; MAX_ARRAY_SIZE],
+            volume: vec![0.0; MAX_ARRAY_SIZE],
+            oi: vec![0.0; MAX_ARRAY_SIZE],
+            n: 0,
+        }
+    }
+}
+
 fn parse_f64_array(val: &Value) -> Vec<f64> {
     match val.as_array() {
         Some(arr) => arr.iter().filter_map(|v| v.as_f64()).collect(),
@@ -53,7 +79,7 @@ fn func_unst_id_from_int(id: usize) -> Option<FuncUnstId> {
     }
 }
 
-fn handle_request(core: &mut Core, line: &str) -> String {
+fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String {
     let req: Value = match serde_json::from_str(line) {
         Ok(v) => v,
         Err(e) => return format!("{{\"error\":\"Parse error: {}\"}}", e),
@@ -65,12 +91,39 @@ fn handle_request(core: &mut Core, line: &str) -> String {
     let params = &req["params"];
 
     match method {
+        "load_data" => {
+            let open = parse_f64_array(&params["open"]);
+            ref_data.n = open.len().min(MAX_ARRAY_SIZE);
+            ref_data.open[..ref_data.n].copy_from_slice(&open[..ref_data.n]);
+            let high = parse_f64_array(&params["high"]);
+            ref_data.high[..ref_data.n].copy_from_slice(&high[..ref_data.n]);
+            let low = parse_f64_array(&params["low"]);
+            ref_data.low[..ref_data.n].copy_from_slice(&low[..ref_data.n]);
+            let close = parse_f64_array(&params["close"]);
+            ref_data.close[..ref_data.n].copy_from_slice(&close[..ref_data.n]);
+            let volume = parse_f64_array(&params["volume"]);
+            ref_data.volume[..ref_data.n].copy_from_slice(&volume[..ref_data.n]);
+            let oi = parse_f64_array(&params["openInterest"]);
+            ref_data.oi[..ref_data.n].copy_from_slice(&oi[..ref_data.n]);
+            format!("{{\"status\":\"ok\",\"n\":{}}}", ref_data.n)
+        }
         "TA_ACCBANDS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(20) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -78,8 +131,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf2: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.accbands_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.accbands_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -87,7 +142,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -102,18 +158,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ACOS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.acos_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.acos_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -126,16 +192,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_AD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ad_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ad_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -143,7 +224,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inVolume,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -156,20 +238,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ADD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.add_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.add_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -182,18 +276,33 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ADOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(3) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.adosc_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.adosc_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -203,7 +312,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInSlowPeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -216,9 +326,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ADX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[0] = period as i32;
@@ -227,8 +348,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.adx_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.adx_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -236,7 +359,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -249,9 +373,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ADXR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[1] = period as i32;
@@ -260,8 +395,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.adxr_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.adxr_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -269,7 +406,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -282,7 +420,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_APO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
             let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
@@ -290,8 +435,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.apo_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.apo_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -299,7 +446,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -312,23 +460,35 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_AROON" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.aroon_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.aroon_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -342,22 +502,34 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_AROONOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.aroonosc_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.aroonosc_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -370,18 +542,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ASIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.asin_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.asin_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -394,18 +576,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ATAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.atan_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.atan_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -418,9 +610,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ATR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[2] = period as i32;
@@ -429,8 +632,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.atr_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.atr_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -438,7 +643,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -451,20 +657,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_AVGDEV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.avgdev_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.avgdev_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -477,16 +693,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_AVGPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.avgprice_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.avgprice_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -494,7 +725,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -507,7 +739,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_BBANDS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDevUp = params["optInNbDevUp"].as_f64().unwrap_or(2.0) as f64;
             let optInNbDevDn = params["optInNbDevDn"].as_f64().unwrap_or(2.0) as f64;
@@ -518,8 +757,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf2: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.bbands_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.bbands_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -528,7 +769,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -543,22 +785,34 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_BETA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.beta_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.beta_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -571,16 +825,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_BOP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.bop_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.bop_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -588,7 +857,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -601,16 +871,29 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CCI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cci_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cci_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -618,7 +901,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -631,16 +915,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL2CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl2crows_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl2crows_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -648,7 +947,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -661,16 +961,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3BLACKCROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3blackcrows_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3blackcrows_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -678,7 +993,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -691,16 +1007,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3INSIDE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3inside_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3inside_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -708,7 +1039,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -721,16 +1053,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3LINESTRIKE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3linestrike_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3linestrike_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -738,7 +1085,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -751,16 +1099,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3OUTSIDE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3outside_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3outside_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -768,7 +1131,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -781,16 +1145,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3STARSINSOUTH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3starsinsouth_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3starsinsouth_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -798,7 +1177,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -811,16 +1191,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDL3WHITESOLDIERS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdl3whitesoldiers_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdl3whitesoldiers_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -828,7 +1223,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -841,17 +1237,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLABANDONEDBABY" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlabandonedbaby_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlabandonedbaby_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -860,7 +1271,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -873,16 +1285,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLADVANCEBLOCK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdladvanceblock_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdladvanceblock_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -890,7 +1317,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -903,16 +1331,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLBELTHOLD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlbelthold_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlbelthold_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -920,7 +1363,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -933,16 +1377,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLBREAKAWAY" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlbreakaway_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlbreakaway_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -950,7 +1409,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -963,16 +1423,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLCLOSINGMARUBOZU" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlclosingmarubozu_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlclosingmarubozu_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -980,7 +1455,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -993,16 +1469,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLCONCEALBABYSWALL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlconcealbabyswall_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlconcealbabyswall_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1010,7 +1501,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1023,16 +1515,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLCOUNTERATTACK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlcounterattack_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlcounterattack_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1040,7 +1547,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1053,17 +1561,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLDARKCLOUDCOVER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdldarkcloudcover_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdldarkcloudcover_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1072,7 +1595,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1085,16 +1609,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdldoji_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdldoji_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1102,7 +1641,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1115,16 +1655,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdldojistar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdldojistar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1132,7 +1687,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1145,16 +1701,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLDRAGONFLYDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdldragonflydoji_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdldragonflydoji_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1162,7 +1733,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1175,16 +1747,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLENGULFING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlengulfing_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlengulfing_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1192,7 +1779,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1205,17 +1793,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLEVENINGDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdleveningdojistar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdleveningdojistar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1224,7 +1827,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1237,17 +1841,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLEVENINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdleveningstar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdleveningstar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1256,7 +1875,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1269,16 +1889,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLGAPSIDESIDEWHITE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlgapsidesidewhite_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlgapsidesidewhite_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1286,7 +1921,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1299,16 +1935,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLGRAVESTONEDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlgravestonedoji_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlgravestonedoji_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1316,7 +1967,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1329,16 +1981,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHAMMER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhammer_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhammer_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1346,7 +2013,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1359,16 +2027,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHANGINGMAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhangingman_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhangingman_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1376,7 +2059,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1389,16 +2073,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHARAMI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlharami_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlharami_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1406,7 +2105,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1419,16 +2119,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHARAMICROSS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlharamicross_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlharamicross_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1436,7 +2151,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1449,16 +2165,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHIGHWAVE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhighwave_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhighwave_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1466,7 +2197,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1479,16 +2211,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHIKKAKE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhikkake_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhikkake_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1496,7 +2243,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1509,16 +2257,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHIKKAKEMOD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhikkakemod_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhikkakemod_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1526,7 +2289,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1539,16 +2303,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLHOMINGPIGEON" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlhomingpigeon_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlhomingpigeon_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1556,7 +2335,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1569,16 +2349,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLIDENTICAL3CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlidentical3crows_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlidentical3crows_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1586,7 +2381,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1599,16 +2395,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLINNECK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlinneck_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlinneck_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1616,7 +2427,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1629,16 +2441,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLINVERTEDHAMMER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlinvertedhammer_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlinvertedhammer_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1646,7 +2473,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1659,16 +2487,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLKICKING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlkicking_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlkicking_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1676,7 +2519,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1689,16 +2533,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLKICKINGBYLENGTH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlkickingbylength_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlkickingbylength_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1706,7 +2565,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1719,16 +2579,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLLADDERBOTTOM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlladderbottom_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlladderbottom_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1736,7 +2611,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1749,16 +2625,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLLONGLEGGEDDOJI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdllongleggeddoji_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdllongleggeddoji_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1766,7 +2657,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1779,16 +2671,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLLONGLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdllongline_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdllongline_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1796,7 +2703,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1809,16 +2717,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLMARUBOZU" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlmarubozu_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlmarubozu_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1826,7 +2749,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1839,16 +2763,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLMATCHINGLOW" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlmatchinglow_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlmatchinglow_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1856,7 +2795,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1869,17 +2809,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLMATHOLD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlmathold_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlmathold_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1888,7 +2843,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1901,17 +2857,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLMORNINGDOJISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlmorningdojistar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlmorningdojistar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1920,7 +2891,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1933,17 +2905,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLMORNINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlmorningstar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlmorningstar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1952,7 +2939,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInPenetration,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1965,16 +2953,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLONNECK" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlonneck_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlonneck_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1982,7 +2985,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -1995,16 +2999,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLPIERCING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlpiercing_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlpiercing_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2012,7 +3031,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2025,16 +3045,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLRICKSHAWMAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlrickshawman_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlrickshawman_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2042,7 +3077,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2055,16 +3091,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLRISEFALL3METHODS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlrisefall3methods_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlrisefall3methods_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2072,7 +3123,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2085,16 +3137,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSEPARATINGLINES" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlseparatinglines_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlseparatinglines_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2102,7 +3169,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2115,16 +3183,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSHOOTINGSTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlshootingstar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlshootingstar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2132,7 +3215,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2145,16 +3229,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSHORTLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlshortline_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlshortline_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2162,7 +3261,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2175,16 +3275,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSPINNINGTOP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlspinningtop_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlspinningtop_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2192,7 +3307,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2205,16 +3321,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSTALLEDPATTERN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlstalledpattern_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlstalledpattern_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2222,7 +3353,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2235,16 +3367,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLSTICKSANDWICH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlsticksandwich_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlsticksandwich_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2252,7 +3399,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2265,16 +3413,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLTAKURI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdltakuri_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdltakuri_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2282,7 +3445,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2295,16 +3459,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLTASUKIGAP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdltasukigap_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdltasukigap_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2312,7 +3491,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2325,16 +3505,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLTHRUSTING" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlthrusting_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlthrusting_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2342,7 +3537,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2355,16 +3551,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLTRISTAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdltristar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdltristar_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2372,7 +3583,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2385,16 +3597,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLUNIQUE3RIVER" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlunique3river_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlunique3river_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2402,7 +3629,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2415,16 +3643,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLUPSIDEGAP2CROWS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlupsidegap2crows_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlupsidegap2crows_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2432,7 +3675,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2445,16 +3689,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CDLXSIDEGAP3METHODS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cdlxsidegap3methods_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cdlxsidegap3methods_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2462,7 +3721,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2475,18 +3735,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CEIL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ceil_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ceil_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2499,7 +3769,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CMO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[3] = period as i32;
@@ -2508,14 +3785,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cmo_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cmo_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2528,22 +3808,34 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_CORREL" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.correl_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.correl_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2556,18 +3848,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_COS" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cos_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cos_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2580,18 +3882,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_COSH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.cosh_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.cosh_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2604,20 +3916,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_DEMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.dema_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.dema_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2630,20 +3952,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_DIV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.div_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.div_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2656,9 +3990,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_DX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[4] = period as i32;
@@ -2667,8 +4012,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.dx_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.dx_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -2676,7 +4023,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2689,7 +4037,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_EMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[5] = period as i32;
@@ -2698,14 +4053,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ema(
+            for _bi in 0..bench_iters {
+            rc = core.ema(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2718,18 +4076,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_EXP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.exp_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.exp_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2742,18 +4110,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_FLOOR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.floor_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.floor_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2766,7 +4144,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_DCPERIOD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[6] = period as i32;
             }
@@ -2774,13 +4159,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_dcperiod_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_dcperiod_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2793,7 +4181,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_DCPHASE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[7] = period as i32;
             }
@@ -2801,13 +4196,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_dcphase_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_dcphase_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2820,7 +4218,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_PHASOR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[8] = period as i32;
             }
@@ -2829,13 +4234,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_phasor_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_phasor_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2849,7 +4257,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_SINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[9] = period as i32;
             }
@@ -2858,13 +4273,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_sine_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_sine_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2878,7 +4296,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_TRENDLINE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[10] = period as i32;
             }
@@ -2886,13 +4311,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_trendline_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_trendline_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2905,7 +4333,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_HT_TRENDMODE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[11] = period as i32;
             }
@@ -2913,13 +4348,16 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ht_trendmode_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ht_trendmode_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2932,8 +4370,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_IMI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inOpen: Vec<f64> = parse_f64_array(&params["inOpen"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inOpen: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inOpen = ref_data.open[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inOpen = parse_f64_array(&params["inOpen"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[12] = period as i32;
@@ -2942,15 +4389,18 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.imi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.imi_unguarded(
                 startIdx, endIdx,
                 &inOpen,
                 &inClose,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2963,7 +4413,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_KAMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[13] = period as i32;
@@ -2972,14 +4429,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.kama_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.kama_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -2992,20 +4452,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LINEARREG" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.linearreg_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.linearreg_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3018,20 +4488,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LINEARREG_ANGLE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.linearreg_angle_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.linearreg_angle_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3044,20 +4524,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LINEARREG_INTERCEPT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.linearreg_intercept_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.linearreg_intercept_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3070,20 +4560,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LINEARREG_SLOPE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.linearreg_slope_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.linearreg_slope_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3096,18 +4596,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ln_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ln_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3120,18 +4630,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_LOG10" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.log10_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.log10_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3144,22 +4664,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ma_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ma_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 optInMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3172,7 +4702,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MACD" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
             let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
@@ -3182,8 +4719,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf2: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.macd_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.macd_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -3191,7 +4730,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInSignalPeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3206,7 +4746,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MACDEXT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInFastMAType = params["optInFastMAType"].as_i64().unwrap_or(0) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
@@ -3219,8 +4766,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf2: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.macdext_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.macdext_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -3231,7 +4780,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInSignalMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3246,7 +4796,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MACDFIX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -3254,14 +4811,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf2: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.macdfix_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.macdfix_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInSignalPeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3276,7 +4836,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MAMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInFastLimit = params["optInFastLimit"].as_f64().unwrap_or(0.5) as f64;
             let optInSlowLimit = params["optInSlowLimit"].as_f64().unwrap_or(0.05) as f64;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -3287,15 +4854,18 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.mama_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.mama_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInFastLimit,
                 optInSlowLimit,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3309,8 +4879,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MAVP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let optInMinPeriod = params["optInMinPeriod"].as_i64().unwrap_or(2) as i32;
             let optInMaxPeriod = params["optInMaxPeriod"].as_i64().unwrap_or(30) as i32;
             let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
@@ -3318,8 +4897,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.mavp_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.mavp_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -3328,7 +4909,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3341,20 +4923,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MAX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.max_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.max_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3367,20 +4959,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MAXINDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.maxindex_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.maxindex_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3393,20 +4995,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MEDPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.medprice_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.medprice_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3419,10 +5033,23 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MFI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[15] = period as i32;
@@ -3431,8 +5058,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.mfi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.mfi_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -3441,7 +5070,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3454,20 +5084,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MIDPOINT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.midpoint_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.midpoint_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3480,22 +5120,34 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MIDPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.midprice_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.midprice_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3508,20 +5160,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.min_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.min_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3534,20 +5196,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MININDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.minindex_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.minindex_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3560,21 +5232,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MINMAX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.minmax_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.minmax_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3588,21 +5270,31 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MINMAXINDEX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
             let mut outIntBuf1: Vec<i32> = vec![0i32; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.minmaxindex_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.minmaxindex_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0, &mut outIntBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3616,9 +5308,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MINUS_DI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[16] = period as i32;
@@ -3627,8 +5330,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.minus_di_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.minus_di_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -3636,7 +5341,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3649,8 +5355,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MINUS_DM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[17] = period as i32;
@@ -3659,15 +5374,18 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.minus_dm_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.minus_dm_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3680,20 +5398,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MOM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.mom_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.mom_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3706,20 +5434,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_MULT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.mult_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.mult_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3732,9 +5472,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_NATR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[18] = period as i32;
@@ -3743,8 +5494,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.natr_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.natr_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -3752,7 +5505,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3765,20 +5519,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_NVI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inClose: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inClose = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inClose = parse_f64_array(&params["inClose"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.nvi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.nvi_unguarded(
                 startIdx, endIdx,
                 &inClose,
                 &inVolume,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3791,20 +5557,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_OBV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.obv_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.obv_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &inVolume,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3817,9 +5595,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_PLUS_DI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[19] = period as i32;
@@ -3828,8 +5617,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.plus_di_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.plus_di_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -3837,7 +5628,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3850,8 +5642,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_PLUS_DM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[20] = period as i32;
@@ -3860,15 +5661,18 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.plus_dm_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.plus_dm_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3881,7 +5685,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_PPO" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
             let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
@@ -3889,8 +5700,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ppo_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ppo_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -3898,7 +5711,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInMAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3911,20 +5725,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_PVI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
-            let inVolume: Vec<f64> = parse_f64_array(&params["inVolume"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inClose: Vec<f64> = Vec::new();
+            let mut inVolume: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inClose = ref_data.close[..ref_data.n].to_vec();
+                inVolume = ref_data.volume[..ref_data.n].to_vec();
+            } else {
+                inClose = parse_f64_array(&params["inClose"]);
+                inVolume = parse_f64_array(&params["inVolume"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.pvi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.pvi_unguarded(
                 startIdx, endIdx,
                 &inClose,
                 &inVolume,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3937,20 +5763,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ROC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.roc_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.roc_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3963,20 +5799,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ROCP" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.rocp_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.rocp_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -3989,20 +5835,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ROCR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.rocr_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.rocr_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4015,20 +5871,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ROCR100" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.rocr100_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.rocr100_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4041,7 +5907,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_RSI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[21] = period as i32;
@@ -4050,14 +5923,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.rsi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.rsi_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4070,16 +5946,27 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInAcceleration = params["optInAcceleration"].as_f64().unwrap_or(0.02) as f64;
             let optInMaximum = params["optInMaximum"].as_f64().unwrap_or(0.2) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sar_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sar_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4087,7 +5974,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInMaximum,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4100,8 +5988,17 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SAREXT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+            }
             let optInStartValue = params["optInStartValue"].as_f64().unwrap_or(0.0) as f64;
             let optInOffsetOnReverse = params["optInOffsetOnReverse"].as_f64().unwrap_or(0.0) as f64;
             let optInAccelerationInitLong = params["optInAccelerationInitLong"].as_f64().unwrap_or(0.02) as f64;
@@ -4114,8 +6011,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sarext_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sarext_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4129,7 +6028,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInAccelerationMaxShort,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4142,18 +6042,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SIN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sin_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sin_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4166,18 +6076,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SINH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sinh_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sinh_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4190,20 +6110,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sma_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sma_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4216,18 +6146,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SQRT" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sqrt_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sqrt_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4240,22 +6180,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_STDDEV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.stddev_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.stddev_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 optInNbDev,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4268,9 +6218,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_STOCH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
             let optInSlowK_Period = params["optInSlowK_Period"].as_i64().unwrap_or(3) as i32;
             let optInSlowK_MAType = params["optInSlowK_MAType"].as_i64().unwrap_or(0) as i32;
@@ -4281,8 +6242,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.stoch_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.stoch_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4294,7 +6257,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInSlowD_MAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4308,9 +6272,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_STOCHF" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
             let optInFastD_Period = params["optInFastD_Period"].as_i64().unwrap_or(3) as i32;
             let optInFastD_MAType = params["optInFastD_MAType"].as_i64().unwrap_or(0) as i32;
@@ -4319,8 +6294,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.stochf_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.stochf_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4330,7 +6307,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInFastD_MAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4344,7 +6322,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_STOCHRSI" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
             let optInFastD_Period = params["optInFastD_Period"].as_i64().unwrap_or(3) as i32;
@@ -4357,8 +6342,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf1: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.stochrsi_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.stochrsi_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4367,7 +6354,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInFastD_MAType,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4381,20 +6369,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SUB" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal0: Vec<f64> = parse_f64_array(&params["inReal0"]);
-            let inReal1: Vec<f64> = parse_f64_array(&params["inReal1"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal0: Vec<f64> = Vec::new();
+            let mut inReal1: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal0 = ref_data.close[..ref_data.n].to_vec();
+                inReal1 = ref_data.high[..ref_data.n].to_vec();
+            } else {
+                inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal1 = parse_f64_array(&params["inReal1"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sub_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sub_unguarded(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4407,20 +6407,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_SUM" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.sum_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.sum_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4433,7 +6443,14 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_T3" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInVFactor = params["optInVFactor"].as_f64().unwrap_or(0.7) as f64;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -4443,15 +6460,18 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.t3_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.t3_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 optInVFactor,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4464,18 +6484,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TAN" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.tan_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.tan_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4488,18 +6518,28 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TANH" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.tanh_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.tanh_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4512,20 +6552,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TEMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.tema_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.tema_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4538,22 +6588,36 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TRANGE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.trange_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.trange_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4566,20 +6630,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TRIMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.trima_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.trima_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4592,20 +6666,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TRIX" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.trix_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.trix_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4618,20 +6702,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TSF" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.tsf_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.tsf_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4644,22 +6738,36 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_TYPPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.typprice_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.typprice_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4672,9 +6780,20 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_ULTOSC" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod1 = params["optInTimePeriod1"].as_i64().unwrap_or(7) as i32;
             let optInTimePeriod2 = params["optInTimePeriod2"].as_i64().unwrap_or(14) as i32;
             let optInTimePeriod3 = params["optInTimePeriod3"].as_i64().unwrap_or(28) as i32;
@@ -4682,8 +6801,10 @@ fn handle_request(core: &mut Core, line: &str) -> String {
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.ultosc_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.ultosc_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4693,7 +6814,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod3,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4706,22 +6828,32 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_VAR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.var_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.var_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 optInNbDev,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4734,22 +6866,36 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_WCLPRICE" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.wclprice_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.wclprice_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
                 &inClose,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4762,16 +6908,29 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_WILLR" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inHigh: Vec<f64> = parse_f64_array(&params["inHigh"]);
-            let inLow: Vec<f64> = parse_f64_array(&params["inLow"]);
-            let inClose: Vec<f64> = parse_f64_array(&params["inClose"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inHigh: Vec<f64> = Vec::new();
+            let mut inLow: Vec<f64> = Vec::new();
+            let mut inClose: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inHigh = ref_data.high[..ref_data.n].to_vec();
+                inLow = ref_data.low[..ref_data.n].to_vec();
+                inClose = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inHigh = parse_f64_array(&params["inHigh"]);
+                inLow = parse_f64_array(&params["inLow"]);
+                inClose = parse_f64_array(&params["inClose"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.willr_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.willr_unguarded(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4779,7 +6938,8 @@ fn handle_request(core: &mut Core, line: &str) -> String {
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -4792,20 +6952,30 @@ fn handle_request(core: &mut Core, line: &str) -> String {
         "TA_WMA" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let inReal: Vec<f64> = parse_f64_array(&params["inReal"]);
+            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
+            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
+            let mut inReal: Vec<f64> = Vec::new();
+            if use_preloaded != 0 && ref_data.n > 0 {
+                inReal = ref_data.close[..ref_data.n].to_vec();
+            } else {
+                inReal = parse_f64_array(&params["inReal"]);
+            }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
             let mut outBegIdx: usize = 0;
             let mut outNBElement: usize = 0;
+            let mut rc = RetCode::Success;
             let start_time = Instant::now();
-            let rc = core.wma_unguarded(
+            for _bi in 0..bench_iters {
+            rc = core.wma_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64;
+            }
+            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
@@ -5009,6 +7179,7 @@ fn handle_request(core: &mut Core, line: &str) -> String {
 
 fn main() {
     let mut core = Core::new();
+    let mut ref_data = RefData::new();
     let stdin = io::stdin();
     let stdout = io::stdout();
     let mut stdout = stdout.lock();
@@ -5021,7 +7192,7 @@ fn main() {
         if line.is_empty() {
             continue;
         }
-        let resp = handle_request(&mut core, line);
+        let resp = handle_request(&mut core, &mut ref_data, line);
         writeln!(stdout, "{}", resp).ok();
         stdout.flush().ok();
     }

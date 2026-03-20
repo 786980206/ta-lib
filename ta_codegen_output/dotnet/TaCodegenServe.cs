@@ -8,6 +8,14 @@ using System.Runtime.InteropServices;
 using System.Diagnostics;
 
 public class TaCodegenServe {
+    const int MAX_ARRAY_SIZE = 200000;
+    static double[] refOpen = new double[MAX_ARRAY_SIZE];
+    static double[] refHigh = new double[MAX_ARRAY_SIZE];
+    static double[] refLow = new double[MAX_ARRAY_SIZE];
+    static double[] refClose = new double[MAX_ARRAY_SIZE];
+    static double[] refVolume = new double[MAX_ARRAY_SIZE];
+    static double[] refOI = new double[MAX_ARRAY_SIZE];
+    static int refN = 0;
 
     static long GetNanoTime() {
         return Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency;
@@ -1546,21 +1554,50 @@ public class TaCodegenServe {
             var root = doc.RootElement;
             string method = root.GetProperty("method").GetString()!;
             var p = root.GetProperty("params");
+
+            if (method == "load_data") {
+                double[] tmpOpen = GetDoubleArray(p, "open");
+                refN = tmpOpen.Length;
+                Array.Copy(tmpOpen, refOpen, refN);
+                Array.Copy(GetDoubleArray(p, "high"), refHigh, refN);
+                Array.Copy(GetDoubleArray(p, "low"), refLow, refN);
+                Array.Copy(GetDoubleArray(p, "close"), refClose, refN);
+                Array.Copy(GetDoubleArray(p, "volume"), refVolume, refN);
+                Array.Copy(GetDoubleArray(p, "openInterest"), refOI, refN);
+                return $"{{\"status\":\"ok\",\"n\":{refN}}}";
+            }
+
             int startIdx = p.GetProperty("startIdx").GetInt32();
             int endIdx = p.GetProperty("endIdx").GetInt32();
             int n = endIdx - startIdx + 1;
 
             if (method == "TA_ACCBANDS") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 20;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
                 double[] outArr2 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ACCBANDS(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1, outArr2);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ACCBANDS(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1571,11 +1608,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ACOS") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ACOS(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ACOS(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1584,14 +1633,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_AD") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_AD(startIdx, endIdx, inHigh, inLow, inClose, inVolume, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_AD(startIdx, endIdx, inHigh, inLow, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1600,12 +1667,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ADD") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ADD(startIdx, endIdx, inReal0, inReal1, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ADD(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1614,16 +1695,34 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ADOSC") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 int optInFastPeriod = p.TryGetProperty("optInFastPeriod", out var _optInFastPeriodVal) ? _optInFastPeriodVal.GetInt32() : 3;
                 int optInSlowPeriod = p.TryGetProperty("optInSlowPeriod", out var _optInSlowPeriodVal) ? _optInSlowPeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ADOSC(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInFastPeriod, optInSlowPeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ADOSC(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInFastPeriod, optInSlowPeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1632,16 +1731,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ADX") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(0, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ADX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ADX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1650,16 +1765,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ADXR") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(1, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ADXR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ADXR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1668,14 +1799,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_APO") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInFastPeriod = p.TryGetProperty("optInFastPeriod", out var _optInFastPeriodVal) ? _optInFastPeriodVal.GetInt32() : 12;
                 int optInSlowPeriod = p.TryGetProperty("optInSlowPeriod", out var _optInSlowPeriodVal) ? _optInSlowPeriodVal.GetInt32() : 26;
                 int optInMAType = p.TryGetProperty("optInMAType", out var _optInMATypeVal) ? _optInMATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_APO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_APO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1684,14 +1827,28 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_AROON") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_AROON(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_AROON(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1701,13 +1858,27 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_AROONOSC") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_AROONOSC(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_AROONOSC(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1716,11 +1887,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ASIN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ASIN(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ASIN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1729,11 +1912,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ATAN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ATAN(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ATAN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1742,16 +1937,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ATR") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(2, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1760,12 +1971,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_AVGDEV") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_AVGDEV(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_AVGDEV(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1774,14 +1997,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_AVGPRICE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_AVGPRICE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_AVGPRICE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1790,7 +2031,15 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_BBANDS") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 5;
                 double optInNbDevUp = p.TryGetProperty("optInNbDevUp", out var _optInNbDevUpVal) ? _optInNbDevUpVal.GetDouble() : 2;
                 double optInNbDevDn = p.TryGetProperty("optInNbDevDn", out var _optInNbDevDnVal) ? _optInNbDevDnVal.GetDouble() : 2;
@@ -1798,9 +2047,13 @@ public class TaCodegenServe {
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
                 double[] outArr2 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_BBANDS(startIdx, endIdx, inReal, optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType, out int outBegIdx, out int outNBElement, outArr0, outArr1, outArr2);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_BBANDS(startIdx, endIdx, inReal, optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1811,13 +2064,27 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_BETA") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 5;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_BETA(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_BETA(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1826,14 +2093,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_BOP") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_BOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_BOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1842,14 +2127,30 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CCI") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CCI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CCI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -1858,14 +2159,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL2CROWS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1874,14 +2193,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3BLACKCROWS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3BLACKCROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3BLACKCROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1890,14 +2227,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3INSIDE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3INSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3INSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1906,14 +2261,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3LINESTRIKE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3LINESTRIKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3LINESTRIKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1922,14 +2295,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3OUTSIDE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3OUTSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3OUTSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1938,14 +2329,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3STARSINSOUTH") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3STARSINSOUTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3STARSINSOUTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1954,14 +2363,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDL3WHITESOLDIERS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDL3WHITESOLDIERS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDL3WHITESOLDIERS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1970,15 +2397,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLABANDONEDBABY") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.3;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLABANDONEDBABY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLABANDONEDBABY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -1987,14 +2432,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLADVANCEBLOCK") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLADVANCEBLOCK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLADVANCEBLOCK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2003,14 +2466,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLBELTHOLD") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLBELTHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLBELTHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2019,14 +2500,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLBREAKAWAY") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLBREAKAWAY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLBREAKAWAY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2035,14 +2534,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLCLOSINGMARUBOZU") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLCLOSINGMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLCLOSINGMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2051,14 +2568,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLCONCEALBABYSWALL") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLCONCEALBABYSWALL(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLCONCEALBABYSWALL(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2067,14 +2602,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLCOUNTERATTACK") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLCOUNTERATTACK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLCOUNTERATTACK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2083,15 +2636,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLDARKCLOUDCOVER") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.5;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLDARKCLOUDCOVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLDARKCLOUDCOVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2100,14 +2671,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLDOJI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2116,14 +2705,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLDOJISTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2132,14 +2739,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLDRAGONFLYDOJI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLDRAGONFLYDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLDRAGONFLYDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2148,14 +2773,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLENGULFING") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLENGULFING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLENGULFING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2164,15 +2807,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLEVENINGDOJISTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.3;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLEVENINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLEVENINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2181,15 +2842,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLEVENINGSTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.3;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLEVENINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLEVENINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2198,14 +2877,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLGAPSIDESIDEWHITE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLGAPSIDESIDEWHITE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLGAPSIDESIDEWHITE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2214,14 +2911,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLGRAVESTONEDOJI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLGRAVESTONEDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLGRAVESTONEDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2230,14 +2945,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHAMMER") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2246,14 +2979,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHANGINGMAN") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHANGINGMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHANGINGMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2262,14 +3013,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHARAMI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHARAMI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHARAMI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2278,14 +3047,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHARAMICROSS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHARAMICROSS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHARAMICROSS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2294,14 +3081,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHIGHWAVE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHIGHWAVE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHIGHWAVE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2310,14 +3115,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHIKKAKE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHIKKAKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHIKKAKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2326,14 +3149,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHIKKAKEMOD") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHIKKAKEMOD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHIKKAKEMOD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2342,14 +3183,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLHOMINGPIGEON") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLHOMINGPIGEON(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLHOMINGPIGEON(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2358,14 +3217,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLIDENTICAL3CROWS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLIDENTICAL3CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLIDENTICAL3CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2374,14 +3251,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLINNECK") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLINNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLINNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2390,14 +3285,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLINVERTEDHAMMER") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLINVERTEDHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLINVERTEDHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2406,14 +3319,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLKICKING") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLKICKING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLKICKING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2422,14 +3353,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLKICKINGBYLENGTH") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLKICKINGBYLENGTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLKICKINGBYLENGTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2438,14 +3387,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLLADDERBOTTOM") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLLADDERBOTTOM(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLLADDERBOTTOM(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2454,14 +3421,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLLONGLEGGEDDOJI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLLONGLEGGEDDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLLONGLEGGEDDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2470,14 +3455,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLLONGLINE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLLONGLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLLONGLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2486,14 +3489,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLMARUBOZU") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2502,14 +3523,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLMATCHINGLOW") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLMATCHINGLOW(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLMATCHINGLOW(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2518,15 +3557,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLMATHOLD") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.5;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLMATHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLMATHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2535,15 +3592,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLMORNINGDOJISTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.3;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLMORNINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLMORNINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2552,15 +3627,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLMORNINGSTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double optInPenetration = p.TryGetProperty("optInPenetration", out var _optInPenetrationVal) ? _optInPenetrationVal.GetDouble() : 0.3;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLMORNINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLMORNINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2569,14 +3662,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLONNECK") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLONNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLONNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2585,14 +3696,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLPIERCING") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLPIERCING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLPIERCING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2601,14 +3730,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLRICKSHAWMAN") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLRICKSHAWMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLRICKSHAWMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2617,14 +3764,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLRISEFALL3METHODS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLRISEFALL3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLRISEFALL3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2633,14 +3798,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSEPARATINGLINES") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSEPARATINGLINES(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSEPARATINGLINES(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2649,14 +3832,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSHOOTINGSTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSHOOTINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSHOOTINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2665,14 +3866,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSHORTLINE") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSHORTLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSHORTLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2681,14 +3900,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSPINNINGTOP") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSPINNINGTOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSPINNINGTOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2697,14 +3934,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSTALLEDPATTERN") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSTALLEDPATTERN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSTALLEDPATTERN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2713,14 +3968,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLSTICKSANDWICH") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLSTICKSANDWICH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLSTICKSANDWICH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2729,14 +4002,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLTAKURI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLTAKURI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLTAKURI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2745,14 +4036,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLTASUKIGAP") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLTASUKIGAP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLTASUKIGAP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2761,14 +4070,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLTHRUSTING") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLTHRUSTING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLTHRUSTING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2777,14 +4104,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLTRISTAR") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLTRISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLTRISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2793,14 +4138,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLUNIQUE3RIVER") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLUNIQUE3RIVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLUNIQUE3RIVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2809,14 +4172,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLUPSIDEGAP2CROWS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLUPSIDEGAP2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLUPSIDEGAP2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2825,14 +4206,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CDLXSIDEGAP3METHODS") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CDLXSIDEGAP3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CDLXSIDEGAP3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -2841,11 +4240,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CEIL") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CEIL(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CEIL(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2854,14 +4265,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CMO") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(3, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CMO(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CMO(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2870,13 +4293,27 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_CORREL") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_CORREL(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_CORREL(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2885,11 +4322,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_COS") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_COS(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_COS(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2898,11 +4347,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_COSH") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_COSH(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_COSH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2911,12 +4372,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_DEMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_DEMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_DEMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2925,12 +4398,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_DIV") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_DIV(startIdx, endIdx, inReal0, inReal1, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_DIV(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2939,16 +4426,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_DX") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(4, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_DX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_DX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2957,14 +4460,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_EMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(5, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2973,11 +4488,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_EXP") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_EXP(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_EXP(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2986,11 +4513,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_FLOOR") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_FLOOR(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_FLOOR(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -2999,13 +4538,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_DCPERIOD") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(6, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_DCPERIOD(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_DCPERIOD(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3014,13 +4565,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_DCPHASE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(7, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_DCPHASE(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_DCPHASE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3029,14 +4592,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_PHASOR") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(8, unstablePeriod);
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_PHASOR(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_PHASOR(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3046,14 +4621,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_SINE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(9, unstablePeriod);
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_SINE(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_SINE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3063,13 +4650,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_TRENDLINE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(10, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_TRENDLINE(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_TRENDLINE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3078,13 +4677,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_HT_TRENDMODE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(11, unstablePeriod);
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_HT_TRENDMODE(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_HT_TRENDMODE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -3093,15 +4704,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_IMI") {
-                double[] inOpen = GetDoubleArray(p, "inOpen");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inOpen = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inOpen = new double[refN]; Array.Copy(refOpen, inOpen, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inOpen = GetDoubleArray(p, "inOpen");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(12, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_IMI(startIdx, endIdx, inOpen, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_IMI(startIdx, endIdx, inOpen, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3110,14 +4735,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_KAMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(13, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_KAMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_KAMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3126,12 +4763,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LINEARREG") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LINEARREG(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LINEARREG(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3140,12 +4789,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LINEARREG_ANGLE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LINEARREG_ANGLE(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LINEARREG_ANGLE(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3154,12 +4815,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LINEARREG_INTERCEPT") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LINEARREG_INTERCEPT(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LINEARREG_INTERCEPT(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3168,12 +4841,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LINEARREG_SLOPE") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LINEARREG_SLOPE(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LINEARREG_SLOPE(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3182,11 +4867,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LN(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3195,11 +4892,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_LOG10") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_LOG10(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_LOG10(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3208,13 +4917,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int optInMAType = p.TryGetProperty("optInMAType", out var _optInMATypeVal) ? _optInMATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MA(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MA(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3223,16 +4944,28 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MACD") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInFastPeriod = p.TryGetProperty("optInFastPeriod", out var _optInFastPeriodVal) ? _optInFastPeriodVal.GetInt32() : 12;
                 int optInSlowPeriod = p.TryGetProperty("optInSlowPeriod", out var _optInSlowPeriodVal) ? _optInSlowPeriodVal.GetInt32() : 26;
                 int optInSignalPeriod = p.TryGetProperty("optInSignalPeriod", out var _optInSignalPeriodVal) ? _optInSignalPeriodVal.GetInt32() : 9;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
                 double[] outArr2 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MACD(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1, outArr2);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MACD(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3243,7 +4976,15 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MACDEXT") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInFastPeriod = p.TryGetProperty("optInFastPeriod", out var _optInFastPeriodVal) ? _optInFastPeriodVal.GetInt32() : 12;
                 int optInFastMAType = p.TryGetProperty("optInFastMAType", out var _optInFastMATypeVal) ? _optInFastMATypeVal.GetInt32() : 0;
                 int optInSlowPeriod = p.TryGetProperty("optInSlowPeriod", out var _optInSlowPeriodVal) ? _optInSlowPeriodVal.GetInt32() : 26;
@@ -3253,9 +4994,13 @@ public class TaCodegenServe {
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
                 double[] outArr2 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MACDEXT(startIdx, endIdx, inReal, optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType, out int outBegIdx, out int outNBElement, outArr0, outArr1, outArr2);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MACDEXT(startIdx, endIdx, inReal, optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3266,14 +5011,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MACDFIX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInSignalPeriod = p.TryGetProperty("optInSignalPeriod", out var _optInSignalPeriodVal) ? _optInSignalPeriodVal.GetInt32() : 9;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
                 double[] outArr2 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MACDFIX(startIdx, endIdx, inReal, optInSignalPeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1, outArr2);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MACDFIX(startIdx, endIdx, inReal, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3284,16 +5041,28 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MAMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double optInFastLimit = p.TryGetProperty("optInFastLimit", out var _optInFastLimitVal) ? _optInFastLimitVal.GetDouble() : 0.5;
                 double optInSlowLimit = p.TryGetProperty("optInSlowLimit", out var _optInSlowLimitVal) ? _optInSlowLimitVal.GetDouble() : 0.05;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(14, unstablePeriod);
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MAMA(startIdx, endIdx, inReal, optInFastLimit, optInSlowLimit, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MAMA(startIdx, endIdx, inReal, optInFastLimit, optInSlowLimit, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3303,15 +5072,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MAVP") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 int optInMinPeriod = p.TryGetProperty("optInMinPeriod", out var _optInMinPeriodVal) ? _optInMinPeriodVal.GetInt32() : 2;
                 int optInMaxPeriod = p.TryGetProperty("optInMaxPeriod", out var _optInMaxPeriodVal) ? _optInMaxPeriodVal.GetInt32() : 30;
                 int optInMAType = p.TryGetProperty("optInMAType", out var _optInMATypeVal) ? _optInMATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MAVP(startIdx, endIdx, inReal0, inReal1, optInMinPeriod, optInMaxPeriod, optInMAType, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MAVP(startIdx, endIdx, inReal0, inReal1, optInMinPeriod, optInMaxPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3320,12 +5103,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MAX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MAX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MAX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3334,12 +5129,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MAXINDEX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -3348,12 +5155,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MEDPRICE") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MEDPRICE(startIdx, endIdx, inHigh, inLow, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MEDPRICE(startIdx, endIdx, inHigh, inLow, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3362,17 +5183,35 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MFI") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(15, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MFI(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MFI(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3381,12 +5220,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MIDPOINT") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MIDPOINT(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MIDPOINT(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3395,13 +5246,27 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MIDPRICE") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MIDPRICE(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MIDPRICE(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3410,12 +5275,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MIN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MIN(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MIN(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3424,12 +5301,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MININDEX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int[] outArr0 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MININDEX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MININDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -3438,13 +5327,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MINMAX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MINMAX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MINMAX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3454,13 +5355,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MINMAXINDEX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 int[] outArr0 = new int[n];
                 int[] outArr1 = new int[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MINMAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MINMAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
@@ -3470,16 +5383,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MINUS_DI") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(16, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MINUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MINUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3488,15 +5417,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MINUS_DM") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(17, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MINUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MINUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3505,12 +5448,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MOM") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MOM(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MOM(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3519,12 +5474,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_MULT") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_MULT(startIdx, endIdx, inReal0, inReal1, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_MULT(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3533,16 +5502,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_NATR") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(18, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_NATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_NATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3551,12 +5536,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_NVI") {
-                double[] inClose = GetDoubleArray(p, "inClose");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inClose = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inClose = GetDoubleArray(p, "inClose");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_NVI(startIdx, endIdx, inClose, inVolume, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_NVI(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3565,12 +5564,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_OBV") {
-                double[] inReal = GetDoubleArray(p, "inReal");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_OBV(startIdx, endIdx, inReal, inVolume, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_OBV(startIdx, endIdx, inReal, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3579,16 +5592,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_PLUS_DI") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(19, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_PLUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_PLUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3597,15 +5626,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_PLUS_DM") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(20, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_PLUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_PLUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3614,14 +5657,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_PPO") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInFastPeriod = p.TryGetProperty("optInFastPeriod", out var _optInFastPeriodVal) ? _optInFastPeriodVal.GetInt32() : 12;
                 int optInSlowPeriod = p.TryGetProperty("optInSlowPeriod", out var _optInSlowPeriodVal) ? _optInSlowPeriodVal.GetInt32() : 26;
                 int optInMAType = p.TryGetProperty("optInMAType", out var _optInMATypeVal) ? _optInMATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_PPO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_PPO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3630,12 +5685,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_PVI") {
-                double[] inClose = GetDoubleArray(p, "inClose");
-                double[] inVolume = GetDoubleArray(p, "inVolume");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inClose = Array.Empty<double>();
+                double[] inVolume = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                    inVolume = new double[refN]; Array.Copy(refVolume, inVolume, refN);
+                } else {
+                    inClose = GetDoubleArray(p, "inClose");
+                    inVolume = GetDoubleArray(p, "inVolume");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_PVI(startIdx, endIdx, inClose, inVolume, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_PVI(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3644,12 +5713,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ROC") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ROC(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ROC(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3658,12 +5739,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ROCP") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ROCP(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ROCP(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3672,12 +5765,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ROCR") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ROCR(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ROCR(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3686,12 +5791,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ROCR100") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 10;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ROCR100(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ROCR100(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3700,14 +5817,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_RSI") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(21, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_RSI(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_RSI(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3716,14 +5845,28 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SAR") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 double optInAcceleration = p.TryGetProperty("optInAcceleration", out var _optInAccelerationVal) ? _optInAccelerationVal.GetDouble() : 0.02;
                 double optInMaximum = p.TryGetProperty("optInMaximum", out var _optInMaximumVal) ? _optInMaximumVal.GetDouble() : 0.2;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SAR(startIdx, endIdx, inHigh, inLow, optInAcceleration, optInMaximum, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SAR(startIdx, endIdx, inHigh, inLow, optInAcceleration, optInMaximum, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3732,8 +5875,18 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SAREXT") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                }
                 double optInStartValue = p.TryGetProperty("optInStartValue", out var _optInStartValueVal) ? _optInStartValueVal.GetDouble() : 0;
                 double optInOffsetOnReverse = p.TryGetProperty("optInOffsetOnReverse", out var _optInOffsetOnReverseVal) ? _optInOffsetOnReverseVal.GetDouble() : 0;
                 double optInAccelerationInitLong = p.TryGetProperty("optInAccelerationInitLong", out var _optInAccelerationInitLongVal) ? _optInAccelerationInitLongVal.GetDouble() : 0.02;
@@ -3743,9 +5896,13 @@ public class TaCodegenServe {
                 double optInAccelerationShort = p.TryGetProperty("optInAccelerationShort", out var _optInAccelerationShortVal) ? _optInAccelerationShortVal.GetDouble() : 0.02;
                 double optInAccelerationMaxShort = p.TryGetProperty("optInAccelerationMaxShort", out var _optInAccelerationMaxShortVal) ? _optInAccelerationMaxShortVal.GetDouble() : 0.2;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SAREXT(startIdx, endIdx, inHigh, inLow, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SAREXT(startIdx, endIdx, inHigh, inLow, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3754,11 +5911,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SIN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SIN(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SIN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3767,11 +5936,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SINH") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SINH(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SINH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3780,12 +5961,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3794,11 +5987,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SQRT") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SQRT(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SQRT(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3807,13 +6012,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_STDDEV") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 5;
                 double optInNbDev = p.TryGetProperty("optInNbDev", out var _optInNbDevVal) ? _optInNbDevVal.GetDouble() : 1;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_STDDEV(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_STDDEV(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3822,9 +6039,21 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_STOCH") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInFastK_Period = p.TryGetProperty("optInFastK_Period", out var _optInFastK_PeriodVal) ? _optInFastK_PeriodVal.GetInt32() : 5;
                 int optInSlowK_Period = p.TryGetProperty("optInSlowK_Period", out var _optInSlowK_PeriodVal) ? _optInSlowK_PeriodVal.GetInt32() : 3;
                 int optInSlowK_MAType = p.TryGetProperty("optInSlowK_MAType", out var _optInSlowK_MATypeVal) ? _optInSlowK_MATypeVal.GetInt32() : 0;
@@ -3832,9 +6061,13 @@ public class TaCodegenServe {
                 int optInSlowD_MAType = p.TryGetProperty("optInSlowD_MAType", out var _optInSlowD_MATypeVal) ? _optInSlowD_MATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_STOCH(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_STOCH(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3844,17 +6077,33 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_STOCHF") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInFastK_Period = p.TryGetProperty("optInFastK_Period", out var _optInFastK_PeriodVal) ? _optInFastK_PeriodVal.GetInt32() : 5;
                 int optInFastD_Period = p.TryGetProperty("optInFastD_Period", out var _optInFastD_PeriodVal) ? _optInFastD_PeriodVal.GetInt32() : 3;
                 int optInFastD_MAType = p.TryGetProperty("optInFastD_MAType", out var _optInFastD_MATypeVal) ? _optInFastD_MATypeVal.GetInt32() : 0;
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_STOCHF(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_STOCHF(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3864,7 +6113,15 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_STOCHRSI") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 int optInFastK_Period = p.TryGetProperty("optInFastK_Period", out var _optInFastK_PeriodVal) ? _optInFastK_PeriodVal.GetInt32() : 5;
                 int optInFastD_Period = p.TryGetProperty("optInFastD_Period", out var _optInFastD_PeriodVal) ? _optInFastD_PeriodVal.GetInt32() : 3;
@@ -3873,9 +6130,13 @@ public class TaCodegenServe {
                 TA_SetUnstablePeriod(22, unstablePeriod);
                 double[] outArr0 = new double[n];
                 double[] outArr1 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_STOCHRSI(startIdx, endIdx, inReal, optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out int outBegIdx, out int outNBElement, outArr0, outArr1);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_STOCHRSI(startIdx, endIdx, inReal, optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3885,12 +6146,26 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SUB") {
-                double[] inReal0 = GetDoubleArray(p, "inReal0");
-                double[] inReal1 = GetDoubleArray(p, "inReal1");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal0 = Array.Empty<double>();
+                double[] inReal1 = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal0 = new double[refN]; Array.Copy(refClose, inReal0, refN);
+                    inReal1 = new double[refN]; Array.Copy(refHigh, inReal1, refN);
+                } else {
+                    inReal0 = GetDoubleArray(p, "inReal0");
+                    inReal1 = GetDoubleArray(p, "inReal1");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SUB(startIdx, endIdx, inReal0, inReal1, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SUB(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3899,12 +6174,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_SUM") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_SUM(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_SUM(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3913,15 +6200,27 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_T3") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 5;
                 double optInVFactor = p.TryGetProperty("optInVFactor", out var _optInVFactorVal) ? _optInVFactorVal.GetDouble() : 0.7;
                 int unstablePeriod = p.TryGetProperty("unstablePeriod", out var _upVal) ? _upVal.GetInt32() : 0;
                 TA_SetUnstablePeriod(23, unstablePeriod);
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_T3(startIdx, endIdx, inReal, optInTimePeriod, optInVFactor, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_T3(startIdx, endIdx, inReal, optInTimePeriod, optInVFactor, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3930,11 +6229,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TAN") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TAN(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TAN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3943,11 +6254,23 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TANH") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TANH(startIdx, endIdx, inReal, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TANH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3956,12 +6279,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TEMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TEMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TEMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3970,13 +6305,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TRANGE") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TRANGE(startIdx, endIdx, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TRANGE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3985,12 +6336,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TRIMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TRIMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TRIMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -3999,12 +6362,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TRIX") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TRIX(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TRIX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4013,12 +6388,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TSF") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TSF(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TSF(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4027,13 +6414,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_TYPPRICE") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_TYPPRICE(startIdx, endIdx, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_TYPPRICE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4042,16 +6445,32 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_ULTOSC") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod1 = p.TryGetProperty("optInTimePeriod1", out var _optInTimePeriod1Val) ? _optInTimePeriod1Val.GetInt32() : 7;
                 int optInTimePeriod2 = p.TryGetProperty("optInTimePeriod2", out var _optInTimePeriod2Val) ? _optInTimePeriod2Val.GetInt32() : 14;
                 int optInTimePeriod3 = p.TryGetProperty("optInTimePeriod3", out var _optInTimePeriod3Val) ? _optInTimePeriod3Val.GetInt32() : 28;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_ULTOSC(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_ULTOSC(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4060,13 +6479,25 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_VAR") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 5;
                 double optInNbDev = p.TryGetProperty("optInNbDev", out var _optInNbDevVal) ? _optInNbDevVal.GetDouble() : 1;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_VAR(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_VAR(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4075,13 +6506,29 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_WCLPRICE") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_WCLPRICE(startIdx, endIdx, inHigh, inLow, inClose, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_WCLPRICE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4090,14 +6537,30 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_WILLR") {
-                double[] inHigh = GetDoubleArray(p, "inHigh");
-                double[] inLow = GetDoubleArray(p, "inLow");
-                double[] inClose = GetDoubleArray(p, "inClose");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inHigh = Array.Empty<double>();
+                double[] inLow = Array.Empty<double>();
+                double[] inClose = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inHigh = new double[refN]; Array.Copy(refHigh, inHigh, refN);
+                    inLow = new double[refN]; Array.Copy(refLow, inLow, refN);
+                    inClose = new double[refN]; Array.Copy(refClose, inClose, refN);
+                } else {
+                    inHigh = GetDoubleArray(p, "inHigh");
+                    inLow = GetDoubleArray(p, "inLow");
+                    inClose = GetDoubleArray(p, "inClose");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 14;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_WILLR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_WILLR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
@@ -4106,12 +6569,24 @@ public class TaCodegenServe {
                 return sb.ToString();
             }
             else if (method == "TA_WMA") {
-                double[] inReal = GetDoubleArray(p, "inReal");
+                int use_preloaded = p.TryGetProperty("use_preloaded", out var _upre) ? _upre.GetInt32() : 0;
+                int bench_iters = p.TryGetProperty("iters", out var _iters) ? _iters.GetInt32() : 1;
+                if (bench_iters < 1) bench_iters = 1;
+                double[] inReal = Array.Empty<double>();
+                if (use_preloaded != 0 && refN > 0) {
+                    inReal = new double[refN]; Array.Copy(refClose, inReal, refN);
+                } else {
+                    inReal = GetDoubleArray(p, "inReal");
+                }
                 int optInTimePeriod = p.TryGetProperty("optInTimePeriod", out var _optInTimePeriodVal) ? _optInTimePeriodVal.GetInt32() : 30;
                 double[] outArr0 = new double[n];
+                int rc = 0;
+                int outBegIdx = 0, outNBElement = 0;
                 long _t0 = GetNanoTime();
-                int rc = TA_WMA(startIdx, endIdx, inReal, optInTimePeriod, out int outBegIdx, out int outNBElement, outArr0);
-                long elapsedNs = GetNanoTime() - _t0;
+                for (int _bi = 0; _bi < bench_iters; _bi++) {
+                rc = TA_WMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));

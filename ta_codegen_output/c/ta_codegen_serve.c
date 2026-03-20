@@ -175,7 +175,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -187,7 +187,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -247,7 +247,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -259,7 +259,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -317,7 +317,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -331,7 +331,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -358,7 +358,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -371,7 +371,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -396,7 +396,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -409,7 +409,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -471,7 +471,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -482,7 +482,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -508,7 +508,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -519,7 +519,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -605,7 +605,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -618,7 +618,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -676,7 +676,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -688,7 +688,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -791,7 +791,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -803,7 +803,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -828,7 +828,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -840,7 +840,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -865,7 +865,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -877,7 +877,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -902,7 +902,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -914,7 +914,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -939,7 +939,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -951,7 +951,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -976,7 +976,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -988,7 +988,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1013,7 +1013,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1025,7 +1025,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1050,7 +1050,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1062,7 +1062,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1087,7 +1087,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1099,7 +1099,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1124,7 +1124,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1137,7 +1137,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1163,7 +1163,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1175,7 +1175,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1200,7 +1200,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1212,7 +1212,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1237,7 +1237,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1249,7 +1249,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1274,7 +1274,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1286,7 +1286,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1311,7 +1311,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1323,7 +1323,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1348,7 +1348,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1360,7 +1360,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1385,7 +1385,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1398,7 +1398,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1424,7 +1424,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1436,7 +1436,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1461,7 +1461,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1473,7 +1473,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1498,7 +1498,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1510,7 +1510,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1535,7 +1535,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1547,7 +1547,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1572,7 +1572,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1585,7 +1585,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1611,7 +1611,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1624,7 +1624,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1650,7 +1650,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1662,7 +1662,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1687,7 +1687,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1699,7 +1699,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1724,7 +1724,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1736,7 +1736,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1761,7 +1761,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1773,7 +1773,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1798,7 +1798,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1810,7 +1810,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1835,7 +1835,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1847,7 +1847,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1872,7 +1872,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1884,7 +1884,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1909,7 +1909,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1921,7 +1921,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1946,7 +1946,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1958,7 +1958,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -1983,7 +1983,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -1995,7 +1995,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2020,7 +2020,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2032,7 +2032,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2057,7 +2057,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2069,7 +2069,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2094,7 +2094,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2106,7 +2106,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2131,7 +2131,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2143,7 +2143,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2168,7 +2168,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2180,7 +2180,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2205,7 +2205,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2217,7 +2217,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2242,7 +2242,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2254,7 +2254,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2279,7 +2279,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2291,7 +2291,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2316,7 +2316,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2328,7 +2328,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2353,7 +2353,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2365,7 +2365,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2390,7 +2390,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2403,7 +2403,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2429,7 +2429,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2442,7 +2442,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2468,7 +2468,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2481,7 +2481,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2507,7 +2507,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2519,7 +2519,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2544,7 +2544,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2556,7 +2556,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2581,7 +2581,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2593,7 +2593,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2618,7 +2618,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2630,7 +2630,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2655,7 +2655,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2667,7 +2667,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2692,7 +2692,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2704,7 +2704,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2729,7 +2729,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2741,7 +2741,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2766,7 +2766,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2778,7 +2778,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2803,7 +2803,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2815,7 +2815,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2840,7 +2840,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2852,7 +2852,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2877,7 +2877,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2889,7 +2889,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2914,7 +2914,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2926,7 +2926,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2951,7 +2951,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -2963,7 +2963,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -2988,7 +2988,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3000,7 +3000,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -3025,7 +3025,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3037,7 +3037,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -3062,7 +3062,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3074,7 +3074,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -3099,7 +3099,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inHigh", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3111,7 +3111,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -3364,7 +3364,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3377,7 +3377,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -3694,7 +3694,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inOpen", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inClose", g_inBuf1, MAX_ARRAY_SIZE);
@@ -3706,7 +3706,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4261,7 +4261,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4271,7 +4271,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4294,7 +4294,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4308,7 +4308,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(4, 0);
+            preload_to_working(4, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4367,7 +4367,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4378,7 +4378,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4538,7 +4538,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4551,7 +4551,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4576,7 +4576,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4588,7 +4588,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4678,7 +4678,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4691,7 +4691,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4716,7 +4716,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4726,7 +4726,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4749,7 +4749,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4759,7 +4759,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4782,7 +4782,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4795,7 +4795,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4820,7 +4820,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4832,7 +4832,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -4893,7 +4893,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
@@ -4903,7 +4903,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5092,7 +5092,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5104,7 +5104,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5129,7 +5129,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5147,7 +5147,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(2, 0);
+            preload_to_working(2, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5339,7 +5339,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5355,7 +5355,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5386,7 +5386,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5400,7 +5400,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5668,7 +5668,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5679,7 +5679,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5802,7 +5802,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5813,7 +5813,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5837,7 +5837,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5851,7 +5851,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5913,7 +5913,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5924,7 +5924,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {
@@ -5948,7 +5948,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int endIdx = json_find_int(json, "endIdx");
         int use_preloaded = json_find_int(json, "use_preloaded");
         if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         } else {
             json_find_double_array(json, "inHigh", g_inBuf0, MAX_ARRAY_SIZE);
             json_find_double_array(json, "inLow", g_inBuf1, MAX_ARRAY_SIZE);
@@ -5960,7 +5960,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         if( bench_iters < 1 ) bench_iters = 1;
         TA_RetCode rc = 0;
         if( use_preloaded ) {
-            preload_to_working(3, 0);
+            preload_to_working(3, 1);
         }
         long _t0 = get_nanotime();
         for( int _bi = 0; _bi < bench_iters; _bi++ ) {

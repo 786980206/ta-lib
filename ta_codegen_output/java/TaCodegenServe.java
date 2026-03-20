@@ -93042,6 +93042,14 @@ class Core {
 
 public class TaCodegenServe {
     static Core core = new Core();
+    static final int MAX_ARRAY_SIZE = 200000;
+    static double[] refOpen = new double[MAX_ARRAY_SIZE];
+    static double[] refHigh = new double[MAX_ARRAY_SIZE];
+    static double[] refLow = new double[MAX_ARRAY_SIZE];
+    static double[] refClose = new double[MAX_ARRAY_SIZE];
+    static double[] refVolume = new double[MAX_ARRAY_SIZE];
+    static double[] refOI = new double[MAX_ARRAY_SIZE];
+    static int refN = 0;
 
     static int jsonInt(String json, String field) {
         int idx = json.indexOf('"' + field + '"');
@@ -93098,28 +93106,61 @@ public class TaCodegenServe {
     }
 
     static String handleRequest(String json) {
-        if (json.contains("\"TA_ACCBANDS\"")) {
+        if (json.contains("\"load_data\"")) {
+            double[] tmp = jsonDoubleArray(json, "open");
+            refN = tmp.length;
+            System.arraycopy(tmp, 0, refOpen, 0, refN);
+            tmp = jsonDoubleArray(json, "high");
+            System.arraycopy(tmp, 0, refHigh, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));
+            tmp = jsonDoubleArray(json, "low");
+            System.arraycopy(tmp, 0, refLow, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));
+            tmp = jsonDoubleArray(json, "close");
+            System.arraycopy(tmp, 0, refClose, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));
+            tmp = jsonDoubleArray(json, "volume");
+            System.arraycopy(tmp, 0, refVolume, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));
+            tmp = jsonDoubleArray(json, "openInterest");
+            System.arraycopy(tmp, 0, refOI, 0, Math.min(tmp.length, MAX_ARRAY_SIZE));
+            return "{\"status\":\"ok\",\"n\":" + refN + "}";
+        }
+        else if (json.contains("\"TA_ACCBANDS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             double[] outArr2 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.accbands(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.accbands(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0, outArr1, outArr2);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93134,17 +93175,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ACOS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.acos(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.acos(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93157,23 +93209,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_AD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ad(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ad(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 inVolume,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93186,19 +93258,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ADD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.add(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.add(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93211,17 +93297,37 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ADOSC\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             int optInFastPeriod = jsonInt(json, "optInFastPeriod");
             int optInSlowPeriod = jsonInt(json, "optInSlowPeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.adosc(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.adosc(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -93230,8 +93336,8 @@ public class TaCodegenServe {
                 optInFastPeriod,
                 optInSlowPeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93244,24 +93350,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ADX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[0] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.adx(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.adx(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93274,24 +93397,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ADXR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[1] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.adxr(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.adxr(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93304,23 +93444,34 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_APO\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInFastPeriod = jsonInt(json, "optInFastPeriod");
             int optInSlowPeriod = jsonInt(json, "optInSlowPeriod");
             MAType optInMAType = MAType.values()[jsonInt(json, "optInMAType")];
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.apo(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.apo(
                 startIdx, endIdx,
                 inReal,
                 optInFastPeriod,
                 optInSlowPeriod,
                 optInMAType,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93333,22 +93484,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_AROON\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.aroon(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.aroon(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93362,21 +93527,35 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_AROONOSC\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.aroonosc(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.aroonosc(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93389,17 +93568,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ASIN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.asin(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.asin(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93412,17 +93602,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ATAN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.atan(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.atan(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93435,24 +93636,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ATR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[2] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.atr(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.atr(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93465,19 +93683,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_AVGDEV\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.avgdev(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.avgdev(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93490,23 +93719,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_AVGPRICE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.avgprice(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.avgprice(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93519,7 +93768,16 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_BBANDS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double optInNbDevUp = jsonDouble(json, "optInNbDevUp");
             double optInNbDevDn = jsonDouble(json, "optInNbDevDn");
@@ -93529,8 +93787,10 @@ public class TaCodegenServe {
             double[] outArr2 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.bbands(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.bbands(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
@@ -93538,8 +93798,8 @@ public class TaCodegenServe {
                 optInNbDevDn,
                 optInMAType,
                 outBegIdx, outNBElement, outArr0, outArr1, outArr2);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93554,21 +93814,35 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_BETA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.beta(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.beta(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93581,23 +93855,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_BOP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.bop(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.bop(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93610,23 +93904,40 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CCI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cci(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cci(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93639,23 +93950,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL2CROWS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl2crows(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl2crows(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93668,23 +93999,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3BLACKCROWS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3blackcrows(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3blackcrows(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93697,23 +94048,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3INSIDE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3inside(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3inside(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93726,23 +94097,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3LINESTRIKE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3linestrike(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3linestrike(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93755,23 +94146,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3OUTSIDE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3outside(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3outside(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93784,23 +94195,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3STARSINSOUTH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3starsinsouth(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3starsinsouth(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93813,23 +94244,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDL3WHITESOLDIERS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdl3whitesoldiers(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdl3whitesoldiers(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93842,16 +94293,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLABANDONEDBABY\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlabandonedbaby(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlabandonedbaby(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -93859,8 +94330,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93873,23 +94344,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLADVANCEBLOCK\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdladvanceblock(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdladvanceblock(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93902,23 +94393,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLBELTHOLD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlbelthold(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlbelthold(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93931,23 +94442,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLBREAKAWAY\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlbreakaway(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlbreakaway(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93960,23 +94491,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLCLOSINGMARUBOZU\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlclosingmarubozu(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlclosingmarubozu(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -93989,23 +94540,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLCONCEALBABYSWALL\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlconcealbabyswall(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlconcealbabyswall(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94018,23 +94589,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLCOUNTERATTACK\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlcounterattack(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlcounterattack(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94047,16 +94638,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLDARKCLOUDCOVER\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdldarkcloudcover(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdldarkcloudcover(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94064,8 +94675,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94078,23 +94689,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLDOJI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdldoji(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdldoji(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94107,23 +94738,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLDOJISTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdldojistar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdldojistar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94136,23 +94787,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLDRAGONFLYDOJI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdldragonflydoji(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdldragonflydoji(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94165,23 +94836,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLENGULFING\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlengulfing(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlengulfing(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94194,16 +94885,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLEVENINGDOJISTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdleveningdojistar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdleveningdojistar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94211,8 +94922,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94225,16 +94936,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLEVENINGSTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdleveningstar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdleveningstar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94242,8 +94973,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94256,23 +94987,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLGAPSIDESIDEWHITE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlgapsidesidewhite(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlgapsidesidewhite(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94285,23 +95036,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLGRAVESTONEDOJI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlgravestonedoji(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlgravestonedoji(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94314,23 +95085,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHAMMER\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhammer(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhammer(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94343,23 +95134,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHANGINGMAN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhangingman(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhangingman(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94372,23 +95183,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHARAMI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlharami(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlharami(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94401,23 +95232,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHARAMICROSS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlharamicross(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlharamicross(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94430,23 +95281,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHIGHWAVE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhighwave(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhighwave(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94459,23 +95330,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHIKKAKE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhikkake(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhikkake(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94488,23 +95379,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHIKKAKEMOD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhikkakemod(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhikkakemod(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94517,23 +95428,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLHOMINGPIGEON\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlhomingpigeon(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlhomingpigeon(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94546,23 +95477,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLIDENTICAL3CROWS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlidentical3crows(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlidentical3crows(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94575,23 +95526,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLINNECK\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlinneck(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlinneck(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94604,23 +95575,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLINVERTEDHAMMER\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlinvertedhammer(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlinvertedhammer(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94633,23 +95624,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLKICKING\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlkicking(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlkicking(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94662,23 +95673,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLKICKINGBYLENGTH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlkickingbylength(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlkickingbylength(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94691,23 +95722,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLLADDERBOTTOM\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlladderbottom(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlladderbottom(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94720,23 +95771,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLLONGLEGGEDDOJI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdllongleggeddoji(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdllongleggeddoji(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94749,23 +95820,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLLONGLINE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdllongline(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdllongline(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94778,23 +95869,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLMARUBOZU\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlmarubozu(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlmarubozu(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94807,23 +95918,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLMATCHINGLOW\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlmatchinglow(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlmatchinglow(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94836,16 +95967,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLMATHOLD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlmathold(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlmathold(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94853,8 +96004,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94867,16 +96018,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLMORNINGDOJISTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlmorningdojistar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlmorningdojistar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94884,8 +96055,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94898,16 +96069,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLMORNINGSTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double optInPenetration = jsonDouble(json, "optInPenetration");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlmorningstar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlmorningstar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
@@ -94915,8 +96106,8 @@ public class TaCodegenServe {
                 inClose,
                 optInPenetration,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94929,23 +96120,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLONNECK\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlonneck(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlonneck(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94958,23 +96169,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLPIERCING\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlpiercing(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlpiercing(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -94987,23 +96218,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLRICKSHAWMAN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlrickshawman(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlrickshawman(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95016,23 +96267,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLRISEFALL3METHODS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlrisefall3methods(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlrisefall3methods(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95045,23 +96316,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSEPARATINGLINES\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlseparatinglines(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlseparatinglines(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95074,23 +96365,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSHOOTINGSTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlshootingstar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlshootingstar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95103,23 +96414,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSHORTLINE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlshortline(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlshortline(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95132,23 +96463,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSPINNINGTOP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlspinningtop(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlspinningtop(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95161,23 +96512,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSTALLEDPATTERN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlstalledpattern(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlstalledpattern(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95190,23 +96561,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLSTICKSANDWICH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlsticksandwich(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlsticksandwich(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95219,23 +96610,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLTAKURI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdltakuri(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdltakuri(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95248,23 +96659,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLTASUKIGAP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdltasukigap(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdltasukigap(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95277,23 +96708,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLTHRUSTING\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlthrusting(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlthrusting(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95306,23 +96757,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLTRISTAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdltristar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdltristar(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95335,23 +96806,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLUNIQUE3RIVER\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlunique3river(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlunique3river(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95364,23 +96855,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLUPSIDEGAP2CROWS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlupsidegap2crows(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlupsidegap2crows(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95393,23 +96904,43 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CDLXSIDEGAP3METHODS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cdlxsidegap3methods(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cdlxsidegap3methods(
                 startIdx, endIdx,
                 inOpen,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95422,17 +96953,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CEIL\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ceil(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ceil(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95445,20 +96987,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CMO\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[3] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cmo(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cmo(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95471,21 +97024,35 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_CORREL\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.correl(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.correl(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95498,17 +97065,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_COS\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cos(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cos(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95521,17 +97099,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_COSH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.cosh(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.cosh(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95544,19 +97133,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_DEMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.dema(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.dema(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95569,19 +97169,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_DIV\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.div(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.div(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95594,24 +97208,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_DX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[4] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.dx(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.dx(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95624,20 +97255,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_EMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[5] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ema(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ema(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95650,17 +97292,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_EXP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.exp(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.exp(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95673,17 +97326,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_FLOOR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.floor(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.floor(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95696,18 +97360,29 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_DCPERIOD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[6] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htDcperiod(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htDcperiod(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95720,18 +97395,29 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_DCPHASE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[7] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htDcphase(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htDcphase(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95744,19 +97430,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_PHASOR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[8] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htPhasor(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htPhasor(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95770,19 +97467,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_SINE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[9] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htSine(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htSine(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95796,18 +97504,29 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_TRENDLINE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[10] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htTrendline(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htTrendline(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95820,18 +97539,29 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_HT_TRENDMODE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             core.unstablePeriod[11] = jsonInt(json, "unstablePeriod");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.htTrendmode(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.htTrendmode(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95844,22 +97574,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_IMI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inOpen = jsonDoubleArray(json, "inOpen");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inOpen = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refOpen, 0, inOpen, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inOpen = jsonDoubleArray(json, "inOpen");
+                inOpen = _tmp_inOpen;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[12] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.imi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.imi(
                 startIdx, endIdx,
                 inOpen,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95872,20 +97616,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_KAMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[13] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.kama(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.kama(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95898,19 +97653,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LINEARREG\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.linearreg(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.linearreg(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95923,19 +97689,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LINEARREG_ANGLE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.linearregAngle(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.linearregAngle(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95948,19 +97725,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LINEARREG_INTERCEPT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.linearregIntercept(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.linearregIntercept(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95973,19 +97761,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LINEARREG_SLOPE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.linearregSlope(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.linearregSlope(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -95998,17 +97797,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ln(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ln(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96021,17 +97831,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_LOG10\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.log10(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.log10(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96044,21 +97865,32 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             MAType optInMAType = MAType.values()[jsonInt(json, "optInMAType")];
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ma(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ma(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 optInMAType,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96071,7 +97903,16 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MACD\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInFastPeriod = jsonInt(json, "optInFastPeriod");
             int optInSlowPeriod = jsonInt(json, "optInSlowPeriod");
             int optInSignalPeriod = jsonInt(json, "optInSignalPeriod");
@@ -96080,16 +97921,18 @@ public class TaCodegenServe {
             double[] outArr2 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.macd(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.macd(
                 startIdx, endIdx,
                 inReal,
                 optInFastPeriod,
                 optInSlowPeriod,
                 optInSignalPeriod,
                 outBegIdx, outNBElement, outArr0, outArr1, outArr2);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96104,7 +97947,16 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MACDEXT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInFastPeriod = jsonInt(json, "optInFastPeriod");
             MAType optInFastMAType = MAType.values()[jsonInt(json, "optInFastMAType")];
             int optInSlowPeriod = jsonInt(json, "optInSlowPeriod");
@@ -96116,8 +97968,10 @@ public class TaCodegenServe {
             double[] outArr2 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.macdext(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.macdext(
                 startIdx, endIdx,
                 inReal,
                 optInFastPeriod,
@@ -96127,8 +97981,8 @@ public class TaCodegenServe {
                 optInSignalPeriod,
                 optInSignalMAType,
                 outBegIdx, outNBElement, outArr0, outArr1, outArr2);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96143,21 +97997,32 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MACDFIX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInSignalPeriod = jsonInt(json, "optInSignalPeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             double[] outArr2 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.macdfix(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.macdfix(
                 startIdx, endIdx,
                 inReal,
                 optInSignalPeriod,
                 outBegIdx, outNBElement, outArr0, outArr1, outArr2);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96172,7 +98037,16 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MAMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double optInFastLimit = jsonDouble(json, "optInFastLimit");
             double optInSlowLimit = jsonDouble(json, "optInSlowLimit");
             core.unstablePeriod[14] = jsonInt(json, "unstablePeriod");
@@ -96180,15 +98054,17 @@ public class TaCodegenServe {
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.mama(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.mama(
                 startIdx, endIdx,
                 inReal,
                 optInFastLimit,
                 optInSlowLimit,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96202,16 +98078,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MAVP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             int optInMinPeriod = jsonInt(json, "optInMinPeriod");
             int optInMaxPeriod = jsonInt(json, "optInMaxPeriod");
             MAType optInMAType = MAType.values()[jsonInt(json, "optInMAType")];
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.mavp(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.mavp(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
@@ -96219,8 +98109,8 @@ public class TaCodegenServe {
                 optInMaxPeriod,
                 optInMAType,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96233,19 +98123,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MAX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.max(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.max(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96258,19 +98159,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MAXINDEX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.maxindex(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.maxindex(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96283,19 +98195,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MEDPRICE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.medprice(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.medprice(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96308,17 +98234,37 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MFI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[15] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.mfi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.mfi(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -96326,8 +98272,8 @@ public class TaCodegenServe {
                 inVolume,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96340,19 +98286,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MIDPOINT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.midpoint(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.midpoint(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96365,21 +98322,35 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MIDPRICE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.midprice(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.midprice(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96392,19 +98363,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MIN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.min(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.min(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96417,19 +98399,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MININDEX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.minindex(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.minindex(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96442,20 +98435,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MINMAX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.minmax(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.minmax(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96469,20 +98473,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MINMAXINDEX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             int[] outArr0 = new int[endIdx - startIdx + 1];
             int[] outArr1 = new int[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.minmaxindex(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.minmaxindex(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96496,24 +98511,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MINUS_DI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[16] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.minusDi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.minusDi(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96526,22 +98558,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MINUS_DM\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[17] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.minusDm(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.minusDm(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96554,19 +98600,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MOM\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.mom(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.mom(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96579,19 +98636,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MULT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.mult(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.mult(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96604,24 +98675,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_NATR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[18] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.natr(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.natr(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96634,19 +98722,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_NVI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inClose = jsonDoubleArray(json, "inClose");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.nvi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.nvi(
                 startIdx, endIdx,
                 inClose,
                 inVolume,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96659,19 +98761,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_OBV\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.obv(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.obv(
                 startIdx, endIdx,
                 inReal,
                 inVolume,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96684,24 +98800,41 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_PLUS_DI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[19] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.plusDi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.plusDi(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96714,22 +98847,36 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_PLUS_DM\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[20] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.plusDm(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.plusDm(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96742,23 +98889,34 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_PPO\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInFastPeriod = jsonInt(json, "optInFastPeriod");
             int optInSlowPeriod = jsonInt(json, "optInSlowPeriod");
             MAType optInMAType = MAType.values()[jsonInt(json, "optInMAType")];
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ppo(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ppo(
                 startIdx, endIdx,
                 inReal,
                 optInFastPeriod,
                 optInSlowPeriod,
                 optInMAType,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96771,19 +98929,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_PVI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inClose = jsonDoubleArray(json, "inClose");
-            double[] inVolume = jsonDoubleArray(json, "inVolume");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            double[] inVolume = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+                System.arraycopy(refVolume, 0, inVolume, 0, refN);
+            } else {
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+                double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
+                inVolume = _tmp_inVolume;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.pvi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.pvi(
                 startIdx, endIdx,
                 inClose,
                 inVolume,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96796,19 +98968,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ROC\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.roc(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.roc(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96821,19 +99004,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ROCP\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.rocp(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.rocp(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96846,19 +99040,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ROCR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.rocr(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.rocr(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96871,19 +99076,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ROCR100\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.rocr100(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.rocr100(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96896,20 +99112,31 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_RSI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             core.unstablePeriod[21] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.rsi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.rsi(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96922,23 +99149,37 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             double optInAcceleration = jsonDouble(json, "optInAcceleration");
             double optInMaximum = jsonDouble(json, "optInMaximum");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sar(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sar(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 optInAcceleration,
                 optInMaximum,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96951,8 +99192,20 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SAREXT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+            }
             double optInStartValue = jsonDouble(json, "optInStartValue");
             double optInOffsetOnReverse = jsonDouble(json, "optInOffsetOnReverse");
             double optInAccelerationInitLong = jsonDouble(json, "optInAccelerationInitLong");
@@ -96964,8 +99217,10 @@ public class TaCodegenServe {
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sarext(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sarext(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -96978,8 +99233,8 @@ public class TaCodegenServe {
                 optInAccelerationShort,
                 optInAccelerationMaxShort,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -96992,17 +99247,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SIN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sin(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sin(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97015,17 +99281,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SINH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sinh(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sinh(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97038,19 +99315,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sma(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sma(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97063,17 +99351,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SQRT\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sqrt(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sqrt(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97086,21 +99385,32 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_STDDEV\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double optInNbDev = jsonDouble(json, "optInNbDev");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.stddev(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.stddev(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 optInNbDev,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97113,9 +99423,24 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_STOCH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInFastK_Period = jsonInt(json, "optInFastK_Period");
             int optInSlowK_Period = jsonInt(json, "optInSlowK_Period");
             MAType optInSlowK_MAType = MAType.values()[jsonInt(json, "optInSlowK_MAType")];
@@ -97125,8 +99450,10 @@ public class TaCodegenServe {
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.stoch(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.stoch(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -97137,8 +99464,8 @@ public class TaCodegenServe {
                 optInSlowD_Period,
                 optInSlowD_MAType,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97152,9 +99479,24 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_STOCHF\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInFastK_Period = jsonInt(json, "optInFastK_Period");
             int optInFastD_Period = jsonInt(json, "optInFastD_Period");
             MAType optInFastD_MAType = MAType.values()[jsonInt(json, "optInFastD_MAType")];
@@ -97162,8 +99504,10 @@ public class TaCodegenServe {
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.stochf(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.stochf(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -97172,8 +99516,8 @@ public class TaCodegenServe {
                 optInFastD_Period,
                 optInFastD_MAType,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97187,7 +99531,16 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_STOCHRSI\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             int optInFastK_Period = jsonInt(json, "optInFastK_Period");
             int optInFastD_Period = jsonInt(json, "optInFastD_Period");
@@ -97197,8 +99550,10 @@ public class TaCodegenServe {
             double[] outArr1 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.stochrsi(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.stochrsi(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
@@ -97206,8 +99561,8 @@ public class TaCodegenServe {
                 optInFastD_Period,
                 optInFastD_MAType,
                 outBegIdx, outNBElement, outArr0, outArr1);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97221,19 +99576,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SUB\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal0 = jsonDoubleArray(json, "inReal0");
-            double[] inReal1 = jsonDoubleArray(json, "inReal1");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal0 = new double[MAX_ARRAY_SIZE];
+            double[] inReal1 = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal0, 0, refN);
+                System.arraycopy(refHigh, 0, inReal1, 0, refN);
+            } else {
+                double[] _tmp_inReal0 = jsonDoubleArray(json, "inReal0");
+                inReal0 = _tmp_inReal0;
+                double[] _tmp_inReal1 = jsonDoubleArray(json, "inReal1");
+                inReal1 = _tmp_inReal1;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sub(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sub(
                 startIdx, endIdx,
                 inReal0,
                 inReal1,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97246,19 +99615,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_SUM\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.sum(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.sum(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97271,22 +99651,33 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_T3\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double optInVFactor = jsonDouble(json, "optInVFactor");
             core.unstablePeriod[23] = jsonInt(json, "unstablePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.t3(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.t3(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 optInVFactor,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97299,17 +99690,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TAN\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.tan(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.tan(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97322,17 +99724,28 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TANH\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.tanh(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.tanh(
                 startIdx, endIdx,
                 inReal,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97345,19 +99758,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TEMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.tema(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.tema(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97370,21 +99794,38 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TRANGE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.trange(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.trange(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97397,19 +99838,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TRIMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.trima(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.trima(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97422,19 +99874,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TRIX\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.trix(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.trix(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97447,19 +99910,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TSF\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.tsf(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.tsf(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97472,21 +99946,38 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_TYPPRICE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.typprice(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.typprice(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97499,17 +99990,34 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_ULTOSC\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod1 = jsonInt(json, "optInTimePeriod1");
             int optInTimePeriod2 = jsonInt(json, "optInTimePeriod2");
             int optInTimePeriod3 = jsonInt(json, "optInTimePeriod3");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.ultosc(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.ultosc(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
@@ -97518,8 +100026,8 @@ public class TaCodegenServe {
                 optInTimePeriod2,
                 optInTimePeriod3,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97532,21 +100040,32 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_VAR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double optInNbDev = jsonDouble(json, "optInNbDev");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.var(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.var(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 optInNbDev,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97559,21 +100078,38 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_WCLPRICE\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.wclprice(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.wclprice(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97586,23 +100122,40 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_WILLR\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inHigh = jsonDoubleArray(json, "inHigh");
-            double[] inLow = jsonDoubleArray(json, "inLow");
-            double[] inClose = jsonDoubleArray(json, "inClose");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inHigh = new double[MAX_ARRAY_SIZE];
+            double[] inLow = new double[MAX_ARRAY_SIZE];
+            double[] inClose = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refHigh, 0, inHigh, 0, refN);
+                System.arraycopy(refLow, 0, inLow, 0, refN);
+                System.arraycopy(refClose, 0, inClose, 0, refN);
+            } else {
+                double[] _tmp_inHigh = jsonDoubleArray(json, "inHigh");
+                inHigh = _tmp_inHigh;
+                double[] _tmp_inLow = jsonDoubleArray(json, "inLow");
+                inLow = _tmp_inLow;
+                double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
+                inClose = _tmp_inClose;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.willr(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.willr(
                 startIdx, endIdx,
                 inHigh,
                 inLow,
                 inClose,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
@@ -97615,19 +100168,30 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_WMA\"")) {
             int startIdx = jsonInt(json, "startIdx");
             int endIdx = jsonInt(json, "endIdx");
-            double[] inReal = jsonDoubleArray(json, "inReal");
+            int use_preloaded = jsonInt(json, "use_preloaded");
+            int bench_iters = jsonInt(json, "iters");
+            if (bench_iters < 1) bench_iters = 1;
+            double[] inReal = new double[MAX_ARRAY_SIZE];
+            if (use_preloaded != 0 && refN > 0) {
+                System.arraycopy(refClose, 0, inReal, 0, refN);
+            } else {
+                double[] _tmp_inReal = jsonDoubleArray(json, "inReal");
+                inReal = _tmp_inReal;
+            }
             int optInTimePeriod = jsonInt(json, "optInTimePeriod");
             double[] outArr0 = new double[endIdx - startIdx + 1];
             MInteger outBegIdx = new MInteger();
             MInteger outNBElement = new MInteger();
+            RetCode rc = RetCode.Success;
             long startNs = System.nanoTime();
-            RetCode rc = core.wma(
+            for (int _bi = 0; _bi < bench_iters; _bi++) {
+            rc = core.wma(
                 startIdx, endIdx,
                 inReal,
                 optInTimePeriod,
                 outBegIdx, outNBElement, outArr0);
-            long endNs = System.nanoTime();
-            long elapsedNs = endNs - startNs;
+            }
+            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
             StringBuilder sb = new StringBuilder();
             sb.append("{\"retCode\":").append(rc.toInt());
             sb.append(",\"outBegIdx\":").append(outBegIdx.value);
