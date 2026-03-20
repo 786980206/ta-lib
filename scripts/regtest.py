@@ -153,8 +153,15 @@ def main():
         print("\n" + "=" * 60)
         print("PERFTEST — performance (large dataset, averaged)")
         print("=" * 60, flush=True)
+        # Always include cref for comparison, even when --language= filters
+        bench_args = list(passthrough)
+        if lang_filter and "cref" not in lang_filter:
+            for i, a in enumerate(bench_args):
+                if a.startswith("--language="):
+                    bench_args[i] = a + ",cref"
+                    break
         bench_rc = subprocess.run(
-            [os.path.join(bin_dir, "ta_bench")] + passthrough,
+            [os.path.join(bin_dir, "ta_bench")] + bench_args,
             cwd=bin_dir,
         ).returncode
         if bench_rc != 0 and rc == 0:
