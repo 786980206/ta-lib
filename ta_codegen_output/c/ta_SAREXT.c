@@ -76,6 +76,45 @@ TA_LIB_API TA_RetCode TA_SAREXT( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( optInStartValue == -4e37 )
+      optInStartValue = 0;
+   else if( optInStartValue < -2147483648.0 || optInStartValue > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInOffsetOnReverse == -4e37 )
+      optInOffsetOnReverse = 0;
+   else if( optInOffsetOnReverse < 0.0 || optInOffsetOnReverse > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationInitLong == -4e37 )
+      optInAccelerationInitLong = 0.02;
+   else if( optInAccelerationInitLong < 0.0 || optInAccelerationInitLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationLong == -4e37 )
+      optInAccelerationLong = 0.02;
+   else if( optInAccelerationLong < 0.0 || optInAccelerationLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationMaxLong == -4e37 )
+      optInAccelerationMaxLong = 0.2;
+   else if( optInAccelerationMaxLong < 0.0 || optInAccelerationMaxLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationInitShort == -4e37 )
+      optInAccelerationInitShort = 0.02;
+   else if( optInAccelerationInitShort < 0.0 || optInAccelerationInitShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationShort == -4e37 )
+      optInAccelerationShort = 0.02;
+   else if( optInAccelerationShort < 0.0 || optInAccelerationShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationMaxShort == -4e37 )
+      optInAccelerationMaxShort = 0.2;
+   else if( optInAccelerationMaxShort < 0.0 || optInAccelerationMaxShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    if( (startIdx<1) )
    {
       startIdx = 1;
@@ -536,6 +575,45 @@ TA_RetCode TA_S_SAREXT( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( optInStartValue == -4e37 )
+      optInStartValue = 0;
+   else if( optInStartValue < -2147483648.0 || optInStartValue > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInOffsetOnReverse == -4e37 )
+      optInOffsetOnReverse = 0;
+   else if( optInOffsetOnReverse < 0.0 || optInOffsetOnReverse > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationInitLong == -4e37 )
+      optInAccelerationInitLong = 0.02;
+   else if( optInAccelerationInitLong < 0.0 || optInAccelerationInitLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationLong == -4e37 )
+      optInAccelerationLong = 0.02;
+   else if( optInAccelerationLong < 0.0 || optInAccelerationLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationMaxLong == -4e37 )
+      optInAccelerationMaxLong = 0.2;
+   else if( optInAccelerationMaxLong < 0.0 || optInAccelerationMaxLong > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationInitShort == -4e37 )
+      optInAccelerationInitShort = 0.02;
+   else if( optInAccelerationInitShort < 0.0 || optInAccelerationInitShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationShort == -4e37 )
+      optInAccelerationShort = 0.02;
+   else if( optInAccelerationShort < 0.0 || optInAccelerationShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInAccelerationMaxShort == -4e37 )
+      optInAccelerationMaxShort = 0.2;
+   else if( optInAccelerationMaxShort < 0.0 || optInAccelerationMaxShort > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    if( (startIdx<1) )
    {

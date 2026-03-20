@@ -248,6 +248,56 @@ fn gen_func(
         out.push_str("   if( (endIdx < 0) || (endIdx < startIdx) )\n");
         out.push_str("      return TA_OUT_OF_RANGE_END_INDEX;\n");
         out.push('\n');
+
+        // Input array NULL checks
+        for input in &func.inputs {
+            out.push_str(&format!("   if( !{} )\n", input.name));
+            out.push_str("      return TA_BAD_PARAM;\n");
+        }
+
+        // Optional parameter validation (default + range)
+        for opt in &func.optional_inputs {
+            match &opt.param_type {
+                ParamType::Integer | ParamType::Enum(_) => {
+                    if let Some(default_val) = opt.default {
+                        out.push_str(&format!(
+                            "   if( (int){name} == (int)0x80000000 )\n      {name} = {val};\n",
+                            name = opt.name,
+                            val = default_val as i32
+                        ));
+                        if let Some((min, max)) = opt.range {
+                            out.push_str(&format!(
+                                "   else if( (int){name} < {min} || (int){name} > {max} )\n      return TA_BAD_PARAM;\n",
+                                name = opt.name
+                            ));
+                        }
+                    }
+                }
+                ParamType::Real => {
+                    if let Some(default_val) = opt.default {
+                        out.push_str(&format!(
+                            "   if( {name} == -4e37 )\n      {name} = {val};\n",
+                            name = opt.name,
+                            val = default_val
+                        ));
+                        if let Some((min, max)) = opt.range {
+                            out.push_str(&format!(
+                                "   else if( {name} < {min}.0 || {name} > {max}.0 )\n      return TA_BAD_PARAM;\n",
+                                name = opt.name
+                            ));
+                        }
+                    }
+                }
+                _ => {}
+            }
+        }
+
+        // Output array NULL checks
+        for output in &func.outputs {
+            out.push_str(&format!("   if( !{} )\n", output.name));
+            out.push_str("      return TA_BAD_PARAM;\n");
+        }
+        out.push('\n');
     }
 
     let inline_counter = Cell::new(0);

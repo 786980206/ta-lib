@@ -71,6 +71,15 @@ TA_LIB_API TA_RetCode TA_RSI( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackTotal = ((int)TA_RSI_Lookback(optInTimePeriod));
@@ -417,6 +426,15 @@ TA_RetCode TA_S_RSI( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    *outBegIdx= 0;
    *outNBElement= 0;

@@ -63,6 +63,15 @@ TA_LIB_API TA_RetCode TA_TRANGE( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    if( (startIdx<1) )
    {
       startIdx = 1;
@@ -181,6 +190,15 @@ TA_RetCode TA_S_TRANGE( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    if( (startIdx<1) )
    {

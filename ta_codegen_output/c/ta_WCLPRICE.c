@@ -57,6 +57,15 @@ TA_LIB_API TA_RetCode TA_WCLPRICE( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    outIdx = 0;
    for( i = startIdx; (i<=endIdx); i += 1 )
    {
@@ -111,6 +120,15 @@ TA_RetCode TA_S_WCLPRICE( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    outIdx = 0;
    for( i = startIdx; (i<=endIdx); i += 1 )

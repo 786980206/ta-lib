@@ -82,6 +82,33 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowK_Period == (int)0x80000000 )
+      optInSlowK_Period = 3;
+   else if( (int)optInSlowK_Period < 1 || (int)optInSlowK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowK_MAType == (int)0x80000000 )
+      optInSlowK_MAType = 0;
+   if( (int)optInSlowD_Period == (int)0x80000000 )
+      optInSlowD_Period = 3;
+   else if( (int)optInSlowD_Period < 1 || (int)optInSlowD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowD_MAType == (int)0x80000000 )
+      optInSlowD_MAType = 0;
+   if( !outSlowK )
+      return TA_BAD_PARAM;
+   if( !outSlowD )
+      return TA_BAD_PARAM;
+
    lookbackK = (optInFastK_Period-1);
    lookbackKSlow = TA_MA_Lookback(optInSlowK_Period,optInSlowK_MAType);
    lookbackDSlow = TA_MA_Lookback(optInSlowD_Period,optInSlowD_MAType);
@@ -392,6 +419,33 @@ TA_RetCode TA_S_STOCH( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowK_Period == (int)0x80000000 )
+      optInSlowK_Period = 3;
+   else if( (int)optInSlowK_Period < 1 || (int)optInSlowK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowK_MAType == (int)0x80000000 )
+      optInSlowK_MAType = 0;
+   if( (int)optInSlowD_Period == (int)0x80000000 )
+      optInSlowD_Period = 3;
+   else if( (int)optInSlowD_Period < 1 || (int)optInSlowD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowD_MAType == (int)0x80000000 )
+      optInSlowD_MAType = 0;
+   if( !outSlowK )
+      return TA_BAD_PARAM;
+   if( !outSlowD )
+      return TA_BAD_PARAM;
 
    lookbackK = (optInFastK_Period-1);
    lookbackKSlow = TA_MA_Lookback(optInSlowK_Period,optInSlowK_MAType);

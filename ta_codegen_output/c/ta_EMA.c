@@ -117,6 +117,15 @@ TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    optInK_1 = (2.0/((double)(optInTimePeriod+1)));
    return TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);
 
@@ -197,6 +206,15 @@ TA_RetCode TA_S_EMA( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 30;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    optInK_1 = (2.0/((double)(optInTimePeriod+1)));
    return TA_S_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,optInK_1,outBegIdx,outNBElement,outReal);

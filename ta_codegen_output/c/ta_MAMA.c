@@ -116,6 +116,21 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( optInFastLimit == -4e37 )
+      optInFastLimit = 0.5;
+   else if( optInFastLimit < 0.0 || optInFastLimit > 0.0 )
+      return TA_BAD_PARAM;
+   if( optInSlowLimit == -4e37 )
+      optInSlowLimit = 0.05;
+   else if( optInSlowLimit < 0.0 || optInSlowLimit > 0.0 )
+      return TA_BAD_PARAM;
+   if( !outMAMA )
+      return TA_BAD_PARAM;
+   if( !outFAMA )
+      return TA_BAD_PARAM;
+
    a = 0.0962;
    b = 0.5769;
    rad2Deg = (180.0/(4.0*atan(1)));
@@ -802,6 +817,21 @@ TA_RetCode TA_S_MAMA( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( optInFastLimit == -4e37 )
+      optInFastLimit = 0.5;
+   else if( optInFastLimit < 0.0 || optInFastLimit > 0.0 )
+      return TA_BAD_PARAM;
+   if( optInSlowLimit == -4e37 )
+      optInSlowLimit = 0.05;
+   else if( optInSlowLimit < 0.0 || optInSlowLimit > 0.0 )
+      return TA_BAD_PARAM;
+   if( !outMAMA )
+      return TA_BAD_PARAM;
+   if( !outFAMA )
+      return TA_BAD_PARAM;
 
    a = 0.0962;
    b = 0.5769;

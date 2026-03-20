@@ -56,6 +56,13 @@ TA_LIB_API TA_RetCode TA_MULT( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal0 )
+      return TA_BAD_PARAM;
+   if( !inReal1 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    outIdx = 0;
    i = startIdx;
    while( (i<=endIdx) )
@@ -114,6 +121,13 @@ TA_RetCode TA_S_MULT( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal0 )
+      return TA_BAD_PARAM;
+   if( !inReal1 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    outIdx = 0;
    i = startIdx;

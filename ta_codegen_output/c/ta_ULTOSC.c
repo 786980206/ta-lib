@@ -87,6 +87,27 @@ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod1 == (int)0x80000000 )
+      optInTimePeriod1 = 7;
+   else if( (int)optInTimePeriod1 < 1 || (int)optInTimePeriod1 > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod2 == (int)0x80000000 )
+      optInTimePeriod2 = 14;
+   else if( (int)optInTimePeriod2 < 1 || (int)optInTimePeriod2 > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod3 == (int)0x80000000 )
+      optInTimePeriod3 = 28;
+   else if( (int)optInTimePeriod3 < 1 || (int)optInTimePeriod3 > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    *outBegIdx= 0;
    *outNBElement= 0;
    periods[0] = optInTimePeriod1;
@@ -601,6 +622,27 @@ TA_RetCode TA_S_ULTOSC( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod1 == (int)0x80000000 )
+      optInTimePeriod1 = 7;
+   else if( (int)optInTimePeriod1 < 1 || (int)optInTimePeriod1 > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod2 == (int)0x80000000 )
+      optInTimePeriod2 = 14;
+   else if( (int)optInTimePeriod2 < 1 || (int)optInTimePeriod2 > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod3 == (int)0x80000000 )
+      optInTimePeriod3 = 28;
+   else if( (int)optInTimePeriod3 < 1 || (int)optInTimePeriod3 > 100000 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    *outBegIdx= 0;
    *outNBElement= 0;

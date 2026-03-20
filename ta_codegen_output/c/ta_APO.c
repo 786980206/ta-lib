@@ -65,6 +65,21 @@ TA_LIB_API TA_RetCode TA_APO( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInFastPeriod == (int)0x80000000 )
+      optInFastPeriod = 12;
+   else if( (int)optInFastPeriod < 2 || (int)optInFastPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowPeriod == (int)0x80000000 )
+      optInSlowPeriod = 26;
+   else if( (int)optInSlowPeriod < 2 || (int)optInSlowPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
    if( !(tempBuffer) )
    {
@@ -175,6 +190,21 @@ TA_RetCode TA_S_APO( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInFastPeriod == (int)0x80000000 )
+      optInFastPeriod = 12;
+   else if( (int)optInFastPeriod < 2 || (int)optInFastPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInSlowPeriod == (int)0x80000000 )
+      optInSlowPeriod = 26;
+   else if( (int)optInSlowPeriod < 2 || (int)optInSlowPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    tempBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
    if( !(tempBuffer) )

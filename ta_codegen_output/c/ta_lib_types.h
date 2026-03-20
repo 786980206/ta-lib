@@ -91,8 +91,22 @@ typedef struct {
     TA_CandleSetting candleSettings[TA_AllCandleSettings];
 } TA_GlobalsType;
 
-extern TA_GlobalsType ta_globals_data;
-extern TA_GlobalsType *TA_Globals;
+static TA_GlobalsType ta_globals_data = {
+    .candleSettings = {
+        { TA_BodyLong,        TA_RangeType_RealBody, 10, 1.0 },
+        { TA_BodyVeryLong,    TA_RangeType_RealBody, 10, 3.0 },
+        { TA_BodyShort,       TA_RangeType_RealBody, 10, 1.0 },
+        { TA_BodyDoji,        TA_RangeType_HighLow,  10, 0.1 },
+        { TA_ShadowLong,      TA_RangeType_RealBody,  0, 1.0 },
+        { TA_ShadowVeryLong,  TA_RangeType_RealBody,  0, 2.0 },
+        { TA_ShadowShort,     TA_RangeType_Shadows,  10, 1.0 },
+        { TA_ShadowVeryShort, TA_RangeType_HighLow,  10, 0.1 },
+        { TA_Near,            TA_RangeType_HighLow,   5, 0.2 },
+        { TA_Far,             TA_RangeType_HighLow,   5, 0.6 },
+        { TA_Equal,           TA_RangeType_HighLow,   5, 0.05 },
+    }
+};
+static TA_GlobalsType *TA_Globals = &ta_globals_data;
 
 /* Utility macros */
 #define TA_EPSILON (0.00000000000001)

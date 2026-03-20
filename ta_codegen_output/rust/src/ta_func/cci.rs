@@ -150,7 +150,10 @@ impl Core {
             while i < startIdx {
                 (*circBuffer.get_unchecked_mut(circBuffer_Idx)) = ((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3_f64;
                 i += 1;
-                circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
+                circBuffer_Idx += 1;
+                if circBuffer_Idx >= (optInTimePeriod) as usize {
+                    circBuffer_Idx = 0;
+                }
             }
         }
         outIdx = 0;
@@ -178,7 +181,10 @@ impl Core {
             } else {
                 (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
             }
-            circBuffer_Idx = (circBuffer_Idx + 1) % (optInTimePeriod) as usize;
+            circBuffer_Idx += 1;
+            if circBuffer_Idx >= (optInTimePeriod) as usize {
+                circBuffer_Idx = 0;
+            }
             i += 1;
             if !(i <= endIdx) { break; }
         }

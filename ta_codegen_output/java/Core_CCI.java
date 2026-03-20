@@ -47,7 +47,10 @@
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+            circBuffer_Idx += 1;
+            if( (circBuffer_Idx>=optInTimePeriod) ) {
+               circBuffer_Idx = 0;
+            }
          }
       }
       outIdx = 0;
@@ -69,7 +72,10 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) ) {
+            circBuffer_Idx = 0;
+         }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -113,7 +119,10 @@
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+            circBuffer_Idx += 1;
+            if( (circBuffer_Idx>=optInTimePeriod) ) {
+               circBuffer_Idx = 0;
+            }
          }
       }
       outIdx = 0;
@@ -135,7 +144,10 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) ) {
+            circBuffer_Idx = 0;
+         }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -185,7 +197,10 @@
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+            circBuffer_Idx += 1;
+            if( (circBuffer_Idx>=optInTimePeriod) ) {
+               circBuffer_Idx = 0;
+            }
          }
       }
       outIdx = 0;
@@ -207,7 +222,10 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) ) {
+            circBuffer_Idx = 0;
+         }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;
@@ -251,7 +269,10 @@
          while( (i<startIdx) ) {
             circBuffer[circBuffer_Idx] = (((inHigh[i]+inLow[i])+inClose[i])/3);
             i += 1;
-            circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+            circBuffer_Idx += 1;
+            if( (circBuffer_Idx>=optInTimePeriod) ) {
+               circBuffer_Idx = 0;
+            }
          }
       }
       outIdx = 0;
@@ -273,7 +294,10 @@
          } else {
             outReal[outIdx++] = 0.0;
          }
-         circBuffer_Idx = ((circBuffer_Idx+1)%optInTimePeriod);
+         circBuffer_Idx += 1;
+         if( (circBuffer_Idx>=optInTimePeriod) ) {
+            circBuffer_Idx = 0;
+         }
          i += 1;
       } while( (i<=endIdx) );
       outNBElement.value = outIdx;

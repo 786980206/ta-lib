@@ -111,6 +111,13 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !outInPhase )
+      return TA_BAD_PARAM;
+   if( !outQuadrature )
+      return TA_BAD_PARAM;
+
    a = 0.0962;
    b = 0.5769;
    rad2Deg = (180.0/(4.0*atan(1)));
@@ -723,6 +730,13 @@ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !outInPhase )
+      return TA_BAD_PARAM;
+   if( !outQuadrature )
+      return TA_BAD_PARAM;
 
    a = 0.0962;
    b = 0.5769;

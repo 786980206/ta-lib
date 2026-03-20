@@ -78,6 +78,27 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
+   if( !outFastK )
+      return TA_BAD_PARAM;
+   if( !outFastD )
+      return TA_BAD_PARAM;
+
    lookbackK = (optInFastK_Period-1);
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);
    lookbackTotal = (lookbackK+lookbackFastD);
@@ -378,6 +399,27 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inHigh )
+      return TA_BAD_PARAM;
+   if( !inLow )
+      return TA_BAD_PARAM;
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
+   if( !outFastK )
+      return TA_BAD_PARAM;
+   if( !outFastD )
+      return TA_BAD_PARAM;
 
    lookbackK = (optInFastK_Period-1);
    lookbackFastD = TA_MA_Lookback(optInFastD_Period,optInFastD_MAType);

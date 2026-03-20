@@ -72,6 +72,19 @@ TA_LIB_API TA_RetCode TA_T3( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( optInVFactor == -4e37 )
+      optInVFactor = 0.7;
+   else if( optInVFactor < 0.0 || optInVFactor > 1.0 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
    if( (startIdx<=lookbackTotal) )
    {
@@ -328,6 +341,19 @@ TA_RetCode TA_S_T3( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( optInVFactor == -4e37 )
+      optInVFactor = 0.7;
+   else if( optInVFactor < 0.0 || optInVFactor > 1.0 )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    lookbackTotal = ((6*(optInTimePeriod-1))+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_T3,T3));
    if( (startIdx<=lookbackTotal) )

@@ -55,6 +55,11 @@ TA_LIB_API TA_RetCode TA_ATAN( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
    {
       outReal[outIdx] = atan(inReal[i]);
@@ -103,6 +108,11 @@ TA_RetCode TA_S_ATAN( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    for( i = startIdx, outIdx = 0; (i<=endIdx); i += 1, outIdx += 1 )
    {

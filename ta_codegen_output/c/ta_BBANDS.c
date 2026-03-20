@@ -65,6 +65,29 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( optInNbDevUp == -4e37 )
+      optInNbDevUp = 2;
+   else if( optInNbDevUp < -2147483648.0 || optInNbDevUp > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInNbDevDn == -4e37 )
+      optInNbDevDn = 2;
+   else if( optInNbDevDn < -2147483648.0 || optInNbDevDn > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outRealUpperBand )
+      return TA_BAD_PARAM;
+   if( !outRealMiddleBand )
+      return TA_BAD_PARAM;
+   if( !outRealLowerBand )
+      return TA_BAD_PARAM;
+
    if( (inReal==outRealUpperBand) )
    {
       tempBuffer1 = outRealMiddleBand;
@@ -373,6 +396,29 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 5;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( optInNbDevUp == -4e37 )
+      optInNbDevUp = 2;
+   else if( optInNbDevUp < -2147483648.0 || optInNbDevUp > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( optInNbDevDn == -4e37 )
+      optInNbDevDn = 2;
+   else if( optInNbDevDn < -2147483648.0 || optInNbDevDn > 2147483647.0 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outRealUpperBand )
+      return TA_BAD_PARAM;
+   if( !outRealMiddleBand )
+      return TA_BAD_PARAM;
+   if( !outRealLowerBand )
+      return TA_BAD_PARAM;
 
    if( ((void *)inReal==(void *)outRealUpperBand) )
    {

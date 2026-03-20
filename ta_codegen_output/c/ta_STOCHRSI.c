@@ -68,6 +68,27 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
+   if( !outFastK )
+      return TA_BAD_PARAM;
+   if( !outFastD )
+      return TA_BAD_PARAM;
+
    *outBegIdx= 0;
    *outNBElement= 0;
    lookbackSTOCHF = TA_STOCHF_Lookback(optInFastK_Period,optInFastD_Period,optInFastD_MAType);
@@ -192,6 +213,27 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInTimePeriod == (int)0x80000000 )
+      optInTimePeriod = 14;
+   else if( (int)optInTimePeriod < 2 || (int)optInTimePeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastK_Period == (int)0x80000000 )
+      optInFastK_Period = 5;
+   else if( (int)optInFastK_Period < 1 || (int)optInFastK_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_Period == (int)0x80000000 )
+      optInFastD_Period = 3;
+   else if( (int)optInFastD_Period < 1 || (int)optInFastD_Period > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInFastD_MAType == (int)0x80000000 )
+      optInFastD_MAType = 0;
+   if( !outFastK )
+      return TA_BAD_PARAM;
+   if( !outFastD )
+      return TA_BAD_PARAM;
 
    *outBegIdx= 0;
    *outNBElement= 0;

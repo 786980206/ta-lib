@@ -68,6 +68,23 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !inPeriods )
+      return TA_BAD_PARAM;
+   if( (int)optInMinPeriod == (int)0x80000000 )
+      optInMinPeriod = 2;
+   else if( (int)optInMinPeriod < 2 || (int)optInMinPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMaxPeriod == (int)0x80000000 )
+      optInMaxPeriod = 30;
+   else if( (int)optInMaxPeriod < 2 || (int)optInMaxPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
    if( (startIdx<lookbackTotal) )
    {
@@ -266,6 +283,23 @@ TA_RetCode TA_S_MAVP( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !inPeriods )
+      return TA_BAD_PARAM;
+   if( (int)optInMinPeriod == (int)0x80000000 )
+      optInMinPeriod = 2;
+   else if( (int)optInMinPeriod < 2 || (int)optInMinPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMaxPeriod == (int)0x80000000 )
+      optInMaxPeriod = 30;
+   else if( (int)optInMaxPeriod < 2 || (int)optInMaxPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( (int)optInMAType == (int)0x80000000 )
+      optInMAType = 0;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    lookbackTotal = TA_MA_Lookback(optInMaxPeriod,optInMAType);
    if( (startIdx<lookbackTotal) )

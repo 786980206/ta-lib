@@ -59,6 +59,13 @@ TA_LIB_API TA_RetCode TA_OBV( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !inVolume )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];
    outIdx = 0;
@@ -139,6 +146,13 @@ TA_RetCode TA_S_OBV( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( !inVolume )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    prevOBV = inVolume[startIdx];
    prevReal = inReal[startIdx];

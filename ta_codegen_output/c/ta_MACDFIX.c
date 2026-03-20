@@ -56,6 +56,19 @@ TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInSignalPeriod == (int)0x80000000 )
+      optInSignalPeriod = 9;
+   else if( (int)optInSignalPeriod < 1 || (int)optInSignalPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outMACD )
+      return TA_BAD_PARAM;
+   if( !outMACDSignal )
+      return TA_BAD_PARAM;
+   if( !outMACDHist )
+      return TA_BAD_PARAM;
+
    return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
 
    return TA_SUCCESS;
@@ -94,6 +107,19 @@ TA_RetCode TA_S_MACDFIX( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inReal )
+      return TA_BAD_PARAM;
+   if( (int)optInSignalPeriod == (int)0x80000000 )
+      optInSignalPeriod = 9;
+   else if( (int)optInSignalPeriod < 1 || (int)optInSignalPeriod > 100000 )
+      return TA_BAD_PARAM;
+   if( !outMACD )
+      return TA_BAD_PARAM;
+   if( !outMACDSignal )
+      return TA_BAD_PARAM;
+   if( !outMACDHist )
+      return TA_BAD_PARAM;
 
    return TA_S_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
 

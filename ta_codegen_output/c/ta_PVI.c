@@ -54,6 +54,13 @@ TA_LIB_API TA_RetCode TA_PVI( int    startIdx,
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
 
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !inVolume )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
+
    *outBegIdx= 0;
    *outNBElement= 0;
    return TA_SUCCESS;
@@ -92,6 +99,13 @@ TA_RetCode TA_S_PVI( int    startIdx,
       return TA_OUT_OF_RANGE_START_INDEX;
    if( (endIdx < 0) || (endIdx < startIdx) )
       return TA_OUT_OF_RANGE_END_INDEX;
+
+   if( !inClose )
+      return TA_BAD_PARAM;
+   if( !inVolume )
+      return TA_BAD_PARAM;
+   if( !outReal )
+      return TA_BAD_PARAM;
 
    *outBegIdx= 0;
    *outNBElement= 0;
