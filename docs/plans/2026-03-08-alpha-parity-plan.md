@@ -580,9 +580,76 @@ Full report: ./ta_regtest_report_2026-03-08.csv
 
 ---
 
+### Task 17b: Dynamic codegen regression via abstract API
+
+**Files:**
+- Modify: `src/tools/ta_regtest/test_codegen.c`
+- Modify: `src/tools/ta_regtest/test_codegen.h`
+
+**Goal:** Replace the hard-coded per-indicator callbacks (`codegen_range_sma`, `codegen_range_mult`, `codegen_range_rsi`) with a single generic callback that uses the TA-Lib abstract API to call any indicator dynamically.
+
+**Step 1:** Implement a generic `codegen_range_generic` callback that:
+- Uses `TA_GetFuncHandle(name)` + `TA_ParamHolderAlloc()` to set up parameters
+- Calls the C reference via `TA_CallFunc()`
+- Builds the JSON-RPC request from the abstract parameter info
+- Compares C vs codegen output
+
+**Step 2:** Replace `CODEGEN_TESTS[]` static array with dynamic discovery:
+- Scan `ta_func_defs/` (or query the codegen server for supported functions)
+- For each supported function, run the generic callback with doRangeTest
+- Auto-detect unstable period function IDs from YAML flags
+
+**Step 3:** Remove the per-indicator callbacks (`codegen_range_sma`, etc.)
+
+**Step 4:** Verify: `ta_regtest --codegen` should now automatically test all indicators that ta_codegen supports, without any code changes needed when new indicators are added.
+
+**Step 5:** Commit: `feat(regtest): dynamic codegen verification via abstract API`
+
+---
+
+### Task 9b: Auto-discover indicators in Rust test suites
+
+**Files:**
+- Modify: `tools/ta_codegen/tests/backend_suite.rs`
+- Modify: `tools/ta_codegen/tests/integration_test.rs`
+
+**Goal:** Replace hard-coded indicator lists in backend_suite.rs and integration_test.rs with dynamic discovery by scanning `ta_func_defs/` at test time.
+
+**Step 1:** Add a helper function that scans `ta_func_defs/` for directories containing `<name>.yaml` + `<name>.c` files.
+
+**Step 2:** Generate test cases dynamically for each discovered indicator across all backends.
+
+**Step 3:** Remove hard-coded indicator lists from test macros.
+
+**Step 4:** Verify: adding a new indicator to `ta_func_defs/` automatically includes it in the test suite without code changes.
+
+**Step 5:** Commit: `feat(tests): auto-discover indicators in backend and integration tests`
+
+---
+
+### Task 12b: MA dispatcher cleanup
+
+**Files:**
+- Modify: `ta_func_defs/ma/ma.c`
+
+**Goal:** The MA dispatcher switch statement currently only handles SMA and EMA. The original `ta_MA.c` dispatches to all 9 MA types (SMA, EMA, WMA, DEMA, TEMA, TRIMA, KAMA, MAMA, T3). As indicators are extracted, the MA switch should grow to include all available MA variants.
+
+**Decision:** The original C code uses `FUNCTION_CALL(SMA)` which maps to the guarded `TA_SMA()`. Our prefix-free `ma.c` calls `sma_logic()` (unguarded). Since MA does its own validation, calling unguarded is cleaner and avoids double-validation. Keep calling `_logic` variants.
+
+**Step 1:** After extracting all MA variant indicators (DEMA, TEMA, TRIMA, KAMA, MAMA, T3), update `ma.c` switch to dispatch to all of them.
+
+**Step 2:** Update `ma_lookback` similarly.
+
+**Step 3:** Verify via ta_regtest --codegen that MA produces identical results for all MA types.
+
+**Step 4:** Commit: `feat: complete MA dispatcher with all 9 MA type variants`
+
+---
+
 ## Notes
 
 - **Backend `generate()` signatures** will change to accept `&Registry` as a parameter — this is a breaking change across all backends and tests. Do it in Task 4 and propagate.
 - **Price input type** (`type: price` with components) is needed for ~40 indicators. Add support during Phase 2 when candlestick/price indicators start failing extraction.
 - **The `--codegen` flag** scopes all benchmark/timing work to the codegen test path. Regular ta_regtest is unchanged.
 - **Candlestick patterns** (~60 indicators) are structurally similar. Once one works, batch the rest.
+- **Return types** are uniform: lookback always returns `int`, logic/main always returns `TA_RetCode`. Keeping return types in the prefix-free C source makes it valid compilable C.
