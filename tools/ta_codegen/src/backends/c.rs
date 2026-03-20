@@ -283,10 +283,13 @@ fn gen_func(
                             val = default_val
                         ));
                         if let Some((min, max)) = opt.range {
-                            out.push_str(&format!(
-                                "   else if( {name} < {min} || {name} > {max} )\n      return TA_BAD_PARAM;\n",
-                                name = opt.name
-                            ));
+                            // Skip unbounded ranges (f64::MIN/MAX = no real constraint)
+                            if min > f64::MIN / 2.0 || max < f64::MAX / 2.0 {
+                                out.push_str(&format!(
+                                    "   else if( {name} < {min:e} || {name} > {max:e} )\n      return TA_BAD_PARAM;\n",
+                                    name = opt.name
+                                ));
+                            }
                         }
                     }
                 }

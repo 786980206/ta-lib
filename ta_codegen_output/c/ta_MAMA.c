@@ -120,11 +120,11 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
       return TA_BAD_PARAM;
    if( optInFastLimit == -4e37 )
       optInFastLimit = 0.5;
-   else if( optInFastLimit < 0.01 || optInFastLimit > 0.99 )
+   else if( optInFastLimit < 1e-2 || optInFastLimit > 9.9e-1 )
       return TA_BAD_PARAM;
    if( optInSlowLimit == -4e37 )
       optInSlowLimit = 0.05;
-   else if( optInSlowLimit < 0.01 || optInSlowLimit > 0.99 )
+   else if( optInSlowLimit < 1e-2 || optInSlowLimit > 9.9e-1 )
       return TA_BAD_PARAM;
    if( !outMAMA )
       return TA_BAD_PARAM;
@@ -822,11 +822,11 @@ TA_RetCode TA_S_MAMA( int    startIdx,
       return TA_BAD_PARAM;
    if( optInFastLimit == -4e37 )
       optInFastLimit = 0.5;
-   else if( optInFastLimit < 0.01 || optInFastLimit > 0.99 )
+   else if( optInFastLimit < 1e-2 || optInFastLimit > 9.9e-1 )
       return TA_BAD_PARAM;
    if( optInSlowLimit == -4e37 )
       optInSlowLimit = 0.05;
-   else if( optInSlowLimit < 0.01 || optInSlowLimit > 0.99 )
+   else if( optInSlowLimit < 1e-2 || optInSlowLimit > 9.9e-1 )
       return TA_BAD_PARAM;
    if( !outMAMA )
       return TA_BAD_PARAM;

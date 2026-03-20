@@ -66,8 +66,6 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
       return TA_BAD_PARAM;
    if( optInNbDev == -4e37 )
       optInNbDev = 1;
-   else if( optInNbDev < -2147483648.0 || optInNbDev > 2147483647.0 )
-      return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
 
@@ -186,8 +184,6 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
       return TA_BAD_PARAM;
    if( optInNbDev == -4e37 )
       optInNbDev = 1;
-   else if( optInNbDev < -2147483648.0 || optInNbDev > 2147483647.0 )
-      return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
 

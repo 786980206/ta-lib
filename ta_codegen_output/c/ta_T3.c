@@ -80,7 +80,7 @@ TA_LIB_API TA_RetCode TA_T3( int    startIdx,
       return TA_BAD_PARAM;
    if( optInVFactor == -4e37 )
       optInVFactor = 0.7;
-   else if( optInVFactor < 0.0 || optInVFactor > 1.0 )
+   else if( optInVFactor < 0e0 || optInVFactor > 1e0 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
@@ -350,7 +350,7 @@ TA_RetCode TA_S_T3( int    startIdx,
       return TA_BAD_PARAM;
    if( optInVFactor == -4e37 )
       optInVFactor = 0.7;
-   else if( optInVFactor < 0.0 || optInVFactor > 1.0 )
+   else if( optInVFactor < 0e0 || optInVFactor > 1e0 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;

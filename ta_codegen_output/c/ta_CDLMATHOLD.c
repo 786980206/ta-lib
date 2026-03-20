@@ -86,7 +86,7 @@ TA_LIB_API TA_RetCode TA_CDLMATHOLD( int    startIdx,
       return TA_BAD_PARAM;
    if( optInPenetration == -4e37 )
       optInPenetration = 0.5;
-   else if( optInPenetration < 0.0 || optInPenetration > 2147483647.0 )
+   else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( !outInteger )
       return TA_BAD_PARAM;
@@ -692,7 +692,7 @@ TA_RetCode TA_S_CDLMATHOLD( int    startIdx,
       return TA_BAD_PARAM;
    if( optInPenetration == -4e37 )
       optInPenetration = 0.5;
-   else if( optInPenetration < 0.0 || optInPenetration > 2147483647.0 )
+   else if( optInPenetration < 0e0 || optInPenetration > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( !outInteger )
       return TA_BAD_PARAM;

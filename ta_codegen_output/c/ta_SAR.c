@@ -75,11 +75,11 @@ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
       return TA_BAD_PARAM;
    if( optInAcceleration == -4e37 )
       optInAcceleration = 0.02;
-   else if( optInAcceleration < 0.0 || optInAcceleration > 2147483647.0 )
+   else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( optInMaximum == -4e37 )
       optInMaximum = 0.2;
-   else if( optInMaximum < 0.0 || optInMaximum > 2147483647.0 )
+   else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
@@ -453,11 +453,11 @@ TA_RetCode TA_S_SAR( int    startIdx,
       return TA_BAD_PARAM;
    if( optInAcceleration == -4e37 )
       optInAcceleration = 0.02;
-   else if( optInAcceleration < 0.0 || optInAcceleration > 2147483647.0 )
+   else if( optInAcceleration < 0e0 || optInAcceleration > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( optInMaximum == -4e37 )
       optInMaximum = 0.2;
-   else if( optInMaximum < 0.0 || optInMaximum > 2147483647.0 )
+   else if( optInMaximum < 0e0 || optInMaximum > 1.7976931348623157e308 )
       return TA_BAD_PARAM;
    if( !outReal )
       return TA_BAD_PARAM;
