@@ -31,7 +31,7 @@ pub struct Input {
 pub struct OptInput {
     pub name: String,
     pub param_type: ParamType,
-    pub range: Option<(i32, i32)>,
+    pub range: Option<(f64, f64)>,
     pub default: Option<f64>,
     pub display_name: Option<String>,
     pub hint: Option<String>,

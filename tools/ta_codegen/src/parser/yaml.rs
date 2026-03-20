@@ -93,6 +93,19 @@ fn yaml_val_to_i32(v: &serde_yaml::Value) -> i32 {
     }
 }
 
+fn yaml_val_to_f64(v: &serde_yaml::Value) -> f64 {
+    match v {
+        serde_yaml::Value::Number(n) => n.as_f64().unwrap_or(0.0),
+        serde_yaml::Value::String(s) => match s.as_str() {
+            "TA_INTEGER_MIN" | "TA_REAL_MIN" => f64::MIN,
+            "TA_INTEGER_MAX" | "TA_REAL_MAX" => f64::MAX,
+            "TA_INTEGER_DEFAULT" => 0.0,
+            other => panic!("Unknown range constant: {other}"),
+        },
+        other => panic!("Unexpected YAML range value: {other:?}"),
+    }
+}
+
 fn parse_param_type(s: &str, price_components: Option<Vec<String>>) -> ParamType {
     match s {
         "real" => ParamType::Real,
@@ -152,7 +165,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
             param_type: parse_param_type(&p.param_type, None),
             range: p
                 .range
-                .and_then(|r| if r.len() >= 2 { Some((yaml_val_to_i32(&r[0]), yaml_val_to_i32(&r[1]))) } else { None }),
+                .and_then(|r| if r.len() >= 2 { Some((yaml_val_to_f64(&r[0]), yaml_val_to_f64(&r[1]))) } else { None }),
             default: p.default,
             display_name: p.display_name,
             hint: p.hint,

@@ -3803,7 +3803,7 @@ fn rust_lookback_param_minus() {
         optional_inputs: vec![ir::OptInput {
             name: "optInTimePeriod".to_string(),
             param_type: ir::ParamType::Integer,
-            range: Some((2, 100000)),
+            range: Some((2.0, 100000.0)),
             default: Some(30.0),
             display_name: None,
             hint: None,
