@@ -991,152 +991,14 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("            return \"{\\\"status\\\":\\\"ok\\\",\\\"n\\\":\" + refN + \"}\";\n");
     s.push_str("        }\n");
 
-    for (i, func) in funcs.iter().enumerate() {
+    // Thin dispatch: each indicator delegates to its own static handle_XXX method.
+    // This keeps handleRequest small enough for HotSpot C2 to JIT-compile it.
+    for func in funcs {
         let method_name = format!("TA_{}", func.name);
-        let cond = if i == 0 { "else if" } else { "else if" };
-        let func_lower = to_java_camel_case(&func.name);
-
         s.push_str(&format!(
-            "        {cond} (json.contains(\"\\\"{method_name}\\\"\")) {{\n"
+            "        else if (json.contains(\"\\\"{method_name}\\\"\")) return handle_{}(json);\n",
+            func.name
         ));
-        s.push_str("            int startIdx = jsonInt(json, \"startIdx\");\n");
-        s.push_str("            int endIdx = jsonInt(json, \"endIdx\");\n");
-
-        // Inputs — Real inputs use their own name; Price inputs expand to individual
-        // component arrays (e.g. "inHigh", "inLow", "inClose").
-        let input_names = expand_input_names(&func.inputs);
-
-        // Check use_preloaded flag
-        s.push_str("            int use_preloaded = jsonInt(json, \"use_preloaded\");\n");
-        s.push_str("            int bench_iters = jsonInt(json, \"iters\");\n");
-        s.push_str("            if (bench_iters < 1) bench_iters = 1;\n");
-
-        // Parse input arrays or use pre-loaded data
-        for name in &input_names {
-            s.push_str(&format!(
-                "            double[] {name} = new double[MAX_ARRAY_SIZE];\n"
-            ));
-        }
-        s.push_str("            if (use_preloaded != 0 && refN > 0) {\n");
-        for (j, name) in input_names.iter().enumerate() {
-            let ref_src = if let Some(r) = price_input_to_ref(name) {
-                r.to_string()
-            } else if j == 0 {
-                "refClose".to_string()
-            } else {
-                "refHigh".to_string()
-            };
-            s.push_str(&format!(
-                "                System.arraycopy({ref_src}, 0, {name}, 0, refN);\n"
-            ));
-        }
-        s.push_str("            } else {\n");
-        for name in &input_names {
-            s.push_str(&format!(
-                "                double[] _tmp_{name} = jsonDoubleArray(json, \"{name}\");\n"
-            ));
-            s.push_str(&format!(
-                "                {name} = _tmp_{name};\n"
-            ));
-        }
-        s.push_str("            }\n");
-
-        // Optional params
-        for opt in &func.optional_inputs {
-            if opt.param_type == ParamType::Real {
-                s.push_str(&format!(
-                    "            double {} = jsonDouble(json, \"{}\");\n",
-                    opt.name, opt.name
-                ));
-            } else if let ParamType::Enum(ref enum_name) = opt.param_type {
-                // Enum params: read as int, convert to enum type
-                s.push_str(&format!(
-                    "            {} {} = {}.values()[jsonInt(json, \"{}\")];\n",
-                    enum_name, opt.name, enum_name, opt.name
-                ));
-            } else {
-                s.push_str(&format!(
-                    "            int {} = jsonInt(json, \"{}\");\n",
-                    opt.name, opt.name
-                ));
-            }
-        }
-
-        // Apply unstable period if provided
-        if let Some(id) = func_unst_id(&func.name) {
-            s.push_str(&format!(
-                "            core.unstablePeriod[{id}] = jsonInt(json, \"unstablePeriod\");\n"
-            ));
-        }
-
-        // Outputs — one array per output, typed correctly (double[] or int[])
-        let outputs = &func.outputs;
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = format!("outArr{k}");
-            if out.param_type == ParamType::Integer {
-                s.push_str(&format!(
-                    "            int[] {arr_name} = new int[endIdx - startIdx + 1];\n"
-                ));
-            } else {
-                s.push_str(&format!(
-                    "            double[] {arr_name} = new double[endIdx - startIdx + 1];\n"
-                ));
-            }
-        }
-        s.push_str("            MInteger outBegIdx = new MInteger();\n");
-        s.push_str("            MInteger outNBElement = new MInteger();\n");
-        s.push_str("            RetCode rc = RetCode.Success;\n");
-
-        // Benchmark iteration loop with timing
-        s.push_str("            long startNs = System.nanoTime();\n");
-        s.push_str("            for (int _bi = 0; _bi < bench_iters; _bi++) {\n");
-
-        // Call
-        s.push_str(&format!("            rc = core.{func_lower}(\n"));
-        s.push_str("                startIdx, endIdx,\n");
-        for name in &input_names {
-            s.push_str(&format!("                {name},\n"));
-        }
-        for opt in &func.optional_inputs {
-            s.push_str(&format!("                {},\n", opt.name));
-        }
-        s.push_str("                outBegIdx, outNBElement");
-        for k in 0..outputs.len() {
-            s.push_str(&format!(", outArr{k}"));
-        }
-        s.push_str(");\n");
-        s.push_str("            }\n"); // end bench_iters loop
-
-        // Timing capture
-        s.push_str("            long elapsedNs = (System.nanoTime() - startNs) / bench_iters;\n");
-
-        // Response — use correct key names and serialisers per output type
-        s.push_str("            StringBuilder sb = new StringBuilder();\n");
-        s.push_str("            sb.append(\"{\\\"retCode\\\":\").append(rc.toInt());\n");
-        s.push_str(
-            "            sb.append(\",\\\"outBegIdx\\\":\").append(outBegIdx.value);\n",
-        );
-        s.push_str(
-            "            sb.append(\",\\\"outNBElement\\\":\").append(outNBElement.value);\n",
-        );
-        for (k, out) in outputs.iter().enumerate() {
-            let arr_name = format!("outArr{k}");
-            let key = output_json_key(outputs, k);
-            if out.param_type == ParamType::Integer {
-                s.push_str(&format!(
-                    "            sb.append(\",\\\"{key}\\\":\").append(intArrayToJson({arr_name}, outNBElement.value));\n"
-                ));
-            } else {
-                s.push_str(&format!(
-                    "            sb.append(\",\\\"{key}\\\":\").append(doubleArrayToJson({arr_name}, outNBElement.value));\n"
-                ));
-            }
-        }
-        s.push_str("            sb.append(\",\\\"timing_ns\\\":\").append(elapsedNs);\n");
-        s.push_str("            sb.append(\"}\");\n");
-        s.push_str("            return sb.toString();\n");
-
-        s.push_str("        }\n");
     }
 
     // list_functions method — returns {"functions":["TA_SMA","TA_RSI",...]}
@@ -1167,6 +1029,154 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("            return \"{\\\"error\\\":\\\"Unknown method\\\"}\";\n");
     s.push_str("        }\n");
     s.push_str("    }\n\n");
+
+    // Per-function handler methods — each is small enough for C2 JIT compilation.
+    for func in funcs {
+        let func_lower = to_java_camel_case(&func.name);
+
+        s.push_str(&format!(
+            "    static String handle_{}(String json) {{\n",
+            func.name
+        ));
+        s.push_str("        int startIdx = jsonInt(json, \"startIdx\");\n");
+        s.push_str("        int endIdx = jsonInt(json, \"endIdx\");\n");
+
+        // Inputs — Real inputs use their own name; Price inputs expand to individual
+        // component arrays (e.g. "inHigh", "inLow", "inClose").
+        let input_names = expand_input_names(&func.inputs);
+
+        // Check use_preloaded flag
+        s.push_str("        int use_preloaded = jsonInt(json, \"use_preloaded\");\n");
+        s.push_str("        int bench_iters = jsonInt(json, \"iters\");\n");
+        s.push_str("        if (bench_iters < 1) bench_iters = 1;\n");
+
+        // Parse input arrays or use pre-loaded data
+        for name in &input_names {
+            s.push_str(&format!(
+                "        double[] {name} = new double[MAX_ARRAY_SIZE];\n"
+            ));
+        }
+        s.push_str("        if (use_preloaded != 0 && refN > 0) {\n");
+        for (j, name) in input_names.iter().enumerate() {
+            let ref_src = if let Some(r) = price_input_to_ref(name) {
+                r.to_string()
+            } else if j == 0 {
+                "refClose".to_string()
+            } else {
+                "refHigh".to_string()
+            };
+            s.push_str(&format!(
+                "            System.arraycopy({ref_src}, 0, {name}, 0, refN);\n"
+            ));
+        }
+        s.push_str("        } else {\n");
+        for name in &input_names {
+            s.push_str(&format!(
+                "            double[] _tmp_{name} = jsonDoubleArray(json, \"{name}\");\n"
+            ));
+            s.push_str(&format!(
+                "            {name} = _tmp_{name};\n"
+            ));
+        }
+        s.push_str("        }\n");
+
+        // Optional params
+        for opt in &func.optional_inputs {
+            if opt.param_type == ParamType::Real {
+                s.push_str(&format!(
+                    "        double {} = jsonDouble(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            } else if let ParamType::Enum(ref enum_name) = opt.param_type {
+                // Enum params: read as int, convert to enum type
+                s.push_str(&format!(
+                    "        {} {} = {}.values()[jsonInt(json, \"{}\")];\n",
+                    enum_name, opt.name, enum_name, opt.name
+                ));
+            } else {
+                s.push_str(&format!(
+                    "        int {} = jsonInt(json, \"{}\");\n",
+                    opt.name, opt.name
+                ));
+            }
+        }
+
+        // Apply unstable period if provided
+        if let Some(id) = func_unst_id(&func.name) {
+            s.push_str(&format!(
+                "        core.unstablePeriod[{id}] = jsonInt(json, \"unstablePeriod\");\n"
+            ));
+        }
+
+        // Outputs — one array per output, typed correctly (double[] or int[])
+        let outputs = &func.outputs;
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = format!("outArr{k}");
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "        int[] {arr_name} = new int[endIdx - startIdx + 1];\n"
+                ));
+            } else {
+                s.push_str(&format!(
+                    "        double[] {arr_name} = new double[endIdx - startIdx + 1];\n"
+                ));
+            }
+        }
+        s.push_str("        MInteger outBegIdx = new MInteger();\n");
+        s.push_str("        MInteger outNBElement = new MInteger();\n");
+        s.push_str("        RetCode rc = RetCode.Success;\n");
+
+        // Benchmark iteration loop with timing
+        s.push_str("        long startNs = System.nanoTime();\n");
+        s.push_str("        for (int _bi = 0; _bi < bench_iters; _bi++) {\n");
+
+        // Call
+        s.push_str(&format!("        rc = core.{func_lower}(\n"));
+        s.push_str("            startIdx, endIdx,\n");
+        for name in &input_names {
+            s.push_str(&format!("            {name},\n"));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("            {},\n", opt.name));
+        }
+        s.push_str("            outBegIdx, outNBElement");
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", outArr{k}"));
+        }
+        s.push_str(");\n");
+        s.push_str("        }\n"); // end bench_iters loop
+
+        // Timing capture
+        s.push_str("        long elapsedNs = (System.nanoTime() - startNs) / bench_iters;\n");
+
+        // Response — use correct key names and serialisers per output type
+        s.push_str("        StringBuilder sb = new StringBuilder();\n");
+        s.push_str("        sb.append(\"{\\\"retCode\\\":\").append(rc.toInt());\n");
+        s.push_str(
+            "        sb.append(\",\\\"outBegIdx\\\":\").append(outBegIdx.value);\n",
+        );
+        s.push_str(
+            "        sb.append(\",\\\"outNBElement\\\":\").append(outNBElement.value);\n",
+        );
+        for (k, out) in outputs.iter().enumerate() {
+            let arr_name = format!("outArr{k}");
+            let key = output_json_key(outputs, k);
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(
+                    "        sb.append(\",\\\"{key}\\\":\").append(intArrayToJson({arr_name}, outNBElement.value));\n"
+                ));
+            } else {
+                s.push_str(&format!(
+                    "        sb.append(\",\\\"{key}\\\":\").append(doubleArrayToJson({arr_name}, outNBElement.value));\n"
+                ));
+            }
+        }
+        s.push_str("        sb.append(\",\\\"timing_ns\\\":\").append(elapsedNs);\n");
+        s.push_str("        sb.append(\"}\");\n");
+        s.push_str("        return sb.toString();\n");
+
+        s.push_str("    }\n\n");
+    }
 
     // Main method
     s.push_str("    public static void main(String[] args) throws Exception {\n");
@@ -1213,8 +1223,11 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("    static int refN = 0;\n\n");
 
     // Cross-platform high-resolution nanosecond timer via Stopwatch
+    // Split into whole-seconds + fractional to avoid long overflow
     s.push_str("    static long GetNanoTime() {\n");
-    s.push_str("        return Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency;\n");
+    s.push_str("        long ts = Stopwatch.GetTimestamp();\n");
+    s.push_str("        long freq = Stopwatch.Frequency;\n");
+    s.push_str("        return (ts / freq) * 1000000000L + (ts % freq) * 1000000000L / freq;\n");
     s.push_str("    }\n\n");
 
     // P/Invoke for unstable period setter

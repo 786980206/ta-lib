@@ -1991,6 +1991,41 @@ pub fn render_statement(
             if contains_alloc_err_return(then_body) {
                 return String::new();
             }
+            // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
+            // contain a candle function call (ta_candlerange/ta_candleaverage).
+            // This prevents the compiler from speculatively computing both sides
+            // of the &&, which wastes expensive fdiv cycles on the common path
+            // where the first condition fails.
+            if let Expr::BinOp(left, BinOp::And, right) = condition {
+                if expr_directly_contains_candle_call(left)
+                    && expr_directly_contains_candle_call(right)
+                {
+                    // Render as: if left { if right { then } else { els } } else { els }
+                    let inner_if = Statement::If {
+                        condition: *right.clone(),
+                        then_body: then_body.clone(),
+                        else_body: else_body.clone(),
+                    };
+                    let outer_if = Statement::If {
+                        condition: *left.clone(),
+                        then_body: vec![inner_if],
+                        else_body: else_body.clone(),
+                    };
+                    return render_statement(
+                        &outer_if,
+                        indent,
+                        ctx,
+                        for_loop_vars,
+                        var_inits,
+                        output_names,
+                        opt_real_params,
+                        enums,
+                        registry,
+                        helpers,
+                        inline_counter,
+                    );
+                }
+            }
             let mut out = format!(
                 "{}if {} {{\n",
                 pad,
@@ -2159,6 +2194,41 @@ fn expr_has_uncast_array_access(expr: &Expr) -> bool {
                 || expr_has_uncast_array_access(then_expr)
                 || expr_has_uncast_array_access(else_expr)
         }
+    }
+}
+
+/// Candle function names that trigger the `&&` short-circuit split optimization.
+const CANDLE_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
+
+/// Check if an expression directly contains a candle function call,
+/// WITHOUT recursing through `&&`/`||` operators. This ensures we only split
+/// `if(A && B)` when both A and B themselves contain expensive candle calls,
+/// not when they're part of a longer `&&` chain where only some parts are expensive.
+fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
+    match expr {
+        Expr::FuncCall(name, args) => {
+            CANDLE_FNS.contains(&name.as_str())
+                || args.iter().any(expr_directly_contains_candle_call)
+        }
+        // Stop at logical operators — those are separate conditions in the chain
+        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
+        Expr::BinOp(l, _, r) => {
+            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
+        }
+        Expr::Ternary(c, t, e) => {
+            expr_directly_contains_candle_call(c)
+                || expr_directly_contains_candle_call(t)
+                || expr_directly_contains_candle_call(e)
+        }
+        Expr::Cast(_, inner)
+        | Expr::Not(inner)
+        | Expr::AddressOf(inner)
+        | Expr::PostIncrement(inner)
+        | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner)
+        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
+        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
+        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
     }
 }
 
