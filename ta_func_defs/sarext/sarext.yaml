@@ -11,7 +11,7 @@ optional_inputs:
   - name: optInStartValue
     type: real
     display_name: Start Value
-    hint: Start value and direction. 0 for Auto
+    hint: "Start value and direction. 0 for Auto, >0 for Long, <0 for Short"
     range: [TA_REAL_MIN, TA_REAL_MAX]
     default: 0
     suggested: [0, 0, 0]

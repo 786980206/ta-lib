@@ -565,45 +565,6 @@
 	</FinancialFunction>
 
 
-	<!-- AVGPRICE -->
-	<FinancialFunction>
-		<Abbreviation>AVGPRICE</Abbreviation>
-		<CamelCaseName>AvgPrice</CamelCaseName>
-		<ShortDescription>Average Price</ShortDescription>
-		<GroupId>Price Transform</GroupId>
-		<Flags>
-			<Flag>Overlap</Flag>
-		</Flags>
-		<RequiredInputArguments>
-			<RequiredInputArgument>
-				<Type>Open</Type>
-				<Name>Open</Name>
-			</RequiredInputArgument>
-			<RequiredInputArgument>
-				<Type>High</Type>
-				<Name>High</Name>
-			</RequiredInputArgument>
-			<RequiredInputArgument>
-				<Type>Low</Type>
-				<Name>Low</Name>
-			</RequiredInputArgument>
-			<RequiredInputArgument>
-				<Type>Close</Type>
-				<Name>Close</Name>
-			</RequiredInputArgument>
-		</RequiredInputArguments>
-		<OutputArguments>
-			<OutputArgument>
-				<Type>Double Array</Type>
-				<Name>outReal</Name>
-				<Flags>
-					<Flag>Line</Flag>
-				</Flags>
-			</OutputArgument>
-		</OutputArguments>
-	</FinancialFunction>
-
-
 	<!-- AVGDEV -->
 	<FinancialFunction>
 		<Abbreviation>AVGDEV</Abbreviation>
@@ -634,6 +595,45 @@
 				<DefaultValue>14</DefaultValue>
 			</OptionalInputArgument>
 		</OptionalInputArguments>
+		<OutputArguments>
+			<OutputArgument>
+				<Type>Double Array</Type>
+				<Name>outReal</Name>
+				<Flags>
+					<Flag>Line</Flag>
+				</Flags>
+			</OutputArgument>
+		</OutputArguments>
+	</FinancialFunction>
+
+
+	<!-- AVGPRICE -->
+	<FinancialFunction>
+		<Abbreviation>AVGPRICE</Abbreviation>
+		<CamelCaseName>AvgPrice</CamelCaseName>
+		<ShortDescription>Average Price</ShortDescription>
+		<GroupId>Price Transform</GroupId>
+		<Flags>
+			<Flag>Overlap</Flag>
+		</Flags>
+		<RequiredInputArguments>
+			<RequiredInputArgument>
+				<Type>Open</Type>
+				<Name>Open</Name>
+			</RequiredInputArgument>
+			<RequiredInputArgument>
+				<Type>High</Type>
+				<Name>High</Name>
+			</RequiredInputArgument>
+			<RequiredInputArgument>
+				<Type>Low</Type>
+				<Name>Low</Name>
+			</RequiredInputArgument>
+			<RequiredInputArgument>
+				<Type>Close</Type>
+				<Name>Close</Name>
+			</RequiredInputArgument>
+		</RequiredInputArguments>
 		<OutputArguments>
 			<OutputArgument>
 				<Type>Double Array</Type>
@@ -682,7 +682,6 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
@@ -696,7 +695,6 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
@@ -983,7 +981,7 @@
 	<FinancialFunction>
 		<Abbreviation>CDL3LINESTRIKE</Abbreviation>
 		<CamelCaseName>Cdl3LineStrike</CamelCaseName>
-		<ShortDescription>Three-Line Strike </ShortDescription>
+		<ShortDescription>Three-Line Strike</ShortDescription>
 		<GroupId>Pattern Recognition</GroupId>
 		<Flags>
 			<Flag>Candlestick</Flag>
@@ -1170,7 +1168,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1459,7 +1456,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1670,7 +1666,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1725,7 +1720,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2560,7 +2554,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2615,7 +2608,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2670,7 +2662,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -4498,7 +4489,6 @@
 				<Range>
 					<Minimum>1.000000e-2</Minimum>
 					<Maximum>9.900000e-1</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>2.100000e-1</SuggestedStart>
 					<SuggestedEnd>8.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -4512,7 +4502,6 @@
 				<Range>
 					<Minimum>1.000000e-2</Minimum>
 					<Maximum>9.900000e-1</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>6.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5247,6 +5236,34 @@
 	</FinancialFunction>
 
 
+	<!-- NVI -->
+	<FinancialFunction>
+		<Abbreviation>NVI</Abbreviation>
+		<CamelCaseName>Nvi</CamelCaseName>
+		<ShortDescription>Negative Volume Index</ShortDescription>
+		<GroupId>Volume Indicators</GroupId>
+		<RequiredInputArguments>
+			<RequiredInputArgument>
+				<Type>Close</Type>
+				<Name>Close</Name>
+			</RequiredInputArgument>
+			<RequiredInputArgument>
+				<Type>Volume</Type>
+				<Name>Volume</Name>
+			</RequiredInputArgument>
+		</RequiredInputArguments>
+		<OutputArguments>
+			<OutputArgument>
+				<Type>Double Array</Type>
+				<Name>outReal</Name>
+				<Flags>
+					<Flag>Line</Flag>
+				</Flags>
+			</OutputArgument>
+		</OutputArguments>
+	</FinancialFunction>
+
+
 	<!-- OBV -->
 	<FinancialFunction>
 		<Abbreviation>OBV</Abbreviation>
@@ -5417,6 +5434,34 @@
 				<DefaultValue>0</DefaultValue>
 			</OptionalInputArgument>
 		</OptionalInputArguments>
+		<OutputArguments>
+			<OutputArgument>
+				<Type>Double Array</Type>
+				<Name>outReal</Name>
+				<Flags>
+					<Flag>Line</Flag>
+				</Flags>
+			</OutputArgument>
+		</OutputArguments>
+	</FinancialFunction>
+
+
+	<!-- PVI -->
+	<FinancialFunction>
+		<Abbreviation>PVI</Abbreviation>
+		<CamelCaseName>Pvi</CamelCaseName>
+		<ShortDescription>Positive Volume Index</ShortDescription>
+		<GroupId>Volume Indicators</GroupId>
+		<RequiredInputArguments>
+			<RequiredInputArgument>
+				<Type>Close</Type>
+				<Name>Close</Name>
+			</RequiredInputArgument>
+			<RequiredInputArgument>
+				<Type>Volume</Type>
+				<Name>Volume</Name>
+			</RequiredInputArgument>
+		</RequiredInputArguments>
 		<OutputArguments>
 			<OutputArgument>
 				<Type>Double Array</Type>
@@ -5654,7 +5699,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5668,7 +5712,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5715,7 +5758,6 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -5729,7 +5771,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.500000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5743,7 +5784,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.900000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5757,7 +5797,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5771,7 +5810,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5785,7 +5823,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.900000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5799,7 +5836,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5813,7 +5849,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5980,7 +6015,6 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
@@ -6350,7 +6384,6 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>1.000000e+0</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>5.000000e-2</SuggestedIncrement>
@@ -6756,7 +6789,6 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
-					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>

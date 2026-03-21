@@ -218,6 +218,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     };
 
     backends::func_list::generate(all_funcs, &root.join("ta_func_list.txt"));
+    backends::func_api_xml::generate(all_funcs, &root.join("ta_func_api.xml"));
 
     // Generate Makefile.am and copy C library files when C is one of the backends
     if backends_to_run.contains(&"c") {
