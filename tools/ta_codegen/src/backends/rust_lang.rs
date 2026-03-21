@@ -641,7 +641,7 @@ fn gen_unguarded_func(
             // Hoist multi-statement helpers from init expressions
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
-            let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt);
+            let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt, &[]);
             inline_counter.set(cnt);
             out.push_str(&render_hoisted_blocks(
                 &hoisted, 8, ctx, &for_loop_vars, &var_inits,
@@ -1673,7 +1673,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt,
+                value, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(

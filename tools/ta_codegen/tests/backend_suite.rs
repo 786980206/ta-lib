@@ -2061,15 +2061,15 @@ fn c_backend_inlines_multi_statement_helper_with_temp_var() {
 
 #[test]
 fn c_backend_inlines_candlerange_switch() {
-    // ta_candlerange has a switch statement => multi-statement
+    // ta_candlerange emits a C preprocessor macro instead of expanded code
     let func = make_func_with_helper_call(
         "ta_candlerange",
         vec![
-            ir::Expr::Var("rangeType".to_string()),
-            ir::Expr::Var("open".to_string()),
-            ir::Expr::Var("high".to_string()),
-            ir::Expr::Var("low".to_string()),
-            ir::Expr::Var("close".to_string()),
+            ir::Expr::Var("BodyLong_rangeType".to_string()),
+            ir::Expr::ArrayAccess("inOpen".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inHigh".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inLow".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inClose".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
         ],
     );
     let enums = HashMap::new();
@@ -2079,23 +2079,19 @@ fn c_backend_inlines_candlerange_switch() {
     let output = backends::c::generate(&func, &enums, &registry, &helpers);
 
     assert!(
-        !output.contains("ta_candlerange("),
-        "ta_candlerange should be inlined: {output}"
+        output.contains("TA_CANDLERANGE(BodyLong,i)"),
+        "ta_candlerange should emit C macro: {output}"
     );
-    // Candle range switches render as ternary chains for better loop unswitching
+    // No expanded temporaries — the macro handles everything
     assert!(
-        output.contains("rangeType==0") || output.contains("switch("),
-        "Inlined candlerange should contain ternary or switch: {output}"
-    );
-    assert!(
-        output.contains("_candlerange_"),
-        "Should have a temp var like _candlerange_0: {output}"
+        !output.contains("_candlerange_"),
+        "Should NOT have temp var — macro replaces it: {output}"
     );
 }
 
 #[test]
 fn inlining_counter_avoids_name_collisions() {
-    // Call ta_candlerange twice in a FuncDef body
+    // Call ta_candlerange twice in a FuncDef body — both emit macros with different settings
     let func = ir::FuncDef {
         name: "TEST".to_string(),
         group: "Test".to_string(),
@@ -2130,11 +2126,11 @@ fn inlining_counter_avoids_name_collisions() {
                 value: ir::Expr::FuncCall(
                     "ta_candlerange".to_string(),
                     vec![
-                        ir::Expr::IntLiteral(0),
-                        ir::Expr::Var("o".to_string()),
-                        ir::Expr::Var("h".to_string()),
-                        ir::Expr::Var("l".to_string()),
-                        ir::Expr::Var("c".to_string()),
+                        ir::Expr::Var("BodyLong_rangeType".to_string()),
+                        ir::Expr::ArrayAccess("inOpen".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+                        ir::Expr::ArrayAccess("inHigh".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+                        ir::Expr::ArrayAccess("inLow".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+                        ir::Expr::ArrayAccess("inClose".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
                     ],
                 ),
                 compound: false,
@@ -2144,11 +2140,27 @@ fn inlining_counter_avoids_name_collisions() {
                 value: ir::Expr::FuncCall(
                     "ta_candlerange".to_string(),
                     vec![
-                        ir::Expr::IntLiteral(1),
-                        ir::Expr::Var("o2".to_string()),
-                        ir::Expr::Var("h2".to_string()),
-                        ir::Expr::Var("l2".to_string()),
-                        ir::Expr::Var("c2".to_string()),
+                        ir::Expr::Var("BodyShort_rangeType".to_string()),
+                        ir::Expr::ArrayAccess("inOpen".to_string(), Box::new(ir::Expr::BinOp(
+                            Box::new(ir::Expr::Var("i".to_string())),
+                            ir::BinOp::Sub,
+                            Box::new(ir::Expr::IntLiteral(1)),
+                        ))),
+                        ir::Expr::ArrayAccess("inHigh".to_string(), Box::new(ir::Expr::BinOp(
+                            Box::new(ir::Expr::Var("i".to_string())),
+                            ir::BinOp::Sub,
+                            Box::new(ir::Expr::IntLiteral(1)),
+                        ))),
+                        ir::Expr::ArrayAccess("inLow".to_string(), Box::new(ir::Expr::BinOp(
+                            Box::new(ir::Expr::Var("i".to_string())),
+                            ir::BinOp::Sub,
+                            Box::new(ir::Expr::IntLiteral(1)),
+                        ))),
+                        ir::Expr::ArrayAccess("inClose".to_string(), Box::new(ir::Expr::BinOp(
+                            Box::new(ir::Expr::Var("i".to_string())),
+                            ir::BinOp::Sub,
+                            Box::new(ir::Expr::IntLiteral(1)),
+                        ))),
                     ],
                 ),
                 compound: false,
@@ -2164,14 +2176,19 @@ fn inlining_counter_avoids_name_collisions() {
 
     let output = backends::c::generate(&func, &enums, &registry, &helpers);
 
-    // Should have two different temp vars
+    // Both calls should emit C macros with different settings
     assert!(
-        output.contains("_candlerange_0"),
-        "First call should use suffix _0: {output}"
+        output.contains("TA_CANDLERANGE(BodyLong,i)"),
+        "First call should emit BodyLong macro: {output}"
     );
     assert!(
-        output.contains("_candlerange_1"),
-        "Second call should use suffix _1: {output}"
+        output.contains("TA_CANDLERANGE(BodyShort,(i-1))"),
+        "Second call should emit BodyShort macro with offset: {output}"
+    );
+    // No expanded temporaries
+    assert!(
+        !output.contains("_candlerange_"),
+        "Should NOT have temp vars — macros replace them: {output}"
     );
 }
 
@@ -2229,19 +2246,19 @@ fn rust_backend_inlines_multi_statement_helper() {
 
 #[test]
 fn nested_block_inlining_candleaverage_calls_candlerange() {
-    // ta_candleaverage calls ta_candlerange in its body.
-    // Both should be inlined, with the inner one hoisted first.
+    // ta_candleaverage emits a C macro — the nested ta_candlerange call
+    // is handled by the macro definition, not by the codegen.
     let func = make_func_with_helper_call(
         "ta_candleaverage",
         vec![
-            ir::Expr::IntLiteral(0),
-            ir::Expr::IntLiteral(10),
-            ir::Expr::Literal(1.0),
-            ir::Expr::Var("sum".to_string()),
-            ir::Expr::Var("open".to_string()),
-            ir::Expr::Var("high".to_string()),
-            ir::Expr::Var("low".to_string()),
-            ir::Expr::Var("close".to_string()),
+            ir::Expr::Var("BodyLong_rangeType".to_string()),
+            ir::Expr::Var("BodyLong_avgPeriod".to_string()),
+            ir::Expr::Var("BodyLong_factor".to_string()),
+            ir::Expr::Var("periodTotal".to_string()),
+            ir::Expr::ArrayAccess("inOpen".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inHigh".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inLow".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
+            ir::Expr::ArrayAccess("inClose".to_string(), Box::new(ir::Expr::Var("i".to_string()))),
         ],
     );
     let enums = HashMap::new();
@@ -2250,23 +2267,18 @@ fn nested_block_inlining_candleaverage_calls_candlerange() {
 
     let output = backends::c::generate(&func, &enums, &registry, &helpers);
 
-    // Neither helper should appear as a function call
+    // Should emit a single C macro — no expanded temporaries
     assert!(
-        !output.contains("ta_candleaverage("),
-        "ta_candleaverage should be inlined: {output}"
+        output.contains("TA_CANDLEAVERAGE(BodyLong,periodTotal,i)"),
+        "ta_candleaverage should emit C macro: {output}"
     );
     assert!(
-        !output.contains("ta_candlerange("),
-        "ta_candlerange (nested) should also be inlined: {output}"
-    );
-    // Both temp vars should be present
-    assert!(
-        output.contains("_candlerange_"),
-        "Should have _candlerange_ temp var: {output}"
+        !output.contains("_candleaverage_"),
+        "Should NOT have _candleaverage_ temp var: {output}"
     );
     assert!(
-        output.contains("_candleaverage_"),
-        "Should have _candleaverage_ temp var: {output}"
+        !output.contains("_candlerange_"),
+        "Should NOT have _candlerange_ temp var: {output}"
     );
 }
 

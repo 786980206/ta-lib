@@ -481,7 +481,7 @@ fn gen_func(
             let mut hoisted_vec = Vec::new();
             let mut cnt = inline_counter.get();
             let new_init = hoist_block_helpers(
-                init, helpers, &mut hoisted_vec, &mut cnt,
+                init, helpers, &mut hoisted_vec, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             out.push_str(&render_hoisted_blocks(
@@ -623,7 +623,7 @@ fn render_hoisted_blocks(
                     let mut inner_hoisted = Vec::new();
                     let mut cnt = inline_counter.get();
                     let hoisted_init = hoist_block_helpers(
-                        init_expr, helpers, &mut inner_hoisted, &mut cnt,
+                        init_expr, helpers, &mut inner_hoisted, &mut cnt, &[],
                     );
                     inline_counter.set(cnt);
                     out.push_str(&render_hoisted_blocks(
@@ -710,7 +710,7 @@ pub fn render_statement(
                 let mut hoisted_vec = Vec::new();
                 let mut cnt = inline_counter.get();
                 let new_init = hoist_block_helpers(
-                    init_expr, helpers, &mut hoisted_vec, &mut cnt,
+                    init_expr, helpers, &mut hoisted_vec, &mut cnt, &[],
                 );
                 inline_counter.set(cnt);
                 let mut out = render_hoisted_blocks(
@@ -778,7 +778,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt,
+                value, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -843,7 +843,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt,
+                condition, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -882,7 +882,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt,
+                condition, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = format!("{pad}do {{\n");
@@ -927,7 +927,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt,
+                condition, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -1051,7 +1051,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt,
+                condition, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -1150,7 +1150,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_expr = hoist_block_helpers(
-                expr, helpers, &mut hoisted, &mut cnt,
+                expr, helpers, &mut hoisted, &mut cnt, &[],
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(

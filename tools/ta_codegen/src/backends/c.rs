@@ -8,6 +8,10 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 
+/// Candle helper functions emitted as C preprocessor macros instead of expanded code.
+/// This enables compiler loop-unswitching, matching the reference library's macro pattern.
+const C_CANDLE_MACRO_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
+
 #[allow(clippy::implicit_hasher)]
 pub fn generate(
     func: &FuncDef,
@@ -326,7 +330,7 @@ fn gen_func(
                 first_seen_names.retain(|n| n != name); // remove so duplicates aren't hoisted
                 let mut hoisted = Vec::new();
                 let mut cnt = inline_counter.get();
-                let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt);
+                let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
                 inline_counter.set(cnt);
                 out.push_str(&render_hoisted_blocks(
                     &hoisted,
@@ -359,7 +363,7 @@ fn gen_func(
                         let mut hoisted = Vec::new();
                         let mut cnt = inline_counter.get();
                         let new_init =
-                            hoist_block_helpers(init_expr, helpers, &mut hoisted, &mut cnt);
+                            hoist_block_helpers(init_expr, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
                         inline_counter.set(cnt);
                         out.push_str(&render_hoisted_blocks(
                             &hoisted,
@@ -521,7 +525,7 @@ pub fn render_statement(
                     let mut hoisted = Vec::new();
                     let mut cnt = inline_counter.get();
                     let new_init = hoist_block_helpers(
-                        init_expr, helpers, &mut hoisted, &mut cnt,
+                        init_expr, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
                     );
                     inline_counter.set(cnt);
                     let mut out = render_hoisted_blocks(
@@ -571,7 +575,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt,
+                value, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -626,7 +630,7 @@ pub fn render_statement(
         Statement::While { condition, body } => {
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
             inline_counter.set(cnt);
             let mut out = String::new();
             out.push_str(&render_hoisted_blocks(
@@ -667,7 +671,7 @@ pub fn render_statement(
             }
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
             inline_counter.set(cnt);
             out.push_str(&render_hoisted_blocks(
                 &hoisted, indent, single_precision, enums, registry, helpers, inline_counter,
@@ -684,9 +688,36 @@ pub fn render_statement(
             then_body,
             else_body,
         } => {
+            // Split `if(A && B)` into nested `if(A) { if(B)` when either side
+            // contains a candle macro call (ta_candlerange/ta_candleaverage).
+            // This prevents the compiler from speculatively computing both sides
+            // of the &&, which wastes expensive fdiv cycles on the common path
+            // where the first condition fails.
+            if let Expr::BinOp(left, BinOp::And, right) = condition {
+                if expr_directly_contains_candle_call(left)
+                    && expr_directly_contains_candle_call(right)
+                {
+                    // Render as: if(left) { if(right) { then } else { els } } else { els }
+                    let inner_if = Statement::If {
+                        condition: *right.clone(),
+                        then_body: then_body.clone(),
+                        else_body: else_body.clone(),
+                    };
+                    let outer_if = Statement::If {
+                        condition: *left.clone(),
+                        then_body: vec![inner_if],
+                        else_body: else_body.clone(),
+                    };
+                    return render_statement(
+                        &outer_if, indent, single_precision, enums, registry,
+                        helpers, inline_counter,
+                    );
+                }
+            }
+
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
-            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt);
+            let new_cond = hoist_block_helpers(condition, helpers, &mut hoisted, &mut cnt, C_CANDLE_MACRO_FNS);
             inline_counter.set(cnt);
             let mut out = String::new();
             out.push_str(&render_hoisted_blocks(
@@ -1246,6 +1277,92 @@ fn args_have_input_param(args: &[Expr]) -> bool {
     })
 }
 
+/// Check if an expression directly contains a candle macro function call,
+/// WITHOUT recursing through `&&`/`||` operators. This ensures we only split
+/// `if(A && B)` when both A and B themselves contain expensive candle calls,
+/// not when they're part of a longer `&&` chain where only some parts are expensive.
+fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
+    match expr {
+        Expr::FuncCall(name, args) => {
+            C_CANDLE_MACRO_FNS.contains(&name.as_str())
+                || args.iter().any(expr_directly_contains_candle_call)
+        }
+        // Stop at logical operators — those are separate conditions in the chain
+        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
+        Expr::BinOp(l, _, r) => {
+            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
+        }
+        Expr::Ternary(c, t, e) => {
+            expr_directly_contains_candle_call(c)
+                || expr_directly_contains_candle_call(t)
+                || expr_directly_contains_candle_call(e)
+        }
+        Expr::Cast(_, inner)
+        | Expr::Not(inner)
+        | Expr::AddressOf(inner)
+        | Expr::PostIncrement(inner)
+        | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner)
+        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
+        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
+        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
+    }
+}
+
+/// Try to render a candle helper function call as a C preprocessor macro.
+///
+/// Converts `ta_candlerange(SET_rangeType, inOpen[idx], ...)` → `TA_CANDLERANGE(SET, idx)`
+/// and `ta_candleaverage(SET_rangeType, ..., sum, inOpen[idx], ...)` → `TA_CANDLEAVERAGE(SET, sum, idx)`.
+///
+/// Returns `None` if the function isn't a candle helper or args don't match the expected pattern.
+fn try_render_candle_macro(
+    fname: &str,
+    args: &[Expr],
+    single_precision: bool,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> Option<String> {
+    match fname {
+        "ta_candlerange" if args.len() == 5 => {
+            // ta_candlerange(SET_rangeType, inOpen[idx], inHigh[idx], inLow[idx], inClose[idx])
+            let setting = extract_candle_setting_name(&args[0])?;
+            let idx = extract_array_index(&args[4])?;
+            let idx_str = render_expr(&idx, single_precision, registry, helpers);
+            Some(format!("TA_CANDLERANGE({setting},{idx_str})"))
+        }
+        "ta_candleaverage" if args.len() == 8 => {
+            // ta_candleaverage(SET_rangeType, SET_avgPeriod, SET_factor, sum,
+            //                  inOpen[idx], inHigh[idx], inLow[idx], inClose[idx])
+            let setting = extract_candle_setting_name(&args[0])?;
+            let sum_str = render_expr(&args[3], single_precision, registry, helpers);
+            let idx = extract_array_index(&args[7])?;
+            let idx_str = render_expr(&idx, single_precision, registry, helpers);
+            Some(format!("TA_CANDLEAVERAGE({setting},{sum_str},{idx_str})"))
+        }
+        _ => None,
+    }
+}
+
+/// Extract the candle setting name from a `_rangeType` variable reference.
+/// `Expr::Var("ShadowVeryShort_rangeType")` → `Some("ShadowVeryShort")`
+fn extract_candle_setting_name(expr: &Expr) -> Option<String> {
+    if let Expr::Var(name) = expr {
+        name.strip_suffix("_rangeType").map(String::from)
+    } else {
+        None
+    }
+}
+
+/// Extract the index expression from an array access node.
+/// `Expr::ArrayAccess("inClose", idx_expr)` → `Some(idx_expr)`
+fn extract_array_index(expr: &Expr) -> Option<Expr> {
+    if let Expr::ArrayAccess(_, idx) = expr {
+        Some(*idx.clone())
+    } else {
+        None
+    }
+}
+
 /// Render a `FuncCall` expression to C code.
 fn render_func_call(
     fname: &str,
@@ -1254,6 +1371,12 @@ fn render_func_call(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
+    // C candle macros: emit preprocessor macro calls instead of expanded code.
+    // This enables compiler loop-unswitching, matching the reference library.
+    if let Some(macro_call) = try_render_candle_macro(fname, args, single_precision, registry, helpers) {
+        return macro_call;
+    }
+
     // Check if this is a call to a helper function that can be inlined
     if let Some(helper) = helpers.get(fname) {
         if let Some(inlined_expr) = try_inline_expr(helper, args) {

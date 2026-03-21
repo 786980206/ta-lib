@@ -118,6 +118,42 @@ static TA_GlobalsType *TA_Globals = &ta_globals_data;
 #define ARRAY_MEMMOVEMIX(dst, dstIdx, src, srcIdx, count) \
     do { for(int _i=0; _i<(count); _i++) (dst)[(dstIdx)+_i] = (double)(src)[(srcIdx)+_i]; } while(0)
 
+/* Candlestick macros — match reference library ta_utility.h.
+ * These use the input array names (inOpen, inHigh, inLow, inClose)
+ * directly, which is the standard naming across all CDL indicators.
+ * Don't use i++ or func(i) with these macros!
+ */
+#define TA_REALBODY(IDX)        ( fabs( inClose[IDX] - inOpen[IDX] ) )
+#define TA_UPPERSHADOW(IDX)     ( inHigh[IDX] - ( inClose[IDX] >= inOpen[IDX] ? inClose[IDX] : inOpen[IDX] ) )
+#define TA_LOWERSHADOW(IDX)     ( ( inClose[IDX] >= inOpen[IDX] ? inOpen[IDX] : inClose[IDX] ) - inLow[IDX] )
+#define TA_HIGHLOWRANGE(IDX)    ( inHigh[IDX] - inLow[IDX] )
+#define TA_CANDLECOLOR(IDX)     ( inClose[IDX] >= inOpen[IDX] ? 1 : -1 )
+
+#define TA_CANDLERANGE(SET,IDX) \
+    ( TA_Globals->candleSettings[TA_##SET].rangeType == TA_RangeType_RealBody ? TA_REALBODY(IDX) : \
+    ( TA_Globals->candleSettings[TA_##SET].rangeType == TA_RangeType_HighLow  ? TA_HIGHLOWRANGE(IDX) : \
+    ( TA_Globals->candleSettings[TA_##SET].rangeType == TA_RangeType_Shadows  ? TA_UPPERSHADOW(IDX) + TA_LOWERSHADOW(IDX) : \
+      0 ) ) )
+#define TA_CANDLEAVERAGE(SET,SUM,IDX) \
+    ( TA_Globals->candleSettings[TA_##SET].factor \
+        * ( TA_Globals->candleSettings[TA_##SET].avgPeriod != 0 \
+            ? (SUM) / TA_Globals->candleSettings[TA_##SET].avgPeriod \
+            : TA_CANDLERANGE(SET,IDX) ) \
+        / ( TA_Globals->candleSettings[TA_##SET].rangeType == TA_RangeType_Shadows ? 2.0 : 1.0 ) \
+    )
+
+#define TA_REALBODYGAPUP(IDX2,IDX1)     ( fmin(inOpen[IDX2],inClose[IDX2]) > fmax(inOpen[IDX1],inClose[IDX1]) )
+#define TA_REALBODYGAPDOWN(IDX2,IDX1)   ( fmax(inOpen[IDX2],inClose[IDX2]) < fmin(inOpen[IDX1],inClose[IDX1]) )
+#define TA_CANDLEGAPUP(IDX2,IDX1)       ( inLow[IDX2] > inHigh[IDX1] )
+#define TA_CANDLEGAPDOWN(IDX2,IDX1)     ( inHigh[IDX2] < inLow[IDX1] )
+
+#ifndef min
+   #define min(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+#ifndef max
+   #define max(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
+
 /* Moving average types */
 typedef int TA_MAType;
 #define TA_MAType_SMA   0

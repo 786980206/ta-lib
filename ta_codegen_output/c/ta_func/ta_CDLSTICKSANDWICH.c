@@ -94,39 +94,21 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    i = EqualTrailingIdx;
    while( (i<startIdx) )
    {
-      double _candlerange_0;
-      _candlerange_0 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      EqualPeriodTotal += _candlerange_0;
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      double _candleaverage_1;
-      double _candlerange_3;
-      _candlerange_3 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_1 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_3));
-      double divisor_1 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_1 = ((Equal_factor*avg_1)/divisor_1);
-      double _candleaverage_2;
-      double _candlerange_4;
-      _candlerange_4 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_2 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_4));
-      double divisor_2 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_2 = ((Equal_factor*avg_2)/divisor_2);
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+_candleaverage_1)))&&(inClose[i]>=(inClose[(i-2)]-_candleaverage_2))) )
+      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      double _candlerange_5;
-      _candlerange_5 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double _candlerange_6;
-      _candlerange_6 = ((Equal_rangeType==0) ? (fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])) : (((Equal_rangeType==2) ? (((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])-fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)])))) : (0.0))))));
-      EqualPeriodTotal += (_candlerange_5-_candlerange_6);
+      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
       i += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
@@ -172,39 +154,21 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Logic( int    startIdx,
    i = EqualTrailingIdx;
    while( (i<startIdx) )
    {
-      double _candlerange_0;
-      _candlerange_0 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      EqualPeriodTotal += _candlerange_0;
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      double _candleaverage_1;
-      double _candlerange_3;
-      _candlerange_3 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_1 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_3));
-      double divisor_1 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_1 = ((Equal_factor*avg_1)/divisor_1);
-      double _candleaverage_2;
-      double _candlerange_4;
-      _candlerange_4 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_2 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_4));
-      double divisor_2 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_2 = ((Equal_factor*avg_2)/divisor_2);
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+_candleaverage_1)))&&(inClose[i]>=(inClose[(i-2)]-_candleaverage_2))) )
+      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      double _candlerange_5;
-      _candlerange_5 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double _candlerange_6;
-      _candlerange_6 = ((Equal_rangeType==0) ? (fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])) : (((Equal_rangeType==2) ? (((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])-fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)])))) : (0.0))))));
-      EqualPeriodTotal += (_candlerange_5-_candlerange_6);
+      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
       i += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
@@ -268,39 +232,21 @@ TA_RetCode TA_S_CDLSTICKSANDWICH( int    startIdx,
    i = EqualTrailingIdx;
    while( (i<startIdx) )
    {
-      double _candlerange_0;
-      _candlerange_0 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      EqualPeriodTotal += _candlerange_0;
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      double _candleaverage_1;
-      double _candlerange_3;
-      _candlerange_3 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_1 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_3));
-      double divisor_1 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_1 = ((Equal_factor*avg_1)/divisor_1);
-      double _candleaverage_2;
-      double _candlerange_4;
-      _candlerange_4 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_2 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_4));
-      double divisor_2 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_2 = ((Equal_factor*avg_2)/divisor_2);
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+_candleaverage_1)))&&(inClose[i]>=(inClose[(i-2)]-_candleaverage_2))) )
+      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      double _candlerange_5;
-      _candlerange_5 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double _candlerange_6;
-      _candlerange_6 = ((Equal_rangeType==0) ? (fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])) : (((Equal_rangeType==2) ? (((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])-fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)])))) : (0.0))))));
-      EqualPeriodTotal += (_candlerange_5-_candlerange_6);
+      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
       i += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );
@@ -346,39 +292,21 @@ TA_RetCode TA_S_CDLSTICKSANDWICH_Logic( int    startIdx,
    i = EqualTrailingIdx;
    while( (i<startIdx) )
    {
-      double _candlerange_0;
-      _candlerange_0 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      EqualPeriodTotal += _candlerange_0;
+      EqualPeriodTotal += TA_CANDLERANGE(Equal,(i-2));
       i += 1;
    }
    i = startIdx;
    outIdx = 0;
    do
    {
-      double _candleaverage_1;
-      double _candlerange_3;
-      _candlerange_3 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_1 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_3));
-      double divisor_1 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_1 = ((Equal_factor*avg_1)/divisor_1);
-      double _candleaverage_2;
-      double _candlerange_4;
-      _candlerange_4 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double avg_2 = (((Equal_avgPeriod!=0)) ? ((EqualPeriodTotal/Equal_avgPeriod)) : (_candlerange_4));
-      double divisor_2 = (((Equal_rangeType==2)) ? (2.0) : (1.0));
-      _candleaverage_2 = ((Equal_factor*avg_2)/divisor_2);
-      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+_candleaverage_1)))&&(inClose[i]>=(inClose[(i-2)]-_candleaverage_2))) )
+      if( (((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inLow[(i-1)]>inClose[(i-2)]))&&(inClose[i]<=(inClose[(i-2)]+TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2)))))&&(inClose[i]>=(inClose[(i-2)]-TA_CANDLEAVERAGE(Equal,EqualPeriodTotal,(i-2))))) )
       {
          outInteger[outIdx++] = 100;
       } else 
       {
          outInteger[outIdx++] = 0;
       }
-      double _candlerange_5;
-      _candlerange_5 = ((Equal_rangeType==0) ? (fabs((inClose[(i-2)]-inOpen[(i-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(i-2)]-inLow[(i-2)])) : (((Equal_rangeType==2) ? (((inHigh[(i-2)]-inLow[(i-2)])-fabs((inClose[(i-2)]-inOpen[(i-2)])))) : (0.0))))));
-      double _candlerange_6;
-      _candlerange_6 = ((Equal_rangeType==0) ? (fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)]))) : (((Equal_rangeType==1) ? ((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])) : (((Equal_rangeType==2) ? (((inHigh[(EqualTrailingIdx-2)]-inLow[(EqualTrailingIdx-2)])-fabs((inClose[(EqualTrailingIdx-2)]-inOpen[(EqualTrailingIdx-2)])))) : (0.0))))));
-      EqualPeriodTotal += (_candlerange_5-_candlerange_6);
+      EqualPeriodTotal += (TA_CANDLERANGE(Equal,(i-2))-TA_CANDLERANGE(Equal,(EqualTrailingIdx-2)));
       i += 1;
       EqualTrailingIdx += 1;
    } while( (i<=endIdx) );

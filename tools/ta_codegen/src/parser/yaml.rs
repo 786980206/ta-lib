@@ -71,28 +71,6 @@ struct YamlOutput {
     flags: YamlFlags,
 }
 
-/// Convert a YAML value to i32, resolving TA-Lib symbolic constants.
-fn yaml_val_to_i32(v: &serde_yaml::Value) -> i32 {
-    match v {
-        serde_yaml::Value::Number(n) => {
-            #[allow(clippy::cast_possible_truncation)]
-            let result = n.as_i64().unwrap_or({
-                #[allow(clippy::cast_possible_truncation)]
-                let f = n.as_f64().unwrap_or(0.0) as i64;
-                f
-            }) as i32;
-            result
-        }
-        serde_yaml::Value::String(s) => match s.as_str() {
-            "TA_INTEGER_MIN" | "TA_REAL_MIN" => i32::MIN,
-            "TA_INTEGER_MAX" | "TA_REAL_MAX" => i32::MAX,
-            "TA_INTEGER_DEFAULT" => 0,
-            other => panic!("Unknown range constant: {other}"),
-        },
-        other => panic!("Unexpected YAML range value: {other:?}"),
-    }
-}
-
 fn yaml_val_to_f64(v: &serde_yaml::Value) -> f64 {
     match v {
         serde_yaml::Value::Number(n) => n.as_f64().unwrap_or(0.0),

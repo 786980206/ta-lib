@@ -401,19 +401,27 @@ fn replace_returns_with_assign(body: &mut [Statement], temp_name: &str) {
 ///
 /// Inner calls are hoisted first (depth-first), so nested helpers like
 /// `ta_candleaverage` calling `ta_candlerange` work correctly.
+///
+/// Functions listed in `skip_fns` are left as `FuncCall` nodes (not hoisted).
+/// The C backend uses this to emit candle macros instead of expanded code.
 pub fn hoist_block_helpers(
     expr: &Expr,
     helpers: &HelperRegistry,
     hoisted: &mut Vec<(String, VarType, Vec<Statement>)>,
     counter: &mut usize,
+    skip_fns: &[&str],
 ) -> Expr {
     match expr {
         Expr::FuncCall(name, args) => {
             // First recurse into args (inner calls get hoisted first)
             let new_args: Vec<Expr> = args
                 .iter()
-                .map(|a| hoist_block_helpers(a, helpers, hoisted, counter))
+                .map(|a| hoist_block_helpers(a, helpers, hoisted, counter, skip_fns))
                 .collect();
+            // Skip hoisting for specified functions (C backend emits macros)
+            if skip_fns.contains(&name.as_str()) {
+                return Expr::FuncCall(name.clone(), new_args);
+            }
             // Check if this is a multi-statement helper
             if let Some(helper) = helpers.get(name) {
                 if try_inline_expr(helper, &new_args).is_none() {
@@ -430,40 +438,40 @@ pub fn hoist_block_helpers(
             Expr::FuncCall(name.clone(), new_args)
         }
         Expr::BinOp(l, op, r) => Expr::BinOp(
-            Box::new(hoist_block_helpers(l, helpers, hoisted, counter)),
+            Box::new(hoist_block_helpers(l, helpers, hoisted, counter, skip_fns)),
             op.clone(),
-            Box::new(hoist_block_helpers(r, helpers, hoisted, counter)),
+            Box::new(hoist_block_helpers(r, helpers, hoisted, counter, skip_fns)),
         ),
         Expr::Ternary(cond, then_e, else_e) => Expr::Ternary(
-            Box::new(hoist_block_helpers(cond, helpers, hoisted, counter)),
-            Box::new(hoist_block_helpers(then_e, helpers, hoisted, counter)),
-            Box::new(hoist_block_helpers(else_e, helpers, hoisted, counter)),
+            Box::new(hoist_block_helpers(cond, helpers, hoisted, counter, skip_fns)),
+            Box::new(hoist_block_helpers(then_e, helpers, hoisted, counter, skip_fns)),
+            Box::new(hoist_block_helpers(else_e, helpers, hoisted, counter, skip_fns)),
         ),
         Expr::Cast(vt, inner) => Expr::Cast(
             vt.clone(),
-            Box::new(hoist_block_helpers(inner, helpers, hoisted, counter)),
+            Box::new(hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns)),
         ),
         Expr::Not(inner) => {
-            Expr::Not(Box::new(hoist_block_helpers(inner, helpers, hoisted, counter)))
+            Expr::Not(Box::new(hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns)))
         }
         Expr::AddressOf(inner) => Expr::AddressOf(Box::new(hoist_block_helpers(
-            inner, helpers, hoisted, counter,
+            inner, helpers, hoisted, counter, skip_fns,
         ))),
         Expr::PostIncrement(inner) => Expr::PostIncrement(Box::new(
-            hoist_block_helpers(inner, helpers, hoisted, counter),
+            hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns),
         )),
         Expr::PostDecrement(inner) => Expr::PostDecrement(Box::new(
-            hoist_block_helpers(inner, helpers, hoisted, counter),
+            hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns),
         )),
         Expr::PreIncrement(inner) => Expr::PreIncrement(Box::new(
-            hoist_block_helpers(inner, helpers, hoisted, counter),
+            hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns),
         )),
         Expr::PreDecrement(inner) => Expr::PreDecrement(Box::new(
-            hoist_block_helpers(inner, helpers, hoisted, counter),
+            hoist_block_helpers(inner, helpers, hoisted, counter, skip_fns),
         )),
         Expr::ArrayAccess(name, idx) => Expr::ArrayAccess(
             name.clone(),
-            Box::new(hoist_block_helpers(idx, helpers, hoisted, counter)),
+            Box::new(hoist_block_helpers(idx, helpers, hoisted, counter, skip_fns)),
         ),
         Expr::Var(name) => {
             // A bare Var cannot be a helper call; just clone.
@@ -1145,7 +1153,7 @@ mod tests {
             BinOp::Add,
             Box::new(Expr::Var("b".into())),
         );
-        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter, &[]);
         assert!(hoisted.is_empty());
         assert!(matches!(result, Expr::BinOp(..)));
     }
@@ -1176,7 +1184,7 @@ mod tests {
             "ta_add".into(),
             vec![Expr::Literal(1.0), Expr::Literal(2.0)],
         );
-        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter, &[]);
         // Single-return: not hoisted, stays as FuncCall (the caller does try_inline_expr)
         assert!(hoisted.is_empty());
         assert!(matches!(result, Expr::FuncCall(..)));
@@ -1206,7 +1214,7 @@ mod tests {
         let mut hoisted = Vec::new();
         let mut counter = 0_usize;
         let expr = Expr::FuncCall("ta_complex".into(), vec![Expr::Literal(5.0)]);
-        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter);
+        let result = hoist_block_helpers(&expr, &reg, &mut hoisted, &mut counter, &[]);
 
         // Should be hoisted: result replaced with Var(_complex_0)
         assert_eq!(hoisted.len(), 1);
