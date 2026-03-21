@@ -61,14 +61,14 @@ TA_RetCode cdlunique3river(int startIdx, int endIdx, const double inOpen[], cons
     outIdx = 0;
     do
     {
-    if( ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&         // 1st: long
-    ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                                            //      black
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == -1 &&                                                            //      black
     ta_candlecolor(inClose[i-1], inOpen[i-1]) == -1 &&                                                            // 2nd: black
+    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                                               //      white
     inClose[i-1] > inClose[i-2] && inOpen[i-1] <= inOpen[i-2] &&                            //      harami
     inLow[i-1] < inLow[i-2] &&                                                              //      lower low
-    ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&           // 3rd: short
-    ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                                               //      white
-    inOpen[i] > inLow[i-1]                                                                  //      open not lower
+    inOpen[i] > inLow[i-1] &&                                                                //      open not lower
+    ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&         // 1st: long
+    ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])            // 3rd: short
     )
     outInteger[outIdx++] = 100;
     else

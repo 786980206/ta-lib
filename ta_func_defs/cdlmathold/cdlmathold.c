@@ -72,12 +72,7 @@ TA_RetCode cdlmathold(int startIdx, int endIdx, const double inOpen[], const dou
     outIdx = 0;
     do
     {
-    if( // 1st long, then 3 small
-    ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[4], inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&
-    ta_realbody(inClose[i-3], inOpen[i-3]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
-    ta_realbody(inClose[i-2], inOpen[i-2]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
-    ta_realbody(inClose[i-1], inOpen[i-1]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
-    // white, black, 2 black or white, white
+    if( // white, black, 2 black or white, white
     ta_candlecolor(inClose[i-4], inOpen[i-4]) == 1 &&
     ta_candlecolor(inClose[i-3], inOpen[i-3]) == -1 &&
     ta_candlecolor(inClose[i], inOpen[i]) == 1 &&
@@ -95,7 +90,12 @@ TA_RetCode cdlmathold(int startIdx, int endIdx, const double inOpen[], const dou
     // 5th opens above the prior close
     inOpen[i] > inClose[i-1] &&
     // 5th closes above the highest high of the reaction days
-    inClose[i] > max(max(inHigh[i-3], inHigh[i-2]), inHigh[i-1])
+    inClose[i] > max(max(inHigh[i-3], inHigh[i-2]), inHigh[i-1]) &&
+    // 1st long, then 3 small
+    ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[4], inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&
+    ta_realbody(inClose[i-3], inOpen[i-3]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
+    ta_realbody(inClose[i-2], inOpen[i-2]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    ta_realbody(inClose[i-1], inOpen[i-1]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
     )
     outInteger[outIdx++] = 100;
     else

@@ -132,7 +132,7 @@ TA_LIB_API TA_RetCode TA_CDLINVERTEDHAMMER( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))) )
+      if( ((((((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))) )
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -221,7 +221,7 @@ TA_LIB_API TA_RetCode TA_CDLINVERTEDHAMMER_Logic( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))) )
+      if( ((((((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))) )
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -328,7 +328,7 @@ TA_RetCode TA_S_CDLINVERTEDHAMMER( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))) )
+      if( ((((((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))) )
       {
          outInteger[outIdx++] = 100;
       } else 
@@ -417,7 +417,7 @@ TA_RetCode TA_S_CDLINVERTEDHAMMER_Logic( int    startIdx,
    outIdx = 0;
    do
    {
-      if( ((((fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i)))&&(((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))) )
+      if( ((((((fmax(inOpen[i],inClose[i])<fmin(inOpen[(i-1)],inClose[(i-1)]))) ? (1) : (0))&&(fabs((inClose[i]-inOpen[i]))<TA_CANDLEAVERAGE(BodyShort,BodyPeriodTotal,i)))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>TA_CANDLEAVERAGE(ShadowLong,ShadowLongPeriodTotal,i)))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<TA_CANDLEAVERAGE(ShadowVeryShort,ShadowVeryShortPeriodTotal,i))) )
       {
          outInteger[outIdx++] = 100;
       } else 

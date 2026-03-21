@@ -117,7 +117,7 @@ TA_LIB_API TA_RetCode TA_CDL3INSIDE( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((((fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))))&&(fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)])))) )
+      if( (((((fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)]))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1)))) )
       {
          outInteger[outIdx++] = ((0-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))*100);
       } else 
@@ -192,7 +192,7 @@ TA_LIB_API TA_RetCode TA_CDL3INSIDE_Logic( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((((fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))))&&(fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)])))) )
+      if( (((((fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)]))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1)))) )
       {
          outInteger[outIdx++] = ((0-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))*100);
       } else 
@@ -285,7 +285,7 @@ TA_RetCode TA_S_CDL3INSIDE( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((((fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))))&&(fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)])))) )
+      if( (((((fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)]))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1)))) )
       {
          outInteger[outIdx++] = ((0-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))*100);
       } else 
@@ -360,7 +360,7 @@ TA_RetCode TA_S_CDL3INSIDE_Logic( int    startIdx,
    outIdx = 0;
    do
    {
-      if( (((((fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2)))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1))))&&(fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)])))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)])))) )
+      if( (((((fmax(inClose[(i-1)],inOpen[(i-1)])<fmax(inClose[(i-2)],inOpen[(i-2)]))&&(fmin(inClose[(i-1)],inOpen[(i-1)])>fmin(inClose[(i-2)],inOpen[(i-2)])))&&(((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==1)&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==(0-1)))&&(inClose[i]<inOpen[(i-2)]))||((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[i]>inOpen[(i-2)]))))&&(fabs((inClose[(i-2)]-inOpen[(i-2)]))>TA_CANDLEAVERAGE(BodyLong,BodyLongPeriodTotal,(i-2))))&&(fabs((inClose[(i-1)]-inOpen[(i-1)]))<=TA_CANDLEAVERAGE(BodyShort,BodyShortPeriodTotal,(i-1)))) )
       {
          outInteger[outIdx++] = ((0-(((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1))))*100);
       } else 

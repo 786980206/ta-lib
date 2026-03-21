@@ -51,9 +51,9 @@ TA_RetCode cdlspinningtop(int startIdx, int endIdx, const double inOpen[], const
     outIdx = 0;
     do
     {
-    if( ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
-    ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) > ta_realbody(inClose[i], inOpen[i]) &&
-    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) > ta_realbody(inClose[i], inOpen[i])
+    if( ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) > ta_realbody(inClose[i], inOpen[i]) &&
+    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) > ta_realbody(inClose[i], inOpen[i]) &&
+    ta_realbody(inClose[i], inOpen[i]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
     )
     outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 100;
     else

@@ -75,13 +75,13 @@ TA_RetCode cdleveningdojistar(int startIdx, int endIdx, const double inOpen[], c
     outIdx = 0;
     do
     {
-    if( ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&         // 1st: long
-    ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&                                                             //           white
-    ta_realbody(inClose[i-1], inOpen[i-1]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&        // 2nd: doji
-    ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) &&                                                            //           gapping up
-    ta_realbody(inClose[i], inOpen[i]) > ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&           // 3rd: longer than short
+    if( ta_candlecolor(inClose[i-2], inOpen[i-2]) == 1 &&                                                             //           white
     ta_candlecolor(inClose[i], inOpen[i]) == -1 &&                                                              //          black real body
-    inClose[i] < inClose[i-2] - ta_realbody(inClose[i-2], inOpen[i-2]) * optInPenetration                         //               closing well within 1st rb
+    ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2]) &&                                                            //           gapping up
+    inClose[i] < inClose[i-2] - ta_realbody(inClose[i-2], inOpen[i-2]) * optInPenetration &&                         //               closing well within 1st rb
+    ta_realbody(inClose[i-2], inOpen[i-2]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&         // 1st: long
+    ta_realbody(inClose[i-1], inOpen[i-1]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&        // 2nd: doji
+    ta_realbody(inClose[i], inOpen[i]) > ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])            // 3rd: longer than short
     )
     outInteger[outIdx++] = -100;
     else

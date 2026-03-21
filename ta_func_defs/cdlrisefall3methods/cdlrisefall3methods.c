@@ -69,13 +69,7 @@ TA_RetCode cdlrisefall3methods(int startIdx, int endIdx, const double inOpen[], 
 
     do
     {
-    if( // 1st long, then 3 small, 5th long
-    ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[4], inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&
-    ta_realbody(inClose[i-3], inOpen[i-3]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
-    ta_realbody(inClose[i-2], inOpen[i-2]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
-    ta_realbody(inClose[i-1], inOpen[i-1]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
-    ta_realbody(inClose[i], inOpen[i])   > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[0], inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
-    // white, 3 black, white  ||  black, 3 white, black
+    if( // white, 3 black, white  ||  black, 3 white, black
     ta_candlecolor(inClose[i-4], inOpen[i-4]) == -ta_candlecolor(inClose[i-3], inOpen[i-3]) &&
     ta_candlecolor(inClose[i-3], inOpen[i-3]) ==  ta_candlecolor(inClose[i-2], inOpen[i-2]) &&
     ta_candlecolor(inClose[i-2], inOpen[i-2]) ==  ta_candlecolor(inClose[i-1], inOpen[i-1]) &&
@@ -90,7 +84,13 @@ TA_RetCode cdlrisefall3methods(int startIdx, int endIdx, const double inOpen[], 
     // 5th opens above (below) the prior close
     inOpen[i] * ta_candlecolor(inClose[i-4], inOpen[i-4]) > inClose[i-1] * ta_candlecolor(inClose[i-4], inOpen[i-4]) &&
     // 5th closes above (below) the 1st close
-    inClose[i] * ta_candlecolor(inClose[i-4], inOpen[i-4]) > inClose[i-4] * ta_candlecolor(inClose[i-4], inOpen[i-4])
+    inClose[i] * ta_candlecolor(inClose[i-4], inOpen[i-4]) > inClose[i-4] * ta_candlecolor(inClose[i-4], inOpen[i-4]) &&
+    // 1st long, then 3 small, 5th long
+    ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[4], inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&
+    ta_realbody(inClose[i-3], inOpen[i-3]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[3], inOpen[i-3], inHigh[i-3], inLow[i-3], inClose[i-3]) &&
+    ta_realbody(inClose[i-2], inOpen[i-2]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[2], inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) &&
+    ta_realbody(inClose[i-1], inOpen[i-1]) < ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
+    ta_realbody(inClose[i], inOpen[i])   > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal[0], inOpen[i], inHigh[i], inLow[i], inClose[i])
     )
     outInteger[outIdx++] = 100 * ta_candlecolor(inClose[i-4], inOpen[i-4]);
     else

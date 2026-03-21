@@ -56,10 +56,10 @@ TA_RetCode cdlbreakaway(int startIdx, int endIdx, const double inOpen[], const d
     outIdx = 0;
     do
     {
-    if( ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&     // 1st long
-    ta_candlecolor(inClose[i-4], inOpen[i-4]) == ta_candlecolor(inClose[i-3], inOpen[i-3]) &&                   // 1st, 2nd, 4th same color, 5th opposite
+    if( ta_candlecolor(inClose[i-4], inOpen[i-4]) == ta_candlecolor(inClose[i-3], inOpen[i-3]) &&                   // 1st, 2nd, 4th same color, 5th opposite
     ta_candlecolor(inClose[i-3], inOpen[i-3]) == ta_candlecolor(inClose[i-1], inOpen[i-1]) &&
     ta_candlecolor(inClose[i-1], inOpen[i-1]) == -ta_candlecolor(inClose[i], inOpen[i]) &&
+    ta_realbody(inClose[i-4], inOpen[i-4]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-4], inHigh[i-4], inLow[i-4], inClose[i-4]) &&     // 1st long
     (
     ( ta_candlecolor(inClose[i-4], inOpen[i-4]) == -1 &&                                // when 1st is black:
     ta_realbodygapdown(inOpen[i-3], inClose[i-3], inOpen[i-4], inClose[i-4]) &&                              // 2nd gaps down
