@@ -137,7 +137,7 @@
          double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_5));
          double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-         if( (((((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inLow[(i-1)])) ) {
+         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -337,7 +337,7 @@
          double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_5));
          double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-         if( (((((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inLow[(i-1)])) ) {
+         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -543,7 +543,7 @@
          double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_5));
          double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-         if( (((((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inLow[(i-1)])) ) {
+         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -743,7 +743,7 @@
          double avg_3 = (((BodyShort_avgPeriod!=0)) ? ((BodyShortPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_5));
          double divisor_3 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_3 = ((BodyShort_factor*avg_3)/divisor_3);
-         if( (((((((((Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2)&&((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inOpen[i]>inLow[(i-1)])) ) {
+         if( ((((((((((((inClose[(i-2)]>=inOpen[(i-2)])) ? (1) : ((0-1)))==(0-1))&&((((inClose[(i-1)]>=inOpen[(i-1)])) ? (1) : ((0-1)))==(0-1)))&&((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))==1))&&(inClose[(i-1)]>inClose[(i-2)]))&&(inOpen[(i-1)]<=inOpen[(i-2)]))&&(inLow[(i-1)]<inLow[(i-2)]))&&(inOpen[i]>inLow[(i-1)]))&&(Math.abs((inClose[(i-2)]-inOpen[(i-2)]))>_candleaverage_2))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;

@@ -187,7 +187,7 @@
          double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_8));
          double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+         if( ((((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -468,7 +468,7 @@
          double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_8));
          double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+         if( ((((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -755,7 +755,7 @@
          double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_8));
          double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+         if( ((((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;
@@ -1036,7 +1036,7 @@
          double avg_5 = (((ShadowVeryShort_avgPeriod!=0)) ? ((ShadowVeryShortPeriodTotal/ShadowVeryShort_avgPeriod)) : (_candlerange_8));
          double divisor_5 = (((ShadowVeryShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_5 = ((ShadowVeryShort_factor*avg_5)/divisor_5);
-         if( ((((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5))&&(Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))) ) {
+         if( ((((Math.max(inOpen[i], inClose[i])<Math.min(inOpen[(i-1)], inClose[(i-1)]))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_3))&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>_candleaverage_4))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])<_candleaverage_5)) ) {
             outInteger[outIdx++] = 100;
          } else {
             outInteger[outIdx++] = 0;

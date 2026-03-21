@@ -85,7 +85,7 @@
          double avg_1 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_2));
          double divisor_1 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_1 = ((BodyShort_factor*avg_1)/divisor_1);
-         if( (((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i]))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i])))) ) {
+         if( ((((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i])))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i]))))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)) ) {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -202,7 +202,7 @@
          double avg_1 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_2));
          double divisor_1 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_1 = ((BodyShort_factor*avg_1)/divisor_1);
-         if( (((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i]))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i])))) ) {
+         if( ((((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i])))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i]))))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)) ) {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -325,7 +325,7 @@
          double avg_1 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_2));
          double divisor_1 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_1 = ((BodyShort_factor*avg_1)/divisor_1);
-         if( (((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i]))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i])))) ) {
+         if( ((((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i])))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i]))))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)) ) {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
@@ -442,7 +442,7 @@
          double avg_1 = (((BodyShort_avgPeriod!=0)) ? ((BodyPeriodTotal/BodyShort_avgPeriod)) : (_candlerange_2));
          double divisor_1 = (((BodyShort_rangeType==2)) ? (2.0) : (1.0));
          _candleaverage_1 = ((BodyShort_factor*avg_1)/divisor_1);
-         if( (((Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)&&((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i]))))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i])))) ) {
+         if( ((((inHigh[i]-(((inClose[i]>=inOpen[i])) ? (inClose[i]) : (inOpen[i])))>Math.abs((inClose[i]-inOpen[i])))&&(((((inClose[i]>=inOpen[i])) ? (inOpen[i]) : (inClose[i]))-inLow[i])>Math.abs((inClose[i]-inOpen[i]))))&&(Math.abs((inClose[i]-inOpen[i]))<_candleaverage_1)) ) {
             outInteger[outIdx++] = ((((inClose[i]>=inOpen[i])) ? (1) : ((0-1)))*100);
          } else {
             outInteger[outIdx++] = 0;
