@@ -7,6 +7,47 @@ use crate::ir::{BinOp, EnumDef, Expr, FuncDef, LookbackExpr, ParamType, Statemen
 use crate::parser::enums::lookup_variant;
 use crate::registry::{Lang, Registry};
 
+/// Candle helper function names that should be rendered inline (as ternary
+/// expressions) rather than hoisted into switch-block temporaries.  Keeping
+/// them as `FuncCall` nodes lets the `&&`-split optimisation preserve
+/// short-circuit evaluation — hoisted switch blocks would be evaluated
+/// unconditionally before the `if`.
+const JAVA_CANDLE_FNS: &[&str] = &["ta_candlerange", "ta_candleaverage"];
+
+/// Check if an expression directly contains a candle helper function call,
+/// WITHOUT recursing through `&&`/`||` operators.  This ensures we only split
+/// `if(A && B)` when both A and B themselves contain expensive candle calls,
+/// not when they're part of a longer `&&` chain where only some parts are
+/// expensive.
+#[allow(clippy::match_same_arms)] // And/Or arm intentionally stops recursion
+fn expr_directly_contains_candle_call(expr: &Expr) -> bool {
+    match expr {
+        Expr::FuncCall(name, args) => {
+            JAVA_CANDLE_FNS.contains(&name.as_str())
+                || args.iter().any(expr_directly_contains_candle_call)
+        }
+        // Stop at logical operators — those are separate conditions in the chain
+        Expr::BinOp(_, BinOp::And | BinOp::Or, _) => false,
+        Expr::BinOp(l, _, r) => {
+            expr_directly_contains_candle_call(l) || expr_directly_contains_candle_call(r)
+        }
+        Expr::Ternary(c, t, e) => {
+            expr_directly_contains_candle_call(c)
+                || expr_directly_contains_candle_call(t)
+                || expr_directly_contains_candle_call(e)
+        }
+        Expr::Cast(_, inner)
+        | Expr::Not(inner)
+        | Expr::AddressOf(inner)
+        | Expr::PostIncrement(inner)
+        | Expr::PostDecrement(inner)
+        | Expr::PreIncrement(inner)
+        | Expr::PreDecrement(inner) => expr_directly_contains_candle_call(inner),
+        Expr::ArrayAccess(_, idx) => expr_directly_contains_candle_call(idx),
+        Expr::Var(_) | Expr::Literal(_) | Expr::IntLiteral(_) | Expr::PointerDeref(_) => false,
+    }
+}
+
 /// Check if a statement list contains a return with ALLOC_ERR value.
 fn contains_alloc_err_return(stmts: &[Statement]) -> bool {
     stmts.iter().any(|s| matches!(s, Statement::Return { value: Some(Expr::Var(name)) } if name == "ALLOC_ERR"))
@@ -481,7 +522,7 @@ fn gen_func(
             let mut hoisted_vec = Vec::new();
             let mut cnt = inline_counter.get();
             let new_init = hoist_block_helpers(
-                init, helpers, &mut hoisted_vec, &mut cnt, &[],
+                init, helpers, &mut hoisted_vec, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             out.push_str(&render_hoisted_blocks(
@@ -623,7 +664,7 @@ fn render_hoisted_blocks(
                     let mut inner_hoisted = Vec::new();
                     let mut cnt = inline_counter.get();
                     let hoisted_init = hoist_block_helpers(
-                        init_expr, helpers, &mut inner_hoisted, &mut cnt, &[],
+                        init_expr, helpers, &mut inner_hoisted, &mut cnt, JAVA_CANDLE_FNS,
                     );
                     inline_counter.set(cnt);
                     out.push_str(&render_hoisted_blocks(
@@ -710,7 +751,7 @@ pub fn render_statement(
                 let mut hoisted_vec = Vec::new();
                 let mut cnt = inline_counter.get();
                 let new_init = hoist_block_helpers(
-                    init_expr, helpers, &mut hoisted_vec, &mut cnt, &[],
+                    init_expr, helpers, &mut hoisted_vec, &mut cnt, JAVA_CANDLE_FNS,
                 );
                 inline_counter.set(cnt);
                 let mut out = render_hoisted_blocks(
@@ -778,7 +819,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_value = hoist_block_helpers(
-                value, helpers, &mut hoisted, &mut cnt, &[],
+                value, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -843,7 +884,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, &[],
+                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -882,7 +923,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, &[],
+                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = format!("{pad}do {{\n");
@@ -923,11 +964,36 @@ pub fn render_statement(
             if contains_alloc_err_return(then_body) {
                 return String::new();
             }
+            // Split `if(A && B)` into nested `if(A) { if(B)` when both sides
+            // contain a candle helper call (ta_candlerange/ta_candleaverage).
+            // This preserves short-circuit evaluation so the expensive ternary
+            // on the right side is only computed when the left side is true.
+            if let Expr::BinOp(left, BinOp::And, right) = condition {
+                if expr_directly_contains_candle_call(left)
+                    && expr_directly_contains_candle_call(right)
+                {
+                    let inner_if = Statement::If {
+                        condition: *right.clone(),
+                        then_body: then_body.clone(),
+                        else_body: else_body.clone(),
+                    };
+                    let outer_if = Statement::If {
+                        condition: *left.clone(),
+                        then_body: vec![inner_if],
+                        else_body: else_body.clone(),
+                    };
+                    return render_statement(
+                        &outer_if, indent, single_precision, enums, registry,
+                        helpers, inline_counter, address_of_vars,
+                        double_address_of_vars, float_input_params,
+                    );
+                }
+            }
             // Hoist multi-statement helpers from the condition expression
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, &[],
+                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -1051,7 +1117,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_condition = hoist_block_helpers(
-                condition, helpers, &mut hoisted, &mut cnt, &[],
+                condition, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -1150,7 +1216,7 @@ pub fn render_statement(
             let mut hoisted = Vec::new();
             let mut cnt = inline_counter.get();
             let new_expr = hoist_block_helpers(
-                expr, helpers, &mut hoisted, &mut cnt, &[],
+                expr, helpers, &mut hoisted, &mut cnt, JAVA_CANDLE_FNS,
             );
             inline_counter.set(cnt);
             let mut out = render_hoisted_blocks(
@@ -1508,6 +1574,77 @@ fn to_java_method_name(s: &str) -> String {
     result
 }
 
+/// Try to render a candle helper function call as an inline Java ternary chain.
+///
+/// Converts `ta_candlerange(rangeType, open, high, low, close)` into a nested
+/// ternary that mirrors the original switch:
+/// ```text
+/// ((rt==0) ? Math.abs(close-open) : ((rt==1) ? (high-low) : ((rt==2) ? …)))
+/// ```
+///
+/// `ta_candleaverage(rangeType, avgPeriod, factor, sum, open, high, low, close)`
+/// becomes:
+/// ```text
+/// (factor * (((avgPeriod!=0) ? sum/avgPeriod : <candlerange>) / ((rt==2)?2.0:1.0)))
+/// ```
+///
+/// Returns `None` if the function isn't a candle helper or the arg count is wrong.
+#[allow(clippy::too_many_arguments)]
+fn try_render_candle_ternary(
+    fname: &str,
+    args: &[Expr],
+    single_precision: bool,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+    address_of_vars: &HashSet<String>,
+    double_address_of_vars: &HashSet<String>,
+    float_input_params: &HashSet<String>,
+) -> Option<String> {
+    let r = |e: &Expr| {
+        render_expr(
+            e, single_precision, registry, helpers,
+            address_of_vars, double_address_of_vars, float_input_params,
+        )
+    };
+    match fname {
+        "ta_candlerange" if args.len() == 5 => {
+            let rt = r(&args[0]);
+            let open = r(&args[1]);
+            let high = r(&args[2]);
+            let low = r(&args[3]);
+            let close = r(&args[4]);
+            Some(format!(
+                "(({rt} == 0) ? (Math.abs({close} - {open})) \
+                 : (({rt} == 1) ? ({high} - {low}) \
+                 : (({rt} == 2) ? (({high} - {low}) - Math.abs({close} - {open})) \
+                 : 0.0)))"
+            ))
+        }
+        "ta_candleaverage" if args.len() == 8 => {
+            let rt = r(&args[0]);
+            let avg_period = r(&args[1]);
+            let factor = r(&args[2]);
+            let sum = r(&args[3]);
+            // Build the 5-element arg list for the nested ta_candlerange call:
+            // [rangeType, open, high, low, close]
+            let cr_args: Vec<Expr> = std::iter::once(args[0].clone())
+                .chain(args[4..8].iter().cloned())
+                .collect();
+            let candlerange = try_render_candle_ternary(
+                "ta_candlerange", &cr_args,
+                single_precision, registry, helpers,
+                address_of_vars, double_address_of_vars, float_input_params,
+            )?;
+            Some(format!(
+                "(({factor} * ((({avg_period} != 0) \
+                 ? ({sum} / {avg_period}) : {candlerange}) \
+                 / (({rt} == 2) ? 2.0 : 1.0))))"
+            ))
+        }
+        _ => None,
+    }
+}
+
 /// Render a `FuncCall` expression to Java code.
 #[allow(clippy::too_many_lines)]
 fn render_func_call(
@@ -1528,6 +1665,16 @@ fn render_func_call(
             );
         }
         // Multi-statement helpers: Task 10 will handle
+    }
+
+    // Candle helpers: render inline as Java ternary chains instead of
+    // hoisted switch blocks.  This keeps them inside the expression so
+    // the && split can preserve short-circuit evaluation.
+    if let Some(ternary) = try_render_candle_ternary(
+        fname, args, single_precision, registry, helpers,
+        address_of_vars, double_address_of_vars, float_input_params,
+    ) {
+        return ternary;
     }
 
     if fname == "UNSTABLE_PERIOD" {
