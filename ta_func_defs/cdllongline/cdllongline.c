@@ -18,8 +18,9 @@ TA_RetCode cdllongline(int startIdx, int endIdx, const double inOpen[], const do
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -60,10 +61,12 @@ TA_RetCode cdllongline(int startIdx, int endIdx, const double inOpen[], const do
     {
     if( ta_realbody(inClose[i], inOpen[i]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
     ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowShort_rangeType, ShadowShort_avgPeriod, ShadowShort_factor, ShadowPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
-    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowShort_rangeType, ShadowShort_avgPeriod, ShadowShort_factor, ShadowPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) )
+    ta_lowershadow(inLow[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowShort_rangeType, ShadowShort_avgPeriod, ShadowShort_factor, ShadowPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) ) {
     outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

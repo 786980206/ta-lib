@@ -20,8 +20,9 @@ TA_RetCode cdltakuri(int startIdx, int endIdx, const double inOpen[], const doub
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -73,10 +74,12 @@ TA_RetCode cdltakuri(int startIdx, int endIdx, const double inOpen[], const doub
     if( ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
     ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&
     ta_lowershadow(inLow[i], inClose[i], inOpen[i]) > ta_candleaverage(ShadowVeryLong_rangeType, ShadowVeryLong_avgPeriod, ShadowVeryLong_factor, ShadowVeryLongPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i])
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

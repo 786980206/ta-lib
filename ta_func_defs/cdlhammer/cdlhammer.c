@@ -21,8 +21,9 @@ TA_RetCode cdlhammer(int startIdx, int endIdx, const double inOpen[], const doub
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -82,10 +83,12 @@ TA_RetCode cdlhammer(int startIdx, int endIdx, const double inOpen[], const doub
     ta_lowershadow(inLow[i], inClose[i], inOpen[i]) > ta_candleaverage(ShadowLong_rangeType, ShadowLong_avgPeriod, ShadowLong_factor, ShadowLongPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&              // long lower shadow
     ta_uppershadow(inHigh[i], inClose[i], inOpen[i]) < ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&    // very short upper shadow
     min( inClose[i], inOpen[i] ) <= inLow[i-1] + ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])  // rb near the prior candle's lows
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

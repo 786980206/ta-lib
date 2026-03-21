@@ -17,8 +17,9 @@ TA_RetCode cdl3outside(int startIdx, int endIdx, const double inOpen[], const do
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -57,8 +58,9 @@ TA_RetCode cdl3outside(int startIdx, int endIdx, const double inOpen[], const do
     {
     outInteger[outIdx++] = ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
     }
-    else
+    else {
     outInteger[outIdx++] = 0;
+    }
     i++;
     } while( i <= endIdx );
 

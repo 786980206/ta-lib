@@ -18,8 +18,9 @@ TA_RetCode cdlladderbottom(int startIdx, int endIdx, const double inOpen[], cons
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -63,10 +64,12 @@ TA_RetCode cdlladderbottom(int startIdx, int endIdx, const double inOpen[], cons
     ta_candlecolor(inClose[i], inOpen[i]) == 1 &&                                           // 5th: white
     inOpen[i] > inOpen[i-1] &&                                          // that opens above prior candle's body
     inClose[i] > inHigh[i-1]                                            // and closes above prior candle's high
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)

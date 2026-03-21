@@ -18,8 +18,9 @@ TA_RetCode cdltasukigap(int startIdx, int endIdx, const double inOpen[], const d
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -77,10 +78,12 @@ TA_RetCode cdltasukigap(int startIdx, int endIdx, const double inOpen[], const d
     // size of 2 rb near the same
     fabs(ta_realbody(inClose[i-1], inOpen[i-1]) - ta_realbody(inClose[i], inOpen[i])) < ta_candleaverage(Near_rangeType, Near_avgPeriod, Near_factor, NearPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
     )
-    )
+    ) {
     outInteger[outIdx++] = ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

@@ -20,8 +20,9 @@ TA_RetCode cdlidentical3crows(int startIdx, int endIdx, const double inOpen[], c
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -88,10 +89,12 @@ TA_RetCode cdlidentical3crows(int startIdx, int endIdx, const double inOpen[], c
     // 3rd black opens very close to 2nd close
     inOpen[i] <= inClose[i-1] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
     inOpen[i] >= inClose[i-1] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1])
-    )
+    ) {
     outInteger[outIdx++] = -100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)

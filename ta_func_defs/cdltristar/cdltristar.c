@@ -18,8 +18,9 @@ TA_RetCode cdltristar(int startIdx, int endIdx, const double inOpen[], const dou
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -58,17 +59,20 @@ TA_RetCode cdltristar(int startIdx, int endIdx, const double inOpen[], const dou
     if ( ta_realbodygapup(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2])                                                  // 2nd gaps up
     &&
     max(inOpen[i],inClose[i]) < max(inOpen[i-1],inClose[i-1])                  // 3rd is not higher than 2nd
-    )
+    ) {
     outInteger[outIdx] = -100;
+    }
     if ( ta_realbodygapdown(inOpen[i-1], inClose[i-1], inOpen[i-2], inClose[i-2])                                                // 2nd gaps down
     &&
     min(inOpen[i],inClose[i]) > min(inOpen[i-1],inClose[i-1])                  // 3rd is not lower than 2nd
-    )
+    ) {
     outInteger[outIdx] = +100;
+    }
     outIdx++;
     }
-    else
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

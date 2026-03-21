@@ -18,8 +18,9 @@ TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], con
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -60,10 +61,12 @@ TA_RetCode cdlsticksandwich(int startIdx, int endIdx, const double inOpen[], con
     inLow[i-1] > inClose[i-2] &&                                                        // 2nd low > prior close
     inClose[i] <= inClose[i-2] + ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) && // 1st and 3rd same close
     inClose[i] >= inClose[i-2] - ta_candleaverage(Equal_rangeType, Equal_avgPeriod, Equal_factor, EqualPeriodTotal, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2])
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
     */

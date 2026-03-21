@@ -18,8 +18,9 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -67,8 +68,9 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     ||
     ( patternResult < 0 && inClose[i] < inLow[patternIdx-1] )     // close lower than the low of 3rd
     )
-    )
+    ) {
     patternIdx = 0;
+    }
     NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-2], inHigh[NearTrailingIdx-2], inLow[NearTrailingIdx-2], inClose[NearTrailingIdx-2]);
     NearTrailingIdx++;
     i++;
@@ -121,8 +123,9 @@ TA_RetCode cdlhikkakemod(int startIdx, int endIdx, const double inOpen[], const 
     ) {
     outInteger[outIdx++] = patternResult + 100 * ( patternResult > 0 ? 1 : -1 );
     patternIdx = 0;
-    } else
+    } else {
     outInteger[outIdx++] = 0;
+    }
     NearPeriodTotal += ta_candlerange(Near_rangeType, inOpen[i-2], inHigh[i-2], inLow[i-2], inClose[i-2]) - ta_candlerange(Near_rangeType, inOpen[NearTrailingIdx-2], inHigh[NearTrailingIdx-2], inLow[NearTrailingIdx-2], inClose[NearTrailingIdx-2]);
     NearTrailingIdx++;
     i++;

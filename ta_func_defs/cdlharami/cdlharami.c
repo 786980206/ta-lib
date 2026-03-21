@@ -18,8 +18,9 @@ TA_RetCode cdlharami(int startIdx, int endIdx, const double inOpen[], const doub
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )

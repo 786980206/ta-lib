@@ -22,8 +22,9 @@ TA_RetCode cdlabandonedbaby(int startIdx, int endIdx, const double inOpen[], con
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )

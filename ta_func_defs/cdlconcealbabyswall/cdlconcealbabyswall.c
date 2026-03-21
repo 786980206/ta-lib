@@ -18,8 +18,9 @@ TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], 
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -75,10 +76,12 @@ TA_RetCode cdlconcealbabyswall(int startIdx, int endIdx, const double inOpen[], 
     ta_uppershadow(inHigh[i-1], inClose[i-1], inOpen[i-1]) > ta_candleaverage(ShadowVeryShort_rangeType, ShadowVeryShort_avgPeriod, ShadowVeryShort_factor, ShadowVeryShortPeriodTotal[1], inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) &&
     inHigh[i-1] > inClose[i-2] &&                                   //      that extends into the prior body
     inHigh[i] > inHigh[i-1] && inLow[i] < inLow[i-1]                // 4th: engulfs the 3rd including the shadows
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)

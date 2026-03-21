@@ -17,8 +17,9 @@ TA_RetCode cdlhikkake(int startIdx, int endIdx, const double inOpen[], const dou
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -51,8 +52,9 @@ TA_RetCode cdlhikkake(int startIdx, int endIdx, const double inOpen[], const dou
     ||
     ( patternResult < 0 && inClose[i] < inLow[patternIdx-1] )     // close lower than the low of 2nd
     )
-    )
+    ) {
     patternIdx = 0;
+    }
     i++;
     }
 
@@ -91,8 +93,9 @@ TA_RetCode cdlhikkake(int startIdx, int endIdx, const double inOpen[], const dou
     ) {
     outInteger[outIdx++] = patternResult + 100 * ( patternResult > 0 ? 1 : -1 );
     patternIdx = 0;
-    } else
+    } else {
     outInteger[outIdx++] = 0;
+    }
     i++;
     } while( i <= endIdx );
 

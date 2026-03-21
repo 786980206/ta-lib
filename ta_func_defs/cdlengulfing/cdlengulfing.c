@@ -17,8 +17,9 @@ TA_RetCode cdlengulfing(int startIdx, int endIdx, const double inOpen[], const d
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -57,13 +58,17 @@ TA_RetCode cdlengulfing(int startIdx, int endIdx, const double inOpen[], const d
     ( inOpen[i] > inClose[i-1] && inClose[i] <= inOpen[i-1] )
     )
     )
-    )
-    if( inOpen[i] != inClose[i-1] && inClose[i] != inOpen[i-1] )
+    ) {
+    if( inOpen[i] != inClose[i-1] && inClose[i] != inOpen[i-1] ) {
     outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = ta_candlecolor(inClose[i], inOpen[i]) * 80;
-    else
+    }
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
     i++;
     } while( i <= endIdx );
 

@@ -18,8 +18,9 @@ TA_RetCode cdlhomingpigeon(int startIdx, int endIdx, const double inOpen[], cons
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -66,10 +67,12 @@ TA_RetCode cdlhomingpigeon(int startIdx, int endIdx, const double inOpen[], cons
     ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyShort_rangeType, BodyShort_avgPeriod, BodyShort_factor, BodyShortPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) &&          // 2nd short
     inOpen[i] < inOpen[i-1] &&                                                              // 2nd engulfed by 1st
     inClose[i] > inClose[i-1]
-    )
+    ) {
     outInteger[outIdx++] = 100;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)

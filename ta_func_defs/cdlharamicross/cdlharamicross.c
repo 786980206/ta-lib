@@ -18,8 +18,9 @@ TA_RetCode cdlharamicross(int startIdx, int endIdx, const double inOpen[], const
     /* Move up the start index if there is not
     * enough initial data.
     */
-    if( startIdx < lookbackTotal )
+    if( startIdx < lookbackTotal ) {
     startIdx = lookbackTotal;
+    }
 
     /* Make sure there is still something to evaluate. */
     if( startIdx > endIdx )
@@ -60,23 +61,30 @@ TA_RetCode cdlharamicross(int startIdx, int endIdx, const double inOpen[], const
     outIdx = 0;
     do
     {
-    if( ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) )         // 1st: long
-    if( ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) )             // 2nd: doji
+    if( ta_realbody(inClose[i-1], inOpen[i-1]) > ta_candleaverage(BodyLong_rangeType, BodyLong_avgPeriod, BodyLong_factor, BodyLongPeriodTotal, inOpen[i-1], inHigh[i-1], inLow[i-1], inClose[i-1]) ) {  // 1st: long
+    if( ta_realbody(inClose[i], inOpen[i]) <= ta_candleaverage(BodyDoji_rangeType, BodyDoji_avgPeriod, BodyDoji_factor, BodyDojiPeriodTotal, inOpen[i], inHigh[i], inLow[i], inClose[i]) ) {  // 2nd: doji
     if ( max( inClose[i], inOpen[i] ) < max( inClose[i-1], inOpen[i-1] ) &&              // 2nd is engulfed by 1st
     min( inClose[i], inOpen[i] ) > min( inClose[i-1], inOpen[i-1] )
-    )
+    ) {
     outInteger[outIdx++] = -ta_candlecolor(inClose[i-1], inOpen[i-1]) * 100;
+    }
     else
     if ( max( inClose[i], inOpen[i] ) <= max( inClose[i-1], inOpen[i-1] ) &&         // 2nd is engulfed by 1st
     min( inClose[i], inOpen[i] ) >= min( inClose[i-1], inOpen[i-1] )            // (one end of real body can match;
-    )                                                                             // engulfing guaranteed by "long" and "doji")
+    ) {  // engulfing guaranteed by "long" and "doji")
     outInteger[outIdx++] = -ta_candlecolor(inClose[i-1], inOpen[i-1]) * 80;
-    else
+    }
+    else {
     outInteger[outIdx++] = 0;
-    else
+    }
+    }
+    else {
     outInteger[outIdx++] = 0;
-    else
+    }
+    }
+    else {
     outInteger[outIdx++] = 0;
+    }
 
     /* add the current range and subtract the first range: this is done after the pattern recognition
     * when avgPeriod is not 0, that means "compare with the previous candles" (it excludes the current candle)
