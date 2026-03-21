@@ -24,7 +24,7 @@
 
 #define MAX_POINTS     200000
 #define DEFAULT_POINTS 100000
-#define DEFAULT_ITERS  100
+#define DEFAULT_ITERS  200
 #define MAX_FUNCTIONS  200
 #define BENCH_PASSES   3
 

@@ -601,6 +601,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
                 && name.ends_with(".c")
                 && name != "ta_codegen_serve.c"
                 && name != "ta_codegen_funcs.c"
+                && name != "ta_bench_cg.c"
             {
                 c_names.push(name);
             }
