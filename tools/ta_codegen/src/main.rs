@@ -45,6 +45,10 @@ fn main() {
             let backend_filter = find_arg(&args, "--backend");
             generate_servers(func_filter.as_deref(), backend_filter.as_deref());
         }
+        "generate-bench" => {
+            let backend_filter = find_arg(&args, "--backend");
+            generate_bench(backend_filter.as_deref());
+        }
         "build" => {
             let backend_filter = find_arg(&args, "--backend");
             build_servers(backend_filter.as_deref());
@@ -379,6 +383,27 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
     );
 }
 
+fn generate_bench(backend_filter: Option<&str>) {
+    let root = repo_root();
+    let funcs = load_func_defs(None, &root);
+    if funcs.is_empty() {
+        eprintln!("No function definitions found");
+        std::process::exit(1);
+    }
+    let backends: Vec<&str> = match backend_filter {
+        Some(b) => b.split(',').map(|s| s.trim()).collect(),
+        None => vec!["c"],
+    };
+    let out_base = root.join("ta_codegen_output");
+    for backend in &backends {
+        if *backend == "c" {
+            let dir = out_base.join("c");
+            std::fs::create_dir_all(&dir).unwrap();
+            ta_codegen_lib::bench_gen::write_c_bench(&funcs, &dir);
+        }
+    }
+}
+
 fn build_servers(backend_filter: Option<&str>) {
     let root = repo_root();
     let backends_to_build: Vec<&str> = match backend_filter {
@@ -415,6 +440,28 @@ fn build_servers(backend_filter: Option<&str>) {
                     Ok(s) if s.success() => println!("OK"),
                     Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
                     Err(e) => println!("FAILED (gcc not found: {})", e),
+                }
+                // Also build direct-call benchmark binary if source exists
+                let bench_src = out_base.join("c/ta_bench_cg.c");
+                if bench_src.exists() {
+                    print!("  Building C bench... ");
+                    let bench_dst = bin_dir.join("ta_bench_cg");
+                    match std::process::Command::new("gcc")
+                        .args([
+                            "-o",
+                            bench_dst.to_str().unwrap(),
+                            bench_src.to_str().unwrap(),
+                            "-lm",
+                            "-O3",
+                            "-DNDEBUG",
+                            "-Wno-parentheses-equality",
+                        ])
+                        .status()
+                    {
+                        Ok(s) if s.success() => println!("OK"),
+                        Ok(s) => println!("FAILED (exit {})", s.code().unwrap_or(-1)),
+                        Err(e) => println!("FAILED (gcc not found: {})", e),
+                    }
                 }
             }
             "java" => {

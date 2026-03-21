@@ -70,7 +70,7 @@ fn output_json_key(outputs: &[Output], idx: usize) -> String {
 /// - `ParamType::Price(components)` → one name per component, capitalised:
 ///   `["high", "low", "close"]` → `["inHigh", "inLow", "inClose"]`
 /// - All other types (Integer, Enum) are skipped.
-fn expand_input_names(inputs: &[Input]) -> Vec<String> {
+pub(crate) fn expand_input_names(inputs: &[Input]) -> Vec<String> {
     // Count Real inputs that are NOT price-expanded (inHigh, inLow, inClose, etc.)
     // Price-expanded inputs keep their original names; only generic "inReal"/"inPeriods"
     // style inputs get renamed to inReal0/inReal1 for multi-input functions.

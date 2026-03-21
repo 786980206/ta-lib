@@ -577,6 +577,26 @@ if(BUILD_DEV_TOOLS)
 	)
 	target_compile_options(ta_bench PRIVATE -O3)
 
+	#####################
+	# ta_bench_direct #
+	#####################
+	add_executable(ta_bench_direct
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/tools/ta_bench/ta_bench_direct.c"
+	)
+	target_include_directories(ta_bench_direct PRIVATE
+		"${CMAKE_CURRENT_SOURCE_DIR}/include"
+		"${CMAKE_CURRENT_SOURCE_DIR}/src/ta_common"
+	)
+	if(WIN32)
+		target_link_libraries(ta_bench_direct PRIVATE ta-lib-static)
+	else()
+		target_link_libraries(ta_bench_direct PRIVATE ta-lib-static m)
+	endif()
+	set_target_properties(ta_bench_direct PROPERTIES
+		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
+	)
+	target_compile_options(ta_bench_direct PRIVATE -O3)
+
 	# Add a custom target to ensure ta_regtest is copied to ta-lib/bin directory
 	add_custom_target(ensure_ta_regtest_in_bin ALL
 		COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/bin"
