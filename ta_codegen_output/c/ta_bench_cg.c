@@ -2689,7 +2689,7 @@ static void bench_all(const char *filter, int iters) {
 
 int main(int argc, char *argv[]) {
     int n_points = 100000;
-    int n_iters = 100;
+    int n_iters = 200;
     const char *func_filter = NULL;
     for( int i = 1; i < argc; i++ ) {
         if( strncmp(argv[i], "--points=", 9) == 0 )    n_points = atoi(argv[i]+9);

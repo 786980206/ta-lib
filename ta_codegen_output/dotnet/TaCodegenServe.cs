@@ -18,7 +18,9 @@ public class TaCodegenServe {
     static int refN = 0;
 
     static long GetNanoTime() {
-        return Stopwatch.GetTimestamp() * 1000000000L / Stopwatch.Frequency;
+        long ts = Stopwatch.GetTimestamp();
+        long freq = Stopwatch.Frequency;
+        return (ts / freq) * 1000000000L + (ts % freq) * 1000000000L / freq;
     }
 
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SetUnstablePeriod")]
