@@ -163,15 +163,15 @@ TA_LIB_API TA_RetCode TA_WILLR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_WILLR_Logic( int    startIdx,
-                                      int    endIdx,
-                                      const double inHigh[],
-                                      const double inLow[],
-                                      const double inClose[],
-                                      int optInTimePeriod,
-                                      int          *outBegIdx,
-                                      int          *outNBElement,
-                                      double        outReal[] )
+TA_LIB_API TA_RetCode TA_WILLR_Unguarded( int    startIdx,
+                                          int    endIdx,
+                                          const double inHigh[],
+                                          const double inLow[],
+                                          const double inClose[],
+                                          int optInTimePeriod,
+                                          int          *outBegIdx,
+                                          int          *outNBElement,
+                                          double        outReal[] )
 {
    double lowest;
    double highest;
@@ -268,7 +268,7 @@ TA_LIB_API TA_RetCode TA_WILLR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_WILLR TA_WILLR_Logic
+#define TA_INT_WILLR TA_WILLR_Unguarded
 
 TA_RetCode TA_S_WILLR( int    startIdx,
                        int    endIdx,
@@ -393,15 +393,15 @@ TA_RetCode TA_S_WILLR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_WILLR_Logic( int    startIdx,
-                             int    endIdx,
-                             const float inHigh[],
-                             const float inLow[],
-                             const float inClose[],
-                             int optInTimePeriod,
-                             int          *outBegIdx,
-                             int          *outNBElement,
-                             double        outReal[] )
+TA_RetCode TA_S_WILLR_Unguarded( int    startIdx,
+                                 int    endIdx,
+                                 const float inHigh[],
+                                 const float inLow[],
+                                 const float inClose[],
+                                 int optInTimePeriod,
+                                 int          *outBegIdx,
+                                 int          *outNBElement,
+                                 double        outReal[] )
 {
    double lowest;
    double highest;

@@ -173,15 +173,15 @@ TA_LIB_API TA_RetCode TA_CDLHAMMER( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLHAMMER_Logic( int    startIdx,
-                                          int    endIdx,
-                                          const double inOpen[],
-                                          const double inHigh[],
-                                          const double inLow[],
-                                          const double inClose[],
-                                          int          *outBegIdx,
-                                          int          *outNBElement,
-                                          int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLHAMMER_Unguarded( int    startIdx,
+                                              int    endIdx,
+                                              const double inOpen[],
+                                              const double inHigh[],
+                                              const double inLow[],
+                                              const double inClose[],
+                                              int          *outBegIdx,
+                                              int          *outNBElement,
+                                              int        outInteger[] )
 {
    double BodyPeriodTotal;
    double ShadowLongPeriodTotal;
@@ -278,7 +278,7 @@ TA_LIB_API TA_RetCode TA_CDLHAMMER_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHAMMER TA_CDLHAMMER_Logic
+#define TA_INT_CDLHAMMER TA_CDLHAMMER_Unguarded
 
 TA_RetCode TA_S_CDLHAMMER( int    startIdx,
                            int    endIdx,
@@ -401,15 +401,15 @@ TA_RetCode TA_S_CDLHAMMER( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLHAMMER_Logic( int    startIdx,
-                                 int    endIdx,
-                                 const float inOpen[],
-                                 const float inHigh[],
-                                 const float inLow[],
-                                 const float inClose[],
-                                 int          *outBegIdx,
-                                 int          *outNBElement,
-                                 int        outInteger[] )
+TA_RetCode TA_S_CDLHAMMER_Unguarded( int    startIdx,
+                                     int    endIdx,
+                                     const float inOpen[],
+                                     const float inHigh[],
+                                     const float inLow[],
+                                     const float inClose[],
+                                     int          *outBegIdx,
+                                     int          *outNBElement,
+                                     int        outInteger[] )
 {
    double BodyPeriodTotal;
    double ShadowLongPeriodTotal;

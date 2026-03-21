@@ -204,17 +204,17 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MACD_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inReal[],
-                                     int optInFastPeriod,
-                                     int optInSlowPeriod,
-                                     int optInSignalPeriod,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outMACD[],
-                                     double        outMACDSignal[],
-                                     double        outMACDHist[] )
+TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inReal[],
+                                         int optInFastPeriod,
+                                         int optInSlowPeriod,
+                                         int optInSignalPeriod,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outMACD[],
+                                         double        outMACDSignal[],
+                                         double        outMACDHist[] )
 {
    double *slowEMABuffer;
    double *fastEMABuffer;
@@ -335,7 +335,7 @@ TA_LIB_API TA_RetCode TA_MACD_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MACD TA_MACD_Logic
+#define TA_INT_MACD TA_MACD_Unguarded
 
 TA_RetCode TA_S_MACD( int    startIdx,
                       int    endIdx,
@@ -494,17 +494,17 @@ TA_RetCode TA_S_MACD( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MACD_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inReal[],
-                            int optInFastPeriod,
-                            int optInSlowPeriod,
-                            int optInSignalPeriod,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outMACD[],
-                            double        outMACDSignal[],
-                            double        outMACDHist[] )
+TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inReal[],
+                                int optInFastPeriod,
+                                int optInSlowPeriod,
+                                int optInSignalPeriod,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outMACD[],
+                                double        outMACDSignal[],
+                                double        outMACDHist[] )
 {
    double *slowEMABuffer;
    double *fastEMABuffer;

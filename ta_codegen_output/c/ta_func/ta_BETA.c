@@ -198,14 +198,14 @@ TA_LIB_API TA_RetCode TA_BETA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_BETA_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inReal0[],
-                                     const double inReal1[],
-                                     int optInTimePeriod,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_BETA_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inReal0[],
+                                         const double inReal1[],
+                                         int optInTimePeriod,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outReal[] )
 {
    double S_xx;
    double S_xy;
@@ -340,7 +340,7 @@ TA_LIB_API TA_RetCode TA_BETA_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_BETA TA_BETA_Logic
+#define TA_INT_BETA TA_BETA_Unguarded
 
 TA_RetCode TA_S_BETA( int    startIdx,
                       int    endIdx,
@@ -500,14 +500,14 @@ TA_RetCode TA_S_BETA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_BETA_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inReal0[],
-                            const float inReal1[],
-                            int optInTimePeriod,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outReal[] )
+TA_RetCode TA_S_BETA_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inReal0[],
+                                const float inReal1[],
+                                int optInTimePeriod,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outReal[] )
 {
    double S_xx;
    double S_xy;

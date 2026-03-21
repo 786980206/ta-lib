@@ -190,14 +190,14 @@ TA_LIB_API TA_RetCode TA_MINUS_DM( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MINUS_DM_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const double inHigh[],
-                                         const double inLow[],
-                                         int optInTimePeriod,
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         double        outReal[] )
+TA_LIB_API TA_RetCode TA_MINUS_DM_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const double inHigh[],
+                                             const double inLow[],
+                                             int optInTimePeriod,
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             double        outReal[] )
 {
    int today;
    int lookbackTotal;
@@ -318,7 +318,7 @@ TA_LIB_API TA_RetCode TA_MINUS_DM_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINUS_DM TA_MINUS_DM_Logic
+#define TA_INT_MINUS_DM TA_MINUS_DM_Unguarded
 
 TA_RetCode TA_S_MINUS_DM( int    startIdx,
                           int    endIdx,
@@ -464,14 +464,14 @@ TA_RetCode TA_S_MINUS_DM( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MINUS_DM_Logic( int    startIdx,
-                                int    endIdx,
-                                const float inHigh[],
-                                const float inLow[],
-                                int optInTimePeriod,
-                                int          *outBegIdx,
-                                int          *outNBElement,
-                                double        outReal[] )
+TA_RetCode TA_S_MINUS_DM_Unguarded( int    startIdx,
+                                    int    endIdx,
+                                    const float inHigh[],
+                                    const float inLow[],
+                                    int optInTimePeriod,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outReal[] )
 {
    int today;
    int lookbackTotal;

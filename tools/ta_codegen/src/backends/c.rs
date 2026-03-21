@@ -28,7 +28,7 @@ pub fn generate(
     if func.has_explicit_unguarded {
         out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
         out.push_str(&format!(
-            "#define TA_INT_{} TA_{}_Logic\n\n",
+            "#define TA_INT_{} TA_{}_Unguarded\n\n",
             func.name, func.name
         ));
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
@@ -38,7 +38,7 @@ pub fn generate(
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
         out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
         out.push_str(&format!(
-            "#define TA_INT_{} TA_{}_Logic\n\n",
+            "#define TA_INT_{} TA_{}_Unguarded\n\n",
             func.name, func.name
         ));
         out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
@@ -153,9 +153,9 @@ fn gen_func(
 
     let prefix = match (single_precision, logic) {
         (false, false) => format!("TA_{}", func.name),
-        (false, true) => format!("TA_{}_Logic", func.name),
+        (false, true) => format!("TA_{}_Unguarded", func.name),
         (true, false) => format!("TA_S_{}", func.name),
-        (true, true) => format!("TA_S_{}_Logic", func.name),
+        (true, true) => format!("TA_S_{}_Unguarded", func.name),
     };
 
     let ret_type = if single_precision {
@@ -1675,11 +1675,11 @@ mod tests {
 
         assert!(output.contains("TA_SMA_Lookback"), "Missing lookback");
         assert!(output.contains("TA_SMA("), "Missing guarded function");
-        assert!(output.contains("TA_SMA_Logic("), "Missing logic function");
+        assert!(output.contains("TA_SMA_Unguarded("), "Missing logic function");
         assert!(output.contains("TA_INT_SMA"), "Missing INT alias");
         assert!(output.contains("TA_S_SMA("), "Missing single-precision");
         assert!(
-            output.contains("TA_S_SMA_Logic("),
+            output.contains("TA_S_SMA_Unguarded("),
             "Missing single-precision logic"
         );
     }
@@ -1692,7 +1692,7 @@ mod tests {
 
         // Find the Logic function and verify it doesn't have range checks
         let logic_start = output
-            .find("TA_SMA_Logic(")
+            .find("TA_SMA_Unguarded(")
             .expect("Missing logic function");
         let guarded_start = output
             .find("TA_LIB_API TA_RetCode TA_SMA(")
@@ -1734,7 +1734,7 @@ mod tests {
         let output = generate(&func, &enums, &registry, &HelperRegistry::empty());
 
         assert!(
-            output.contains("#define TA_INT_SMA TA_SMA_Logic"),
+            output.contains("#define TA_INT_SMA TA_SMA_Unguarded"),
             "Missing INT alias define"
         );
     }

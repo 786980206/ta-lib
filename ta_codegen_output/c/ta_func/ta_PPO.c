@@ -120,15 +120,15 @@ TA_LIB_API TA_RetCode TA_PPO( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_PPO_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int optInFastPeriod,
-                                    int optInSlowPeriod,
-                                    TA_MAType optInMAType,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_PPO_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInFastPeriod,
+                                        int optInSlowPeriod,
+                                        TA_MAType optInMAType,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    double *tempBuffer;
    TA_RetCode retCode;
@@ -180,7 +180,7 @@ TA_LIB_API TA_RetCode TA_PPO_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_PPO TA_PPO_Logic
+#define TA_INT_PPO TA_PPO_Unguarded
 
 TA_RetCode TA_S_PPO( int    startIdx,
                      int    endIdx,
@@ -262,15 +262,15 @@ TA_RetCode TA_S_PPO( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_PPO_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int optInFastPeriod,
-                           int optInSlowPeriod,
-                           TA_MAType optInMAType,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_PPO_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInFastPeriod,
+                               int optInSlowPeriod,
+                               TA_MAType optInMAType,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    double *tempBuffer;
    TA_RetCode retCode;

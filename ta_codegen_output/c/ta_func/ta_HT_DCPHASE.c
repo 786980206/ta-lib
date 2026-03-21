@@ -411,12 +411,12 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_HT_DCPHASE_Logic( int    startIdx,
-                                           int    endIdx,
-                                           const double inReal[],
-                                           int          *outBegIdx,
-                                           int          *outNBElement,
-                                           double        outReal[] )
+TA_LIB_API TA_RetCode TA_HT_DCPHASE_Unguarded( int    startIdx,
+                                               int    endIdx,
+                                               const double inReal[],
+                                               int          *outBegIdx,
+                                               int          *outNBElement,
+                                               double        outReal[] )
 {
    int outIdx;
    int i;
@@ -772,7 +772,7 @@ TA_LIB_API TA_RetCode TA_HT_DCPHASE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_DCPHASE TA_HT_DCPHASE_Logic
+#define TA_INT_HT_DCPHASE TA_HT_DCPHASE_Unguarded
 
 TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
                             int    endIdx,
@@ -1145,12 +1145,12 @@ TA_RetCode TA_S_HT_DCPHASE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_HT_DCPHASE_Logic( int    startIdx,
-                                  int    endIdx,
-                                  const float inReal[],
-                                  int          *outBegIdx,
-                                  int          *outNBElement,
-                                  double        outReal[] )
+TA_RetCode TA_S_HT_DCPHASE_Unguarded( int    startIdx,
+                                      int    endIdx,
+                                      const float inReal[],
+                                      int          *outBegIdx,
+                                      int          *outNBElement,
+                                      double        outReal[] )
 {
    int outIdx;
    int i;

@@ -152,15 +152,15 @@ TA_LIB_API TA_RetCode TA_AROON( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_AROON_Logic( int    startIdx,
-                                      int    endIdx,
-                                      const double inHigh[],
-                                      const double inLow[],
-                                      int optInTimePeriod,
-                                      int          *outBegIdx,
-                                      int          *outNBElement,
-                                      double        outAroonDown[],
-                                      double        outAroonUp[] )
+TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
+                                          int    endIdx,
+                                          const double inHigh[],
+                                          const double inLow[],
+                                          int optInTimePeriod,
+                                          int          *outBegIdx,
+                                          int          *outNBElement,
+                                          double        outAroonDown[],
+                                          double        outAroonUp[] )
 {
    double lowest;
    double highest;
@@ -246,7 +246,7 @@ TA_LIB_API TA_RetCode TA_AROON_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AROON TA_AROON_Logic
+#define TA_INT_AROON TA_AROON_Unguarded
 
 TA_RetCode TA_S_AROON( int    startIdx,
                        int    endIdx,
@@ -360,15 +360,15 @@ TA_RetCode TA_S_AROON( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_AROON_Logic( int    startIdx,
-                             int    endIdx,
-                             const float inHigh[],
-                             const float inLow[],
-                             int optInTimePeriod,
-                             int          *outBegIdx,
-                             int          *outNBElement,
-                             double        outAroonDown[],
-                             double        outAroonUp[] )
+TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
+                                 int    endIdx,
+                                 const float inHigh[],
+                                 const float inLow[],
+                                 int optInTimePeriod,
+                                 int          *outBegIdx,
+                                 int          *outNBElement,
+                                 double        outAroonDown[],
+                                 double        outAroonUp[] )
 {
    double lowest;
    double highest;

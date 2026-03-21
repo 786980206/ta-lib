@@ -127,17 +127,17 @@ TA_LIB_API TA_RetCode TA_STOCHRSI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_STOCHRSI_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const double inReal[],
-                                         int optInTimePeriod,
-                                         int optInFastK_Period,
-                                         int optInFastD_Period,
-                                         TA_MAType optInFastD_MAType,
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         double        outFastK[],
-                                         double        outFastD[] )
+TA_LIB_API TA_RetCode TA_STOCHRSI_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const double inReal[],
+                                             int optInTimePeriod,
+                                             int optInFastK_Period,
+                                             int optInFastD_Period,
+                                             TA_MAType optInFastD_MAType,
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             double        outFastK[],
+                                             double        outFastD[] )
 {
    double *tempRSIBuffer;
    TA_RetCode retCode;
@@ -186,7 +186,7 @@ TA_LIB_API TA_RetCode TA_STOCHRSI_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_STOCHRSI TA_STOCHRSI_Logic
+#define TA_INT_STOCHRSI TA_STOCHRSI_Unguarded
 
 TA_RetCode TA_S_STOCHRSI( int    startIdx,
                           int    endIdx,
@@ -273,17 +273,17 @@ TA_RetCode TA_S_STOCHRSI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_STOCHRSI_Logic( int    startIdx,
-                                int    endIdx,
-                                const float inReal[],
-                                int optInTimePeriod,
-                                int optInFastK_Period,
-                                int optInFastD_Period,
-                                TA_MAType optInFastD_MAType,
-                                int          *outBegIdx,
-                                int          *outNBElement,
-                                double        outFastK[],
-                                double        outFastD[] )
+TA_RetCode TA_S_STOCHRSI_Unguarded( int    startIdx,
+                                    int    endIdx,
+                                    const float inReal[],
+                                    int optInTimePeriod,
+                                    int optInFastK_Period,
+                                    int optInFastD_Period,
+                                    TA_MAType optInFastD_MAType,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outFastK[],
+                                    double        outFastD[] )
 {
    double *tempRSIBuffer;
    TA_RetCode retCode;

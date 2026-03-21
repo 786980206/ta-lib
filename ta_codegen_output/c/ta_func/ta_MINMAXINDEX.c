@@ -150,14 +150,14 @@ TA_LIB_API TA_RetCode TA_MINMAXINDEX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MINMAXINDEX_Logic( int    startIdx,
-                                            int    endIdx,
-                                            const double inReal[],
-                                            int optInTimePeriod,
-                                            int          *outBegIdx,
-                                            int          *outNBElement,
-                                            int        outMinIdx[],
-                                            int        outMaxIdx[] )
+TA_LIB_API TA_RetCode TA_MINMAXINDEX_Unguarded( int    startIdx,
+                                                int    endIdx,
+                                                const double inReal[],
+                                                int optInTimePeriod,
+                                                int          *outBegIdx,
+                                                int          *outNBElement,
+                                                int        outMinIdx[],
+                                                int        outMaxIdx[] )
 {
    double highest;
    double lowest;
@@ -244,7 +244,7 @@ TA_LIB_API TA_RetCode TA_MINMAXINDEX_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINMAXINDEX TA_MINMAXINDEX_Logic
+#define TA_INT_MINMAXINDEX TA_MINMAXINDEX_Unguarded
 
 TA_RetCode TA_S_MINMAXINDEX( int    startIdx,
                              int    endIdx,
@@ -356,14 +356,14 @@ TA_RetCode TA_S_MINMAXINDEX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MINMAXINDEX_Logic( int    startIdx,
-                                   int    endIdx,
-                                   const float inReal[],
-                                   int optInTimePeriod,
-                                   int          *outBegIdx,
-                                   int          *outNBElement,
-                                   int        outMinIdx[],
-                                   int        outMaxIdx[] )
+TA_RetCode TA_S_MINMAXINDEX_Unguarded( int    startIdx,
+                                       int    endIdx,
+                                       const float inReal[],
+                                       int optInTimePeriod,
+                                       int          *outBegIdx,
+                                       int          *outNBElement,
+                                       int        outMinIdx[],
+                                       int        outMaxIdx[] )
 {
    double highest;
    double lowest;

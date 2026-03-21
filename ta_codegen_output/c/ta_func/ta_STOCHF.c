@@ -216,18 +216,18 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_STOCHF_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inHigh[],
-                                       const double inLow[],
-                                       const double inClose[],
-                                       int optInFastK_Period,
-                                       int optInFastD_Period,
-                                       TA_MAType optInFastD_MAType,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outFastK[],
-                                       double        outFastD[] )
+TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inHigh[],
+                                           const double inLow[],
+                                           const double inClose[],
+                                           int optInFastK_Period,
+                                           int optInFastD_Period,
+                                           TA_MAType optInFastD_MAType,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outFastK[],
+                                           double        outFastD[] )
 {
    TA_RetCode retCode;
    double lowest;
@@ -363,7 +363,7 @@ TA_LIB_API TA_RetCode TA_STOCHF_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_STOCHF TA_STOCHF_Logic
+#define TA_INT_STOCHF TA_STOCHF_Unguarded
 
 TA_RetCode TA_S_STOCHF( int    startIdx,
                         int    endIdx,
@@ -538,18 +538,18 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_STOCHF_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inHigh[],
-                              const float inLow[],
-                              const float inClose[],
-                              int optInFastK_Period,
-                              int optInFastD_Period,
-                              TA_MAType optInFastD_MAType,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outFastK[],
-                              double        outFastD[] )
+TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inHigh[],
+                                  const float inLow[],
+                                  const float inClose[],
+                                  int optInFastK_Period,
+                                  int optInFastD_Period,
+                                  TA_MAType optInFastD_MAType,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outFastK[],
+                                  double        outFastD[] )
 {
    TA_RetCode retCode;
    double lowest;

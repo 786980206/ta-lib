@@ -71,12 +71,12 @@ TA_LIB_API TA_RetCode TA_COS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_COS_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_COS_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    int outIdx;
    int i;
@@ -92,7 +92,7 @@ TA_LIB_API TA_RetCode TA_COS_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_COS TA_COS_Logic
+#define TA_INT_COS TA_COS_Unguarded
 
 TA_RetCode TA_S_COS( int    startIdx,
                      int    endIdx,
@@ -125,12 +125,12 @@ TA_RetCode TA_S_COS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_COS_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_COS_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    int outIdx;
    int i;

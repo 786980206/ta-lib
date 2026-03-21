@@ -162,17 +162,17 @@ TA_LIB_API TA_RetCode TA_ACCBANDS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const double inHigh[],
-                                         const double inLow[],
-                                         const double inClose[],
-                                         int optInTimePeriod,
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         double        outRealUpperBand[],
-                                         double        outRealMiddleBand[],
-                                         double        outRealLowerBand[] )
+TA_LIB_API TA_RetCode TA_ACCBANDS_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const double inHigh[],
+                                             const double inLow[],
+                                             const double inClose[],
+                                             int optInTimePeriod,
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             double        outRealUpperBand[],
+                                             double        outRealMiddleBand[],
+                                             double        outRealLowerBand[] )
 {
    TA_RetCode retCode;
    double *tempBuffer1;
@@ -262,7 +262,7 @@ TA_LIB_API TA_RetCode TA_ACCBANDS_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ACCBANDS TA_ACCBANDS_Logic
+#define TA_INT_ACCBANDS TA_ACCBANDS_Unguarded
 
 TA_RetCode TA_S_ACCBANDS( int    startIdx,
                           int    endIdx,
@@ -386,17 +386,17 @@ TA_RetCode TA_S_ACCBANDS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_ACCBANDS_Logic( int    startIdx,
-                                int    endIdx,
-                                const float inHigh[],
-                                const float inLow[],
-                                const float inClose[],
-                                int optInTimePeriod,
-                                int          *outBegIdx,
-                                int          *outNBElement,
-                                double        outRealUpperBand[],
-                                double        outRealMiddleBand[],
-                                double        outRealLowerBand[] )
+TA_RetCode TA_S_ACCBANDS_Unguarded( int    startIdx,
+                                    int    endIdx,
+                                    const float inHigh[],
+                                    const float inLow[],
+                                    const float inClose[],
+                                    int optInTimePeriod,
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outRealUpperBand[],
+                                    double        outRealMiddleBand[],
+                                    double        outRealLowerBand[] )
 {
    TA_RetCode retCode;
    double *tempBuffer1;

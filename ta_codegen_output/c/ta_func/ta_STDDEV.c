@@ -106,14 +106,14 @@ TA_LIB_API TA_RetCode TA_STDDEV( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_STDDEV_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inReal[],
-                                       int optInTimePeriod,
-                                       double optInNbDev,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outReal[] )
+TA_LIB_API TA_RetCode TA_STDDEV_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inReal[],
+                                           int optInTimePeriod,
+                                           double optInNbDev,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outReal[] )
 {
    int i;
    TA_RetCode retCode;
@@ -156,7 +156,7 @@ TA_LIB_API TA_RetCode TA_STDDEV_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_STDDEV TA_STDDEV_Logic
+#define TA_INT_STDDEV TA_STDDEV_Unguarded
 
 TA_RetCode TA_S_STDDEV( int    startIdx,
                         int    endIdx,
@@ -224,14 +224,14 @@ TA_RetCode TA_S_STDDEV( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_STDDEV_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inReal[],
-                              int optInTimePeriod,
-                              double optInNbDev,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outReal[] )
+TA_RetCode TA_S_STDDEV_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inReal[],
+                                  int optInTimePeriod,
+                                  double optInNbDev,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outReal[] )
 {
    int i;
    TA_RetCode retCode;

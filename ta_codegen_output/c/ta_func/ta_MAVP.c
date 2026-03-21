@@ -158,16 +158,16 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MAVP_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inReal[],
-                                     const double inPeriods[],
-                                     int optInMinPeriod,
-                                     int optInMaxPeriod,
-                                     TA_MAType optInMAType,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inReal[],
+                                         const double inPeriods[],
+                                         int optInMinPeriod,
+                                         int optInMaxPeriod,
+                                         TA_MAType optInMAType,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outReal[] )
 {
    int i;
    int j;
@@ -254,7 +254,7 @@ TA_LIB_API TA_RetCode TA_MAVP_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MAVP TA_MAVP_Logic
+#define TA_INT_MAVP TA_MAVP_Unguarded
 
 TA_RetCode TA_S_MAVP( int    startIdx,
                       int    endIdx,
@@ -374,16 +374,16 @@ TA_RetCode TA_S_MAVP( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MAVP_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inReal[],
-                            const float inPeriods[],
-                            int optInMinPeriod,
-                            int optInMaxPeriod,
-                            TA_MAType optInMAType,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outReal[] )
+TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inReal[],
+                                const float inPeriods[],
+                                int optInMinPeriod,
+                                int optInMaxPeriod,
+                                TA_MAType optInMAType,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outReal[] )
 {
    int i;
    int j;

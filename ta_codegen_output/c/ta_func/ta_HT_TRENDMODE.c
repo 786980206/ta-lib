@@ -476,12 +476,12 @@ TA_LIB_API TA_RetCode TA_HT_TRENDMODE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_HT_TRENDMODE_Logic( int    startIdx,
-                                             int    endIdx,
-                                             const double inReal[],
-                                             int          *outBegIdx,
-                                             int          *outNBElement,
-                                             int        outInteger[] )
+TA_LIB_API TA_RetCode TA_HT_TRENDMODE_Unguarded( int    startIdx,
+                                                 int    endIdx,
+                                                 const double inReal[],
+                                                 int          *outBegIdx,
+                                                 int          *outNBElement,
+                                                 int        outInteger[] )
 {
    int outIdx;
    int i;
@@ -902,7 +902,7 @@ TA_LIB_API TA_RetCode TA_HT_TRENDMODE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_TRENDMODE TA_HT_TRENDMODE_Logic
+#define TA_INT_HT_TRENDMODE TA_HT_TRENDMODE_Unguarded
 
 TA_RetCode TA_S_HT_TRENDMODE( int    startIdx,
                               int    endIdx,
@@ -1340,12 +1340,12 @@ TA_RetCode TA_S_HT_TRENDMODE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_HT_TRENDMODE_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const float inReal[],
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    int        outInteger[] )
+TA_RetCode TA_S_HT_TRENDMODE_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const float inReal[],
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        int        outInteger[] )
 {
    int outIdx;
    int i;

@@ -74,13 +74,13 @@ TA_LIB_API TA_RetCode TA_SUB( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_SUB_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal0[],
-                                    const double inReal1[],
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_SUB_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal0[],
+                                        const double inReal1[],
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    int outIdx;
    int i;
@@ -96,7 +96,7 @@ TA_LIB_API TA_RetCode TA_SUB_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_SUB TA_SUB_Logic
+#define TA_INT_SUB TA_SUB_Unguarded
 
 TA_RetCode TA_S_SUB( int    startIdx,
                      int    endIdx,
@@ -132,13 +132,13 @@ TA_RetCode TA_S_SUB( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_SUB_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal0[],
-                           const float inReal1[],
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_SUB_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal0[],
+                               const float inReal1[],
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    int outIdx;
    int i;

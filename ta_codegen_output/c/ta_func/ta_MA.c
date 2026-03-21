@@ -164,14 +164,14 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MA_Logic( int    startIdx,
-                                   int    endIdx,
-                                   const double inReal[],
-                                   int optInTimePeriod,
-                                   TA_MAType optInMAType,
-                                   int          *outBegIdx,
-                                   int          *outNBElement,
-                                   double        outReal[] )
+TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
+                                       int    endIdx,
+                                       const double inReal[],
+                                       int optInTimePeriod,
+                                       TA_MAType optInMAType,
+                                       int          *outBegIdx,
+                                       int          *outNBElement,
+                                       double        outReal[] )
 {
    double *dummyBuffer;
    TA_RetCode retCode;
@@ -234,7 +234,7 @@ TA_LIB_API TA_RetCode TA_MA_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MA TA_MA_Logic
+#define TA_INT_MA TA_MA_Unguarded
 
 TA_RetCode TA_S_MA( int    startIdx,
                     int    endIdx,
@@ -322,14 +322,14 @@ TA_RetCode TA_S_MA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MA_Logic( int    startIdx,
-                          int    endIdx,
-                          const float inReal[],
-                          int optInTimePeriod,
-                          TA_MAType optInMAType,
-                          int          *outBegIdx,
-                          int          *outNBElement,
-                          double        outReal[] )
+TA_RetCode TA_S_MA_Unguarded( int    startIdx,
+                              int    endIdx,
+                              const float inReal[],
+                              int optInTimePeriod,
+                              TA_MAType optInMAType,
+                              int          *outBegIdx,
+                              int          *outNBElement,
+                              double        outReal[] )
 {
    double *dummyBuffer;
    TA_RetCode retCode;

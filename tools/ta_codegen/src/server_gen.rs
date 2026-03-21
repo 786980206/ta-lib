@@ -228,7 +228,7 @@ fn build_lookback_param_str(func: &FuncDef) -> String {
         .join(", ")
 }
 
-/// Build the C parameter string for the full indicator function (and _Logic variant).
+/// Build the C parameter string for the full indicator function (and _Unguarded variant).
 ///
 /// Order: startIdx, endIdx, inputs, optional inputs, outBegIdx, outNBElement, outputs.
 fn build_full_param_str(func: &FuncDef) -> String {
@@ -322,9 +322,9 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(&format!(
-            "extern TA_RetCode TA_{upper}_Logic({logic_params});\n"
+            "extern TA_RetCode TA_{upper}_Unguarded({logic_params});\n"
         ));
-        s.push_str(&format!("#define TA_INT_{upper} TA_{upper}_Logic\n"));
+        s.push_str(&format!("#define TA_INT_{upper} TA_{upper}_Unguarded\n"));
 
         // Single-precision variants
         s.push_str(&format!(
@@ -341,9 +341,9 @@ pub fn generate_c_header_stub(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str(&format!(
-            "extern TA_RetCode TA_S_{upper}_Logic({sp_logic_params});\n"
+            "extern TA_RetCode TA_S_{upper}_Unguarded({sp_logic_params});\n"
         ));
-        s.push_str(&format!("#define TA_S_INT_{upper} TA_S_{upper}_Logic\n"));
+        s.push_str(&format!("#define TA_S_INT_{upper} TA_S_{upper}_Unguarded\n"));
     }
     s.push('\n');
 

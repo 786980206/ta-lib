@@ -322,17 +322,17 @@ TA_LIB_API TA_RetCode TA_ULTOSC( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_ULTOSC_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inHigh[],
-                                       const double inLow[],
-                                       const double inClose[],
-                                       int optInTimePeriod1,
-                                       int optInTimePeriod2,
-                                       int optInTimePeriod3,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outReal[] )
+TA_LIB_API TA_RetCode TA_ULTOSC_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inHigh[],
+                                           const double inLow[],
+                                           const double inClose[],
+                                           int optInTimePeriod1,
+                                           int optInTimePeriod2,
+                                           int optInTimePeriod3,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outReal[] )
 {
    double a1Total;
    double a2Total;
@@ -576,7 +576,7 @@ TA_LIB_API TA_RetCode TA_ULTOSC_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ULTOSC TA_ULTOSC_Logic
+#define TA_INT_ULTOSC TA_ULTOSC_Unguarded
 
 TA_RetCode TA_S_ULTOSC( int    startIdx,
                         int    endIdx,
@@ -858,17 +858,17 @@ TA_RetCode TA_S_ULTOSC( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_ULTOSC_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inHigh[],
-                              const float inLow[],
-                              const float inClose[],
-                              int optInTimePeriod1,
-                              int optInTimePeriod2,
-                              int optInTimePeriod3,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outReal[] )
+TA_RetCode TA_S_ULTOSC_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inHigh[],
+                                  const float inLow[],
+                                  const float inClose[],
+                                  int optInTimePeriod1,
+                                  int optInTimePeriod2,
+                                  int optInTimePeriod3,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outReal[] )
 {
    double a1Total;
    double a2Total;

@@ -228,20 +228,20 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_STOCH_Logic( int    startIdx,
-                                      int    endIdx,
-                                      const double inHigh[],
-                                      const double inLow[],
-                                      const double inClose[],
-                                      int optInFastK_Period,
-                                      int optInSlowK_Period,
-                                      TA_MAType optInSlowK_MAType,
-                                      int optInSlowD_Period,
-                                      TA_MAType optInSlowD_MAType,
-                                      int          *outBegIdx,
-                                      int          *outNBElement,
-                                      double        outSlowK[],
-                                      double        outSlowD[] )
+TA_LIB_API TA_RetCode TA_STOCH_Unguarded( int    startIdx,
+                                          int    endIdx,
+                                          const double inHigh[],
+                                          const double inLow[],
+                                          const double inClose[],
+                                          int optInFastK_Period,
+                                          int optInSlowK_Period,
+                                          TA_MAType optInSlowK_MAType,
+                                          int optInSlowD_Period,
+                                          TA_MAType optInSlowD_MAType,
+                                          int          *outBegIdx,
+                                          int          *outNBElement,
+                                          double        outSlowK[],
+                                          double        outSlowD[] )
 {
    TA_RetCode retCode;
    double lowest;
@@ -380,7 +380,7 @@ TA_LIB_API TA_RetCode TA_STOCH_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_STOCH TA_STOCH_Logic
+#define TA_INT_STOCH TA_STOCH_Unguarded
 
 TA_RetCode TA_S_STOCH( int    startIdx,
                        int    endIdx,
@@ -566,20 +566,20 @@ TA_RetCode TA_S_STOCH( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_STOCH_Logic( int    startIdx,
-                             int    endIdx,
-                             const float inHigh[],
-                             const float inLow[],
-                             const float inClose[],
-                             int optInFastK_Period,
-                             int optInSlowK_Period,
-                             TA_MAType optInSlowK_MAType,
-                             int optInSlowD_Period,
-                             TA_MAType optInSlowD_MAType,
-                             int          *outBegIdx,
-                             int          *outNBElement,
-                             double        outSlowK[],
-                             double        outSlowD[] )
+TA_RetCode TA_S_STOCH_Unguarded( int    startIdx,
+                                 int    endIdx,
+                                 const float inHigh[],
+                                 const float inLow[],
+                                 const float inClose[],
+                                 int optInFastK_Period,
+                                 int optInSlowK_Period,
+                                 TA_MAType optInSlowK_MAType,
+                                 int optInSlowD_Period,
+                                 TA_MAType optInSlowD_MAType,
+                                 int          *outBegIdx,
+                                 int          *outNBElement,
+                                 double        outSlowK[],
+                                 double        outSlowD[] )
 {
    TA_RetCode retCode;
    double lowest;

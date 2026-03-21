@@ -108,14 +108,14 @@ TA_LIB_API TA_RetCode TA_IMI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_IMI_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inOpen[],
-                                    const double inClose[],
-                                    int optInTimePeriod,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_IMI_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inOpen[],
+                                        const double inClose[],
+                                        int optInTimePeriod,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    int lookback;
    int outIdx;
@@ -160,7 +160,7 @@ TA_LIB_API TA_RetCode TA_IMI_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_IMI TA_IMI_Logic
+#define TA_INT_IMI TA_IMI_Unguarded
 
 TA_RetCode TA_S_IMI( int    startIdx,
                      int    endIdx,
@@ -230,14 +230,14 @@ TA_RetCode TA_S_IMI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_IMI_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inOpen[],
-                           const float inClose[],
-                           int optInTimePeriod,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_IMI_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inOpen[],
+                               const float inClose[],
+                               int optInTimePeriod,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    int lookback;
    int outIdx;

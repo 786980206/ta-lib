@@ -143,15 +143,15 @@ TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK_Logic( int    startIdx,
-                                                 int    endIdx,
-                                                 const double inOpen[],
-                                                 const double inHigh[],
-                                                 const double inLow[],
-                                                 const double inClose[],
-                                                 int          *outBegIdx,
-                                                 int          *outNBElement,
-                                                 int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK_Unguarded( int    startIdx,
+                                                     int    endIdx,
+                                                     const double inOpen[],
+                                                     const double inHigh[],
+                                                     const double inLow[],
+                                                     const double inClose[],
+                                                     int          *outBegIdx,
+                                                     int          *outNBElement,
+                                                     int        outInteger[] )
 {
    double EqualPeriodTotal;
    double BodyLongPeriodTotal[2];
@@ -224,7 +224,7 @@ TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLCOUNTERATTACK TA_CDLCOUNTERATTACK_Logic
+#define TA_INT_CDLCOUNTERATTACK TA_CDLCOUNTERATTACK_Unguarded
 
 TA_RetCode TA_S_CDLCOUNTERATTACK( int    startIdx,
                                   int    endIdx,
@@ -323,15 +323,15 @@ TA_RetCode TA_S_CDLCOUNTERATTACK( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLCOUNTERATTACK_Logic( int    startIdx,
-                                        int    endIdx,
-                                        const float inOpen[],
-                                        const float inHigh[],
-                                        const float inLow[],
-                                        const float inClose[],
-                                        int          *outBegIdx,
-                                        int          *outNBElement,
-                                        int        outInteger[] )
+TA_RetCode TA_S_CDLCOUNTERATTACK_Unguarded( int    startIdx,
+                                            int    endIdx,
+                                            const float inOpen[],
+                                            const float inHigh[],
+                                            const float inLow[],
+                                            const float inClose[],
+                                            int          *outBegIdx,
+                                            int          *outNBElement,
+                                            int        outInteger[] )
 {
    double EqualPeriodTotal;
    double BodyLongPeriodTotal[2];

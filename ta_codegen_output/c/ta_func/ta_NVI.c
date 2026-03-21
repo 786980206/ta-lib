@@ -68,13 +68,13 @@ TA_LIB_API TA_RetCode TA_NVI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_NVI_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inClose[],
-                                    const double inVolume[],
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_NVI_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inClose[],
+                                        const double inVolume[],
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
 
    *outBegIdx= 0;
@@ -84,7 +84,7 @@ TA_LIB_API TA_RetCode TA_NVI_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_NVI TA_NVI_Logic
+#define TA_INT_NVI TA_NVI_Unguarded
 
 TA_RetCode TA_S_NVI( int    startIdx,
                      int    endIdx,
@@ -114,13 +114,13 @@ TA_RetCode TA_S_NVI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_NVI_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inClose[],
-                           const float inVolume[],
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_NVI_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inClose[],
+                               const float inVolume[],
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
 
    *outBegIdx= 0;

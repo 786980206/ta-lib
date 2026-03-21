@@ -215,18 +215,18 @@ TA_LIB_API TA_RetCode TA_BBANDS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_BBANDS_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inReal[],
-                                       int optInTimePeriod,
-                                       double optInNbDevUp,
-                                       double optInNbDevDn,
-                                       TA_MAType optInMAType,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outRealUpperBand[],
-                                       double        outRealMiddleBand[],
-                                       double        outRealLowerBand[] )
+TA_LIB_API TA_RetCode TA_BBANDS_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inReal[],
+                                           int optInTimePeriod,
+                                           double optInNbDevUp,
+                                           double optInNbDevDn,
+                                           TA_MAType optInMAType,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outRealUpperBand[],
+                                           double        outRealMiddleBand[],
+                                           double        outRealLowerBand[] )
 {
    TA_RetCode retCode;
    int i;
@@ -366,7 +366,7 @@ TA_LIB_API TA_RetCode TA_BBANDS_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_BBANDS TA_BBANDS_Logic
+#define TA_INT_BBANDS TA_BBANDS_Unguarded
 
 TA_RetCode TA_S_BBANDS( int    startIdx,
                         int    endIdx,
@@ -543,18 +543,18 @@ TA_RetCode TA_S_BBANDS( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_BBANDS_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inReal[],
-                              int optInTimePeriod,
-                              double optInNbDevUp,
-                              double optInNbDevDn,
-                              TA_MAType optInMAType,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outRealUpperBand[],
-                              double        outRealMiddleBand[],
-                              double        outRealLowerBand[] )
+TA_RetCode TA_S_BBANDS_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inReal[],
+                                  int optInTimePeriod,
+                                  double optInNbDevUp,
+                                  double optInNbDevDn,
+                                  TA_MAType optInMAType,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outRealUpperBand[],
+                                  double        outRealMiddleBand[],
+                                  double        outRealLowerBand[] )
 {
    TA_RetCode retCode;
    int i;

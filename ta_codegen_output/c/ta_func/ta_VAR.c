@@ -122,14 +122,14 @@ TA_LIB_API TA_RetCode TA_VAR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_VAR_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int optInTimePeriod,
-                                    double optInNbDev,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_VAR_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInTimePeriod,
+                                        double optInNbDev,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    double tempReal;
    double periodTotal1;
@@ -188,7 +188,7 @@ TA_LIB_API TA_RetCode TA_VAR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_VAR TA_VAR_Logic
+#define TA_INT_VAR TA_VAR_Unguarded
 
 TA_RetCode TA_S_VAR( int    startIdx,
                      int    endIdx,
@@ -272,14 +272,14 @@ TA_RetCode TA_S_VAR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_VAR_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int optInTimePeriod,
-                           double optInNbDev,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_VAR_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInTimePeriod,
+                               double optInNbDev,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    double tempReal;
    double periodTotal1;

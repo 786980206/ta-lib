@@ -178,13 +178,13 @@ TA_LIB_API TA_RetCode TA_TRIMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_TRIMA_Logic( int    startIdx,
-                                      int    endIdx,
-                                      const double inReal[],
-                                      int optInTimePeriod,
-                                      int          *outBegIdx,
-                                      int          *outNBElement,
-                                      double        outReal[] )
+TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
+                                          int    endIdx,
+                                          const double inReal[],
+                                          int optInTimePeriod,
+                                          int          *outBegIdx,
+                                          int          *outNBElement,
+                                          double        outReal[] )
 {
    int lookbackTotal;
    double numerator;
@@ -302,7 +302,7 @@ TA_LIB_API TA_RetCode TA_TRIMA_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_TRIMA TA_TRIMA_Logic
+#define TA_INT_TRIMA TA_TRIMA_Unguarded
 
 TA_RetCode TA_S_TRIMA( int    startIdx,
                        int    endIdx,
@@ -442,13 +442,13 @@ TA_RetCode TA_S_TRIMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_TRIMA_Logic( int    startIdx,
-                             int    endIdx,
-                             const float inReal[],
-                             int optInTimePeriod,
-                             int          *outBegIdx,
-                             int          *outNBElement,
-                             double        outReal[] )
+TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
+                                 int    endIdx,
+                                 const float inReal[],
+                                 int optInTimePeriod,
+                                 int          *outBegIdx,
+                                 int          *outNBElement,
+                                 double        outReal[] )
 {
    int lookbackTotal;
    double numerator;

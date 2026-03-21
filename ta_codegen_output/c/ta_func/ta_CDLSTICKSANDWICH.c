@@ -119,15 +119,15 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Logic( int    startIdx,
-                                                 int    endIdx,
-                                                 const double inOpen[],
-                                                 const double inHigh[],
-                                                 const double inLow[],
-                                                 const double inClose[],
-                                                 int          *outBegIdx,
-                                                 int          *outNBElement,
-                                                 int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Unguarded( int    startIdx,
+                                                     int    endIdx,
+                                                     const double inOpen[],
+                                                     const double inHigh[],
+                                                     const double inLow[],
+                                                     const double inClose[],
+                                                     int          *outBegIdx,
+                                                     int          *outNBElement,
+                                                     int        outInteger[] )
 {
    double EqualPeriodTotal;
    int i;
@@ -179,7 +179,7 @@ TA_LIB_API TA_RetCode TA_CDLSTICKSANDWICH_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLSTICKSANDWICH TA_CDLSTICKSANDWICH_Logic
+#define TA_INT_CDLSTICKSANDWICH TA_CDLSTICKSANDWICH_Unguarded
 
 TA_RetCode TA_S_CDLSTICKSANDWICH( int    startIdx,
                                   int    endIdx,
@@ -257,15 +257,15 @@ TA_RetCode TA_S_CDLSTICKSANDWICH( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLSTICKSANDWICH_Logic( int    startIdx,
-                                        int    endIdx,
-                                        const float inOpen[],
-                                        const float inHigh[],
-                                        const float inLow[],
-                                        const float inClose[],
-                                        int          *outBegIdx,
-                                        int          *outNBElement,
-                                        int        outInteger[] )
+TA_RetCode TA_S_CDLSTICKSANDWICH_Unguarded( int    startIdx,
+                                            int    endIdx,
+                                            const float inOpen[],
+                                            const float inHigh[],
+                                            const float inLow[],
+                                            const float inClose[],
+                                            int          *outBegIdx,
+                                            int          *outNBElement,
+                                            int        outInteger[] )
 {
    double EqualPeriodTotal;
    int i;

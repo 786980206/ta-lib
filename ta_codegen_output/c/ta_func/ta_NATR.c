@@ -149,15 +149,15 @@ TA_LIB_API TA_RetCode TA_NATR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_NATR_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inHigh[],
-                                     const double inLow[],
-                                     const double inClose[],
-                                     int optInTimePeriod,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_NATR_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inHigh[],
+                                         const double inLow[],
+                                         const double inClose[],
+                                         int optInTimePeriod,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outReal[] )
 {
    TA_RetCode retCode;
    int outIdx;
@@ -240,7 +240,7 @@ TA_LIB_API TA_RetCode TA_NATR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_NATR TA_NATR_Logic
+#define TA_INT_NATR TA_NATR_Unguarded
 
 TA_RetCode TA_S_NATR( int    startIdx,
                       int    endIdx,
@@ -351,15 +351,15 @@ TA_RetCode TA_S_NATR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_NATR_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inHigh[],
-                            const float inLow[],
-                            const float inClose[],
-                            int optInTimePeriod,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outReal[] )
+TA_RetCode TA_S_NATR_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inHigh[],
+                                const float inLow[],
+                                const float inClose[],
+                                int optInTimePeriod,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outReal[] )
 {
    TA_RetCode retCode;
    int outIdx;

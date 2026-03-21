@@ -74,15 +74,15 @@ TA_LIB_API TA_RetCode TA_MACDFIX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MACDFIX_Logic( int    startIdx,
-                                        int    endIdx,
-                                        const double inReal[],
-                                        int optInSignalPeriod,
-                                        int          *outBegIdx,
-                                        int          *outNBElement,
-                                        double        outMACD[],
-                                        double        outMACDSignal[],
-                                        double        outMACDHist[] )
+TA_LIB_API TA_RetCode TA_MACDFIX_Unguarded( int    startIdx,
+                                            int    endIdx,
+                                            const double inReal[],
+                                            int optInSignalPeriod,
+                                            int          *outBegIdx,
+                                            int          *outNBElement,
+                                            double        outMACD[],
+                                            double        outMACDSignal[],
+                                            double        outMACDHist[] )
 {
 
    return TA_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);
@@ -90,7 +90,7 @@ TA_LIB_API TA_RetCode TA_MACDFIX_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MACDFIX TA_MACDFIX_Logic
+#define TA_INT_MACDFIX TA_MACDFIX_Unguarded
 
 TA_RetCode TA_S_MACDFIX( int    startIdx,
                          int    endIdx,
@@ -126,15 +126,15 @@ TA_RetCode TA_S_MACDFIX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MACDFIX_Logic( int    startIdx,
-                               int    endIdx,
-                               const float inReal[],
-                               int optInSignalPeriod,
-                               int          *outBegIdx,
-                               int          *outNBElement,
-                               double        outMACD[],
-                               double        outMACDSignal[],
-                               double        outMACDHist[] )
+TA_RetCode TA_S_MACDFIX_Unguarded( int    startIdx,
+                                   int    endIdx,
+                                   const float inReal[],
+                                   int optInSignalPeriod,
+                                   int          *outBegIdx,
+                                   int          *outNBElement,
+                                   double        outMACD[],
+                                   double        outMACDSignal[],
+                                   double        outMACDHist[] )
 {
 
    return TA_S_INT_MACD(startIdx,endIdx,inReal,0,0,optInSignalPeriod,outBegIdx,outNBElement,outMACD,outMACDSignal,outMACDHist);

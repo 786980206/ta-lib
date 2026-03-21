@@ -99,13 +99,13 @@ TA_LIB_API TA_RetCode TA_ROCR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_ROCR_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inReal[],
-                                     int optInTimePeriod,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outReal[] )
+TA_LIB_API TA_RetCode TA_ROCR_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inReal[],
+                                         int optInTimePeriod,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outReal[] )
 {
    int inIdx;
    int outIdx;
@@ -144,7 +144,7 @@ TA_LIB_API TA_RetCode TA_ROCR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ROCR TA_ROCR_Logic
+#define TA_INT_ROCR TA_ROCR_Unguarded
 
 TA_RetCode TA_S_ROCR( int    startIdx,
                       int    endIdx,
@@ -205,13 +205,13 @@ TA_RetCode TA_S_ROCR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_ROCR_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inReal[],
-                            int optInTimePeriod,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outReal[] )
+TA_RetCode TA_S_ROCR_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inReal[],
+                                int optInTimePeriod,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outReal[] )
 {
    int inIdx;
    int outIdx;

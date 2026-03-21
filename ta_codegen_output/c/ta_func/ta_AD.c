@@ -100,15 +100,15 @@ TA_LIB_API TA_RetCode TA_AD( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_AD_Logic( int    startIdx,
-                                   int    endIdx,
-                                   const double inHigh[],
-                                   const double inLow[],
-                                   const double inClose[],
-                                   const double inVolume[],
-                                   int          *outBegIdx,
-                                   int          *outNBElement,
-                                   double        outReal[] )
+TA_LIB_API TA_RetCode TA_AD_Unguarded( int    startIdx,
+                                       int    endIdx,
+                                       const double inHigh[],
+                                       const double inLow[],
+                                       const double inClose[],
+                                       const double inVolume[],
+                                       int          *outBegIdx,
+                                       int          *outNBElement,
+                                       double        outReal[] )
 {
    int nbBar;
    int currentBar;
@@ -144,7 +144,7 @@ TA_LIB_API TA_RetCode TA_AD_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AD TA_AD_Logic
+#define TA_INT_AD TA_AD_Unguarded
 
 TA_RetCode TA_S_AD( int    startIdx,
                     int    endIdx,
@@ -206,15 +206,15 @@ TA_RetCode TA_S_AD( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_AD_Logic( int    startIdx,
-                          int    endIdx,
-                          const float inHigh[],
-                          const float inLow[],
-                          const float inClose[],
-                          const float inVolume[],
-                          int          *outBegIdx,
-                          int          *outNBElement,
-                          double        outReal[] )
+TA_RetCode TA_S_AD_Unguarded( int    startIdx,
+                              int    endIdx,
+                              const float inHigh[],
+                              const float inLow[],
+                              const float inClose[],
+                              const float inVolume[],
+                              int          *outBegIdx,
+                              int          *outNBElement,
+                              double        outReal[] )
 {
    int nbBar;
    int currentBar;

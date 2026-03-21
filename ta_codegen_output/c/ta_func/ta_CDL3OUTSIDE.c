@@ -101,15 +101,15 @@ TA_LIB_API TA_RetCode TA_CDL3OUTSIDE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDL3OUTSIDE_Logic( int    startIdx,
-                                            int    endIdx,
-                                            const double inOpen[],
-                                            const double inHigh[],
-                                            const double inLow[],
-                                            const double inClose[],
-                                            int          *outBegIdx,
-                                            int          *outNBElement,
-                                            int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDL3OUTSIDE_Unguarded( int    startIdx,
+                                                int    endIdx,
+                                                const double inOpen[],
+                                                const double inHigh[],
+                                                const double inLow[],
+                                                const double inClose[],
+                                                int          *outBegIdx,
+                                                int          *outNBElement,
+                                                int        outInteger[] )
 {
    int i;
    int outIdx;
@@ -146,7 +146,7 @@ TA_LIB_API TA_RetCode TA_CDL3OUTSIDE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3OUTSIDE TA_CDL3OUTSIDE_Logic
+#define TA_INT_CDL3OUTSIDE TA_CDL3OUTSIDE_Unguarded
 
 TA_RetCode TA_S_CDL3OUTSIDE( int    startIdx,
                              int    endIdx,
@@ -209,15 +209,15 @@ TA_RetCode TA_S_CDL3OUTSIDE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDL3OUTSIDE_Logic( int    startIdx,
-                                   int    endIdx,
-                                   const float inOpen[],
-                                   const float inHigh[],
-                                   const float inLow[],
-                                   const float inClose[],
-                                   int          *outBegIdx,
-                                   int          *outNBElement,
-                                   int        outInteger[] )
+TA_RetCode TA_S_CDL3OUTSIDE_Unguarded( int    startIdx,
+                                       int    endIdx,
+                                       const float inOpen[],
+                                       const float inHigh[],
+                                       const float inLow[],
+                                       const float inClose[],
+                                       int          *outBegIdx,
+                                       int          *outNBElement,
+                                       int        outInteger[] )
 {
    int i;
    int outIdx;

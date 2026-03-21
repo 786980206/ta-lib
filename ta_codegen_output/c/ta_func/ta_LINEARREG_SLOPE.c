@@ -109,13 +109,13 @@ TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE_Logic( int    startIdx,
-                                                int    endIdx,
-                                                const double inReal[],
-                                                int optInTimePeriod,
-                                                int          *outBegIdx,
-                                                int          *outNBElement,
-                                                double        outReal[] )
+TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE_Unguarded( int    startIdx,
+                                                    int    endIdx,
+                                                    const double inReal[],
+                                                    int optInTimePeriod,
+                                                    int          *outBegIdx,
+                                                    int          *outNBElement,
+                                                    double        outReal[] )
 {
    int outIdx;
    int today;
@@ -164,7 +164,7 @@ TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_LINEARREG_SLOPE TA_LINEARREG_SLOPE_Logic
+#define TA_INT_LINEARREG_SLOPE TA_LINEARREG_SLOPE_Unguarded
 
 TA_RetCode TA_S_LINEARREG_SLOPE( int    startIdx,
                                  int    endIdx,
@@ -235,13 +235,13 @@ TA_RetCode TA_S_LINEARREG_SLOPE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_LINEARREG_SLOPE_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const float inReal[],
-                                       int optInTimePeriod,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outReal[] )
+TA_RetCode TA_S_LINEARREG_SLOPE_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const float inReal[],
+                                           int optInTimePeriod,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outReal[] )
 {
    int outIdx;
    int today;

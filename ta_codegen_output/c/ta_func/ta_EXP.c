@@ -71,12 +71,12 @@ TA_LIB_API TA_RetCode TA_EXP( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_EXP_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_EXP_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    int outIdx;
    int i;
@@ -92,7 +92,7 @@ TA_LIB_API TA_RetCode TA_EXP_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_EXP TA_EXP_Logic
+#define TA_INT_EXP TA_EXP_Unguarded
 
 TA_RetCode TA_S_EXP( int    startIdx,
                      int    endIdx,
@@ -125,12 +125,12 @@ TA_RetCode TA_S_EXP( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_EXP_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_EXP_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    int outIdx;
    int i;

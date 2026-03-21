@@ -150,14 +150,14 @@ TA_LIB_API TA_RetCode TA_MINMAX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MINMAX_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inReal[],
-                                       int optInTimePeriod,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outMin[],
-                                       double        outMax[] )
+TA_LIB_API TA_RetCode TA_MINMAX_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inReal[],
+                                           int optInTimePeriod,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outMin[],
+                                           double        outMax[] )
 {
    double highest;
    double lowest;
@@ -244,7 +244,7 @@ TA_LIB_API TA_RetCode TA_MINMAX_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINMAX TA_MINMAX_Logic
+#define TA_INT_MINMAX TA_MINMAX_Unguarded
 
 TA_RetCode TA_S_MINMAX( int    startIdx,
                         int    endIdx,
@@ -356,14 +356,14 @@ TA_RetCode TA_S_MINMAX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MINMAX_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inReal[],
-                              int optInTimePeriod,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outMin[],
-                              double        outMax[] )
+TA_RetCode TA_S_MINMAX_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inReal[],
+                                  int optInTimePeriod,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outMin[],
+                                  double        outMax[] )
 {
    double highest;
    double lowest;

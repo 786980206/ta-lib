@@ -205,16 +205,16 @@ TA_LIB_API TA_RetCode TA_MFI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MFI_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inHigh[],
-                                    const double inLow[],
-                                    const double inClose[],
-                                    const double inVolume[],
-                                    int optInTimePeriod,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inHigh[],
+                                        const double inLow[],
+                                        const double inClose[],
+                                        const double inVolume[],
+                                        int optInTimePeriod,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    double posSumMF;
    double negSumMF;
@@ -350,7 +350,7 @@ TA_LIB_API TA_RetCode TA_MFI_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MFI TA_MFI_Logic
+#define TA_INT_MFI TA_MFI_Unguarded
 
 TA_RetCode TA_S_MFI( int    startIdx,
                      int    endIdx,
@@ -517,16 +517,16 @@ TA_RetCode TA_S_MFI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MFI_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inHigh[],
-                           const float inLow[],
-                           const float inClose[],
-                           const float inVolume[],
-                           int optInTimePeriod,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inHigh[],
+                               const float inLow[],
+                               const float inClose[],
+                               const float inVolume[],
+                               int optInTimePeriod,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    double posSumMF;
    double negSumMF;

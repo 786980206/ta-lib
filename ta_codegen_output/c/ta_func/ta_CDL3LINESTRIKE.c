@@ -125,15 +125,15 @@ TA_LIB_API TA_RetCode TA_CDL3LINESTRIKE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDL3LINESTRIKE_Logic( int    startIdx,
-                                               int    endIdx,
-                                               const double inOpen[],
-                                               const double inHigh[],
-                                               const double inLow[],
-                                               const double inClose[],
-                                               int          *outBegIdx,
-                                               int          *outNBElement,
-                                               int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDL3LINESTRIKE_Unguarded( int    startIdx,
+                                                   int    endIdx,
+                                                   const double inOpen[],
+                                                   const double inHigh[],
+                                                   const double inLow[],
+                                                   const double inClose[],
+                                                   int          *outBegIdx,
+                                                   int          *outNBElement,
+                                                   int        outInteger[] )
 {
    double NearPeriodTotal[4];
    int i;
@@ -191,7 +191,7 @@ TA_LIB_API TA_RetCode TA_CDL3LINESTRIKE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3LINESTRIKE TA_CDL3LINESTRIKE_Logic
+#define TA_INT_CDL3LINESTRIKE TA_CDL3LINESTRIKE_Unguarded
 
 TA_RetCode TA_S_CDL3LINESTRIKE( int    startIdx,
                                 int    endIdx,
@@ -275,15 +275,15 @@ TA_RetCode TA_S_CDL3LINESTRIKE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDL3LINESTRIKE_Logic( int    startIdx,
-                                      int    endIdx,
-                                      const float inOpen[],
-                                      const float inHigh[],
-                                      const float inLow[],
-                                      const float inClose[],
-                                      int          *outBegIdx,
-                                      int          *outNBElement,
-                                      int        outInteger[] )
+TA_RetCode TA_S_CDL3LINESTRIKE_Unguarded( int    startIdx,
+                                          int    endIdx,
+                                          const float inOpen[],
+                                          const float inHigh[],
+                                          const float inLow[],
+                                          const float inClose[],
+                                          int          *outBegIdx,
+                                          int          *outNBElement,
+                                          int        outInteger[] )
 {
    double NearPeriodTotal[4];
    int i;

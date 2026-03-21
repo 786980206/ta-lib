@@ -155,8 +155,8 @@ fn check_c_variants(c: &str, upper: &str, name: &str) {
         upper
     );
     assert!(
-        c.contains(&format!("TA_{}_Logic(", upper)),
-        "{}: C missing TA_{}_Logic",
+        c.contains(&format!("TA_{}_Unguarded(", upper)),
+        "{}: C missing TA_{}_Unguarded",
         name,
         upper
     );
@@ -173,8 +173,8 @@ fn check_c_variants(c: &str, upper: &str, name: &str) {
         upper
     );
     assert!(
-        c.contains(&format!("TA_S_{}_Logic(", upper)),
-        "{}: C missing TA_S_{}_Logic",
+        c.contains(&format!("TA_S_{}_Unguarded(", upper)),
+        "{}: C missing TA_S_{}_Unguarded",
         name,
         upper
     );
@@ -273,8 +273,8 @@ fn check_dotnet_variants(d: &str, pascal: &str, upper: &str, name: &str) {
 /// Check C #define TA_INT alias correctness for an indicator.
 fn check_c_int_alias(c: &str, upper: &str, name: &str) {
     assert!(
-        c.contains(&format!("#define TA_INT_{} TA_{}_Logic", upper, upper)),
-        "{}: C missing #define TA_INT_{} TA_{}_Logic",
+        c.contains(&format!("#define TA_INT_{} TA_{}_Unguarded", upper, upper)),
+        "{}: C missing #define TA_INT_{} TA_{}_Unguarded",
         name,
         upper,
         upper
@@ -511,8 +511,8 @@ fn test_c_sma_guarded_has_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // Extract guarded function (between TA_SMA( and TA_SMA_Logic)
-    let guarded = extract_section(&out.c, "TA_RetCode TA_SMA(", "TA_SMA_Logic(");
+    // Extract guarded function (between TA_SMA( and TA_SMA_Unguarded)
+    let guarded = extract_section(&out.c, "TA_RetCode TA_SMA(", "TA_SMA_Unguarded(");
     assert!(
         guarded.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C guarded SMA should have start index validation"
@@ -528,8 +528,8 @@ fn test_c_sma_logic_omits_validation() {
     let (func, enums) = load_indicator("sma");
     let out = generate_all(&func, &enums);
 
-    // Extract logic function (between TA_SMA_Logic( and #define TA_INT_SMA)
-    let logic = extract_section(&out.c, "TA_SMA_Logic(", "#define TA_INT_SMA");
+    // Extract logic function (between TA_SMA_Unguarded( and #define TA_INT_SMA)
+    let logic = extract_section(&out.c, "TA_SMA_Unguarded(", "#define TA_INT_SMA");
     assert!(
         !logic.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C logic SMA should NOT have start index validation"
@@ -618,7 +618,7 @@ fn test_c_rsi_logic_omits_validation() {
     let (func, enums) = load_indicator("rsi");
     let out = generate_all(&func, &enums);
 
-    let logic = extract_section(&out.c, "TA_RSI_Logic(", "#define TA_INT_RSI");
+    let logic = extract_section(&out.c, "TA_RSI_Unguarded(", "#define TA_INT_RSI");
     assert!(
         !logic.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C logic RSI should NOT have start index validation"
@@ -630,7 +630,7 @@ fn test_c_rsi_guarded_has_validation() {
     let (func, enums) = load_indicator("rsi");
     let out = generate_all(&func, &enums);
 
-    let guarded = extract_section(&out.c, "TA_RetCode TA_RSI(", "TA_RSI_Logic(");
+    let guarded = extract_section(&out.c, "TA_RetCode TA_RSI(", "TA_RSI_Unguarded(");
     assert!(
         guarded.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C guarded RSI should have start index validation"

@@ -150,14 +150,14 @@ TA_LIB_API TA_RetCode TA_CORREL( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CORREL_Logic( int    startIdx,
-                                       int    endIdx,
-                                       const double inReal0[],
-                                       const double inReal1[],
-                                       int optInTimePeriod,
-                                       int          *outBegIdx,
-                                       int          *outNBElement,
-                                       double        outReal[] )
+TA_LIB_API TA_RetCode TA_CORREL_Unguarded( int    startIdx,
+                                           int    endIdx,
+                                           const double inReal0[],
+                                           const double inReal1[],
+                                           int optInTimePeriod,
+                                           int          *outBegIdx,
+                                           int          *outNBElement,
+                                           double        outReal[] )
 {
    double sumXY;
    double sumX;
@@ -244,7 +244,7 @@ TA_LIB_API TA_RetCode TA_CORREL_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CORREL TA_CORREL_Logic
+#define TA_INT_CORREL TA_CORREL_Unguarded
 
 TA_RetCode TA_S_CORREL( int    startIdx,
                         int    endIdx,
@@ -356,14 +356,14 @@ TA_RetCode TA_S_CORREL( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CORREL_Logic( int    startIdx,
-                              int    endIdx,
-                              const float inReal0[],
-                              const float inReal1[],
-                              int optInTimePeriod,
-                              int          *outBegIdx,
-                              int          *outNBElement,
-                              double        outReal[] )
+TA_RetCode TA_S_CORREL_Unguarded( int    startIdx,
+                                  int    endIdx,
+                                  const float inReal0[],
+                                  const float inReal1[],
+                                  int optInTimePeriod,
+                                  int          *outBegIdx,
+                                  int          *outNBElement,
+                                  double        outReal[] )
 {
    double sumXY;
    double sumX;

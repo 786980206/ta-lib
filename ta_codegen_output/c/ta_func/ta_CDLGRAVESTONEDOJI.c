@@ -136,15 +136,15 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
-                                                  int    endIdx,
-                                                  const double inOpen[],
-                                                  const double inHigh[],
-                                                  const double inLow[],
-                                                  const double inClose[],
-                                                  int          *outBegIdx,
-                                                  int          *outNBElement,
-                                                  int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Unguarded( int    startIdx,
+                                                      int    endIdx,
+                                                      const double inOpen[],
+                                                      const double inHigh[],
+                                                      const double inLow[],
+                                                      const double inClose[],
+                                                      int          *outBegIdx,
+                                                      int          *outNBElement,
+                                                      int        outInteger[] )
 {
    double BodyDojiPeriodTotal;
    double ShadowVeryShortPeriodTotal;
@@ -210,7 +210,7 @@ TA_LIB_API TA_RetCode TA_CDLGRAVESTONEDOJI_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLGRAVESTONEDOJI TA_CDLGRAVESTONEDOJI_Logic
+#define TA_INT_CDLGRAVESTONEDOJI TA_CDLGRAVESTONEDOJI_Unguarded
 
 TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
                                    int    endIdx,
@@ -302,15 +302,15 @@ TA_RetCode TA_S_CDLGRAVESTONEDOJI( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLGRAVESTONEDOJI_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const float inOpen[],
-                                         const float inHigh[],
-                                         const float inLow[],
-                                         const float inClose[],
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         int        outInteger[] )
+TA_RetCode TA_S_CDLGRAVESTONEDOJI_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const float inOpen[],
+                                             const float inHigh[],
+                                             const float inLow[],
+                                             const float inClose[],
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             int        outInteger[] )
 {
    double BodyDojiPeriodTotal;
    double ShadowVeryShortPeriodTotal;

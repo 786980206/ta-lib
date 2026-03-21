@@ -355,13 +355,13 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_HT_PHASOR_Logic( int    startIdx,
-                                          int    endIdx,
-                                          const double inReal[],
-                                          int          *outBegIdx,
-                                          int          *outNBElement,
-                                          double        outInPhase[],
-                                          double        outQuadrature[] )
+TA_LIB_API TA_RetCode TA_HT_PHASOR_Unguarded( int    startIdx,
+                                              int    endIdx,
+                                              const double inReal[],
+                                              int          *outBegIdx,
+                                              int          *outNBElement,
+                                              double        outInPhase[],
+                                              double        outQuadrature[] )
 {
    int outIdx;
    int i;
@@ -658,7 +658,7 @@ TA_LIB_API TA_RetCode TA_HT_PHASOR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_PHASOR TA_HT_PHASOR_Logic
+#define TA_INT_HT_PHASOR TA_HT_PHASOR_Unguarded
 
 TA_RetCode TA_S_HT_PHASOR( int    startIdx,
                            int    endIdx,
@@ -975,13 +975,13 @@ TA_RetCode TA_S_HT_PHASOR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_HT_PHASOR_Logic( int    startIdx,
-                                 int    endIdx,
-                                 const float inReal[],
-                                 int          *outBegIdx,
-                                 int          *outNBElement,
-                                 double        outInPhase[],
-                                 double        outQuadrature[] )
+TA_RetCode TA_S_HT_PHASOR_Unguarded( int    startIdx,
+                                     int    endIdx,
+                                     const float inReal[],
+                                     int          *outBegIdx,
+                                     int          *outNBElement,
+                                     double        outInPhase[],
+                                     double        outQuadrature[] )
 {
    int outIdx;
    int i;

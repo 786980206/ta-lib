@@ -105,13 +105,13 @@ TA_LIB_API TA_RetCode TA_SUM( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_SUM_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int optInTimePeriod,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_SUM_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInTimePeriod,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    double periodTotal;
    double tempReal;
@@ -156,7 +156,7 @@ TA_LIB_API TA_RetCode TA_SUM_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_SUM TA_SUM_Logic
+#define TA_INT_SUM TA_SUM_Unguarded
 
 TA_RetCode TA_S_SUM( int    startIdx,
                      int    endIdx,
@@ -223,13 +223,13 @@ TA_RetCode TA_S_SUM( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_SUM_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int optInTimePeriod,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_SUM_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInTimePeriod,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    double periodTotal;
    double tempReal;

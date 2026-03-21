@@ -40,14 +40,14 @@ TA_LIB_API int TA_EMA_Lookback( int optInTimePeriod )
    return ((optInTimePeriod-1)+TA_GLOBALS_UNSTABLE_PERIOD(TA_FUNC_UNST_EMA,Ema));
 }
 
-TA_LIB_API TA_RetCode TA_EMA_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int optInTimePeriod,
-                                    double optInK_1,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_EMA_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInTimePeriod,
+                                        double optInK_1,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    double tempReal;
    double prevMA;
@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_EMA_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_EMA TA_EMA_Logic
+#define TA_INT_EMA TA_EMA_Unguarded
 
 TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
                               int    endIdx,
@@ -132,14 +132,14 @@ TA_LIB_API TA_RetCode TA_EMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_EMA_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int optInTimePeriod,
-                           double optInK_1,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_EMA_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInTimePeriod,
+                               double optInK_1,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    double tempReal;
    double prevMA;

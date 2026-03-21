@@ -137,15 +137,15 @@ TA_LIB_API TA_RetCode TA_CDLONNECK( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLONNECK_Logic( int    startIdx,
-                                          int    endIdx,
-                                          const double inOpen[],
-                                          const double inHigh[],
-                                          const double inLow[],
-                                          const double inClose[],
-                                          int          *outBegIdx,
-                                          int          *outNBElement,
-                                          int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLONNECK_Unguarded( int    startIdx,
+                                              int    endIdx,
+                                              const double inOpen[],
+                                              const double inHigh[],
+                                              const double inLow[],
+                                              const double inClose[],
+                                              int          *outBegIdx,
+                                              int          *outNBElement,
+                                              int        outInteger[] )
 {
    double EqualPeriodTotal;
    double BodyLongPeriodTotal;
@@ -212,7 +212,7 @@ TA_LIB_API TA_RetCode TA_CDLONNECK_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLONNECK TA_CDLONNECK_Logic
+#define TA_INT_CDLONNECK TA_CDLONNECK_Unguarded
 
 TA_RetCode TA_S_CDLONNECK( int    startIdx,
                            int    endIdx,
@@ -305,15 +305,15 @@ TA_RetCode TA_S_CDLONNECK( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLONNECK_Logic( int    startIdx,
-                                 int    endIdx,
-                                 const float inOpen[],
-                                 const float inHigh[],
-                                 const float inLow[],
-                                 const float inClose[],
-                                 int          *outBegIdx,
-                                 int          *outNBElement,
-                                 int        outInteger[] )
+TA_RetCode TA_S_CDLONNECK_Unguarded( int    startIdx,
+                                     int    endIdx,
+                                     const float inOpen[],
+                                     const float inHigh[],
+                                     const float inLow[],
+                                     const float inClose[],
+                                     int          *outBegIdx,
+                                     int          *outNBElement,
+                                     int        outInteger[] )
 {
    double EqualPeriodTotal;
    double BodyLongPeriodTotal;

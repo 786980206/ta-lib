@@ -263,15 +263,15 @@ TA_LIB_API TA_RetCode TA_DX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_DX_Logic( int    startIdx,
-                                   int    endIdx,
-                                   const double inHigh[],
-                                   const double inLow[],
-                                   const double inClose[],
-                                   int optInTimePeriod,
-                                   int          *outBegIdx,
-                                   int          *outNBElement,
-                                   double        outReal[] )
+TA_LIB_API TA_RetCode TA_DX_Unguarded( int    startIdx,
+                                       int    endIdx,
+                                       const double inHigh[],
+                                       const double inLow[],
+                                       const double inClose[],
+                                       int optInTimePeriod,
+                                       int          *outBegIdx,
+                                       int          *outNBElement,
+                                       double        outReal[] )
 {
    int today;
    int lookbackTotal;
@@ -462,7 +462,7 @@ TA_LIB_API TA_RetCode TA_DX_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_DX TA_DX_Logic
+#define TA_INT_DX TA_DX_Unguarded
 
 TA_RetCode TA_S_DX( int    startIdx,
                     int    endIdx,
@@ -681,15 +681,15 @@ TA_RetCode TA_S_DX( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_DX_Logic( int    startIdx,
-                          int    endIdx,
-                          const float inHigh[],
-                          const float inLow[],
-                          const float inClose[],
-                          int optInTimePeriod,
-                          int          *outBegIdx,
-                          int          *outNBElement,
-                          double        outReal[] )
+TA_RetCode TA_S_DX_Unguarded( int    startIdx,
+                              int    endIdx,
+                              const float inHigh[],
+                              const float inLow[],
+                              const float inClose[],
+                              int optInTimePeriod,
+                              int          *outBegIdx,
+                              int          *outNBElement,
+                              double        outReal[] )
 {
    int today;
    int lookbackTotal;

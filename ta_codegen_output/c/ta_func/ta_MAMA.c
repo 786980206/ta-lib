@@ -400,15 +400,15 @@ TA_LIB_API TA_RetCode TA_MAMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_MAMA_Logic( int    startIdx,
-                                     int    endIdx,
-                                     const double inReal[],
-                                     double optInFastLimit,
-                                     double optInSlowLimit,
-                                     int          *outBegIdx,
-                                     int          *outNBElement,
-                                     double        outMAMA[],
-                                     double        outFAMA[] )
+TA_LIB_API TA_RetCode TA_MAMA_Unguarded( int    startIdx,
+                                         int    endIdx,
+                                         const double inReal[],
+                                         double optInFastLimit,
+                                         double optInSlowLimit,
+                                         int          *outBegIdx,
+                                         int          *outNBElement,
+                                         double        outMAMA[],
+                                         double        outFAMA[] )
 {
    int outIdx;
    int i;
@@ -740,7 +740,7 @@ TA_LIB_API TA_RetCode TA_MAMA_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MAMA TA_MAMA_Logic
+#define TA_INT_MAMA TA_MAMA_Unguarded
 
 TA_RetCode TA_S_MAMA( int    startIdx,
                       int    endIdx,
@@ -1102,15 +1102,15 @@ TA_RetCode TA_S_MAMA( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_MAMA_Logic( int    startIdx,
-                            int    endIdx,
-                            const float inReal[],
-                            double optInFastLimit,
-                            double optInSlowLimit,
-                            int          *outBegIdx,
-                            int          *outNBElement,
-                            double        outMAMA[],
-                            double        outFAMA[] )
+TA_RetCode TA_S_MAMA_Unguarded( int    startIdx,
+                                int    endIdx,
+                                const float inReal[],
+                                double optInFastLimit,
+                                double optInSlowLimit,
+                                int          *outBegIdx,
+                                int          *outNBElement,
+                                double        outMAMA[],
+                                double        outFAMA[] )
 {
    int outIdx;
    int i;

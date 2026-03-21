@@ -224,13 +224,13 @@ TA_LIB_API TA_RetCode TA_CMO( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CMO_Logic( int    startIdx,
-                                    int    endIdx,
-                                    const double inReal[],
-                                    int optInTimePeriod,
-                                    int          *outBegIdx,
-                                    int          *outNBElement,
-                                    double        outReal[] )
+TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
+                                        int    endIdx,
+                                        const double inReal[],
+                                        int optInTimePeriod,
+                                        int          *outBegIdx,
+                                        int          *outNBElement,
+                                        double        outReal[] )
 {
    int outIdx;
    int today;
@@ -388,7 +388,7 @@ TA_LIB_API TA_RetCode TA_CMO_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CMO TA_CMO_Logic
+#define TA_INT_CMO TA_CMO_Unguarded
 
 TA_RetCode TA_S_CMO( int    startIdx,
                      int    endIdx,
@@ -568,13 +568,13 @@ TA_RetCode TA_S_CMO( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CMO_Logic( int    startIdx,
-                           int    endIdx,
-                           const float inReal[],
-                           int optInTimePeriod,
-                           int          *outBegIdx,
-                           int          *outNBElement,
-                           double        outReal[] )
+TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
+                               int    endIdx,
+                               const float inReal[],
+                               int optInTimePeriod,
+                               int          *outBegIdx,
+                               int          *outNBElement,
+                               double        outReal[] )
 {
    int outIdx;
    int today;

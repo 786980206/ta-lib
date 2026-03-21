@@ -128,15 +128,15 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLTRISTAR_Logic( int    startIdx,
-                                           int    endIdx,
-                                           const double inOpen[],
-                                           const double inHigh[],
-                                           const double inLow[],
-                                           const double inClose[],
-                                           int          *outBegIdx,
-                                           int          *outNBElement,
-                                           int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLTRISTAR_Unguarded( int    startIdx,
+                                               int    endIdx,
+                                               const double inOpen[],
+                                               const double inHigh[],
+                                               const double inLow[],
+                                               const double inClose[],
+                                               int          *outBegIdx,
+                                               int          *outNBElement,
+                                               int        outInteger[] )
 {
    double BodyPeriodTotal;
    int i;
@@ -197,7 +197,7 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLTRISTAR TA_CDLTRISTAR_Logic
+#define TA_INT_CDLTRISTAR TA_CDLTRISTAR_Unguarded
 
 TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
                             int    endIdx,
@@ -284,15 +284,15 @@ TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLTRISTAR_Logic( int    startIdx,
-                                  int    endIdx,
-                                  const float inOpen[],
-                                  const float inHigh[],
-                                  const float inLow[],
-                                  const float inClose[],
-                                  int          *outBegIdx,
-                                  int          *outNBElement,
-                                  int        outInteger[] )
+TA_RetCode TA_S_CDLTRISTAR_Unguarded( int    startIdx,
+                                      int    endIdx,
+                                      const float inOpen[],
+                                      const float inHigh[],
+                                      const float inLow[],
+                                      const float inClose[],
+                                      int          *outBegIdx,
+                                      int          *outNBElement,
+                                      int        outInteger[] )
 {
    double BodyPeriodTotal;
    int i;

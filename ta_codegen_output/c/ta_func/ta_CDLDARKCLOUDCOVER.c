@@ -124,16 +124,16 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER_Logic( int    startIdx,
-                                                  int    endIdx,
-                                                  const double inOpen[],
-                                                  const double inHigh[],
-                                                  const double inLow[],
-                                                  const double inClose[],
-                                                  double optInPenetration,
-                                                  int          *outBegIdx,
-                                                  int          *outNBElement,
-                                                  int        outInteger[] )
+TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
+                                                      int    endIdx,
+                                                      const double inOpen[],
+                                                      const double inHigh[],
+                                                      const double inLow[],
+                                                      const double inClose[],
+                                                      double optInPenetration,
+                                                      int          *outBegIdx,
+                                                      int          *outNBElement,
+                                                      int        outInteger[] )
 {
    double BodyLongPeriodTotal;
    int i;
@@ -185,7 +185,7 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLDARKCLOUDCOVER TA_CDLDARKCLOUDCOVER_Logic
+#define TA_INT_CDLDARKCLOUDCOVER TA_CDLDARKCLOUDCOVER_Unguarded
 
 TA_RetCode TA_S_CDLDARKCLOUDCOVER( int    startIdx,
                                    int    endIdx,
@@ -268,16 +268,16 @@ TA_RetCode TA_S_CDLDARKCLOUDCOVER( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_CDLDARKCLOUDCOVER_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const float inOpen[],
-                                         const float inHigh[],
-                                         const float inLow[],
-                                         const float inClose[],
-                                         double optInPenetration,
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         int        outInteger[] )
+TA_RetCode TA_S_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const float inOpen[],
+                                             const float inHigh[],
+                                             const float inLow[],
+                                             const float inClose[],
+                                             double optInPenetration,
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             int        outInteger[] )
 {
    double BodyLongPeriodTotal;
    int i;

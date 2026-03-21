@@ -78,14 +78,14 @@ TA_LIB_API TA_RetCode TA_WCLPRICE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_WCLPRICE_Logic( int    startIdx,
-                                         int    endIdx,
-                                         const double inHigh[],
-                                         const double inLow[],
-                                         const double inClose[],
-                                         int          *outBegIdx,
-                                         int          *outNBElement,
-                                         double        outReal[] )
+TA_LIB_API TA_RetCode TA_WCLPRICE_Unguarded( int    startIdx,
+                                             int    endIdx,
+                                             const double inHigh[],
+                                             const double inLow[],
+                                             const double inClose[],
+                                             int          *outBegIdx,
+                                             int          *outNBElement,
+                                             double        outReal[] )
 {
    int outIdx;
    int i;
@@ -102,7 +102,7 @@ TA_LIB_API TA_RetCode TA_WCLPRICE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_WCLPRICE TA_WCLPRICE_Logic
+#define TA_INT_WCLPRICE TA_WCLPRICE_Unguarded
 
 TA_RetCode TA_S_WCLPRICE( int    startIdx,
                           int    endIdx,
@@ -142,14 +142,14 @@ TA_RetCode TA_S_WCLPRICE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_WCLPRICE_Logic( int    startIdx,
-                                int    endIdx,
-                                const float inHigh[],
-                                const float inLow[],
-                                const float inClose[],
-                                int          *outBegIdx,
-                                int          *outNBElement,
-                                double        outReal[] )
+TA_RetCode TA_S_WCLPRICE_Unguarded( int    startIdx,
+                                    int    endIdx,
+                                    const float inHigh[],
+                                    const float inLow[],
+                                    const float inClose[],
+                                    int          *outBegIdx,
+                                    int          *outNBElement,
+                                    double        outReal[] )
 {
    int outIdx;
    int i;

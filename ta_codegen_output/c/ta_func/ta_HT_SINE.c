@@ -417,13 +417,13 @@ TA_LIB_API TA_RetCode TA_HT_SINE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_LIB_API TA_RetCode TA_HT_SINE_Logic( int    startIdx,
-                                        int    endIdx,
-                                        const double inReal[],
-                                        int          *outBegIdx,
-                                        int          *outNBElement,
-                                        double        outSine[],
-                                        double        outLeadSine[] )
+TA_LIB_API TA_RetCode TA_HT_SINE_Unguarded( int    startIdx,
+                                            int    endIdx,
+                                            const double inReal[],
+                                            int          *outBegIdx,
+                                            int          *outNBElement,
+                                            double        outSine[],
+                                            double        outLeadSine[] )
 {
    int outIdx;
    int i;
@@ -782,7 +782,7 @@ TA_LIB_API TA_RetCode TA_HT_SINE_Logic( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_SINE TA_HT_SINE_Logic
+#define TA_INT_HT_SINE TA_HT_SINE_Unguarded
 
 TA_RetCode TA_S_HT_SINE( int    startIdx,
                          int    endIdx,
@@ -1161,13 +1161,13 @@ TA_RetCode TA_S_HT_SINE( int    startIdx,
    return TA_SUCCESS;
 }
 
-TA_RetCode TA_S_HT_SINE_Logic( int    startIdx,
-                               int    endIdx,
-                               const float inReal[],
-                               int          *outBegIdx,
-                               int          *outNBElement,
-                               double        outSine[],
-                               double        outLeadSine[] )
+TA_RetCode TA_S_HT_SINE_Unguarded( int    startIdx,
+                                   int    endIdx,
+                                   const float inReal[],
+                                   int          *outBegIdx,
+                                   int          *outNBElement,
+                                   double        outSine[],
+                                   double        outLeadSine[] )
 {
    int outIdx;
    int i;
