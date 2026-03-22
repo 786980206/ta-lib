@@ -93,15 +93,57 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.tema_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut firstEMA: Vec<f64> = Vec::new();
+        let mut secondEMA: Vec<f64> = Vec::new();
+        let mut firstEMABegIdx: usize = 0_usize;
+        let mut firstEMANbElement: usize = 0_usize;
+        let mut secondEMABegIdx: usize = 0_usize;
+        let mut secondEMANbElement: usize = 0_usize;
+        let mut thirdEMABegIdx: usize = 0_usize;
+        let mut thirdEMANbElement: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackEMA: usize = 0_usize;
+        let mut firstEMAIdx: usize = 0_usize;
+        let mut secondEMAIdx: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        (*outNBElement) = 0;
+        (*outBegIdx) = 0;
+        lookbackEMA = self.ema_lookback(optInTimePeriod);
+        lookbackTotal = lookbackEMA * 3;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+        firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
+        retCode = self.ema(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        if retCode != RetCode::Success || firstEMANbElement == 0 {
+            return retCode;
+        }
+        secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
+        retCode = self.ema(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        if retCode != RetCode::Success || secondEMANbElement == 0 {
+            return retCode;
+        }
+        retCode = self.ema(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
+        if retCode != RetCode::Success || thirdEMANbElement == 0 {
+            return retCode;
+        }
+        firstEMAIdx = thirdEMABegIdx + secondEMABegIdx;
+        secondEMAIdx = thirdEMABegIdx;
+        (*outBegIdx) = firstEMAIdx + firstEMABegIdx;
+        outIdx = 0;
+        while outIdx < thirdEMANbElement {
+            outReal[outIdx] = ((outReal[outIdx] + (3.0 * firstEMA[{ let _v = firstEMAIdx; firstEMAIdx += 1; _v }] - 3.0 * secondEMA[{ let _v = secondEMAIdx; secondEMAIdx += 1; _v }])) as f64);
+            outIdx += 1;
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn tema_unguarded(
         &self,

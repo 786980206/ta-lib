@@ -104,23 +104,173 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.sarext_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            optInStartValue,
-            optInOffsetOnReverse,
-            optInAccelerationInitLong,
-            optInAccelerationLong,
-            optInAccelerationMaxLong,
-            optInAccelerationInitShort,
-            optInAccelerationShort,
-            optInAccelerationMaxShort,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut isLong: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut newHigh: f64 = 0.0_f64;
+        let mut newLow: f64 = 0.0_f64;
+        let mut prevHigh: f64 = 0.0_f64;
+        let mut prevLow: f64 = 0.0_f64;
+        let mut afLong: f64 = 0.0_f64;
+        let mut afShort: f64 = 0.0_f64;
+        let mut ep: f64 = 0.0_f64;
+        let mut sar: f64 = 0.0_f64;
+        let mut ep_temp: [f64; 1 as usize] = [0.0_f64; 1 as usize];
+        if startIdx < 1 {
+            startIdx = 1;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        afLong = optInAccelerationInitLong;
+        afShort = optInAccelerationInitShort;
+        if afLong > optInAccelerationMaxLong {
+            optInAccelerationInitLong = optInAccelerationMaxLong;
+            afLong = optInAccelerationInitLong;
+        }
+        if optInAccelerationLong > optInAccelerationMaxLong {
+            optInAccelerationLong = optInAccelerationMaxLong;
+        }
+        if afShort > optInAccelerationMaxShort {
+            optInAccelerationInitShort = optInAccelerationMaxShort;
+            afShort = optInAccelerationInitShort;
+        }
+        if optInAccelerationShort > optInAccelerationMaxShort {
+            optInAccelerationShort = optInAccelerationMaxShort;
+        }
+        if optInStartValue == 0_f64 {
+            let mut _dup_out: usize = 0_usize;
+            retCode = self.minus_dm(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
+            if ep_temp[0] > 0_f64 {
+                isLong = 0;
+            } else {
+                isLong = 1;
+            }
+            if retCode != RetCode::Success {
+                (*outBegIdx) = 0;
+                (*outNBElement) = 0;
+                return retCode;
+            }
+        } else if optInStartValue > 0_f64 {
+            isLong = 1;
+        } else {
+            isLong = 0;
+        }
+        (*outBegIdx) = startIdx;
+        outIdx = 0;
+        todayIdx = startIdx;
+        newHigh = inHigh[todayIdx - 1];
+        newLow = inLow[todayIdx - 1];
+        if optInStartValue == 0_f64 {
+            if isLong == 1 {
+                ep = inHigh[todayIdx];
+                sar = newLow;
+            } else {
+                ep = inLow[todayIdx];
+                sar = newHigh;
+            }
+        } else if optInStartValue > 0_f64 {
+            ep = inHigh[todayIdx];
+            sar = optInStartValue;
+        } else {
+            ep = inLow[todayIdx];
+            sar = (optInStartValue).abs();
+        }
+        newLow = inLow[todayIdx];
+        newHigh = inHigh[todayIdx];
+        while todayIdx <= endIdx {
+            prevLow = newLow;
+            prevHigh = newHigh;
+            newLow = inLow[todayIdx];
+            newHigh = inHigh[todayIdx];
+            todayIdx += 1;
+            if isLong == 1 {
+                if newLow <= sar {
+                    isLong = 0;
+                    sar = ep;
+                    if sar < prevHigh {
+                        sar = prevHigh;
+                    }
+                    if sar < newHigh {
+                        sar = newHigh;
+                    }
+                    if optInOffsetOnReverse != 0.0 {
+                        sar += sar * optInOffsetOnReverse;
+                    }
+                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0_f64 - sar;
+                    afShort = optInAccelerationInitShort;
+                    ep = newLow;
+                    sar = sar + afShort * (ep - sar);
+                    if sar < prevHigh {
+                        sar = prevHigh;
+                    }
+                    if sar < newHigh {
+                        sar = newHigh;
+                    }
+                } else {
+                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                    if newHigh > ep {
+                        ep = newHigh;
+                        afLong += optInAccelerationLong;
+                        if afLong > optInAccelerationMaxLong {
+                            afLong = optInAccelerationMaxLong;
+                        }
+                    }
+                    sar = sar + afLong * (ep - sar);
+                    if sar > prevLow {
+                        sar = prevLow;
+                    }
+                    if sar > newLow {
+                        sar = newLow;
+                    }
+                }
+            } else if newHigh >= sar {
+                isLong = 1;
+                sar = ep;
+                if sar > prevLow {
+                    sar = prevLow;
+                }
+                if sar > newLow {
+                    sar = newLow;
+                }
+                if optInOffsetOnReverse != 0.0 {
+                    sar -= sar * optInOffsetOnReverse;
+                }
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                afLong = optInAccelerationInitLong;
+                ep = newHigh;
+                sar = sar + afLong * (ep - sar);
+                if sar > prevLow {
+                    sar = prevLow;
+                }
+                if sar > newLow {
+                    sar = newLow;
+                }
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0_f64 - sar;
+                if newLow < ep {
+                    ep = newLow;
+                    afShort += optInAccelerationShort;
+                    if afShort > optInAccelerationMaxShort {
+                        afShort = optInAccelerationMaxShort;
+                    }
+                }
+                sar = sar + afShort * (ep - sar);
+                if sar < prevHigh {
+                    sar = prevHigh;
+                }
+                if sar < newHigh {
+                    sar = newHigh;
+                }
+            }
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn sarext_unguarded(
         &self,

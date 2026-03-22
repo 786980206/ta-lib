@@ -99,19 +99,68 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.accbands_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outRealUpperBand,
-            outRealMiddleBand,
-            outRealLowerBand,
-        );
+        let mut startIdx = startIdx;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempBuffer1: Vec<f64> = Vec::new();
+        let mut tempBuffer2: Vec<f64> = Vec::new();
+        let mut outBegIdxDummy: usize = 0_usize;
+        let mut outNbElementDummy: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outputSize: usize = 0_usize;
+        let mut bufferSize: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut tempReal: f64 = 0.0_f64;
+        lookbackTotal = self.sma_lookback(optInTimePeriod);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        outputSize = endIdx - startIdx + 1;
+        bufferSize = outputSize + lookbackTotal;
+        tempBuffer1 = vec![0.0_f64; (bufferSize * 1) as usize];
+        tempBuffer2 = vec![0.0_f64; (bufferSize * 1) as usize];
+        // for( j = 0, i = startIdx - lookbackTotal; i <= endIdx; i += 1, j += 1 )
+        j = 0;
+        i = startIdx - lookbackTotal;
+        while i <= endIdx {
+            tempReal = inHigh[i] + inLow[i];
+            if !((tempReal).abs() < 1e-14) {
+                tempReal = 4_f64 * (inHigh[i] - inLow[i]) / tempReal;
+                tempBuffer1[j] = inHigh[i] * (1_f64 + tempReal);
+                tempBuffer2[j] = inLow[i] * (1_f64 - tempReal);
+            } else {
+                tempBuffer1[j] = inHigh[i];
+                tempBuffer2[j] = inLow[i];
+            }
+            i += 1;
+            j += 1;
+        }
+        retCode = self.sma(startIdx, endIdx, inClose, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealMiddleBand);
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return retCode;
+        }
+        retCode = self.sma(0, bufferSize - 1, &tempBuffer1, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealUpperBand);
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return retCode;
+        }
+        retCode = self.sma(0, bufferSize - 1, &tempBuffer2, optInTimePeriod, &mut outBegIdxDummy, &mut outNbElementDummy, outRealLowerBand);
+        if retCode != RetCode::Success || (((outNbElementDummy) as usize)) as usize != outputSize {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return retCode;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outputSize;
+        return RetCode::Success;
     }
     pub fn accbands_unguarded(
         &self,

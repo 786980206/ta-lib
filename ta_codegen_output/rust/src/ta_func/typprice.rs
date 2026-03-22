@@ -82,16 +82,17 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.typprice_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        outIdx = 0;
+        for i in (startIdx as usize)..=(endIdx as usize) {
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inHigh[i] + inLow[i] + inClose[i]) / 3.0) as f64);
+        }
+        i = (endIdx as usize) + 1;
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn typprice_unguarded(
         &self,

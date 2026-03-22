@@ -84,17 +84,23 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.bop_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut tempReal: f64 = 0.0_f64;
+        outIdx = 0;
+        for i in (startIdx as usize)..=(endIdx as usize) {
+            tempReal = inHigh[i] - inLow[i];
+            if (tempReal) < 1e-14 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inClose[i] - inOpen[i]) / tempReal) as f64);
+            }
+        }
+        i = (endIdx as usize) + 1;
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn bop_unguarded(
         &self,

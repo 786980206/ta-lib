@@ -91,15 +91,59 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.dema_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut firstEMA: Vec<f64> = Vec::new();
+        let mut secondEMA: Vec<f64> = Vec::new();
+        let mut firstEMABegIdx: usize = 0_usize;
+        let mut firstEMANbElement: usize = 0_usize;
+        let mut secondEMABegIdx: usize = 0_usize;
+        let mut secondEMANbElement: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut firstEMAIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackEMA: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        (*outNBElement) = 0;
+        (*outBegIdx) = 0;
+        lookbackEMA = self.ema_lookback(optInTimePeriod);
+        lookbackTotal = lookbackEMA * 2;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        if inReal == outReal {
+            firstEMA = outReal.to_vec();
+        } else {
+            tempInt = lookbackTotal + (endIdx - startIdx) + 1;
+            firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
+        }
+        retCode = self.ema(startIdx - lookbackEMA, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        if retCode != RetCode::Success || firstEMANbElement == 0 {
+            if firstEMA != outReal {
+            }
+            return retCode;
+        }
+        secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
+        retCode = self.ema(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        if retCode != RetCode::Success || secondEMANbElement == 0 {
+            if firstEMA != outReal {
+            }
+            return retCode;
+        }
+        firstEMAIdx = secondEMABegIdx;
+        outIdx = 0;
+        while outIdx < secondEMANbElement {
+            outReal[outIdx] = ((2.0 * firstEMA[{ let _v = firstEMAIdx; firstEMAIdx += 1; _v }] - secondEMA[outIdx]) as f64);
+            outIdx += 1;
+        }
+        if firstEMA != outReal {
+        }
+        (*outBegIdx) = firstEMABegIdx + secondEMABegIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn dema_unguarded(
         &self,

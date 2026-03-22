@@ -90,17 +90,95 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.cdl2crows_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outInteger,
-        );
+        let mut startIdx = startIdx;
+        let mut BodyLongPeriodTotal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut BodyLongTrailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        #[allow(non_snake_case)]
+        let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
+        #[allow(non_snake_case)]
+        let BodyLong_avgPeriod: i32 = self.candle_settings.body_long.avg_period;
+        #[allow(non_snake_case)]
+        let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
+        lookbackTotal = self.cdl2crows_lookback();
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        BodyLongPeriodTotal = 0.0;
+        BodyLongTrailingIdx = startIdx - 2 - (BodyLong_avgPeriod) as usize;
+        i = BodyLongTrailingIdx;
+        while i < startIdx - 2 {
+            let mut _candlerange_0: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_0 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_0 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_0 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_0 = 0.0;
+                }
+            }
+            BodyLongPeriodTotal += _candlerange_0;
+            i += 1;
+        }
+        i = startIdx;
+        outIdx = 0;
+        loop {
+            if (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && (inClose[i - 2] - inOpen[i - 2]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if (inOpen[i - 1]).min(inClose[i - 1]) > (inOpen[i - 2]).max(inClose[i - 2]) { 1 } else { 0 }) != 0) && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inOpen[i] < inOpen[i - 1] && inOpen[i] > inClose[i - 1] && inClose[i] > inOpen[i - 2] && inClose[i] < inClose[i - 2] {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (0 - 100) as i32;
+            } else {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+            }
+            let mut _candlerange_1: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_1 = (inClose[i - 2] - inOpen[i - 2]).abs();
+                }
+                1 => {
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2];
+                }
+                2 => {
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs();
+                }
+                _ => {
+                    _candlerange_1 = 0.0;
+                }
+            }
+            let mut _candlerange_2: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_2 = (inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx]).abs();
+                }
+                1 => {
+                    _candlerange_2 = inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx];
+                }
+                2 => {
+                    _candlerange_2 = inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx] - (inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx]).abs();
+                }
+                _ => {
+                    _candlerange_2 = 0.0;
+                }
+            }
+            BodyLongPeriodTotal += _candlerange_1 - _candlerange_2;
+            i += 1;
+            BodyLongTrailingIdx += 1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn cdl2crows_unguarded(
         &self,

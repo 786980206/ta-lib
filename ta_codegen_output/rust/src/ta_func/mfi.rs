@@ -97,18 +97,127 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.mfi_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            inVolume,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut posSumMF: f64 = 0.0_f64;
+        let mut negSumMF: f64 = 0.0_f64;
+        let mut prevValue: f64 = 0.0_f64;
+        let mut tempValue1: f64 = 0.0_f64;
+        let mut tempValue2: f64 = 0.0_f64;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut mflow_positive: [f64; 50 as usize] = [0.0_f64; 50 as usize];
+        let mut mflow_negative: [f64; 50 as usize] = [0.0_f64; 50 as usize];
+        let mut mflow_Idx: usize = 0_usize;
+        mflow_Idx = 0;
+        {
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
+            let _si = (0) as usize;
+            mflow_positive[_si.._si + _n].fill(0.0_f64);
+        };
+        {
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
+            let _si = (0) as usize;
+            mflow_negative[_si.._si + _n].fill(0.0_f64);
+        };
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::Mfi as usize]) as usize;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        outIdx = 0;
+        today = startIdx - lookbackTotal;
+        prevValue = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+        posSumMF = 0.0;
+        negSumMF = 0.0;
+        today += 1;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
+        while i > 0 {
+            tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+            tempValue2 = tempValue1 - prevValue;
+            prevValue = tempValue1;
+            tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
+            if tempValue2 < 0_f64 {
+                mflow_negative[mflow_Idx] = tempValue1;
+                negSumMF += tempValue1;
+                mflow_positive[mflow_Idx] = 0.0;
+            } else if tempValue2 > 0_f64 {
+                mflow_positive[mflow_Idx] = tempValue1;
+                posSumMF += tempValue1;
+                mflow_negative[mflow_Idx] = 0.0;
+            } else {
+                mflow_positive[mflow_Idx] = 0.0;
+                mflow_negative[mflow_Idx] = 0.0;
+            }
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            i -= 1;
+        }
+        if today > startIdx {
+            tempValue1 = posSumMF + negSumMF;
+            if tempValue1 < 1.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * (posSumMF / tempValue1);
+            }
+        } else {
+            while today < startIdx {
+                posSumMF -= mflow_positive[mflow_Idx];
+                negSumMF -= mflow_negative[mflow_Idx];
+                tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+                tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+                tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
+                if tempValue2 < 0_f64 {
+                    mflow_negative[mflow_Idx] = tempValue1;
+                    negSumMF += tempValue1;
+                    mflow_positive[mflow_Idx] = 0.0;
+                } else if tempValue2 > 0_f64 {
+                    mflow_positive[mflow_Idx] = tempValue1;
+                    posSumMF += tempValue1;
+                    mflow_negative[mflow_Idx] = 0.0;
+                } else {
+                    mflow_positive[mflow_Idx] = 0.0;
+                    mflow_negative[mflow_Idx] = 0.0;
+                }
+                mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+            }
+        }
+        while today <= endIdx {
+            posSumMF -= mflow_positive[mflow_Idx];
+            negSumMF -= mflow_negative[mflow_Idx];
+            tempValue1 = (inHigh[today] + inLow[today] + inClose[today]) / 3.0;
+            tempValue2 = tempValue1 - prevValue;
+            prevValue = tempValue1;
+            tempValue1 *= inVolume[{ let _v = today; today += 1; _v }];
+            if tempValue2 < 0_f64 {
+                mflow_negative[mflow_Idx] = tempValue1;
+                negSumMF += tempValue1;
+                mflow_positive[mflow_Idx] = 0.0;
+            } else if tempValue2 > 0_f64 {
+                mflow_positive[mflow_Idx] = tempValue1;
+                posSumMF += tempValue1;
+                mflow_negative[mflow_Idx] = 0.0;
+            } else {
+                mflow_positive[mflow_Idx] = 0.0;
+                mflow_negative[mflow_Idx] = 0.0;
+            }
+            tempValue1 = posSumMF + negSumMF;
+            if tempValue1 < 1.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * (posSumMF / tempValue1);
+            }
+            mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn mfi_unguarded(
         &self,

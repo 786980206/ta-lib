@@ -91,15 +91,27 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.mom_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut inIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        if startIdx < (optInTimePeriod) as usize {
+            startIdx = (optInTimePeriod) as usize;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        outIdx = 0;
+        inIdx = startIdx;
+        trailingIdx = startIdx - (optInTimePeriod) as usize;
+        while inIdx <= endIdx {
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }]) as f64);
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn mom_unguarded(
         &self,

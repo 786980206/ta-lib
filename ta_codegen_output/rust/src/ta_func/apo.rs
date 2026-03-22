@@ -105,17 +105,40 @@ impl Core {
         } else if (((optInSlowPeriod) as i32) < 2) || (((optInSlowPeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.apo_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInFastPeriod,
-            optInSlowPeriod,
-            optInMAType,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut tempBuffer: Vec<f64> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempInteger: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement2: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
+        if optInSlowPeriod < optInFastPeriod {
+            tempInteger = (optInSlowPeriod) as usize;
+            optInSlowPeriod = optInFastPeriod;
+            optInFastPeriod = (tempInteger) as i32;
+        }
+        retCode = self.ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
+        if retCode == RetCode::Success {
+            retCode = self.ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
+            if retCode == RetCode::Success {
+                tempInteger = outBegIdx1 - outBegIdx2;
+                // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )
+                i = 0;
+                j = tempInteger;
+                while i < outNbElement1 {
+                    outReal[i] = ((tempBuffer[j] - outReal[i]) as f64);
+                    i += 1;
+                    j += 1;
+                }
+                (*outBegIdx) = outBegIdx1;
+                (*outNBElement) = outNbElement1;
+            }
+        }
+        return retCode;
     }
     pub fn apo_unguarded(
         &self,

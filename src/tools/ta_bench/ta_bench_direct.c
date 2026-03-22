@@ -161,7 +161,7 @@ static void bench_ref_func(const TA_FuncInfo *fi, void *opaque) {
 
     strncpy(g_results[g_nResults].name, fi->name, 63);
     g_results[g_nResults].name[63] = '\0';
-    g_results[g_nResults].ref_ns = best;
+    g_results[g_nResults].ref_ns = best / ctx->iters;
     g_results[g_nResults].cg_ns = 0;
     g_nResults++;
 }

@@ -710,6 +710,48 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
         s.push_str("        }\n"); // end bench_iters loop
         s.push_str("        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;\n");
 
+        // Unguarded timing pass — skipped when built as ta_ref_serve (no _Unguarded in libta-lib.a)
+        s.push_str("#ifndef TA_REF_SERVE\n");
+        for (pname, ptype) in &func.unguarded_extra_params {
+            // EMA-style k factor: k = 2.0 / (period + 1)
+            s.push_str(&format!(
+                "        {ptype} {pname} = 2.0 / ((double)(optInTimePeriod + 1));\n"
+            ));
+        }
+        s.push_str("        long _t0_ung = get_nanotime();\n");
+        s.push_str("        for( int _biu = 0; _biu < bench_iters; _biu++ ) {\n");
+        s.push_str(&format!("        rc = TA_{}_Unguarded(\n", func.name));
+        s.push_str("            startIdx, endIdx,\n");
+        for (j, _name) in input_names.iter().enumerate() {
+            s.push_str(&format!("            g_inBuf{j},\n"));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("            {},\n", opt.name));
+        }
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!("            {pname},\n"));
+        }
+        s.push_str("            &outBegIdx, &outNBElement");
+        {
+            let mut real_idx = 0usize;
+            let mut int_idx = 0usize;
+            for out in outputs {
+                if out.param_type == ParamType::Integer {
+                    s.push_str(&format!(", g_outIntBuf{int_idx}"));
+                    int_idx += 1;
+                } else {
+                    s.push_str(&format!(", g_outBuf{real_idx}"));
+                    real_idx += 1;
+                }
+            }
+        }
+        s.push_str(");\n");
+        s.push_str("        }\n"); // end unguarded bench loop
+        s.push_str("        long elapsed_ns_ung = (get_nanotime() - _t0_ung) / bench_iters;\n");
+        s.push_str("#else\n");
+        s.push_str("        long elapsed_ns_ung = 0;\n");
+        s.push_str("#endif /* TA_REF_SERVE */\n");
+
         // Build response with correct key names and serialisers per output type.
         s.push_str("        int pos = snprintf(resp, resp_size,\n");
         s.push_str("            \"{\\\"retCode\\\":%d,\\\"outBegIdx\\\":%d,\\\"outNBElement\\\":%d,\\\"timing_ns\\\":%ld\",\n");
@@ -735,7 +777,7 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
                 }
             }
         }
-        s.push_str("        snprintf(resp + pos, resp_size - pos, \"}\");\n");
+        s.push_str("        pos += snprintf(resp + pos, resp_size - pos, \",\\\"timing_ns_unguarded\\\":%ld}\", elapsed_ns_ung);\n");
 
         s.push_str("    }\n");
     }
@@ -1149,6 +1191,34 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
         // Timing capture
         s.push_str("        long elapsedNs = (System.nanoTime() - startNs) / bench_iters;\n");
 
+        // Unguarded timing loop
+        let logic_name = format!("{func_lower}Logic");
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!(
+                "        double {pname} = 2.0 / ((double)(optInTimePeriod + 1));\n"
+            ));
+        }
+        s.push_str("        long startNsUng = System.nanoTime();\n");
+        s.push_str("        for (int _biu = 0; _biu < bench_iters; _biu++) {\n");
+        s.push_str(&format!("        rc = core.{logic_name}(\n"));
+        s.push_str("            startIdx, endIdx,\n");
+        for name in &input_names {
+            s.push_str(&format!("            {name},\n"));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("            {},\n", opt.name));
+        }
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!("            {pname},\n"));
+        }
+        s.push_str("            outBegIdx, outNBElement");
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", outArr{k}"));
+        }
+        s.push_str(");\n");
+        s.push_str("        }\n"); // end unguarded bench loop
+        s.push_str("        long elapsedNsUng = (System.nanoTime() - startNsUng) / bench_iters;\n");
+
         // Response — use correct key names and serialisers per output type
         s.push_str("        StringBuilder sb = new StringBuilder();\n");
         s.push_str("        sb.append(\"{\\\"retCode\\\":\").append(rc.toInt());\n");
@@ -1172,6 +1242,7 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str("        sb.append(\",\\\"timing_ns\\\":\").append(elapsedNs);\n");
+        s.push_str("        sb.append(\",\\\"timing_ns_unguarded\\\":\").append(elapsedNsUng);\n");
         s.push_str("        sb.append(\"}\");\n");
         s.push_str("        return sb.toString();\n");
 
@@ -1260,6 +1331,35 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             s.push_str(&format!("        {cs_type} {},\n", opt.name));
         }
 
+        s.push_str("        out int outBegIdx, out int outNBElement");
+        for (k, out) in func.outputs.iter().enumerate() {
+            let arr_name = format!("outArr{k}");
+            let cs_arr_type = if out.param_type == ParamType::Integer { "int[]" } else { "double[]" };
+            s.push_str(&format!(",\n        {cs_arr_type} {arr_name}"));
+        }
+        s.push_str(");\n\n");
+
+        // Unguarded P/Invoke declaration
+        s.push_str(&format!(
+            "    [DllImport(\"ta_codegen_funcs\", EntryPoint = \"TA_{func_upper}_Unguarded\")]\n"
+        ));
+        s.push_str(&format!("    static extern int TA_{func_upper}_Unguarded(\n"));
+        s.push_str("        int startIdx, int endIdx,\n");
+        for name in &input_names {
+            s.push_str(&format!("        double[] {name},\n"));
+        }
+        for opt in &func.optional_inputs {
+            let cs_type = if opt.param_type == ParamType::Real {
+                "double"
+            } else {
+                "int"
+            };
+            s.push_str(&format!("        {cs_type} {},\n", opt.name));
+        }
+        // Extra unguarded params (e.g. EMA's k)
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!("        double {pname},\n"));
+        }
         s.push_str("        out int outBegIdx, out int outNBElement");
         for (k, out) in func.outputs.iter().enumerate() {
             let arr_name = format!("outArr{k}");
@@ -1405,6 +1505,35 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
         s.push_str("                }\n"); // end bench_iters loop
         s.push_str("                long elapsedNs = (GetNanoTime() - _t0) / bench_iters;\n");
 
+        // Unguarded timing loop
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!(
+                "                double {pname} = 2.0 / ((double)(optInTimePeriod + 1));\n"
+            ));
+        }
+        s.push_str("                long _t0u = GetNanoTime();\n");
+        s.push_str("                for (int _biu = 0; _biu < bench_iters; _biu++) {\n");
+        s.push_str(&format!(
+            "                rc = TA_{}_Unguarded(startIdx, endIdx, ",
+            func.name
+        ));
+        for name in &input_names {
+            s.push_str(&format!("{name}, "));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("{}, ", opt.name));
+        }
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!("{pname}, "));
+        }
+        s.push_str("out outBegIdx, out outNBElement");
+        for k in 0..outputs.len() {
+            s.push_str(&format!(", outArr{k}"));
+        }
+        s.push_str(");\n");
+        s.push_str("                }\n"); // end unguarded bench loop
+        s.push_str("                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;\n");
+
         // Build response — correct key names and serialisers per output type
         s.push_str("                var sb = new System.Text.StringBuilder();\n");
         s.push_str("                sb.Append($\"{{\\\"retCode\\\":{rc},\\\"outBegIdx\\\":{outBegIdx},\\\"outNBElement\\\":{outNBElement}\");\n");
@@ -1422,6 +1551,7 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
             }
         }
         s.push_str("                sb.Append($\",\\\"timing_ns\\\":{elapsedNs}\");\n");
+        s.push_str("                sb.Append($\",\\\"timing_ns_unguarded\\\":{elapsedNsUng}\");\n");
         s.push_str("                sb.Append(\"}\");\n");
         s.push_str("                return sb.ToString();\n");
         s.push_str("            }\n");
@@ -1743,34 +1873,19 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         s.push_str("            let mut outNBElement: usize = 0;\n");
         s.push_str("            let mut rc = RetCode::Success;\n");
 
-        // Benchmark iteration loop with timing
+        // Guarded timing loop
         s.push_str("            let start_time = Instant::now();\n");
         s.push_str("            for _bi in 0..bench_iters {\n");
-
-        // Call the unguarded variant (no param validation — server handles that).
-        // For functions with extra unguarded params (e.g., EMA's k), use guarded instead.
-        if func.has_explicit_unguarded {
-            s.push_str(&format!(
-                "            rc = core.{fn_name}(\n"
-            ));
-        } else {
-            s.push_str(&format!(
-                "            rc = core.{fn_name}_unguarded(\n"
-            ));
-        }
+        s.push_str(&format!(
+            "            rc = core.{fn_name}(\n"
+        ));
         s.push_str("                startIdx, endIdx,\n");
-
-        // Input arrays (pass as slices)
         for name in &input_names {
             s.push_str(&format!("                &{name},\n"));
         }
-
-        // Optional params
         for opt in &func.optional_inputs {
             s.push_str(&format!("                {},\n", opt.name));
         }
-
-        // Output scalar params + output arrays
         s.push_str("                &mut outBegIdx, &mut outNBElement");
         real_idx = 0;
         int_idx = 0;
@@ -1785,10 +1900,47 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         }
         s.push_str(",\n");
         s.push_str("            );\n");
-        s.push_str("            }\n"); // end bench_iters loop
-
-        // Calculate elapsed
+        s.push_str("            }\n"); // end guarded bench loop
         s.push_str("            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;\n");
+
+        // Unguarded timing loop
+        // Compute extra params for explicit unguarded variants (e.g. EMA k factor)
+        for (pname, _ptype) in &func.unguarded_extra_params {
+            s.push_str(&format!(
+                "            let {pname}: f64 = 2.0 / (optInTimePeriod as f64 + 1.0);\n"
+            ));
+        }
+        s.push_str("            let start_time_ung = Instant::now();\n");
+        s.push_str("            for _biu in 0..bench_iters {\n");
+        s.push_str(&format!(
+            "            rc = core.{fn_name}_unguarded(\n"
+        ));
+        s.push_str("                startIdx, endIdx,\n");
+        for name in &input_names {
+            s.push_str(&format!("                &{name},\n"));
+        }
+        for opt in &func.optional_inputs {
+            s.push_str(&format!("                {},\n", opt.name));
+        }
+        for (pname, _) in &func.unguarded_extra_params {
+            s.push_str(&format!("                {pname},\n"));
+        }
+        s.push_str("                &mut outBegIdx, &mut outNBElement");
+        real_idx = 0;
+        int_idx = 0;
+        for out in outputs {
+            if out.param_type == ParamType::Integer {
+                s.push_str(&format!(", &mut outIntBuf{int_idx}"));
+                int_idx += 1;
+            } else {
+                s.push_str(&format!(", &mut outBuf{real_idx}"));
+                real_idx += 1;
+            }
+        }
+        s.push_str(",\n");
+        s.push_str("            );\n");
+        s.push_str("            }\n"); // end unguarded bench loop
+        s.push_str("            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;\n");
 
         // Build response JSON
         s.push_str("            let mut resp = serde_json::json!({\n");
@@ -1796,6 +1948,7 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         s.push_str("                \"outBegIdx\": outBegIdx,\n");
         s.push_str("                \"outNBElement\": outNBElement,\n");
         s.push_str("                \"timing_ns\": elapsed_ns,\n");
+        s.push_str("                \"timing_ns_unguarded\": elapsed_ns_ung,\n");
         s.push_str("            });\n");
 
         // Add output arrays to response

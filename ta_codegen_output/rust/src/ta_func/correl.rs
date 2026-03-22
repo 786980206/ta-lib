@@ -93,16 +93,80 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.correl_unguarded(
-            startIdx,
-            endIdx,
-            inReal0,
-            inReal1,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut sumXY: f64 = 0.0_f64;
+        let mut sumX: f64 = 0.0_f64;
+        let mut sumY: f64 = 0.0_f64;
+        let mut sumX2: f64 = 0.0_f64;
+        let mut sumY2: f64 = 0.0_f64;
+        let mut x: f64 = 0.0_f64;
+        let mut y: f64 = 0.0_f64;
+        let mut trailingX: f64 = 0.0_f64;
+        let mut trailingY: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        (*outBegIdx) = startIdx;
+        trailingIdx = startIdx - lookbackTotal;
+        sumY2 = 0.0;
+        sumX2 = sumY2;
+        sumY = sumX2;
+        sumX = sumY;
+        sumXY = sumX;
+        for today in (trailingIdx as usize)..=(startIdx as usize) {
+            x = inReal0[today];
+            sumX += x;
+            sumX2 += x * x;
+            y = inReal1[today];
+            sumXY += x * y;
+            sumY += y;
+            sumY2 += y * y;
+        }
+        today = (startIdx as usize) + 1;
+        trailingX = inReal0[trailingIdx];
+        trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+        tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
+        if !((tempReal) < 1e-14) {
+            outReal[0] = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
+        } else {
+            outReal[0] = 0.0;
+        }
+        outIdx = 1;
+        while today <= endIdx {
+            sumX -= trailingX;
+            sumX2 -= trailingX * trailingX;
+            sumXY -= trailingX * trailingY;
+            sumY -= trailingY;
+            sumY2 -= trailingY * trailingY;
+            x = inReal0[today];
+            sumX += x;
+            sumX2 += x * x;
+            y = inReal1[{ let _v = today; today += 1; _v }];
+            sumXY += x * y;
+            sumY += y;
+            sumY2 += y * y;
+            trailingX = inReal0[trailingIdx];
+            trailingY = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
+            if !((tempReal) < 1e-14) {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn correl_unguarded(
         &self,

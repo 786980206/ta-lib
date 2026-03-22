@@ -80,15 +80,29 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.obv_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            inVolume,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut prevReal: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut prevOBV: f64 = 0.0_f64;
+        prevOBV = inVolume[startIdx];
+        prevReal = inReal[startIdx];
+        outIdx = 0;
+        for i in (startIdx as usize)..=(endIdx as usize) {
+            tempReal = inReal[i];
+            if tempReal > prevReal {
+                prevOBV += inVolume[i];
+            } else if tempReal < prevReal {
+                prevOBV -= inVolume[i];
+            }
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevOBV;
+            prevReal = tempReal;
+        }
+        i = (endIdx as usize) + 1;
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn obv_unguarded(
         &self,

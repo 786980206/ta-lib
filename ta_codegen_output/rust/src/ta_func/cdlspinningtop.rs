@@ -90,17 +90,94 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.cdlspinningtop_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outInteger,
-        );
+        let mut startIdx = startIdx;
+        let mut BodyPeriodTotal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut BodyTrailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        #[allow(non_snake_case)]
+        let BodyShort_rangeType: i32 = self.candle_settings.body_short.range_type;
+        #[allow(non_snake_case)]
+        let BodyShort_avgPeriod: i32 = self.candle_settings.body_short.avg_period;
+        #[allow(non_snake_case)]
+        let BodyShort_factor: f64 = self.candle_settings.body_short.factor;
+        lookbackTotal = self.cdlspinningtop_lookback();
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        BodyPeriodTotal = 0.0;
+        BodyTrailingIdx = startIdx - (BodyShort_avgPeriod) as usize;
+        i = BodyTrailingIdx;
+        while i < startIdx {
+            let mut _candlerange_0: f64;
+            match BodyShort_rangeType {
+                0 => {
+                    _candlerange_0 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_0 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_0 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_0 = 0.0;
+                }
+            }
+            BodyPeriodTotal += _candlerange_0;
+            i += 1;
+        }
+        outIdx = 0;
+        loop {
+            if (inHigh[i] - (if inClose[i] >= inOpen[i] { inClose[i] } else { inOpen[i] })) > (inClose[i] - inOpen[i]).abs() && ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) > (inClose[i] - inOpen[i]).abs() && (inClose[i] - inOpen[i]).abs() < { let _cr = match BodyShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyShort_avgPeriod != 0 { (BodyPeriodTotal) / (BodyShort_avgPeriod as f64) } else { _cr }; let _div = if BodyShort_rangeType == 2 { 2.0 } else { 1.0 }; (BodyShort_factor) * _avg / _div } {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) * 100) as i32;
+            } else {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+            }
+            let mut _candlerange_1: f64;
+            match BodyShort_rangeType {
+                0 => {
+                    _candlerange_1 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_1 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_1 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_1 = 0.0;
+                }
+            }
+            let mut _candlerange_2: f64;
+            match BodyShort_rangeType {
+                0 => {
+                    _candlerange_2 = (inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx]).abs();
+                }
+                1 => {
+                    _candlerange_2 = inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx];
+                }
+                2 => {
+                    _candlerange_2 = inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx] - (inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx]).abs();
+                }
+                _ => {
+                    _candlerange_2 = 0.0;
+                }
+            }
+            BodyPeriodTotal += _candlerange_1 - _candlerange_2;
+            i += 1;
+            BodyTrailingIdx += 1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn cdlspinningtop_unguarded(
         &self,

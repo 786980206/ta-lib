@@ -142,7 +142,7 @@ fn generate_bench_func(s: &mut String, funcs: &[FuncDef]) {
         // Observe outputs after timing but inside pass scope — prevents LTO DCE
         s.push_str("            g_sink += outNBElement;\n");
         s.push_str("        }\n");
-        s.push_str(&format!("        printf(\"{name} %lld\\n\", best);\n"));
+        s.push_str(&format!("        printf(\"{name} %lld\\n\", best / iters);\n"));
         s.push_str("        fflush(stdout);\n");
         s.push_str("    }\n");
     }

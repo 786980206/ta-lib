@@ -446,22 +446,164 @@ fn gen_guarded_func(
             ));
         }
     } else {
-        // Auto-generated: delegate to unguarded with same params (no extra params)
-        out.push_str(&format!("        return self.{snake}_unguarded(\n"));
-        out.push_str("            startIdx,\n");
-        out.push_str("            endIdx,\n");
-        for input in &func.inputs {
-            out.push_str(&format!("            {},\n", input.name));
+        // Render algorithm body inline with safe [] indexing (no get_unchecked).
+        // The signature takes immutable startIdx, but the body mutates it,
+        // so rebind as mutable.
+        out.push_str("        let mut startIdx = startIdx;\n");
+
+        let mut g_index_vars = std::collections::HashSet::new();
+        let mut g_real_vars = std::collections::HashSet::new();
+        let mut g_vec_vars = std::collections::HashSet::new();
+        let mut g_real_array_vars = std::collections::HashSet::new();
+        let mut g_int_vec_vars = std::collections::HashSet::new();
+        collect_var_types(&func.body, &mut g_index_vars, &mut g_real_vars, &mut g_vec_vars, &mut g_real_array_vars, &mut g_int_vec_vars);
+        g_index_vars.insert("startIdx".to_string());
+        g_index_vars.insert("endIdx".to_string());
+        g_index_vars.insert("outBegIdx".to_string());
+        g_index_vars.insert("outNBElement".to_string());
+        let mut g_sentinel_vars = std::collections::HashSet::new();
+        collect_sentinel_vars(&func.body, &mut g_sentinel_vars);
+        collect_signed_int_vars(&func.body, &g_index_vars, &mut g_sentinel_vars);
+        for sv in &g_sentinel_vars {
+            g_index_vars.remove(sv);
         }
-        for opt in &func.optional_inputs {
-            out.push_str(&format!("            {},\n", opt.name));
+        let g_int_output_set: std::collections::HashSet<String> = func.outputs.iter()
+            .filter(|o| o.param_type == ParamType::Integer)
+            .map(|o| o.name.clone())
+            .collect();
+        let g_ctx = RustRenderCtx {
+            unchecked: false,
+            index_vars: g_index_vars,
+            real_vars: g_real_vars,
+            vec_vars: g_vec_vars,
+            real_array_vars: g_real_array_vars,
+            int_output_names: g_int_output_set,
+            int_vec_vars: g_int_vec_vars,
+            is_lookback: false,
+            sentinel_vars: g_sentinel_vars,
+        };
+
+        // Use the same full rendering as gen_unguarded_func
+        let g_for_loop_vars = collect_for_loop_vars(&func.body);
+        let g_var_inits: std::collections::HashMap<String, &Expr> = func
+            .body
+            .iter()
+            .filter_map(|s| {
+                if let Statement::VarDecl { name, init: Some(init), .. } = s {
+                    Some((name.clone(), init))
+                } else {
+                    None
+                }
+            })
+            .collect();
+        let g_output_names: Vec<String> = func.outputs.iter().map(|o| o.name.clone()).collect();
+        let g_opt_real_params: Vec<String> = func.optional_inputs.iter()
+            .filter(|o| o.param_type == ParamType::Real)
+            .map(|o| o.name.clone())
+            .collect();
+        let g_inline_counter = std::cell::Cell::new(0);
+
+        // Variable declarations (same pattern as gen_unguarded_func)
+        for stmt in &func.body {
+            if let Statement::VarDecl { var_type, name, .. } = stmt {
+                if g_for_loop_vars.contains(name) {
+                    continue;
+                }
+                let total_assigns = count_assignments(name, &func.body);
+                let needs_mut = total_assigns > 0;
+                let is_sentinel = g_ctx.sentinel_vars.contains(name);
+                let rust_type = match var_type {
+                    VarType::Real => "f64",
+                    VarType::Integer | VarType::Index => {
+                        if is_sentinel { "i32" } else { "usize" }
+                    }
+                    VarType::RetCodeType => "RetCode",
+                    VarType::RealPointer => "Vec<f64>",
+                    VarType::IntPointer => "Vec<i32>",
+                    VarType::RealArray(size) => {
+                        out.push_str(&format!(
+                            "        let mut {name}: [f64; {size} as usize] = [0.0_f64; {size} as usize];\n"
+                        ));
+                        continue;
+                    }
+                    VarType::IntArray(size) => {
+                        out.push_str(&format!(
+                            "        let mut {name}: [i32; {size} as usize] = [0i32; {size} as usize];\n"
+                        ));
+                        continue;
+                    }
+                };
+                let default_val = match var_type {
+                    VarType::Real => "0.0_f64",
+                    VarType::Integer | VarType::Index => {
+                        if is_sentinel { "0_i32" } else { "0_usize" }
+                    }
+                    VarType::RetCodeType => "RetCode::Success",
+                    VarType::RealPointer | VarType::IntPointer => "Vec::new()",
+                    _ => unreachable!(),
+                };
+                if needs_mut {
+                    out.push_str(&format!("        let mut {name}: {rust_type} = {default_val};\n"));
+                } else {
+                    out.push_str(&format!("        let {name}: {rust_type} = {default_val};\n"));
+                }
+            }
         }
-        out.push_str("            outBegIdx,\n");
-        out.push_str("            outNBElement,\n");
-        for output in &func.outputs {
-            out.push_str(&format!("            {},\n", output.name));
+
+        // Candle settings unpacking
+        let candle_used = detect_candle_settings(&func.body);
+        if !candle_used.is_empty() {
+            out.push_str(&emit_rust_unpacking(&candle_used, 8));
         }
-        out.push_str("        );\n");
+
+        // Body-assigned vars (for skipping VarDecl inits that get overwritten)
+        let g_body_assigned: std::collections::HashSet<String> = func
+            .body
+            .iter()
+            .filter_map(|s| {
+                if let Statement::Assign { target: Expr::Var(name), .. } = s {
+                    Some(name.clone())
+                } else {
+                    None
+                }
+            })
+            .collect();
+
+        // VarDecl initializations (only when not body-assigned)
+        for stmt in &func.body {
+            if let Statement::VarDecl { name, var_type: vt, init: Some(init) } = stmt {
+                if g_for_loop_vars.contains(name) || g_body_assigned.contains(name) {
+                    continue;
+                }
+                let mut hoisted = Vec::new();
+                let mut cnt = g_inline_counter.get();
+                let new_init = hoist_block_helpers(init, helpers, &mut hoisted, &mut cnt, &[]);
+                g_inline_counter.set(cnt);
+                out.push_str(&render_hoisted_blocks(
+                    &hoisted, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
+                    &g_output_names, &g_opt_real_params, enums, registry,
+                    helpers, &g_inline_counter,
+                ));
+                let rendered_init = render_expr(&new_init, &g_ctx, &g_opt_real_params, registry, helpers);
+                let wrapped_init = if (g_ctx.real_vars.contains(name) || *vt == VarType::Real) && expr_is_untyped_integer(&new_init) {
+                    format!("(({rendered_init}) as f64)")
+                } else {
+                    rendered_init
+                };
+                out.push_str(&format!("        {name} = {wrapped_init};\n"));
+            }
+        }
+
+        // Render body statements
+        for stmt in &func.body {
+            if matches!(stmt, Statement::VarDecl { .. }) {
+                continue;
+            }
+            out.push_str(&render_statement(
+                stmt, 8, &g_ctx, &g_for_loop_vars, &g_var_inits,
+                &g_output_names, &g_opt_real_params, enums, registry, helpers, &g_inline_counter,
+            ));
+        }
     }
     out.push_str("    }\n");
 

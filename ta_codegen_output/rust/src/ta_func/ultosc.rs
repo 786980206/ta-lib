@@ -123,19 +123,233 @@ impl Core {
         } else if (((optInTimePeriod3) as i32) < 1) || (((optInTimePeriod3) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.ultosc_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod1,
-            optInTimePeriod2,
-            optInTimePeriod3,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut a1Total: f64 = 0.0_f64;
+        let mut a2Total: f64 = 0.0_f64;
+        let mut a3Total: f64 = 0.0_f64;
+        let mut b1Total: f64 = 0.0_f64;
+        let mut b2Total: f64 = 0.0_f64;
+        let mut b3Total: f64 = 0.0_f64;
+        let mut trueLow: f64 = 0.0_f64;
+        let mut trueRange: f64 = 0.0_f64;
+        let mut closeMinusTrueLow: f64 = 0.0_f64;
+        let mut tempDouble: f64 = 0.0_f64;
+        let mut output: f64 = 0.0_f64;
+        let mut tempHT: f64 = 0.0_f64;
+        let mut tempLT: f64 = 0.0_f64;
+        let mut tempCY: f64 = 0.0_f64;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut longestPeriod: usize = 0_usize;
+        let mut longestIndex: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx1: usize = 0_usize;
+        let mut trailingIdx2: usize = 0_usize;
+        let mut trailingIdx3: usize = 0_usize;
+        let mut usedFlag: [i32; 3 as usize] = [0i32; 3 as usize];
+        let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
+        let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        periods[0] = optInTimePeriod1;
+        periods[1] = optInTimePeriod2;
+        periods[2] = optInTimePeriod3;
+        usedFlag[0] = 0;
+        usedFlag[1] = 0;
+        usedFlag[2] = 0;
+        // for( i = 0; i < 3; i += 1 )
+        i = 0;
+        while i < 3 {
+            longestPeriod = 0;
+            longestIndex = 0;
+            // for( j = 0; j < 3; j += 1 )
+            j = 0;
+            while j < 3 {
+                if usedFlag[j] == 0 && (periods[j]) as usize > longestPeriod {
+                    longestPeriod = (periods[j]) as usize;
+                    longestIndex = j;
+                }
+                j += 1;
+            }
+            usedFlag[longestIndex] = 1;
+            sortedPeriods[i] = (longestPeriod) as i32;
+            i += 1;
+        }
+        optInTimePeriod1 = sortedPeriods[2];
+        optInTimePeriod2 = sortedPeriods[1];
+        optInTimePeriod3 = sortedPeriods[0];
+        lookbackTotal = self.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        a1Total = 0.0;
+        b1Total = 0.0;
+        // for( i = startIdx - (optInTimePeriod1) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod1) as usize + 1;
+        while i < startIdx {
+            tempLT = inLow[i];
+            tempHT = inHigh[i];
+            tempCY = inClose[i - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[i] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a1Total += closeMinusTrueLow;
+            b1Total += trueRange;
+            i += 1;
+        }
+        a2Total = 0.0;
+        b2Total = 0.0;
+        // for( i = startIdx - (optInTimePeriod2) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod2) as usize + 1;
+        while i < startIdx {
+            tempLT = inLow[i];
+            tempHT = inHigh[i];
+            tempCY = inClose[i - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[i] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a2Total += closeMinusTrueLow;
+            b2Total += trueRange;
+            i += 1;
+        }
+        a3Total = 0.0;
+        b3Total = 0.0;
+        // for( i = startIdx - (optInTimePeriod3) as usize + 1; i < startIdx; i += 1 )
+        i = startIdx - (optInTimePeriod3) as usize + 1;
+        while i < startIdx {
+            tempLT = inLow[i];
+            tempHT = inHigh[i];
+            tempCY = inClose[i - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[i] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a3Total += closeMinusTrueLow;
+            b3Total += trueRange;
+            i += 1;
+        }
+        today = startIdx;
+        outIdx = 0;
+        trailingIdx1 = today - (optInTimePeriod1) as usize + 1;
+        trailingIdx2 = today - (optInTimePeriod2) as usize + 1;
+        trailingIdx3 = today - (optInTimePeriod3) as usize + 1;
+        while today <= endIdx {
+            tempLT = inLow[today];
+            tempHT = inHigh[today];
+            tempCY = inClose[today - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[today] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a1Total += closeMinusTrueLow;
+            a2Total += closeMinusTrueLow;
+            a3Total += closeMinusTrueLow;
+            b1Total += trueRange;
+            b2Total += trueRange;
+            b3Total += trueRange;
+            output = 0.0;
+            if !((b1Total).abs() < 1e-14) {
+                output += 4.0 * (a1Total / b1Total);
+            }
+            if !((b2Total).abs() < 1e-14) {
+                output += 2.0 * (a2Total / b2Total);
+            }
+            if !((b3Total).abs() < 1e-14) {
+                output += a3Total / b3Total;
+            }
+            tempLT = inLow[trailingIdx1];
+            tempHT = inHigh[trailingIdx1];
+            tempCY = inClose[trailingIdx1 - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[trailingIdx1] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a1Total -= closeMinusTrueLow;
+            b1Total -= trueRange;
+            tempLT = inLow[trailingIdx2];
+            tempHT = inHigh[trailingIdx2];
+            tempCY = inClose[trailingIdx2 - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[trailingIdx2] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a2Total -= closeMinusTrueLow;
+            b2Total -= trueRange;
+            tempLT = inLow[trailingIdx3];
+            tempHT = inHigh[trailingIdx3];
+            tempCY = inClose[trailingIdx3 - 1];
+            trueLow = (tempLT).min(tempCY);
+            closeMinusTrueLow = inClose[trailingIdx3] - trueLow;
+            trueRange = tempHT - tempLT;
+            tempDouble = (tempCY - tempHT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            tempDouble = (tempCY - tempLT).abs();
+            if tempDouble > trueRange {
+                trueRange = tempDouble;
+            }
+            a3Total -= closeMinusTrueLow;
+            b3Total -= trueRange;
+            outReal[outIdx] = 100.0 * (output / 7.0);
+            outIdx += 1;
+            today += 1;
+            trailingIdx1 += 1;
+            trailingIdx2 += 1;
+            trailingIdx3 += 1;
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn ultosc_unguarded(
         &self,

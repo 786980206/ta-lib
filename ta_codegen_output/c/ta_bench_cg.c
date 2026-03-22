@@ -251,7 +251,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ACCBANDS %lld\n", best);
+        printf("ACCBANDS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ACOS") ) {
@@ -266,7 +266,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ACOS %lld\n", best);
+        printf("ACOS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "AD") ) {
@@ -281,7 +281,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("AD %lld\n", best);
+        printf("AD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ADD") ) {
@@ -296,7 +296,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ADD %lld\n", best);
+        printf("ADD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ADOSC") ) {
@@ -311,7 +311,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ADOSC %lld\n", best);
+        printf("ADOSC %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ADX") ) {
@@ -326,7 +326,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ADX %lld\n", best);
+        printf("ADX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ADXR") ) {
@@ -341,7 +341,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ADXR %lld\n", best);
+        printf("ADXR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "APO") ) {
@@ -356,7 +356,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("APO %lld\n", best);
+        printf("APO %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "AROON") ) {
@@ -371,7 +371,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("AROON %lld\n", best);
+        printf("AROON %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "AROONOSC") ) {
@@ -386,7 +386,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("AROONOSC %lld\n", best);
+        printf("AROONOSC %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ASIN") ) {
@@ -401,7 +401,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ASIN %lld\n", best);
+        printf("ASIN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ATAN") ) {
@@ -416,7 +416,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ATAN %lld\n", best);
+        printf("ATAN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ATR") ) {
@@ -431,7 +431,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ATR %lld\n", best);
+        printf("ATR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "AVGDEV") ) {
@@ -446,7 +446,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("AVGDEV %lld\n", best);
+        printf("AVGDEV %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "AVGPRICE") ) {
@@ -461,7 +461,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("AVGPRICE %lld\n", best);
+        printf("AVGPRICE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "BBANDS") ) {
@@ -476,7 +476,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("BBANDS %lld\n", best);
+        printf("BBANDS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "BETA") ) {
@@ -491,7 +491,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("BETA %lld\n", best);
+        printf("BETA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "BOP") ) {
@@ -506,7 +506,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("BOP %lld\n", best);
+        printf("BOP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CCI") ) {
@@ -521,7 +521,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CCI %lld\n", best);
+        printf("CCI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL2CROWS") ) {
@@ -536,7 +536,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL2CROWS %lld\n", best);
+        printf("CDL2CROWS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3BLACKCROWS") ) {
@@ -551,7 +551,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3BLACKCROWS %lld\n", best);
+        printf("CDL3BLACKCROWS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3INSIDE") ) {
@@ -566,7 +566,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3INSIDE %lld\n", best);
+        printf("CDL3INSIDE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3LINESTRIKE") ) {
@@ -581,7 +581,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3LINESTRIKE %lld\n", best);
+        printf("CDL3LINESTRIKE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3OUTSIDE") ) {
@@ -596,7 +596,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3OUTSIDE %lld\n", best);
+        printf("CDL3OUTSIDE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3STARSINSOUTH") ) {
@@ -611,7 +611,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3STARSINSOUTH %lld\n", best);
+        printf("CDL3STARSINSOUTH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDL3WHITESOLDIERS") ) {
@@ -626,7 +626,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDL3WHITESOLDIERS %lld\n", best);
+        printf("CDL3WHITESOLDIERS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLABANDONEDBABY") ) {
@@ -641,7 +641,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLABANDONEDBABY %lld\n", best);
+        printf("CDLABANDONEDBABY %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLADVANCEBLOCK") ) {
@@ -656,7 +656,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLADVANCEBLOCK %lld\n", best);
+        printf("CDLADVANCEBLOCK %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLBELTHOLD") ) {
@@ -671,7 +671,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLBELTHOLD %lld\n", best);
+        printf("CDLBELTHOLD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLBREAKAWAY") ) {
@@ -686,7 +686,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLBREAKAWAY %lld\n", best);
+        printf("CDLBREAKAWAY %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLCLOSINGMARUBOZU") ) {
@@ -701,7 +701,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLCLOSINGMARUBOZU %lld\n", best);
+        printf("CDLCLOSINGMARUBOZU %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLCONCEALBABYSWALL") ) {
@@ -716,7 +716,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLCONCEALBABYSWALL %lld\n", best);
+        printf("CDLCONCEALBABYSWALL %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLCOUNTERATTACK") ) {
@@ -731,7 +731,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLCOUNTERATTACK %lld\n", best);
+        printf("CDLCOUNTERATTACK %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLDARKCLOUDCOVER") ) {
@@ -746,7 +746,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLDARKCLOUDCOVER %lld\n", best);
+        printf("CDLDARKCLOUDCOVER %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLDOJI") ) {
@@ -761,7 +761,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLDOJI %lld\n", best);
+        printf("CDLDOJI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLDOJISTAR") ) {
@@ -776,7 +776,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLDOJISTAR %lld\n", best);
+        printf("CDLDOJISTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLDRAGONFLYDOJI") ) {
@@ -791,7 +791,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLDRAGONFLYDOJI %lld\n", best);
+        printf("CDLDRAGONFLYDOJI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLENGULFING") ) {
@@ -806,7 +806,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLENGULFING %lld\n", best);
+        printf("CDLENGULFING %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLEVENINGDOJISTAR") ) {
@@ -821,7 +821,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLEVENINGDOJISTAR %lld\n", best);
+        printf("CDLEVENINGDOJISTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLEVENINGSTAR") ) {
@@ -836,7 +836,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLEVENINGSTAR %lld\n", best);
+        printf("CDLEVENINGSTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLGAPSIDESIDEWHITE") ) {
@@ -851,7 +851,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLGAPSIDESIDEWHITE %lld\n", best);
+        printf("CDLGAPSIDESIDEWHITE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLGRAVESTONEDOJI") ) {
@@ -866,7 +866,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLGRAVESTONEDOJI %lld\n", best);
+        printf("CDLGRAVESTONEDOJI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHAMMER") ) {
@@ -881,7 +881,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHAMMER %lld\n", best);
+        printf("CDLHAMMER %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHANGINGMAN") ) {
@@ -896,7 +896,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHANGINGMAN %lld\n", best);
+        printf("CDLHANGINGMAN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHARAMI") ) {
@@ -911,7 +911,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHARAMI %lld\n", best);
+        printf("CDLHARAMI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHARAMICROSS") ) {
@@ -926,7 +926,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHARAMICROSS %lld\n", best);
+        printf("CDLHARAMICROSS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHIGHWAVE") ) {
@@ -941,7 +941,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHIGHWAVE %lld\n", best);
+        printf("CDLHIGHWAVE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHIKKAKE") ) {
@@ -956,7 +956,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHIKKAKE %lld\n", best);
+        printf("CDLHIKKAKE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHIKKAKEMOD") ) {
@@ -971,7 +971,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHIKKAKEMOD %lld\n", best);
+        printf("CDLHIKKAKEMOD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLHOMINGPIGEON") ) {
@@ -986,7 +986,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLHOMINGPIGEON %lld\n", best);
+        printf("CDLHOMINGPIGEON %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLIDENTICAL3CROWS") ) {
@@ -1001,7 +1001,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLIDENTICAL3CROWS %lld\n", best);
+        printf("CDLIDENTICAL3CROWS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLINNECK") ) {
@@ -1016,7 +1016,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLINNECK %lld\n", best);
+        printf("CDLINNECK %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLINVERTEDHAMMER") ) {
@@ -1031,7 +1031,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLINVERTEDHAMMER %lld\n", best);
+        printf("CDLINVERTEDHAMMER %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLKICKING") ) {
@@ -1046,7 +1046,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLKICKING %lld\n", best);
+        printf("CDLKICKING %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLKICKINGBYLENGTH") ) {
@@ -1061,7 +1061,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLKICKINGBYLENGTH %lld\n", best);
+        printf("CDLKICKINGBYLENGTH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLLADDERBOTTOM") ) {
@@ -1076,7 +1076,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLLADDERBOTTOM %lld\n", best);
+        printf("CDLLADDERBOTTOM %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLLONGLEGGEDDOJI") ) {
@@ -1091,7 +1091,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLLONGLEGGEDDOJI %lld\n", best);
+        printf("CDLLONGLEGGEDDOJI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLLONGLINE") ) {
@@ -1106,7 +1106,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLLONGLINE %lld\n", best);
+        printf("CDLLONGLINE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLMARUBOZU") ) {
@@ -1121,7 +1121,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLMARUBOZU %lld\n", best);
+        printf("CDLMARUBOZU %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLMATCHINGLOW") ) {
@@ -1136,7 +1136,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLMATCHINGLOW %lld\n", best);
+        printf("CDLMATCHINGLOW %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLMATHOLD") ) {
@@ -1151,7 +1151,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLMATHOLD %lld\n", best);
+        printf("CDLMATHOLD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLMORNINGDOJISTAR") ) {
@@ -1166,7 +1166,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLMORNINGDOJISTAR %lld\n", best);
+        printf("CDLMORNINGDOJISTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLMORNINGSTAR") ) {
@@ -1181,7 +1181,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLMORNINGSTAR %lld\n", best);
+        printf("CDLMORNINGSTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLONNECK") ) {
@@ -1196,7 +1196,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLONNECK %lld\n", best);
+        printf("CDLONNECK %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLPIERCING") ) {
@@ -1211,7 +1211,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLPIERCING %lld\n", best);
+        printf("CDLPIERCING %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLRICKSHAWMAN") ) {
@@ -1226,7 +1226,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLRICKSHAWMAN %lld\n", best);
+        printf("CDLRICKSHAWMAN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLRISEFALL3METHODS") ) {
@@ -1241,7 +1241,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLRISEFALL3METHODS %lld\n", best);
+        printf("CDLRISEFALL3METHODS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSEPARATINGLINES") ) {
@@ -1256,7 +1256,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSEPARATINGLINES %lld\n", best);
+        printf("CDLSEPARATINGLINES %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSHOOTINGSTAR") ) {
@@ -1271,7 +1271,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSHOOTINGSTAR %lld\n", best);
+        printf("CDLSHOOTINGSTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSHORTLINE") ) {
@@ -1286,7 +1286,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSHORTLINE %lld\n", best);
+        printf("CDLSHORTLINE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSPINNINGTOP") ) {
@@ -1301,7 +1301,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSPINNINGTOP %lld\n", best);
+        printf("CDLSPINNINGTOP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSTALLEDPATTERN") ) {
@@ -1316,7 +1316,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSTALLEDPATTERN %lld\n", best);
+        printf("CDLSTALLEDPATTERN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLSTICKSANDWICH") ) {
@@ -1331,7 +1331,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLSTICKSANDWICH %lld\n", best);
+        printf("CDLSTICKSANDWICH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLTAKURI") ) {
@@ -1346,7 +1346,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLTAKURI %lld\n", best);
+        printf("CDLTAKURI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLTASUKIGAP") ) {
@@ -1361,7 +1361,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLTASUKIGAP %lld\n", best);
+        printf("CDLTASUKIGAP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLTHRUSTING") ) {
@@ -1376,7 +1376,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLTHRUSTING %lld\n", best);
+        printf("CDLTHRUSTING %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLTRISTAR") ) {
@@ -1391,7 +1391,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLTRISTAR %lld\n", best);
+        printf("CDLTRISTAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLUNIQUE3RIVER") ) {
@@ -1406,7 +1406,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLUNIQUE3RIVER %lld\n", best);
+        printf("CDLUNIQUE3RIVER %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLUPSIDEGAP2CROWS") ) {
@@ -1421,7 +1421,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLUPSIDEGAP2CROWS %lld\n", best);
+        printf("CDLUPSIDEGAP2CROWS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CDLXSIDEGAP3METHODS") ) {
@@ -1436,7 +1436,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CDLXSIDEGAP3METHODS %lld\n", best);
+        printf("CDLXSIDEGAP3METHODS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CEIL") ) {
@@ -1451,7 +1451,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CEIL %lld\n", best);
+        printf("CEIL %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CMO") ) {
@@ -1466,7 +1466,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CMO %lld\n", best);
+        printf("CMO %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "CORREL") ) {
@@ -1481,7 +1481,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("CORREL %lld\n", best);
+        printf("CORREL %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "COS") ) {
@@ -1496,7 +1496,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("COS %lld\n", best);
+        printf("COS %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "COSH") ) {
@@ -1511,7 +1511,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("COSH %lld\n", best);
+        printf("COSH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "DEMA") ) {
@@ -1526,7 +1526,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("DEMA %lld\n", best);
+        printf("DEMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "DIV") ) {
@@ -1541,7 +1541,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("DIV %lld\n", best);
+        printf("DIV %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "DX") ) {
@@ -1556,7 +1556,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("DX %lld\n", best);
+        printf("DX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "EMA") ) {
@@ -1571,7 +1571,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("EMA %lld\n", best);
+        printf("EMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "EXP") ) {
@@ -1586,7 +1586,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("EXP %lld\n", best);
+        printf("EXP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "FLOOR") ) {
@@ -1601,7 +1601,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("FLOOR %lld\n", best);
+        printf("FLOOR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_DCPERIOD") ) {
@@ -1616,7 +1616,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_DCPERIOD %lld\n", best);
+        printf("HT_DCPERIOD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_DCPHASE") ) {
@@ -1631,7 +1631,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_DCPHASE %lld\n", best);
+        printf("HT_DCPHASE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_PHASOR") ) {
@@ -1646,7 +1646,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_PHASOR %lld\n", best);
+        printf("HT_PHASOR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_SINE") ) {
@@ -1661,7 +1661,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_SINE %lld\n", best);
+        printf("HT_SINE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_TRENDLINE") ) {
@@ -1676,7 +1676,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_TRENDLINE %lld\n", best);
+        printf("HT_TRENDLINE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "HT_TRENDMODE") ) {
@@ -1691,7 +1691,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("HT_TRENDMODE %lld\n", best);
+        printf("HT_TRENDMODE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "IMI") ) {
@@ -1706,7 +1706,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("IMI %lld\n", best);
+        printf("IMI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "KAMA") ) {
@@ -1721,7 +1721,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("KAMA %lld\n", best);
+        printf("KAMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LINEARREG") ) {
@@ -1736,7 +1736,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LINEARREG %lld\n", best);
+        printf("LINEARREG %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LINEARREG_ANGLE") ) {
@@ -1751,7 +1751,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LINEARREG_ANGLE %lld\n", best);
+        printf("LINEARREG_ANGLE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LINEARREG_INTERCEPT") ) {
@@ -1766,7 +1766,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LINEARREG_INTERCEPT %lld\n", best);
+        printf("LINEARREG_INTERCEPT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LINEARREG_SLOPE") ) {
@@ -1781,7 +1781,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LINEARREG_SLOPE %lld\n", best);
+        printf("LINEARREG_SLOPE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LN") ) {
@@ -1796,7 +1796,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LN %lld\n", best);
+        printf("LN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "LOG10") ) {
@@ -1811,7 +1811,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("LOG10 %lld\n", best);
+        printf("LOG10 %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MA") ) {
@@ -1826,7 +1826,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MA %lld\n", best);
+        printf("MA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MACD") ) {
@@ -1841,7 +1841,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MACD %lld\n", best);
+        printf("MACD %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MACDEXT") ) {
@@ -1856,7 +1856,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MACDEXT %lld\n", best);
+        printf("MACDEXT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MACDFIX") ) {
@@ -1871,7 +1871,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MACDFIX %lld\n", best);
+        printf("MACDFIX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MAMA") ) {
@@ -1886,7 +1886,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MAMA %lld\n", best);
+        printf("MAMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MAVP") ) {
@@ -1901,7 +1901,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MAVP %lld\n", best);
+        printf("MAVP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MAX") ) {
@@ -1916,7 +1916,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MAX %lld\n", best);
+        printf("MAX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MAXINDEX") ) {
@@ -1931,7 +1931,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MAXINDEX %lld\n", best);
+        printf("MAXINDEX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MEDPRICE") ) {
@@ -1946,7 +1946,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MEDPRICE %lld\n", best);
+        printf("MEDPRICE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MFI") ) {
@@ -1961,7 +1961,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MFI %lld\n", best);
+        printf("MFI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MIDPOINT") ) {
@@ -1976,7 +1976,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MIDPOINT %lld\n", best);
+        printf("MIDPOINT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MIDPRICE") ) {
@@ -1991,7 +1991,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MIDPRICE %lld\n", best);
+        printf("MIDPRICE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MIN") ) {
@@ -2006,7 +2006,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MIN %lld\n", best);
+        printf("MIN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MININDEX") ) {
@@ -2021,7 +2021,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MININDEX %lld\n", best);
+        printf("MININDEX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MINMAX") ) {
@@ -2036,7 +2036,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MINMAX %lld\n", best);
+        printf("MINMAX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MINMAXINDEX") ) {
@@ -2051,7 +2051,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MINMAXINDEX %lld\n", best);
+        printf("MINMAXINDEX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MINUS_DI") ) {
@@ -2066,7 +2066,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MINUS_DI %lld\n", best);
+        printf("MINUS_DI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MINUS_DM") ) {
@@ -2081,7 +2081,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MINUS_DM %lld\n", best);
+        printf("MINUS_DM %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MOM") ) {
@@ -2096,7 +2096,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MOM %lld\n", best);
+        printf("MOM %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "MULT") ) {
@@ -2111,7 +2111,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("MULT %lld\n", best);
+        printf("MULT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "NATR") ) {
@@ -2126,7 +2126,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("NATR %lld\n", best);
+        printf("NATR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "NVI") ) {
@@ -2141,7 +2141,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("NVI %lld\n", best);
+        printf("NVI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "OBV") ) {
@@ -2156,7 +2156,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("OBV %lld\n", best);
+        printf("OBV %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "PLUS_DI") ) {
@@ -2171,7 +2171,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("PLUS_DI %lld\n", best);
+        printf("PLUS_DI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "PLUS_DM") ) {
@@ -2186,7 +2186,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("PLUS_DM %lld\n", best);
+        printf("PLUS_DM %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "PPO") ) {
@@ -2201,7 +2201,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("PPO %lld\n", best);
+        printf("PPO %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "PVI") ) {
@@ -2216,7 +2216,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("PVI %lld\n", best);
+        printf("PVI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ROC") ) {
@@ -2231,7 +2231,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ROC %lld\n", best);
+        printf("ROC %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ROCP") ) {
@@ -2246,7 +2246,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ROCP %lld\n", best);
+        printf("ROCP %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ROCR") ) {
@@ -2261,7 +2261,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ROCR %lld\n", best);
+        printf("ROCR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ROCR100") ) {
@@ -2276,7 +2276,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ROCR100 %lld\n", best);
+        printf("ROCR100 %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "RSI") ) {
@@ -2291,7 +2291,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("RSI %lld\n", best);
+        printf("RSI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SAR") ) {
@@ -2306,7 +2306,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SAR %lld\n", best);
+        printf("SAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SAREXT") ) {
@@ -2321,7 +2321,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SAREXT %lld\n", best);
+        printf("SAREXT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SIN") ) {
@@ -2336,7 +2336,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SIN %lld\n", best);
+        printf("SIN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SINH") ) {
@@ -2351,7 +2351,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SINH %lld\n", best);
+        printf("SINH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SMA") ) {
@@ -2366,7 +2366,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SMA %lld\n", best);
+        printf("SMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SQRT") ) {
@@ -2381,7 +2381,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SQRT %lld\n", best);
+        printf("SQRT %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "STDDEV") ) {
@@ -2396,7 +2396,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("STDDEV %lld\n", best);
+        printf("STDDEV %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "STOCH") ) {
@@ -2411,7 +2411,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("STOCH %lld\n", best);
+        printf("STOCH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "STOCHF") ) {
@@ -2426,7 +2426,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("STOCHF %lld\n", best);
+        printf("STOCHF %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "STOCHRSI") ) {
@@ -2441,7 +2441,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("STOCHRSI %lld\n", best);
+        printf("STOCHRSI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SUB") ) {
@@ -2456,7 +2456,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SUB %lld\n", best);
+        printf("SUB %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "SUM") ) {
@@ -2471,7 +2471,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("SUM %lld\n", best);
+        printf("SUM %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "T3") ) {
@@ -2486,7 +2486,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("T3 %lld\n", best);
+        printf("T3 %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TAN") ) {
@@ -2501,7 +2501,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TAN %lld\n", best);
+        printf("TAN %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TANH") ) {
@@ -2516,7 +2516,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TANH %lld\n", best);
+        printf("TANH %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TEMA") ) {
@@ -2531,7 +2531,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TEMA %lld\n", best);
+        printf("TEMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TRANGE") ) {
@@ -2546,7 +2546,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TRANGE %lld\n", best);
+        printf("TRANGE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TRIMA") ) {
@@ -2561,7 +2561,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TRIMA %lld\n", best);
+        printf("TRIMA %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TRIX") ) {
@@ -2576,7 +2576,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TRIX %lld\n", best);
+        printf("TRIX %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TSF") ) {
@@ -2591,7 +2591,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TSF %lld\n", best);
+        printf("TSF %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "TYPPRICE") ) {
@@ -2606,7 +2606,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("TYPPRICE %lld\n", best);
+        printf("TYPPRICE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ULTOSC") ) {
@@ -2621,7 +2621,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("ULTOSC %lld\n", best);
+        printf("ULTOSC %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "VAR") ) {
@@ -2636,7 +2636,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("VAR %lld\n", best);
+        printf("VAR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "WCLPRICE") ) {
@@ -2651,7 +2651,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("WCLPRICE %lld\n", best);
+        printf("WCLPRICE %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "WILLR") ) {
@@ -2666,7 +2666,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("WILLR %lld\n", best);
+        printf("WILLR %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "WMA") ) {
@@ -2681,7 +2681,7 @@ static void bench_all(const char *filter, int iters) {
             if( !best || elapsed < best ) best = elapsed;
             g_sink += outNBElement;
         }
-        printf("WMA %lld\n", best);
+        printf("WMA %lld\n", best / iters);
         fflush(stdout);
     }
 }

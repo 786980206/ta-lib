@@ -93,16 +93,117 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.beta_unguarded(
-            startIdx,
-            endIdx,
-            inReal0,
-            inReal1,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut S_xx: f64 = 0.0_f64;
+        let mut S_xy: f64 = 0.0_f64;
+        let mut S_x: f64 = 0.0_f64;
+        let mut S_y: f64 = 0.0_f64;
+        let mut last_price_x: f64 = 0.0_f64;
+        let mut last_price_y: f64 = 0.0_f64;
+        let mut trailing_last_price_x: f64 = 0.0_f64;
+        let mut trailing_last_price_y: f64 = 0.0_f64;
+        let mut tmp_real: f64 = 0.0_f64;
+        let mut x: f64 = 0.0_f64;
+        let mut y: f64 = 0.0_f64;
+        let mut n: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        S_xx = 0.0;
+        S_xy = 0.0;
+        S_x = 0.0;
+        S_y = 0.0;
+        last_price_x = 0.0;
+        last_price_y = 0.0;
+        trailing_last_price_x = 0.0;
+        trailing_last_price_y = 0.0;
+        tmp_real = 0.0;
+        nbInitialElementNeeded = (optInTimePeriod) as usize;
+        if startIdx < nbInitialElementNeeded {
+            startIdx = nbInitialElementNeeded;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        trailingIdx = startIdx - nbInitialElementNeeded;
+        trailing_last_price_x = inReal0[trailingIdx];
+        last_price_x = trailing_last_price_x;
+        trailing_last_price_y = inReal1[trailingIdx];
+        last_price_y = trailing_last_price_y;
+        i = { trailingIdx += 1; trailingIdx };
+        while i < startIdx {
+            tmp_real = inReal0[i];
+            if !((last_price_x).abs() < 1e-14) {
+                x = (tmp_real - last_price_x) / last_price_x;
+            } else {
+                x = 0.0;
+            }
+            last_price_x = tmp_real;
+            tmp_real = inReal1[{ let _v = i; i += 1; _v }];
+            if !((last_price_y).abs() < 1e-14) {
+                y = (tmp_real - last_price_y) / last_price_y;
+            } else {
+                y = 0.0;
+            }
+            last_price_y = tmp_real;
+            S_xx += x * x;
+            S_xy += x * y;
+            S_x += x;
+            S_y += y;
+        }
+        outIdx = 0;
+        n = (optInTimePeriod) as f64;
+        loop {
+            tmp_real = inReal0[i];
+            if !((last_price_x).abs() < 1e-14) {
+                x = (tmp_real - last_price_x) / last_price_x;
+            } else {
+                x = 0.0;
+            }
+            last_price_x = tmp_real;
+            tmp_real = inReal1[{ let _v = i; i += 1; _v }];
+            if !((last_price_y).abs() < 1e-14) {
+                y = (tmp_real - last_price_y) / last_price_y;
+            } else {
+                y = 0.0;
+            }
+            last_price_y = tmp_real;
+            S_xx += x * x;
+            S_xy += x * y;
+            S_x += x;
+            S_y += y;
+            tmp_real = inReal0[trailingIdx];
+            if !((trailing_last_price_x).abs() < 1e-14) {
+                x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
+            } else {
+                x = 0.0;
+            }
+            trailing_last_price_x = tmp_real;
+            tmp_real = inReal1[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            if !((trailing_last_price_y).abs() < 1e-14) {
+                y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
+            } else {
+                y = 0.0;
+            }
+            trailing_last_price_y = tmp_real;
+            tmp_real = n * S_xx - S_x * S_x;
+            if !((tmp_real).abs() < 1e-14) {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (n * S_xy - S_x * S_y) / tmp_real;
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+            S_xx -= x * x;
+            S_xy -= x * y;
+            S_x -= x;
+            S_y -= y;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn beta_unguarded(
         &self,

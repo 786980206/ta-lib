@@ -152,6 +152,16 @@ int main( int argc, char **argv )
          {
             codegenLanguageFilter = argv[i] + 11;
          }
+         else if( strcmp(argv[i], "--no-guarded") == 0 )
+         {
+            extern int g_hideGuarded;
+            g_hideGuarded = 1;
+         }
+         else if( strcmp(argv[i], "--no-unguarded") == 0 )
+         {
+            extern int g_hideUnguarded;
+            g_hideUnguarded = 1;
+         }
          else
          {
             printUsage();

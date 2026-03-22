@@ -107,18 +107,79 @@ impl Core {
         } else if (((optInMaxPeriod) as i32) < 2) || (((optInMaxPeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.mavp_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            inPeriods,
-            optInMinPeriod,
-            optInMaxPeriod,
-            optInMAType,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut outputSize: usize = 0_usize;
+        let mut tempInt: usize = 0_usize;
+        let mut curPeriod: usize = 0_usize;
+        let mut localPeriodArray: Vec<i32> = Vec::new();
+        let mut localOutputArray: Vec<f64> = Vec::new();
+        let mut localBegIdx: usize = 0_usize;
+        let mut localNbElement: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        if lookbackTotal > startIdx {
+            tempInt = lookbackTotal;
+        } else {
+            tempInt = startIdx;
+        }
+        if tempInt > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        outputSize = endIdx - tempInt + 1;
+        localOutputArray = vec![0.0_f64; (outputSize * 1) as usize];
+        localPeriodArray = vec![0_i32; (outputSize * 1) as usize];
+        // for( i = 0; i < outputSize; i += 1 )
+        i = 0;
+        while i < outputSize {
+            tempInt = ((inPeriods[startIdx + i]) as usize) as usize;
+            if tempInt < (optInMinPeriod) as usize {
+                tempInt = (optInMinPeriod) as usize;
+            } else if tempInt > (optInMaxPeriod) as usize {
+                tempInt = (optInMaxPeriod) as usize;
+            }
+            localPeriodArray[i] = (tempInt) as i32;
+            i += 1;
+        }
+        // for( i = 0; i < outputSize; i += 1 )
+        i = 0;
+        while i < outputSize {
+            curPeriod = (localPeriodArray[i]) as usize;
+            if curPeriod != 0 {
+                retCode = self.ma(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
+                if retCode != RetCode::Success {
+                    (*outBegIdx) = 0;
+                    (*outNBElement) = 0;
+                    return retCode;
+                }
+                outReal[i] = ((localOutputArray[i]) as f64);
+                // for( j = i + 1; j < outputSize; j += 1 )
+                j = i + 1;
+                while j < outputSize {
+                    if (localPeriodArray[j]) as usize == curPeriod {
+                        localPeriodArray[j] = 0;
+                        outReal[j] = ((localOutputArray[j]) as f64);
+                    }
+                    j += 1;
+                }
+            }
+            i += 1;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outputSize;
+        return RetCode::Success;
     }
     pub fn mavp_unguarded(
         &self,

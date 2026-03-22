@@ -116,19 +116,81 @@ impl Core {
         } else if (((optInSlowPeriod) as i32) < 2) || (((optInSlowPeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.adosc_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            inVolume,
-            optInFastPeriod,
-            optInSlowPeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut slowestPeriod: usize = 0_usize;
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut slowEMA: f64 = 0.0_f64;
+        let mut slowk: f64 = 0.0_f64;
+        let mut one_minus_slowk: f64 = 0.0_f64;
+        let mut fastEMA: f64 = 0.0_f64;
+        let mut fastk: f64 = 0.0_f64;
+        let mut one_minus_fastk: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
+        if optInFastPeriod < optInSlowPeriod {
+            slowestPeriod = (optInSlowPeriod) as usize;
+        } else {
+            slowestPeriod = (optInFastPeriod) as usize;
+        }
+        lookbackTotal = self.ema_lookback((slowestPeriod) as i32);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        (*outBegIdx) = startIdx;
+        today = startIdx - lookbackTotal;
+        ad = 0.0;
+        fastk = 2.0 / (((optInFastPeriod) as f64) + 1.0);
+        one_minus_fastk = 1.0 - fastk;
+        slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
+        one_minus_slowk = 1.0 - slowk;
+        high = inHigh[today];
+        low = inLow[today];
+        tmp = high - low;
+        close = inClose[today];
+        if tmp > 0.0 {
+            ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+        }
+        today += 1;
+        fastEMA = ad;
+        slowEMA = ad;
+        while today < startIdx {
+            high = inHigh[today];
+            low = inLow[today];
+            tmp = high - low;
+            close = inClose[today];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+            }
+            today += 1;
+            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+        }
+        outIdx = 0;
+        while today <= endIdx {
+            high = inHigh[today];
+            low = inLow[today];
+            tmp = high - low;
+            close = inClose[today];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
+            }
+            today += 1;
+            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
+            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = fastEMA - slowEMA;
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn adosc_unguarded(
         &self,

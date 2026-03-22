@@ -94,16 +94,40 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.stddev_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            optInNbDev,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut i: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut tempReal: f64 = 0.0_f64;
+        retCode = self.var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+        if retCode != RetCode::Success {
+            return retCode;
+        }
+        if optInNbDev != 1.0 {
+            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            i = 0;
+            while i < ((((*outNBElement)) as usize)) as usize {
+                tempReal = outReal[i];
+                if !((tempReal) < 1e-14) {
+                    outReal[i] = (tempReal).sqrt() * optInNbDev;
+                } else {
+                    outReal[i] = (0.0) as f64;
+                }
+                i += 1;
+            }
+        } else {
+            // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
+            i = 0;
+            while i < ((((*outNBElement)) as usize)) as usize {
+                tempReal = outReal[i];
+                if !((tempReal) < 1e-14) {
+                    outReal[i] = (tempReal).sqrt();
+                } else {
+                    outReal[i] = (0.0) as f64;
+                }
+                i += 1;
+            }
+        }
+        return RetCode::Success;
     }
     pub fn stddev_unguarded(
         &self,

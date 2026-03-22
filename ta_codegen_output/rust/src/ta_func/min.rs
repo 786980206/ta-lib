@@ -91,15 +91,53 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.min_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut lowest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
+        if startIdx < nbInitialElementNeeded {
+            startIdx = nbInitialElementNeeded;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        outIdx = 0;
+        today = startIdx;
+        trailingIdx = startIdx - nbInitialElementNeeded;
+        lowestIdx = 0 - 1;
+        lowest = 0.0;
+        while today <= endIdx {
+            tmp = inReal[today];
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inReal[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
+                while { i += 1; i } <= today {
+                    tmp = inReal[i];
+                    if tmp < lowest {
+                        lowestIdx = (i) as i32;
+                        lowest = tmp;
+                    }
+                }
+            } else if tmp <= lowest {
+                lowestIdx = (today) as i32;
+                lowest = tmp;
+            }
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = lowest;
+            trailingIdx += 1;
+            today += 1;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn min_unguarded(
         &self,

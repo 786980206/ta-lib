@@ -90,17 +90,102 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.cdltristar_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outInteger,
-        );
+        let mut startIdx = startIdx;
+        let mut BodyPeriodTotal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut BodyTrailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        #[allow(non_snake_case)]
+        let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
+        #[allow(non_snake_case)]
+        let BodyDoji_avgPeriod: i32 = self.candle_settings.body_doji.avg_period;
+        #[allow(non_snake_case)]
+        let BodyDoji_factor: f64 = self.candle_settings.body_doji.factor;
+        lookbackTotal = self.cdltristar_lookback();
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        BodyPeriodTotal = 0.0;
+        BodyTrailingIdx = startIdx - 2 - (BodyDoji_avgPeriod) as usize;
+        i = BodyTrailingIdx;
+        while i < startIdx - 2 {
+            let mut _candlerange_0: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_0 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_0 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_0 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_0 = 0.0;
+                }
+            }
+            BodyPeriodTotal += _candlerange_0;
+            i += 1;
+        }
+        i = startIdx;
+        outIdx = 0;
+        loop {
+            if (inClose[i - 2] - inOpen[i - 2]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && (inClose[i - 1] - inOpen[i - 1]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
+                outInteger[outIdx] = 0;
+                if ((if (inOpen[i - 1]).min(inClose[i - 1]) > (inOpen[i - 2]).max(inClose[i - 2]) { 1 } else { 0 }) != 0) && (inOpen[i]).max(inClose[i]) < (inOpen[i - 1]).max(inClose[i - 1]) {
+                    outInteger[outIdx] = (0 - 100) as i32;
+                }
+                if ((if (inOpen[i - 1]).max(inClose[i - 1]) < (inOpen[i - 2]).min(inClose[i - 2]) { 1 } else { 0 }) != 0) && (inOpen[i]).min(inClose[i]) > (inOpen[i - 1]).min(inClose[i - 1]) {
+                    outInteger[outIdx] = 100;
+                }
+                outIdx += 1;
+            } else {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+            }
+            let mut _candlerange_1: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_1 = (inClose[i - 2] - inOpen[i - 2]).abs();
+                }
+                1 => {
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2];
+                }
+                2 => {
+                    _candlerange_1 = inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs();
+                }
+                _ => {
+                    _candlerange_1 = 0.0;
+                }
+            }
+            let mut _candlerange_2: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_2 = (inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx]).abs();
+                }
+                1 => {
+                    _candlerange_2 = inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx];
+                }
+                2 => {
+                    _candlerange_2 = inHigh[BodyTrailingIdx] - inLow[BodyTrailingIdx] - (inClose[BodyTrailingIdx] - inOpen[BodyTrailingIdx]).abs();
+                }
+                _ => {
+                    _candlerange_2 = 0.0;
+                }
+            }
+            BodyPeriodTotal += _candlerange_1 - _candlerange_2;
+            i += 1;
+            BodyTrailingIdx += 1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn cdltristar_unguarded(
         &self,

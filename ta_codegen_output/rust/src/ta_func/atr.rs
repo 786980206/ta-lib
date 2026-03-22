@@ -95,17 +95,57 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.atr_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut retCode: RetCode = RetCode::Success;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut nbATR: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
+        let mut prevATR: f64 = 0.0_f64;
+        let mut tempBuffer: Vec<f64> = Vec::new();
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        lookbackTotal = self.atr_lookback(optInTimePeriod);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        if optInTimePeriod <= 1 {
+            return self.trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
+        }
+        tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
+        retCode = self.trange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
+        if retCode != RetCode::Success {
+            return retCode;
+        }
+        retCode = self.sma((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
+        if retCode != RetCode::Success {
+            return retCode;
+        }
+        today = (optInTimePeriod) as usize;
+        outIdx = (self.unstable_period[FuncUnstId::Atr as usize]) as usize;
+        while outIdx != 0 {
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
+            prevATR /= ((optInTimePeriod) as f64);
+            outIdx -= 1;
+        }
+        outIdx = 1;
+        outReal[0] = prevATR;
+        nbATR = endIdx - startIdx + 1;
+        while { nbATR -= 1; nbATR } != 0 {
+            prevATR *= ((optInTimePeriod - 1) as f64);
+            prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
+            prevATR /= ((optInTimePeriod) as f64);
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevATR;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return retCode;
     }
     pub fn atr_unguarded(
         &self,

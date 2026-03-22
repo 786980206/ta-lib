@@ -95,17 +95,78 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.cci_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut tempReal2: f64 = 0.0_f64;
+        let mut theAverage: f64 = 0.0_f64;
+        let mut lastValue: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
+        let mut circBuffer_Idx: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        {
+            let _n = ((optInTimePeriod) as usize * 1) as usize;
+            let _si = (0) as usize;
+            circBuffer[_si.._si + _n].fill(0.0_f64);
+        };
+        circBuffer_Idx = 0;
+        i = startIdx - lookbackTotal;
+        if optInTimePeriod > 1 {
+            while i < startIdx {
+                circBuffer[circBuffer_Idx] = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
+                i += 1;
+                circBuffer_Idx += 1;
+                if circBuffer_Idx >= (optInTimePeriod) as usize {
+                    circBuffer_Idx = 0;
+                }
+            }
+        }
+        outIdx = 0;
+        loop {
+            lastValue = (inHigh[i] + inLow[i] + inClose[i]) / 3_f64;
+            circBuffer[circBuffer_Idx] = lastValue;
+            theAverage = 0.0;
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
+            j = 0;
+            while j < (optInTimePeriod) as usize {
+                theAverage += circBuffer[j];
+                j += 1;
+            }
+            theAverage /= ((optInTimePeriod) as f64);
+            tempReal2 = 0.0;
+            // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
+            j = 0;
+            while j < (optInTimePeriod) as usize {
+                tempReal2 += (circBuffer[j] - theAverage).abs();
+                j += 1;
+            }
+            tempReal = lastValue - theAverage;
+            if tempReal != 0.0 && tempReal2 != 0.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+            circBuffer_Idx += 1;
+            if circBuffer_Idx >= (optInTimePeriod) as usize {
+                circBuffer_Idx = 0;
+            }
+            i += 1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn cci_unguarded(
         &self,

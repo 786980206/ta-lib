@@ -91,15 +91,41 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.sum_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut periodTotal: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        periodTotal = 0.0;
+        trailingIdx = startIdx - lookbackTotal;
+        i = trailingIdx;
+        if optInTimePeriod > 1 {
+            while i < startIdx {
+                periodTotal += inReal[{ let _v = i; i += 1; _v }];
+            }
+        }
+        outIdx = 0;
+        loop {
+            periodTotal += inReal[{ let _v = i; i += 1; _v }];
+            tempReal = periodTotal;
+            periodTotal -= inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn sum_unguarded(
         &self,

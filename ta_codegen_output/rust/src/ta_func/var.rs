@@ -94,16 +94,55 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.var_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            optInNbDev,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut periodTotal1: f64 = 0.0_f64;
+        let mut periodTotal2: f64 = 0.0_f64;
+        let mut meanValue1: f64 = 0.0_f64;
+        let mut meanValue2: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
+        if startIdx < nbInitialElementNeeded {
+            startIdx = nbInitialElementNeeded;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        periodTotal1 = 0.0;
+        periodTotal2 = 0.0;
+        trailingIdx = startIdx - nbInitialElementNeeded;
+        i = trailingIdx;
+        if optInTimePeriod > 1 {
+            while i < startIdx {
+                tempReal = inReal[{ let _v = i; i += 1; _v }];
+                periodTotal1 += tempReal;
+                tempReal *= tempReal;
+                periodTotal2 += tempReal;
+            }
+        }
+        outIdx = 0;
+        loop {
+            tempReal = inReal[{ let _v = i; i += 1; _v }];
+            periodTotal1 += tempReal;
+            tempReal *= tempReal;
+            periodTotal2 += tempReal;
+            meanValue1 = periodTotal1 / ((optInTimePeriod) as f64);
+            meanValue2 = periodTotal2 / ((optInTimePeriod) as f64);
+            tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
+            periodTotal1 -= tempReal;
+            tempReal *= tempReal;
+            periodTotal2 -= tempReal;
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = meanValue2 - meanValue1 * meanValue1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn var_unguarded(
         &self,

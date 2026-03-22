@@ -134,7 +134,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.accbands_unguarded(
+            rc = core.accbands(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -144,11 +144,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.accbands_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -173,18 +186,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.acos_unguarded(
+            rc = core.acos(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.acos_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -216,7 +239,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ad_unguarded(
+            rc = core.ad(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -226,11 +249,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ad_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &inVolume,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -256,7 +292,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.add_unguarded(
+            rc = core.add(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -264,11 +300,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.add_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -302,7 +349,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.adosc_unguarded(
+            rc = core.adosc(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -314,11 +361,26 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.adosc_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &inVolume,
+                optInFastPeriod,
+                optInSlowPeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -351,7 +413,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.adx_unguarded(
+            rc = core.adx(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -361,11 +423,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.adx_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -398,7 +473,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.adxr_unguarded(
+            rc = core.adxr(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -408,11 +483,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.adxr_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -438,7 +526,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.apo_unguarded(
+            rc = core.apo(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -448,11 +536,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.apo_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -480,7 +581,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.aroon_unguarded(
+            rc = core.aroon(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -489,11 +590,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.aroon_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -521,7 +634,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.aroonosc_unguarded(
+            rc = core.aroonosc(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -530,11 +643,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.aroonosc_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -557,18 +682,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.asin_unguarded(
+            rc = core.asin(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.asin_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -591,18 +726,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.atan_unguarded(
+            rc = core.atan(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.atan_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -635,7 +780,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.atr_unguarded(
+            rc = core.atr(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -645,11 +790,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.atr_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -673,7 +831,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.avgdev_unguarded(
+            rc = core.avgdev(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -681,11 +839,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.avgdev_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -717,7 +886,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.avgprice_unguarded(
+            rc = core.avgprice(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -727,11 +896,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.avgprice_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -760,7 +942,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.bbands_unguarded(
+            rc = core.bbands(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -771,11 +953,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.bbands_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInNbDevUp,
+                optInNbDevDn,
+                optInMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -804,7 +1000,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.beta_unguarded(
+            rc = core.beta(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -813,11 +1009,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.beta_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -849,7 +1057,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.bop_unguarded(
+            rc = core.bop(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -859,11 +1067,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.bop_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -893,7 +1114,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cci_unguarded(
+            rc = core.cci(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -903,11 +1124,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cci_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -939,7 +1173,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl2crows_unguarded(
+            rc = core.cdl2crows(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -949,11 +1183,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl2crows_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -985,7 +1232,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3blackcrows_unguarded(
+            rc = core.cdl3blackcrows(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -995,11 +1242,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3blackcrows_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1031,7 +1291,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3inside_unguarded(
+            rc = core.cdl3inside(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1041,11 +1301,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3inside_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1077,7 +1350,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3linestrike_unguarded(
+            rc = core.cdl3linestrike(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1087,11 +1360,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3linestrike_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1123,7 +1409,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3outside_unguarded(
+            rc = core.cdl3outside(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1133,11 +1419,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3outside_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1169,7 +1468,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3starsinsouth_unguarded(
+            rc = core.cdl3starsinsouth(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1179,11 +1478,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3starsinsouth_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1215,7 +1527,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdl3whitesoldiers_unguarded(
+            rc = core.cdl3whitesoldiers(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1225,11 +1537,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdl3whitesoldiers_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1262,7 +1587,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlabandonedbaby_unguarded(
+            rc = core.cdlabandonedbaby(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1273,11 +1598,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlabandonedbaby_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1309,7 +1648,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdladvanceblock_unguarded(
+            rc = core.cdladvanceblock(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1319,11 +1658,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdladvanceblock_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1355,7 +1707,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlbelthold_unguarded(
+            rc = core.cdlbelthold(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1365,11 +1717,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlbelthold_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1401,7 +1766,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlbreakaway_unguarded(
+            rc = core.cdlbreakaway(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1411,11 +1776,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlbreakaway_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1447,7 +1825,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlclosingmarubozu_unguarded(
+            rc = core.cdlclosingmarubozu(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1457,11 +1835,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlclosingmarubozu_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1493,7 +1884,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlconcealbabyswall_unguarded(
+            rc = core.cdlconcealbabyswall(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1503,11 +1894,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlconcealbabyswall_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1539,7 +1943,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlcounterattack_unguarded(
+            rc = core.cdlcounterattack(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1549,11 +1953,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlcounterattack_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1586,7 +2003,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdldarkcloudcover_unguarded(
+            rc = core.cdldarkcloudcover(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1597,11 +2014,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdldarkcloudcover_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1633,7 +2064,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdldoji_unguarded(
+            rc = core.cdldoji(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1643,11 +2074,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdldoji_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1679,7 +2123,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdldojistar_unguarded(
+            rc = core.cdldojistar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1689,11 +2133,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdldojistar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1725,7 +2182,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdldragonflydoji_unguarded(
+            rc = core.cdldragonflydoji(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1735,11 +2192,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdldragonflydoji_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1771,7 +2241,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlengulfing_unguarded(
+            rc = core.cdlengulfing(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1781,11 +2251,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlengulfing_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1818,7 +2301,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdleveningdojistar_unguarded(
+            rc = core.cdleveningdojistar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1829,11 +2312,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdleveningdojistar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1866,7 +2363,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdleveningstar_unguarded(
+            rc = core.cdleveningstar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1877,11 +2374,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdleveningstar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1913,7 +2424,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlgapsidesidewhite_unguarded(
+            rc = core.cdlgapsidesidewhite(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1923,11 +2434,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlgapsidesidewhite_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -1959,7 +2483,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlgravestonedoji_unguarded(
+            rc = core.cdlgravestonedoji(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -1969,11 +2493,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlgravestonedoji_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2005,7 +2542,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhammer_unguarded(
+            rc = core.cdlhammer(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2015,11 +2552,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhammer_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2051,7 +2601,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhangingman_unguarded(
+            rc = core.cdlhangingman(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2061,11 +2611,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhangingman_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2097,7 +2660,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlharami_unguarded(
+            rc = core.cdlharami(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2107,11 +2670,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlharami_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2143,7 +2719,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlharamicross_unguarded(
+            rc = core.cdlharamicross(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2153,11 +2729,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlharamicross_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2189,7 +2778,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhighwave_unguarded(
+            rc = core.cdlhighwave(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2199,11 +2788,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhighwave_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2235,7 +2837,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhikkake_unguarded(
+            rc = core.cdlhikkake(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2245,11 +2847,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhikkake_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2281,7 +2896,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhikkakemod_unguarded(
+            rc = core.cdlhikkakemod(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2291,11 +2906,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhikkakemod_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2327,7 +2955,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlhomingpigeon_unguarded(
+            rc = core.cdlhomingpigeon(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2337,11 +2965,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlhomingpigeon_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2373,7 +3014,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlidentical3crows_unguarded(
+            rc = core.cdlidentical3crows(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2383,11 +3024,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlidentical3crows_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2419,7 +3073,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlinneck_unguarded(
+            rc = core.cdlinneck(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2429,11 +3083,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlinneck_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2465,7 +3132,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlinvertedhammer_unguarded(
+            rc = core.cdlinvertedhammer(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2475,11 +3142,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlinvertedhammer_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2511,7 +3191,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlkicking_unguarded(
+            rc = core.cdlkicking(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2521,11 +3201,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlkicking_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2557,7 +3250,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlkickingbylength_unguarded(
+            rc = core.cdlkickingbylength(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2567,11 +3260,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlkickingbylength_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2603,7 +3309,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlladderbottom_unguarded(
+            rc = core.cdlladderbottom(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2613,11 +3319,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlladderbottom_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2649,7 +3368,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdllongleggeddoji_unguarded(
+            rc = core.cdllongleggeddoji(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2659,11 +3378,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdllongleggeddoji_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2695,7 +3427,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdllongline_unguarded(
+            rc = core.cdllongline(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2705,11 +3437,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdllongline_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2741,7 +3486,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlmarubozu_unguarded(
+            rc = core.cdlmarubozu(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2751,11 +3496,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlmarubozu_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2787,7 +3545,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlmatchinglow_unguarded(
+            rc = core.cdlmatchinglow(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2797,11 +3555,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlmatchinglow_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2834,7 +3605,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlmathold_unguarded(
+            rc = core.cdlmathold(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2845,11 +3616,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlmathold_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2882,7 +3667,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlmorningdojistar_unguarded(
+            rc = core.cdlmorningdojistar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2893,11 +3678,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlmorningdojistar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2930,7 +3729,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlmorningstar_unguarded(
+            rc = core.cdlmorningstar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2941,11 +3740,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlmorningstar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInPenetration,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -2977,7 +3790,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlonneck_unguarded(
+            rc = core.cdlonneck(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -2987,11 +3800,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlonneck_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3023,7 +3849,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlpiercing_unguarded(
+            rc = core.cdlpiercing(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3033,11 +3859,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlpiercing_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3069,7 +3908,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlrickshawman_unguarded(
+            rc = core.cdlrickshawman(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3079,11 +3918,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlrickshawman_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3115,7 +3967,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlrisefall3methods_unguarded(
+            rc = core.cdlrisefall3methods(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3125,11 +3977,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlrisefall3methods_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3161,7 +4026,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlseparatinglines_unguarded(
+            rc = core.cdlseparatinglines(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3171,11 +4036,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlseparatinglines_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3207,7 +4085,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlshootingstar_unguarded(
+            rc = core.cdlshootingstar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3217,11 +4095,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlshootingstar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3253,7 +4144,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlshortline_unguarded(
+            rc = core.cdlshortline(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3263,11 +4154,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlshortline_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3299,7 +4203,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlspinningtop_unguarded(
+            rc = core.cdlspinningtop(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3309,11 +4213,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlspinningtop_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3345,7 +4262,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlstalledpattern_unguarded(
+            rc = core.cdlstalledpattern(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3355,11 +4272,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlstalledpattern_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3391,7 +4321,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlsticksandwich_unguarded(
+            rc = core.cdlsticksandwich(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3401,11 +4331,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlsticksandwich_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3437,7 +4380,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdltakuri_unguarded(
+            rc = core.cdltakuri(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3447,11 +4390,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdltakuri_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3483,7 +4439,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdltasukigap_unguarded(
+            rc = core.cdltasukigap(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3493,11 +4449,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdltasukigap_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3529,7 +4498,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlthrusting_unguarded(
+            rc = core.cdlthrusting(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3539,11 +4508,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlthrusting_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3575,7 +4557,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdltristar_unguarded(
+            rc = core.cdltristar(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3585,11 +4567,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdltristar_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3621,7 +4616,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlunique3river_unguarded(
+            rc = core.cdlunique3river(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3631,11 +4626,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlunique3river_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3667,7 +4675,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlupsidegap2crows_unguarded(
+            rc = core.cdlupsidegap2crows(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3677,11 +4685,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlupsidegap2crows_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3713,7 +4734,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cdlxsidegap3methods_unguarded(
+            rc = core.cdlxsidegap3methods(
                 startIdx, endIdx,
                 &inOpen,
                 &inHigh,
@@ -3723,11 +4744,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cdlxsidegap3methods_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -3750,18 +4784,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ceil_unguarded(
+            rc = core.ceil(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ceil_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3788,7 +4832,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cmo_unguarded(
+            rc = core.cmo(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -3796,11 +4840,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cmo_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3827,7 +4882,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.correl_unguarded(
+            rc = core.correl(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -3836,11 +4891,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.correl_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3863,18 +4930,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cos_unguarded(
+            rc = core.cos(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cos_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3897,18 +4974,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.cosh_unguarded(
+            rc = core.cosh(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.cosh_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3932,7 +5019,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.dema_unguarded(
+            rc = core.dema(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -3940,11 +5027,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.dema_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -3970,7 +5068,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.div_unguarded(
+            rc = core.div(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -3978,11 +5076,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.div_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4015,7 +5124,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.dx_unguarded(
+            rc = core.dx(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -4025,11 +5134,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.dx_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4064,11 +5186,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let optInK_1: f64 = 2.0 / (optInTimePeriod as f64 + 1.0);
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ema_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInK_1,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4091,18 +5226,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.exp_unguarded(
+            rc = core.exp(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.exp_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4125,18 +5270,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.floor_unguarded(
+            rc = core.floor(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.floor_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4162,18 +5317,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_dcperiod_unguarded(
+            rc = core.ht_dcperiod(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_dcperiod_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4199,18 +5364,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_dcphase_unguarded(
+            rc = core.ht_dcphase(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_dcphase_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4237,18 +5412,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_phasor_unguarded(
+            rc = core.ht_phasor(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_phasor_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4276,18 +5461,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_sine_unguarded(
+            rc = core.ht_sine(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_sine_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4314,18 +5509,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_trendline_unguarded(
+            rc = core.ht_trendline(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_trendline_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4351,18 +5556,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ht_trendmode_unguarded(
+            rc = core.ht_trendmode(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ht_trendmode_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -4392,7 +5607,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.imi_unguarded(
+            rc = core.imi(
                 startIdx, endIdx,
                 &inOpen,
                 &inClose,
@@ -4401,11 +5616,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.imi_unguarded(
+                startIdx, endIdx,
+                &inOpen,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4432,7 +5659,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.kama_unguarded(
+            rc = core.kama(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4440,11 +5667,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.kama_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4468,7 +5706,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.linearreg_unguarded(
+            rc = core.linearreg(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4476,11 +5714,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.linearreg_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4504,7 +5753,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.linearreg_angle_unguarded(
+            rc = core.linearreg_angle(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4512,11 +5761,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.linearreg_angle_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4540,7 +5800,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.linearreg_intercept_unguarded(
+            rc = core.linearreg_intercept(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4548,11 +5808,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.linearreg_intercept_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4576,7 +5847,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.linearreg_slope_unguarded(
+            rc = core.linearreg_slope(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4584,11 +5855,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.linearreg_slope_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4611,18 +5893,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ln_unguarded(
+            rc = core.ln(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ln_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4645,18 +5937,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.log10_unguarded(
+            rc = core.log10(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.log10_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4681,7 +5983,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ma_unguarded(
+            rc = core.ma(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4690,11 +5992,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ma_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4722,7 +6036,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.macd_unguarded(
+            rc = core.macd(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -4732,11 +6046,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.macd_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInSignalPeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4769,7 +6096,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.macdext_unguarded(
+            rc = core.macdext(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -4782,11 +6109,27 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.macdext_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInFastPeriod,
+                optInFastMAType,
+                optInSlowPeriod,
+                optInSlowMAType,
+                optInSignalPeriod,
+                optInSignalMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4814,7 +6157,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.macdfix_unguarded(
+            rc = core.macdfix(
                 startIdx, endIdx,
                 &inReal,
                 optInSignalPeriod,
@@ -4822,11 +6165,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.macdfix_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInSignalPeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1, &mut outBuf2,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4857,7 +6211,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.mama_unguarded(
+            rc = core.mama(
                 startIdx, endIdx,
                 &inReal,
                 optInFastLimit,
@@ -4866,11 +6220,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.mama_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInFastLimit,
+                optInSlowLimit,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -4900,7 +6266,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.mavp_unguarded(
+            rc = core.mavp(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -4911,11 +6277,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.mavp_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                optInMinPeriod,
+                optInMaxPeriod,
+                optInMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4939,7 +6319,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.max_unguarded(
+            rc = core.max(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4947,11 +6327,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.max_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -4975,7 +6366,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.maxindex_unguarded(
+            rc = core.maxindex(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -4983,11 +6374,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.maxindex_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -5013,7 +6415,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.medprice_unguarded(
+            rc = core.medprice(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5021,11 +6423,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.medprice_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5061,7 +6474,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.mfi_unguarded(
+            rc = core.mfi(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5072,11 +6485,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.mfi_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &inVolume,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5100,7 +6527,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.midpoint_unguarded(
+            rc = core.midpoint(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5108,11 +6535,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.midpoint_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5139,7 +6577,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.midprice_unguarded(
+            rc = core.midprice(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5148,11 +6586,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.midprice_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5176,7 +6626,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.min_unguarded(
+            rc = core.min(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5184,11 +6634,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.min_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5212,7 +6673,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.minindex_unguarded(
+            rc = core.minindex(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5220,11 +6681,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.minindex_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp.to_string()
@@ -5249,7 +6721,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.minmax_unguarded(
+            rc = core.minmax(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5257,11 +6729,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.minmax_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -5287,7 +6770,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.minmaxindex_unguarded(
+            rc = core.minmaxindex(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5295,11 +6778,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.minmaxindex_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outIntBuf0, &mut outIntBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outInteger"] = serde_json::json!(&outIntBuf0[..outNBElement]);
             resp["outInteger1"] = serde_json::json!(&outIntBuf1[..outNBElement]);
@@ -5333,7 +6827,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.minus_di_unguarded(
+            rc = core.minus_di(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5343,11 +6837,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.minus_di_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5377,7 +6884,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.minus_dm_unguarded(
+            rc = core.minus_dm(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5386,11 +6893,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.minus_dm_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5414,7 +6933,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.mom_unguarded(
+            rc = core.mom(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5422,11 +6941,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.mom_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5452,7 +6982,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.mult_unguarded(
+            rc = core.mult(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -5460,11 +6990,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.mult_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5497,7 +7038,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.natr_unguarded(
+            rc = core.natr(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5507,11 +7048,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.natr_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5537,7 +7091,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.nvi_unguarded(
+            rc = core.nvi(
                 startIdx, endIdx,
                 &inClose,
                 &inVolume,
@@ -5545,11 +7099,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.nvi_unguarded(
+                startIdx, endIdx,
+                &inClose,
+                &inVolume,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5575,7 +7140,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.obv_unguarded(
+            rc = core.obv(
                 startIdx, endIdx,
                 &inReal,
                 &inVolume,
@@ -5583,11 +7148,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.obv_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &inVolume,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5620,7 +7196,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.plus_di_unguarded(
+            rc = core.plus_di(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5630,11 +7206,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.plus_di_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5664,7 +7253,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.plus_dm_unguarded(
+            rc = core.plus_dm(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5673,11 +7262,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.plus_dm_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5703,7 +7304,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ppo_unguarded(
+            rc = core.ppo(
                 startIdx, endIdx,
                 &inReal,
                 optInFastPeriod,
@@ -5713,11 +7314,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ppo_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInFastPeriod,
+                optInSlowPeriod,
+                optInMAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5743,7 +7357,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.pvi_unguarded(
+            rc = core.pvi(
                 startIdx, endIdx,
                 &inClose,
                 &inVolume,
@@ -5751,11 +7365,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.pvi_unguarded(
+                startIdx, endIdx,
+                &inClose,
+                &inVolume,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5779,7 +7404,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.roc_unguarded(
+            rc = core.roc(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5787,11 +7412,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.roc_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5815,7 +7451,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.rocp_unguarded(
+            rc = core.rocp(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5823,11 +7459,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.rocp_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5851,7 +7498,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.rocr_unguarded(
+            rc = core.rocr(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5859,11 +7506,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.rocr_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5887,7 +7545,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.rocr100_unguarded(
+            rc = core.rocr100(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5895,11 +7553,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.rocr100_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5926,7 +7595,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.rsi_unguarded(
+            rc = core.rsi(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -5934,11 +7603,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.rsi_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -5966,7 +7646,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sar_unguarded(
+            rc = core.sar(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -5976,11 +7656,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sar_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInAcceleration,
+                optInMaximum,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6014,7 +7707,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sarext_unguarded(
+            rc = core.sarext(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6030,11 +7723,30 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sarext_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                optInStartValue,
+                optInOffsetOnReverse,
+                optInAccelerationInitLong,
+                optInAccelerationLong,
+                optInAccelerationMaxLong,
+                optInAccelerationInitShort,
+                optInAccelerationShort,
+                optInAccelerationMaxShort,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6057,18 +7769,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sin_unguarded(
+            rc = core.sin(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sin_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6091,18 +7813,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sinh_unguarded(
+            rc = core.sinh(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sinh_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6126,7 +7858,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sma_unguarded(
+            rc = core.sma(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6134,11 +7866,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sma_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6161,18 +7904,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sqrt_unguarded(
+            rc = core.sqrt(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sqrt_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6197,7 +7950,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.stddev_unguarded(
+            rc = core.stddev(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6206,11 +7959,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.stddev_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInNbDev,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6245,7 +8010,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.stoch_unguarded(
+            rc = core.stoch(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6259,11 +8024,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.stoch_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInFastK_Period,
+                optInSlowK_Period,
+                optInSlowK_MAType,
+                optInSlowD_Period,
+                optInSlowD_MAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -6297,7 +8079,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.stochf_unguarded(
+            rc = core.stochf(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6309,11 +8091,26 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.stochf_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -6345,7 +8142,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.stochrsi_unguarded(
+            rc = core.stochrsi(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6356,11 +8153,25 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.stochrsi_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInFastK_Period,
+                optInFastD_Period,
+                optInFastD_MAType,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0, &mut outBuf1,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp["outReal1"] = serde_json::json!(&outBuf1[..outNBElement]);
@@ -6387,7 +8198,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sub_unguarded(
+            rc = core.sub(
                 startIdx, endIdx,
                 &inReal0,
                 &inReal1,
@@ -6395,11 +8206,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sub_unguarded(
+                startIdx, endIdx,
+                &inReal0,
+                &inReal1,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6423,7 +8245,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.sum_unguarded(
+            rc = core.sum(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6431,11 +8253,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.sum_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6463,7 +8296,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.t3_unguarded(
+            rc = core.t3(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6472,11 +8305,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.t3_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInVFactor,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6499,18 +8344,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.tan_unguarded(
+            rc = core.tan(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.tan_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6533,18 +8388,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.tanh_unguarded(
+            rc = core.tanh(
                 startIdx, endIdx,
                 &inReal,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.tanh_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6568,7 +8433,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.tema_unguarded(
+            rc = core.tema(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6576,11 +8441,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.tema_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6609,7 +8485,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.trange_unguarded(
+            rc = core.trange(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6618,11 +8494,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.trange_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6646,7 +8534,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.trima_unguarded(
+            rc = core.trima(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6654,11 +8542,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.trima_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6682,7 +8581,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.trix_unguarded(
+            rc = core.trix(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6690,11 +8589,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.trix_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6718,7 +8628,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.tsf_unguarded(
+            rc = core.tsf(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6726,11 +8636,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.tsf_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6759,7 +8680,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.typprice_unguarded(
+            rc = core.typprice(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6768,11 +8689,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.typprice_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6804,7 +8737,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.ultosc_unguarded(
+            rc = core.ultosc(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6816,11 +8749,26 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.ultosc_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod1,
+                optInTimePeriod2,
+                optInTimePeriod3,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6845,7 +8793,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.var_unguarded(
+            rc = core.var(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6854,11 +8802,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.var_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                optInNbDev,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6887,7 +8847,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.wclprice_unguarded(
+            rc = core.wclprice(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6896,11 +8856,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.wclprice_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6930,7 +8902,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.willr_unguarded(
+            rc = core.willr(
                 startIdx, endIdx,
                 &inHigh,
                 &inLow,
@@ -6940,11 +8912,24 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.willr_unguarded(
+                startIdx, endIdx,
+                &inHigh,
+                &inLow,
+                &inClose,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
@@ -6968,7 +8953,7 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let mut rc = RetCode::Success;
             let start_time = Instant::now();
             for _bi in 0..bench_iters {
-            rc = core.wma_unguarded(
+            rc = core.wma(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
@@ -6976,11 +8961,22 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
+            let start_time_ung = Instant::now();
+            for _biu in 0..bench_iters {
+            rc = core.wma_unguarded(
+                startIdx, endIdx,
+                &inReal,
+                optInTimePeriod,
+                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
+            );
+            }
+            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
             let mut resp = serde_json::json!({
                 "retCode": retcode_to_int(rc),
                 "outBegIdx": outBegIdx,
                 "outNBElement": outNBElement,
                 "timing_ns": elapsed_ns,
+                "timing_ns_unguarded": elapsed_ns_ung,
             });
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()

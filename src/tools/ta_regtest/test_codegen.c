@@ -13,6 +13,10 @@
 #include <string.h>
 #include <math.h>
 #include <time.h>
+
+/* Display flags set by ta_regtest.c --no-guarded / --no-unguarded */
+int g_hideGuarded = 0;
+int g_hideUnguarded = 0;
 #include <limits.h>
 #ifdef __APPLE__
 #include <mach/mach_time.h>
@@ -66,6 +70,7 @@ typedef struct {
     struct {
         int    tested;   /* 0=skipped, 1=pass, -1=fail */
         double avg_ns;
+        double avg_ns_unguarded;
     } langs[NUM_LANGUAGES];
 } FuncTimingResult;
 
@@ -271,6 +276,8 @@ typedef struct {
     long long c_ref_total_ns;
     long long server_total_ns;
     int       timing_count;
+    long long server_unguarded_total_ns;
+    int       timing_unguarded_count;
 } CodegenRangeTestParam;
 
 /* ---- Generic JSON request builder (Task 7) ---- */
@@ -546,6 +553,15 @@ static void compare_codegen_output_generic(
     {
         /* Debug: show first 120 chars of response when timing_ns is missing */
         fprintf(stderr, "DEBUG no timing_ns for TA_%s: %.120s\n", p->funcInfo->name, p->responseBuf);
+    }
+
+    /* Parse server timing_ns_unguarded if present */
+    const char *timingUngVal = json_find_field(p->responseBuf, "timing_ns_unguarded", &len);
+    if( timingUngVal )
+    {
+        long long serverUngNs = strtoll(timingUngVal, NULL, 10);
+        p->server_unguarded_total_ns += serverUngNs;
+        p->timing_unguarded_count++;
     }
 }
 
@@ -885,6 +901,9 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     double s_avg_ns = (params.timing_count > 0)
                       ? (double)params.server_total_ns / (double)params.timing_count
                       : 0.0;
+    double s_avg_ns_unguarded = (params.timing_unguarded_count > 0)
+                      ? (double)params.server_unguarded_total_ns / (double)params.timing_unguarded_count
+                      : 0.0;
 
     /* Run doRangeTest with the generic callback (C reference coherency only).
      * Skip when lookback exceeds data range (no output possible). */
@@ -926,6 +945,8 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         {
             g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
             g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
+            if( params.timing_unguarded_count > 0 )
+                g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns_unguarded = s_avg_ns_unguarded;
         }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
@@ -941,6 +962,8 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
         {
             g_timingResults[resultIdx].langs[ctx->langIndex].tested  = -1;
             g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
+            if( params.timing_unguarded_count > 0 )
+                g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns_unguarded = s_avg_ns_unguarded;
         }
         free_outputs(&params);
         TA_ParamHolderFree(paramHolder);
@@ -954,6 +977,8 @@ static void test_one_function(const TA_FuncInfo *funcInfo, void *opaqueData)
     {
         g_timingResults[resultIdx].langs[ctx->langIndex].tested  = 1;
         g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns  = s_avg_ns;
+        if( params.timing_unguarded_count > 0 )
+            g_timingResults[resultIdx].langs[ctx->langIndex].avg_ns_unguarded = s_avg_ns_unguarded;
     }
 
     /* Print result with timing and speedup ratio */
@@ -1079,12 +1104,26 @@ static void print_timing_table(const char *languageFilter)
     printf("Codegen Results + Timing (avg ns/call)\n");
     printf("=============================================\n");
 
+    /* Check if any language has unguarded data (and user hasn't hidden it) */
+    int hasUnguarded = 0;
+    if( !g_hideUnguarded )
+        for( int ri = 0; ri < g_numTimingResults && !hasUnguarded; ri++ )
+            for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+                if( showLang[li] && g_timingResults[ri].langs[li].avg_ns_unguarded > 0 )
+                { hasUnguarded = 1; break; }
+    int showGuarded = !g_hideGuarded;
+
     /* Header */
-    printf("%-20s %8s", "Function", "C-ref");
+    printf("%-20s %9s", "Function", "C-ref");
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
     {
         if( showLang[li] )
-            printf(" %9s", ALL_LANGUAGES[li].display);
+        {
+            if( showGuarded )
+                printf(" %9s", ALL_LANGUAGES[li].display);
+            if( hasUnguarded )
+                printf(" %9s", showGuarded ? "ung" : ALL_LANGUAGES[li].display);
+        }
     }
     printf("\n");
 
@@ -1092,29 +1131,55 @@ static void print_timing_table(const char *languageFilter)
     for( int ri = 0; ri < g_numTimingResults; ri++ )
     {
         FuncTimingResult *r = &g_timingResults[ri];
-        printf("%-20s %8.0f", r->funcName, r->c_ref_ns);
+        printf("%-20s %9.0f", r->funcName, r->c_ref_ns);
         for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
         {
             if( !showLang[li] )
                 continue;
             int st = r->langs[li].tested;
             if( st == 0 )
-                printf(" %9s", "--");
+            {
+                if( showGuarded ) printf(" %9s", "--");
+                if( hasUnguarded ) printf(" %9s", "--");
+            }
             else if( st == -1 )
-                printf("     FAIL");
+            {
+                if( showGuarded ) printf(" %9s", "FAIL");
+                if( hasUnguarded ) printf(" %9s", "--");
+            }
             else
             {
-                /* Color the C column relative to C-ref */
-                int is_c = (strcmp(ALL_LANGUAGES[li].name, "c") == 0);
-                if( is_c && r->c_ref_ns > 0 )
+                /* Guarded column: color relative to C-ref */
+                if( showGuarded )
                 {
-                    if( r->langs[li].avg_ns > r->c_ref_ns )
-                        printf(" \033[31m%8.0f\033[0m", r->langs[li].avg_ns); /* red: slower */
+                    if( r->c_ref_ns > 0 )
+                    {
+                        if( r->langs[li].avg_ns > r->c_ref_ns )
+                            printf(" \033[31m%9.0f\033[0m", r->langs[li].avg_ns);
+                        else if( r->langs[li].avg_ns < r->c_ref_ns )
+                            printf(" \033[32m%9.0f\033[0m", r->langs[li].avg_ns);
+                        else
+                            printf(" %9.0f", r->langs[li].avg_ns);
+                    }
                     else
-                        printf(" \033[32m%8.0f\033[0m", r->langs[li].avg_ns); /* green: faster */
+                        printf(" %9.0f", r->langs[li].avg_ns);
                 }
-                else
-                    printf(" %8.0f", r->langs[li].avg_ns);
+
+                /* Unguarded column: color relative to C-ref */
+                if( hasUnguarded )
+                {
+                    if( r->langs[li].avg_ns_unguarded > 0 )
+                    {
+                        if( r->c_ref_ns > 0 && r->langs[li].avg_ns_unguarded > r->c_ref_ns )
+                            printf(" \033[31m%9.0f\033[0m", r->langs[li].avg_ns_unguarded);
+                        else if( r->c_ref_ns > 0 && r->langs[li].avg_ns_unguarded < r->c_ref_ns )
+                            printf(" \033[32m%9.0f\033[0m", r->langs[li].avg_ns_unguarded);
+                        else
+                            printf(" %9.0f", r->langs[li].avg_ns_unguarded);
+                    }
+                    else
+                        printf(" %9s", "--");
+                }
             }
         }
         printf("\n");
@@ -1158,10 +1223,13 @@ static void write_timing_report(const char *filepath)
             if( st == 0 ) continue;   /* skip not-tested */
             if( !firstLang ) fprintf(f, ",");
             firstLang = 0;
-            fprintf(f, "\"%s\":{\"status\":\"%s\",\"avg_ns\":%.0f}",
+            fprintf(f, "\"%s\":{\"status\":\"%s\",\"avg_ns\":%.0f",
                     ALL_LANGUAGES[li].name,
                     (st == 1) ? "pass" : "fail",
                     r->langs[li].avg_ns);
+            if( r->langs[li].avg_ns_unguarded > 0 )
+                fprintf(f, ",\"avg_ns_unguarded\":%.0f", r->langs[li].avg_ns_unguarded);
+            fprintf(f, "}");
         }
         fprintf(f, "}}");
     }
@@ -1304,14 +1372,29 @@ static void write_markdown_report(const char *filepath, const char *languageFilt
             "\xe2\x94\x98\n");
     fprintf(f, "```\n\n");
 
+    /* Check if any language has unguarded data */
+    int mdHasUnguarded = 0;
+    for( int ri = 0; ri < g_numTimingResults && !mdHasUnguarded; ri++ )
+        for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
+            if( showLang[li] && g_timingResults[ri].langs[li].avg_ns_unguarded > 0 )
+            { mdHasUnguarded = 1; break; }
+
     /* Detailed per-function table */
     fprintf(f, "## Results (ns/call)\n\n");
     fprintf(f, "| Function |  C-ref |");
-    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
-        if( showLang[li] ) fprintf(f, " %s |", ALL_LANGUAGES[li].display);
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( showLang[li] ) {
+            fprintf(f, " %s |", ALL_LANGUAGES[li].display);
+            if( mdHasUnguarded ) fprintf(f, " %s-ung |", ALL_LANGUAGES[li].display);
+        }
+    }
     fprintf(f, "\n|----------|--------|");
-    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
-        if( showLang[li] ) fprintf(f, "--------|");
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( showLang[li] ) {
+            fprintf(f, "--------|");
+            if( mdHasUnguarded ) fprintf(f, "--------|");
+        }
+    }
     fprintf(f, "\n");
 
     for( int ri = 0; ri < g_numTimingResults; ri++ ) {
@@ -1320,13 +1403,23 @@ static void write_markdown_report(const char *filepath, const char *languageFilt
         fprintf(f, "| %-8s | %6s |", r->funcName, cref);
         for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
             if( !showLang[li] ) continue;
-            if( r->langs[li].tested == -1 )
+            if( r->langs[li].tested == -1 ) {
                 fprintf(f, " FAIL   |");
-            else if( r->langs[li].tested == 1 ) {
+                if( mdHasUnguarded ) fprintf(f, "     \xe2\x80\x94 |");
+            } else if( r->langs[li].tested == 1 ) {
                 char t[32]; fmt_ns(t, sizeof(t), r->langs[li].avg_ns);
                 fprintf(f, " %6s |", t);
-            } else
+                if( mdHasUnguarded ) {
+                    if( r->langs[li].avg_ns_unguarded > 0 ) {
+                        char u[32]; fmt_ns(u, sizeof(u), r->langs[li].avg_ns_unguarded);
+                        fprintf(f, " %6s |", u);
+                    } else
+                        fprintf(f, "     \xe2\x80\x94 |");
+                }
+            } else {
                 fprintf(f, "     \xe2\x80\x94 |");
+                if( mdHasUnguarded ) fprintf(f, "     \xe2\x80\x94 |");
+            }
         }
         fprintf(f, "\n");
     }

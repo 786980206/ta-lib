@@ -128,16 +128,60 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 1) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.ma_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            optInMAType,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut dummyBuffer: Vec<f64> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut nbElement: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut todayIdx: usize = 0_usize;
+        if optInTimePeriod == 1 {
+            nbElement = endIdx - startIdx + 1;
+            (*outNBElement) = nbElement;
+            // for( todayIdx = startIdx, outIdx = 0; outIdx < nbElement; outIdx += 1, todayIdx += 1 )
+            todayIdx = startIdx;
+            outIdx = 0;
+            while outIdx < nbElement {
+                outReal[outIdx] = ((inReal[todayIdx]) as f64);
+                outIdx += 1;
+                todayIdx += 1;
+            }
+            (*outBegIdx) = startIdx;
+            return RetCode::Success;
+        }
+        match optInMAType {
+            0 => {
+                retCode = self.sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            1 => {
+                retCode = self.ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            2 => {
+                retCode = self.wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            3 => {
+                retCode = self.dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            4 => {
+                retCode = self.tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            5 => {
+                retCode = self.trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            6 => {
+                retCode = self.kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+            }
+            7 => {
+                dummyBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
+                retCode = self.mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, &mut dummyBuffer[..]);
+            }
+            8 => {
+                retCode = self.t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+            }
+            _ => {
+                retCode = RetCode::BadParam;
+            }
+        }
+        return retCode;
     }
     pub fn ma_unguarded(
         &self,

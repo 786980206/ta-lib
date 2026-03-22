@@ -38,6 +38,18 @@ public class TaCodegenServe {
         double[] outArr1,
         double[] outArr2);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ACCBANDS_Unguarded")]
+    static extern int TA_ACCBANDS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1,
+        double[] outArr2);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ACOS")]
     static extern int TA_ACOS(
         int startIdx, int endIdx,
@@ -45,8 +57,25 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ACOS_Unguarded")]
+    static extern int TA_ACOS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_AD")]
     static extern int TA_AD(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double[] inVolume,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_AD_Unguarded")]
+    static extern int TA_AD_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -63,8 +92,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADD_Unguarded")]
+    static extern int TA_ADD_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADOSC")]
     static extern int TA_ADOSC(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double[] inVolume,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADOSC_Unguarded")]
+    static extern int TA_ADOSC_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -85,8 +134,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADX_Unguarded")]
+    static extern int TA_ADX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADXR")]
     static extern int TA_ADXR(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ADXR_Unguarded")]
+    static extern int TA_ADXR_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -105,8 +174,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_APO_Unguarded")]
+    static extern int TA_APO_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        int optInMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_AROON")]
     static extern int TA_AROON(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_AROON_Unguarded")]
+    static extern int TA_AROON_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -124,8 +213,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_AROONOSC_Unguarded")]
+    static extern int TA_AROONOSC_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ASIN")]
     static extern int TA_ASIN(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ASIN_Unguarded")]
+    static extern int TA_ASIN_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -138,8 +243,25 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ATAN_Unguarded")]
+    static extern int TA_ATAN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ATR")]
     static extern int TA_ATR(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ATR_Unguarded")]
+    static extern int TA_ATR_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -156,8 +278,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_AVGDEV_Unguarded")]
+    static extern int TA_AVGDEV_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_AVGPRICE")]
     static extern int TA_AVGPRICE(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_AVGPRICE_Unguarded")]
+    static extern int TA_AVGPRICE_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -179,6 +319,19 @@ public class TaCodegenServe {
         double[] outArr1,
         double[] outArr2);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_BBANDS_Unguarded")]
+    static extern int TA_BBANDS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        double optInNbDevUp,
+        double optInNbDevDn,
+        int optInMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1,
+        double[] outArr2);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_BETA")]
     static extern int TA_BETA(
         int startIdx, int endIdx,
@@ -188,8 +341,27 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_BETA_Unguarded")]
+    static extern int TA_BETA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_BOP")]
     static extern int TA_BOP(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_BOP_Unguarded")]
+    static extern int TA_BOP_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -208,8 +380,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CCI_Unguarded")]
+    static extern int TA_CCI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL2CROWS")]
     static extern int TA_CDL2CROWS(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL2CROWS_Unguarded")]
+    static extern int TA_CDL2CROWS_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -228,8 +420,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3BLACKCROWS_Unguarded")]
+    static extern int TA_CDL3BLACKCROWS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3INSIDE")]
     static extern int TA_CDL3INSIDE(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3INSIDE_Unguarded")]
+    static extern int TA_CDL3INSIDE_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -248,8 +460,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3LINESTRIKE_Unguarded")]
+    static extern int TA_CDL3LINESTRIKE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3OUTSIDE")]
     static extern int TA_CDL3OUTSIDE(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3OUTSIDE_Unguarded")]
+    static extern int TA_CDL3OUTSIDE_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -268,8 +500,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3STARSINSOUTH_Unguarded")]
+    static extern int TA_CDL3STARSINSOUTH_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3WHITESOLDIERS")]
     static extern int TA_CDL3WHITESOLDIERS(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDL3WHITESOLDIERS_Unguarded")]
+    static extern int TA_CDL3WHITESOLDIERS_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -289,8 +541,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLABANDONEDBABY_Unguarded")]
+    static extern int TA_CDLABANDONEDBABY_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLADVANCEBLOCK")]
     static extern int TA_CDLADVANCEBLOCK(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLADVANCEBLOCK_Unguarded")]
+    static extern int TA_CDLADVANCEBLOCK_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -309,8 +582,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLBELTHOLD_Unguarded")]
+    static extern int TA_CDLBELTHOLD_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLBREAKAWAY")]
     static extern int TA_CDLBREAKAWAY(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLBREAKAWAY_Unguarded")]
+    static extern int TA_CDLBREAKAWAY_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -329,6 +622,16 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLCLOSINGMARUBOZU_Unguarded")]
+    static extern int TA_CDLCLOSINGMARUBOZU_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLCONCEALBABYSWALL")]
     static extern int TA_CDLCONCEALBABYSWALL(
         int startIdx, int endIdx,
@@ -339,8 +642,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLCONCEALBABYSWALL_Unguarded")]
+    static extern int TA_CDLCONCEALBABYSWALL_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLCOUNTERATTACK")]
     static extern int TA_CDLCOUNTERATTACK(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLCOUNTERATTACK_Unguarded")]
+    static extern int TA_CDLCOUNTERATTACK_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -360,8 +683,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDARKCLOUDCOVER_Unguarded")]
+    static extern int TA_CDLDARKCLOUDCOVER_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDOJI")]
     static extern int TA_CDLDOJI(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDOJI_Unguarded")]
+    static extern int TA_CDLDOJI_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -380,8 +724,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDOJISTAR_Unguarded")]
+    static extern int TA_CDLDOJISTAR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDRAGONFLYDOJI")]
     static extern int TA_CDLDRAGONFLYDOJI(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLDRAGONFLYDOJI_Unguarded")]
+    static extern int TA_CDLDRAGONFLYDOJI_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -400,8 +764,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLENGULFING_Unguarded")]
+    static extern int TA_CDLENGULFING_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLEVENINGDOJISTAR")]
     static extern int TA_CDLEVENINGDOJISTAR(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLEVENINGDOJISTAR_Unguarded")]
+    static extern int TA_CDLEVENINGDOJISTAR_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -422,8 +807,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLEVENINGSTAR_Unguarded")]
+    static extern int TA_CDLEVENINGSTAR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLGAPSIDESIDEWHITE")]
     static extern int TA_CDLGAPSIDESIDEWHITE(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLGAPSIDESIDEWHITE_Unguarded")]
+    static extern int TA_CDLGAPSIDESIDEWHITE_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -442,8 +848,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLGRAVESTONEDOJI_Unguarded")]
+    static extern int TA_CDLGRAVESTONEDOJI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHAMMER")]
     static extern int TA_CDLHAMMER(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHAMMER_Unguarded")]
+    static extern int TA_CDLHAMMER_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -462,8 +888,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHANGINGMAN_Unguarded")]
+    static extern int TA_CDLHANGINGMAN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHARAMI")]
     static extern int TA_CDLHARAMI(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHARAMI_Unguarded")]
+    static extern int TA_CDLHARAMI_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -482,8 +928,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHARAMICROSS_Unguarded")]
+    static extern int TA_CDLHARAMICROSS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHIGHWAVE")]
     static extern int TA_CDLHIGHWAVE(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHIGHWAVE_Unguarded")]
+    static extern int TA_CDLHIGHWAVE_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -502,8 +968,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHIKKAKE_Unguarded")]
+    static extern int TA_CDLHIKKAKE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHIKKAKEMOD")]
     static extern int TA_CDLHIKKAKEMOD(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHIKKAKEMOD_Unguarded")]
+    static extern int TA_CDLHIKKAKEMOD_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -522,8 +1008,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLHOMINGPIGEON_Unguarded")]
+    static extern int TA_CDLHOMINGPIGEON_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLIDENTICAL3CROWS")]
     static extern int TA_CDLIDENTICAL3CROWS(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLIDENTICAL3CROWS_Unguarded")]
+    static extern int TA_CDLIDENTICAL3CROWS_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -542,8 +1048,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLINNECK_Unguarded")]
+    static extern int TA_CDLINNECK_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLINVERTEDHAMMER")]
     static extern int TA_CDLINVERTEDHAMMER(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLINVERTEDHAMMER_Unguarded")]
+    static extern int TA_CDLINVERTEDHAMMER_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -562,8 +1088,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLKICKING_Unguarded")]
+    static extern int TA_CDLKICKING_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLKICKINGBYLENGTH")]
     static extern int TA_CDLKICKINGBYLENGTH(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLKICKINGBYLENGTH_Unguarded")]
+    static extern int TA_CDLKICKINGBYLENGTH_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -582,8 +1128,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLLADDERBOTTOM_Unguarded")]
+    static extern int TA_CDLLADDERBOTTOM_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLLONGLEGGEDDOJI")]
     static extern int TA_CDLLONGLEGGEDDOJI(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLLONGLEGGEDDOJI_Unguarded")]
+    static extern int TA_CDLLONGLEGGEDDOJI_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -602,8 +1168,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLLONGLINE_Unguarded")]
+    static extern int TA_CDLLONGLINE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMARUBOZU")]
     static extern int TA_CDLMARUBOZU(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMARUBOZU_Unguarded")]
+    static extern int TA_CDLMARUBOZU_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -622,8 +1208,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMATCHINGLOW_Unguarded")]
+    static extern int TA_CDLMATCHINGLOW_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMATHOLD")]
     static extern int TA_CDLMATHOLD(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMATHOLD_Unguarded")]
+    static extern int TA_CDLMATHOLD_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -644,8 +1251,30 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMORNINGDOJISTAR_Unguarded")]
+    static extern int TA_CDLMORNINGDOJISTAR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMORNINGSTAR")]
     static extern int TA_CDLMORNINGSTAR(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double optInPenetration,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLMORNINGSTAR_Unguarded")]
+    static extern int TA_CDLMORNINGSTAR_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -665,8 +1294,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLONNECK_Unguarded")]
+    static extern int TA_CDLONNECK_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLPIERCING")]
     static extern int TA_CDLPIERCING(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLPIERCING_Unguarded")]
+    static extern int TA_CDLPIERCING_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -685,8 +1334,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLRICKSHAWMAN_Unguarded")]
+    static extern int TA_CDLRICKSHAWMAN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLRISEFALL3METHODS")]
     static extern int TA_CDLRISEFALL3METHODS(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLRISEFALL3METHODS_Unguarded")]
+    static extern int TA_CDLRISEFALL3METHODS_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -705,8 +1374,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSEPARATINGLINES_Unguarded")]
+    static extern int TA_CDLSEPARATINGLINES_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSHOOTINGSTAR")]
     static extern int TA_CDLSHOOTINGSTAR(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSHOOTINGSTAR_Unguarded")]
+    static extern int TA_CDLSHOOTINGSTAR_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -725,8 +1414,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSHORTLINE_Unguarded")]
+    static extern int TA_CDLSHORTLINE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSPINNINGTOP")]
     static extern int TA_CDLSPINNINGTOP(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSPINNINGTOP_Unguarded")]
+    static extern int TA_CDLSPINNINGTOP_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -745,8 +1454,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSTALLEDPATTERN_Unguarded")]
+    static extern int TA_CDLSTALLEDPATTERN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSTICKSANDWICH")]
     static extern int TA_CDLSTICKSANDWICH(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLSTICKSANDWICH_Unguarded")]
+    static extern int TA_CDLSTICKSANDWICH_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -765,8 +1494,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTAKURI_Unguarded")]
+    static extern int TA_CDLTAKURI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTASUKIGAP")]
     static extern int TA_CDLTASUKIGAP(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTASUKIGAP_Unguarded")]
+    static extern int TA_CDLTASUKIGAP_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -785,8 +1534,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTHRUSTING_Unguarded")]
+    static extern int TA_CDLTHRUSTING_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTRISTAR")]
     static extern int TA_CDLTRISTAR(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLTRISTAR_Unguarded")]
+    static extern int TA_CDLTRISTAR_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -805,8 +1574,28 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLUNIQUE3RIVER_Unguarded")]
+    static extern int TA_CDLUNIQUE3RIVER_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLUPSIDEGAP2CROWS")]
     static extern int TA_CDLUPSIDEGAP2CROWS(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLUPSIDEGAP2CROWS_Unguarded")]
+    static extern int TA_CDLUPSIDEGAP2CROWS_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inHigh,
@@ -825,6 +1614,16 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CDLXSIDEGAP3METHODS_Unguarded")]
+    static extern int TA_CDLXSIDEGAP3METHODS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CEIL")]
     static extern int TA_CEIL(
         int startIdx, int endIdx,
@@ -832,8 +1631,23 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CEIL_Unguarded")]
+    static extern int TA_CEIL_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_CMO")]
     static extern int TA_CMO(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CMO_Unguarded")]
+    static extern int TA_CMO_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -849,6 +1663,15 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_CORREL_Unguarded")]
+    static extern int TA_CORREL_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_COS")]
     static extern int TA_COS(
         int startIdx, int endIdx,
@@ -856,8 +1679,22 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_COS_Unguarded")]
+    static extern int TA_COS_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_COSH")]
     static extern int TA_COSH(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_COSH_Unguarded")]
+    static extern int TA_COSH_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -871,8 +1708,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_DEMA_Unguarded")]
+    static extern int TA_DEMA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_DIV")]
     static extern int TA_DIV(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_DIV_Unguarded")]
+    static extern int TA_DIV_Unguarded(
         int startIdx, int endIdx,
         double[] inReal0,
         double[] inReal1,
@@ -889,6 +1742,16 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_DX_Unguarded")]
+    static extern int TA_DX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_EMA")]
     static extern int TA_EMA(
         int startIdx, int endIdx,
@@ -897,8 +1760,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_EMA_Unguarded")]
+    static extern int TA_EMA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        double optInK_1,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_EXP")]
     static extern int TA_EXP(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_EXP_Unguarded")]
+    static extern int TA_EXP_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -911,8 +1790,22 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_FLOOR_Unguarded")]
+    static extern int TA_FLOOR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_DCPERIOD")]
     static extern int TA_HT_DCPERIOD(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_DCPERIOD_Unguarded")]
+    static extern int TA_HT_DCPERIOD_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -925,8 +1818,23 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_DCPHASE_Unguarded")]
+    static extern int TA_HT_DCPHASE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_PHASOR")]
     static extern int TA_HT_PHASOR(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_PHASOR_Unguarded")]
+    static extern int TA_HT_PHASOR_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -941,8 +1849,23 @@ public class TaCodegenServe {
         double[] outArr0,
         double[] outArr1);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_SINE_Unguarded")]
+    static extern int TA_HT_SINE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_TRENDLINE")]
     static extern int TA_HT_TRENDLINE(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_TRENDLINE_Unguarded")]
+    static extern int TA_HT_TRENDLINE_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -955,8 +1878,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_HT_TRENDMODE_Unguarded")]
+    static extern int TA_HT_TRENDMODE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_IMI")]
     static extern int TA_IMI(
+        int startIdx, int endIdx,
+        double[] inOpen,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_IMI_Unguarded")]
+    static extern int TA_IMI_Unguarded(
         int startIdx, int endIdx,
         double[] inOpen,
         double[] inClose,
@@ -972,8 +1911,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_KAMA_Unguarded")]
+    static extern int TA_KAMA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG")]
     static extern int TA_LINEARREG(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG_Unguarded")]
+    static extern int TA_LINEARREG_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -988,8 +1943,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG_ANGLE_Unguarded")]
+    static extern int TA_LINEARREG_ANGLE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG_INTERCEPT")]
     static extern int TA_LINEARREG_INTERCEPT(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG_INTERCEPT_Unguarded")]
+    static extern int TA_LINEARREG_INTERCEPT_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1004,6 +1975,14 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LINEARREG_SLOPE_Unguarded")]
+    static extern int TA_LINEARREG_SLOPE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_LN")]
     static extern int TA_LN(
         int startIdx, int endIdx,
@@ -1011,8 +1990,22 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LN_Unguarded")]
+    static extern int TA_LN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_LOG10")]
     static extern int TA_LOG10(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_LOG10_Unguarded")]
+    static extern int TA_LOG10_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -1027,8 +2020,29 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MA_Unguarded")]
+    static extern int TA_MA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        int optInMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MACD")]
     static extern int TA_MACD(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        int optInSignalPeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1,
+        double[] outArr2);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MACD_Unguarded")]
+    static extern int TA_MACD_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInFastPeriod,
@@ -1054,6 +2068,21 @@ public class TaCodegenServe {
         double[] outArr1,
         double[] outArr2);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MACDEXT_Unguarded")]
+    static extern int TA_MACDEXT_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInFastPeriod,
+        int optInFastMAType,
+        int optInSlowPeriod,
+        int optInSlowMAType,
+        int optInSignalPeriod,
+        int optInSignalMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1,
+        double[] outArr2);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MACDFIX")]
     static extern int TA_MACDFIX(
         int startIdx, int endIdx,
@@ -1064,8 +2093,28 @@ public class TaCodegenServe {
         double[] outArr1,
         double[] outArr2);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MACDFIX_Unguarded")]
+    static extern int TA_MACDFIX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInSignalPeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1,
+        double[] outArr2);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAMA")]
     static extern int TA_MAMA(
+        int startIdx, int endIdx,
+        double[] inReal,
+        double optInFastLimit,
+        double optInSlowLimit,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAMA_Unguarded")]
+    static extern int TA_MAMA_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         double optInFastLimit,
@@ -1085,8 +2134,27 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAVP_Unguarded")]
+    static extern int TA_MAVP_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        int optInMinPeriod,
+        int optInMaxPeriod,
+        int optInMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAX")]
     static extern int TA_MAX(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAX_Unguarded")]
+    static extern int TA_MAX_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1101,8 +2169,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         int[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MAXINDEX_Unguarded")]
+    static extern int TA_MAXINDEX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MEDPRICE")]
     static extern int TA_MEDPRICE(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MEDPRICE_Unguarded")]
+    static extern int TA_MEDPRICE_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1120,8 +2204,27 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MFI_Unguarded")]
+    static extern int TA_MFI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        double[] inVolume,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MIDPOINT")]
     static extern int TA_MIDPOINT(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MIDPOINT_Unguarded")]
+    static extern int TA_MIDPOINT_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1137,6 +2240,15 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MIDPRICE_Unguarded")]
+    static extern int TA_MIDPRICE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MIN")]
     static extern int TA_MIN(
         int startIdx, int endIdx,
@@ -1145,8 +2257,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MIN_Unguarded")]
+    static extern int TA_MIN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MININDEX")]
     static extern int TA_MININDEX(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MININDEX_Unguarded")]
+    static extern int TA_MININDEX_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1162,8 +2290,26 @@ public class TaCodegenServe {
         double[] outArr0,
         double[] outArr1);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINMAX_Unguarded")]
+    static extern int TA_MINMAX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINMAXINDEX")]
     static extern int TA_MINMAXINDEX(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        int[] outArr0,
+        int[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINMAXINDEX_Unguarded")]
+    static extern int TA_MINMAXINDEX_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1181,8 +2327,27 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINUS_DI_Unguarded")]
+    static extern int TA_MINUS_DI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINUS_DM")]
     static extern int TA_MINUS_DM(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MINUS_DM_Unguarded")]
+    static extern int TA_MINUS_DM_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1198,8 +2363,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MOM_Unguarded")]
+    static extern int TA_MOM_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_MULT")]
     static extern int TA_MULT(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_MULT_Unguarded")]
+    static extern int TA_MULT_Unguarded(
         int startIdx, int endIdx,
         double[] inReal0,
         double[] inReal1,
@@ -1216,8 +2397,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_NATR_Unguarded")]
+    static extern int TA_NATR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_NVI")]
     static extern int TA_NVI(
+        int startIdx, int endIdx,
+        double[] inClose,
+        double[] inVolume,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_NVI_Unguarded")]
+    static extern int TA_NVI_Unguarded(
         int startIdx, int endIdx,
         double[] inClose,
         double[] inVolume,
@@ -1232,8 +2431,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_OBV_Unguarded")]
+    static extern int TA_OBV_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        double[] inVolume,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_PLUS_DI")]
     static extern int TA_PLUS_DI(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_PLUS_DI_Unguarded")]
+    static extern int TA_PLUS_DI_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1251,8 +2468,27 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_PLUS_DM_Unguarded")]
+    static extern int TA_PLUS_DM_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_PPO")]
     static extern int TA_PPO(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInFastPeriod,
+        int optInSlowPeriod,
+        int optInMAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_PPO_Unguarded")]
+    static extern int TA_PPO_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInFastPeriod,
@@ -1269,8 +2505,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_PVI_Unguarded")]
+    static extern int TA_PVI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inClose,
+        double[] inVolume,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROC")]
     static extern int TA_ROC(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROC_Unguarded")]
+    static extern int TA_ROC_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1285,8 +2537,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROCP_Unguarded")]
+    static extern int TA_ROCP_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROCR")]
     static extern int TA_ROCR(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROCR_Unguarded")]
+    static extern int TA_ROCR_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1301,6 +2569,14 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ROCR100_Unguarded")]
+    static extern int TA_ROCR100_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_RSI")]
     static extern int TA_RSI(
         int startIdx, int endIdx,
@@ -1309,8 +2585,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_RSI_Unguarded")]
+    static extern int TA_RSI_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SAR")]
     static extern int TA_SAR(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double optInAcceleration,
+        double optInMaximum,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SAR_Unguarded")]
+    static extern int TA_SAR_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1335,6 +2629,22 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SAREXT_Unguarded")]
+    static extern int TA_SAREXT_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double optInStartValue,
+        double optInOffsetOnReverse,
+        double optInAccelerationInitLong,
+        double optInAccelerationLong,
+        double optInAccelerationMaxLong,
+        double optInAccelerationInitShort,
+        double optInAccelerationShort,
+        double optInAccelerationMaxShort,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SIN")]
     static extern int TA_SIN(
         int startIdx, int endIdx,
@@ -1342,8 +2652,22 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SIN_Unguarded")]
+    static extern int TA_SIN_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SINH")]
     static extern int TA_SINH(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SINH_Unguarded")]
+    static extern int TA_SINH_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -1357,8 +2681,23 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SMA_Unguarded")]
+    static extern int TA_SMA_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SQRT")]
     static extern int TA_SQRT(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SQRT_Unguarded")]
+    static extern int TA_SQRT_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -1373,8 +2712,32 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_STDDEV_Unguarded")]
+    static extern int TA_STDDEV_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        double optInNbDev,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_STOCH")]
     static extern int TA_STOCH(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInFastK_Period,
+        int optInSlowK_Period,
+        int optInSlowK_MAType,
+        int optInSlowD_Period,
+        int optInSlowD_MAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_STOCH_Unguarded")]
+    static extern int TA_STOCH_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1401,8 +2764,33 @@ public class TaCodegenServe {
         double[] outArr0,
         double[] outArr1);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_STOCHF_Unguarded")]
+    static extern int TA_STOCHF_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInFastK_Period,
+        int optInFastD_Period,
+        int optInFastD_MAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_STOCHRSI")]
     static extern int TA_STOCHRSI(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        int optInFastK_Period,
+        int optInFastD_Period,
+        int optInFastD_MAType,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0,
+        double[] outArr1);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_STOCHRSI_Unguarded")]
+    static extern int TA_STOCHRSI_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1421,8 +2809,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SUB_Unguarded")]
+    static extern int TA_SUB_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal0,
+        double[] inReal1,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SUM")]
     static extern int TA_SUM(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_SUM_Unguarded")]
+    static extern int TA_SUM_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1438,8 +2842,24 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_T3_Unguarded")]
+    static extern int TA_T3_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        double optInVFactor,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_TAN")]
     static extern int TA_TAN(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TAN_Unguarded")]
+    static extern int TA_TAN_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         out int outBegIdx, out int outNBElement,
@@ -1452,8 +2872,23 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TANH_Unguarded")]
+    static extern int TA_TANH_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_TEMA")]
     static extern int TA_TEMA(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TEMA_Unguarded")]
+    static extern int TA_TEMA_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1469,8 +2904,25 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TRANGE_Unguarded")]
+    static extern int TA_TRANGE_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_TRIMA")]
     static extern int TA_TRIMA(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TRIMA_Unguarded")]
+    static extern int TA_TRIMA_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1485,6 +2937,14 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TRIX_Unguarded")]
+    static extern int TA_TRIX_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_TSF")]
     static extern int TA_TSF(
         int startIdx, int endIdx,
@@ -1493,8 +2953,25 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TSF_Unguarded")]
+    static extern int TA_TSF_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_TYPPRICE")]
     static extern int TA_TYPPRICE(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_TYPPRICE_Unguarded")]
+    static extern int TA_TYPPRICE_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1514,6 +2991,18 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_ULTOSC_Unguarded")]
+    static extern int TA_ULTOSC_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod1,
+        int optInTimePeriod2,
+        int optInTimePeriod3,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_VAR")]
     static extern int TA_VAR(
         int startIdx, int endIdx,
@@ -1523,8 +3012,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_VAR_Unguarded")]
+    static extern int TA_VAR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        double optInNbDev,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_WCLPRICE")]
     static extern int TA_WCLPRICE(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_WCLPRICE_Unguarded")]
+    static extern int TA_WCLPRICE_Unguarded(
         int startIdx, int endIdx,
         double[] inHigh,
         double[] inLow,
@@ -1542,8 +3049,26 @@ public class TaCodegenServe {
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_WILLR_Unguarded")]
+    static extern int TA_WILLR_Unguarded(
+        int startIdx, int endIdx,
+        double[] inHigh,
+        double[] inLow,
+        double[] inClose,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_WMA")]
     static extern int TA_WMA(
+        int startIdx, int endIdx,
+        double[] inReal,
+        int optInTimePeriod,
+        out int outBegIdx, out int outNBElement,
+        double[] outArr0);
+
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_WMA_Unguarded")]
+    static extern int TA_WMA_Unguarded(
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
@@ -1600,12 +3125,18 @@ public class TaCodegenServe {
                 rc = TA_ACCBANDS(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ACCBANDS_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"outReal2\":"); sb.Append(FormatArray(outArr2, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1627,10 +3158,16 @@ public class TaCodegenServe {
                 rc = TA_ACOS(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ACOS_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1661,10 +3198,16 @@ public class TaCodegenServe {
                 rc = TA_AD(startIdx, endIdx, inHigh, inLow, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_AD_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1689,10 +3232,16 @@ public class TaCodegenServe {
                 rc = TA_ADD(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ADD_Unguarded(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1725,10 +3274,16 @@ public class TaCodegenServe {
                 rc = TA_ADOSC(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInFastPeriod, optInSlowPeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ADOSC_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInFastPeriod, optInSlowPeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1759,10 +3314,16 @@ public class TaCodegenServe {
                 rc = TA_ADX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ADX_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1793,10 +3354,16 @@ public class TaCodegenServe {
                 rc = TA_ADXR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ADXR_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1821,10 +3388,16 @@ public class TaCodegenServe {
                 rc = TA_APO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_APO_Unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1851,11 +3424,17 @@ public class TaCodegenServe {
                 rc = TA_AROON(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_AROON_Unguarded(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1881,10 +3460,16 @@ public class TaCodegenServe {
                 rc = TA_AROONOSC(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_AROONOSC_Unguarded(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1906,10 +3491,16 @@ public class TaCodegenServe {
                 rc = TA_ASIN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ASIN_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1931,10 +3522,16 @@ public class TaCodegenServe {
                 rc = TA_ATAN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ATAN_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1965,10 +3562,16 @@ public class TaCodegenServe {
                 rc = TA_ATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ATR_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -1991,10 +3594,16 @@ public class TaCodegenServe {
                 rc = TA_AVGDEV(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_AVGDEV_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2025,10 +3634,16 @@ public class TaCodegenServe {
                 rc = TA_AVGPRICE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_AVGPRICE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2056,12 +3671,18 @@ public class TaCodegenServe {
                 rc = TA_BBANDS(startIdx, endIdx, inReal, optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_BBANDS_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"outReal2\":"); sb.Append(FormatArray(outArr2, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2087,10 +3708,16 @@ public class TaCodegenServe {
                 rc = TA_BETA(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_BETA_Unguarded(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2121,10 +3748,16 @@ public class TaCodegenServe {
                 rc = TA_BOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_BOP_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2153,10 +3786,16 @@ public class TaCodegenServe {
                 rc = TA_CCI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CCI_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2187,10 +3826,16 @@ public class TaCodegenServe {
                 rc = TA_CDL2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL2CROWS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2221,10 +3866,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3BLACKCROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3BLACKCROWS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2255,10 +3906,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3INSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3INSIDE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2289,10 +3946,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3LINESTRIKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3LINESTRIKE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2323,10 +3986,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3OUTSIDE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3OUTSIDE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2357,10 +4026,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3STARSINSOUTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3STARSINSOUTH_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2391,10 +4066,16 @@ public class TaCodegenServe {
                 rc = TA_CDL3WHITESOLDIERS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDL3WHITESOLDIERS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2426,10 +4107,16 @@ public class TaCodegenServe {
                 rc = TA_CDLABANDONEDBABY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLABANDONEDBABY_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2460,10 +4147,16 @@ public class TaCodegenServe {
                 rc = TA_CDLADVANCEBLOCK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLADVANCEBLOCK_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2494,10 +4187,16 @@ public class TaCodegenServe {
                 rc = TA_CDLBELTHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLBELTHOLD_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2528,10 +4227,16 @@ public class TaCodegenServe {
                 rc = TA_CDLBREAKAWAY(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLBREAKAWAY_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2562,10 +4267,16 @@ public class TaCodegenServe {
                 rc = TA_CDLCLOSINGMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLCLOSINGMARUBOZU_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2596,10 +4307,16 @@ public class TaCodegenServe {
                 rc = TA_CDLCONCEALBABYSWALL(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLCONCEALBABYSWALL_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2630,10 +4347,16 @@ public class TaCodegenServe {
                 rc = TA_CDLCOUNTERATTACK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLCOUNTERATTACK_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2665,10 +4388,16 @@ public class TaCodegenServe {
                 rc = TA_CDLDARKCLOUDCOVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLDARKCLOUDCOVER_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2699,10 +4428,16 @@ public class TaCodegenServe {
                 rc = TA_CDLDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLDOJI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2733,10 +4468,16 @@ public class TaCodegenServe {
                 rc = TA_CDLDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLDOJISTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2767,10 +4508,16 @@ public class TaCodegenServe {
                 rc = TA_CDLDRAGONFLYDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLDRAGONFLYDOJI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2801,10 +4548,16 @@ public class TaCodegenServe {
                 rc = TA_CDLENGULFING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLENGULFING_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2836,10 +4589,16 @@ public class TaCodegenServe {
                 rc = TA_CDLEVENINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLEVENINGDOJISTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2871,10 +4630,16 @@ public class TaCodegenServe {
                 rc = TA_CDLEVENINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLEVENINGSTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2905,10 +4670,16 @@ public class TaCodegenServe {
                 rc = TA_CDLGAPSIDESIDEWHITE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLGAPSIDESIDEWHITE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2939,10 +4710,16 @@ public class TaCodegenServe {
                 rc = TA_CDLGRAVESTONEDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLGRAVESTONEDOJI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -2973,10 +4750,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHAMMER_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3007,10 +4790,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHANGINGMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHANGINGMAN_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3041,10 +4830,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHARAMI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHARAMI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3075,10 +4870,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHARAMICROSS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHARAMICROSS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3109,10 +4910,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHIGHWAVE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHIGHWAVE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3143,10 +4950,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHIKKAKE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHIKKAKE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3177,10 +4990,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHIKKAKEMOD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHIKKAKEMOD_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3211,10 +5030,16 @@ public class TaCodegenServe {
                 rc = TA_CDLHOMINGPIGEON(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLHOMINGPIGEON_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3245,10 +5070,16 @@ public class TaCodegenServe {
                 rc = TA_CDLIDENTICAL3CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLIDENTICAL3CROWS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3279,10 +5110,16 @@ public class TaCodegenServe {
                 rc = TA_CDLINNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLINNECK_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3313,10 +5150,16 @@ public class TaCodegenServe {
                 rc = TA_CDLINVERTEDHAMMER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLINVERTEDHAMMER_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3347,10 +5190,16 @@ public class TaCodegenServe {
                 rc = TA_CDLKICKING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLKICKING_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3381,10 +5230,16 @@ public class TaCodegenServe {
                 rc = TA_CDLKICKINGBYLENGTH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLKICKINGBYLENGTH_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3415,10 +5270,16 @@ public class TaCodegenServe {
                 rc = TA_CDLLADDERBOTTOM(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLLADDERBOTTOM_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3449,10 +5310,16 @@ public class TaCodegenServe {
                 rc = TA_CDLLONGLEGGEDDOJI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLLONGLEGGEDDOJI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3483,10 +5350,16 @@ public class TaCodegenServe {
                 rc = TA_CDLLONGLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLLONGLINE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3517,10 +5390,16 @@ public class TaCodegenServe {
                 rc = TA_CDLMARUBOZU(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLMARUBOZU_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3551,10 +5430,16 @@ public class TaCodegenServe {
                 rc = TA_CDLMATCHINGLOW(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLMATCHINGLOW_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3586,10 +5471,16 @@ public class TaCodegenServe {
                 rc = TA_CDLMATHOLD(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLMATHOLD_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3621,10 +5512,16 @@ public class TaCodegenServe {
                 rc = TA_CDLMORNINGDOJISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLMORNINGDOJISTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3656,10 +5553,16 @@ public class TaCodegenServe {
                 rc = TA_CDLMORNINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLMORNINGSTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, optInPenetration, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3690,10 +5593,16 @@ public class TaCodegenServe {
                 rc = TA_CDLONNECK(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLONNECK_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3724,10 +5633,16 @@ public class TaCodegenServe {
                 rc = TA_CDLPIERCING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLPIERCING_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3758,10 +5673,16 @@ public class TaCodegenServe {
                 rc = TA_CDLRICKSHAWMAN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLRICKSHAWMAN_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3792,10 +5713,16 @@ public class TaCodegenServe {
                 rc = TA_CDLRISEFALL3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLRISEFALL3METHODS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3826,10 +5753,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSEPARATINGLINES(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSEPARATINGLINES_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3860,10 +5793,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSHOOTINGSTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSHOOTINGSTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3894,10 +5833,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSHORTLINE(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSHORTLINE_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3928,10 +5873,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSPINNINGTOP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSPINNINGTOP_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3962,10 +5913,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSTALLEDPATTERN(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSTALLEDPATTERN_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -3996,10 +5953,16 @@ public class TaCodegenServe {
                 rc = TA_CDLSTICKSANDWICH(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLSTICKSANDWICH_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4030,10 +5993,16 @@ public class TaCodegenServe {
                 rc = TA_CDLTAKURI(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLTAKURI_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4064,10 +6033,16 @@ public class TaCodegenServe {
                 rc = TA_CDLTASUKIGAP(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLTASUKIGAP_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4098,10 +6073,16 @@ public class TaCodegenServe {
                 rc = TA_CDLTHRUSTING(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLTHRUSTING_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4132,10 +6113,16 @@ public class TaCodegenServe {
                 rc = TA_CDLTRISTAR(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLTRISTAR_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4166,10 +6153,16 @@ public class TaCodegenServe {
                 rc = TA_CDLUNIQUE3RIVER(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLUNIQUE3RIVER_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4200,10 +6193,16 @@ public class TaCodegenServe {
                 rc = TA_CDLUPSIDEGAP2CROWS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLUPSIDEGAP2CROWS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4234,10 +6233,16 @@ public class TaCodegenServe {
                 rc = TA_CDLXSIDEGAP3METHODS(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CDLXSIDEGAP3METHODS_Unguarded(startIdx, endIdx, inOpen, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4259,10 +6264,16 @@ public class TaCodegenServe {
                 rc = TA_CEIL(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CEIL_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4287,10 +6298,16 @@ public class TaCodegenServe {
                 rc = TA_CMO(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CMO_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4316,10 +6333,16 @@ public class TaCodegenServe {
                 rc = TA_CORREL(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_CORREL_Unguarded(startIdx, endIdx, inReal0, inReal1, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4341,10 +6364,16 @@ public class TaCodegenServe {
                 rc = TA_COS(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_COS_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4366,10 +6395,16 @@ public class TaCodegenServe {
                 rc = TA_COSH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_COSH_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4392,10 +6427,16 @@ public class TaCodegenServe {
                 rc = TA_DEMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_DEMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4420,10 +6461,16 @@ public class TaCodegenServe {
                 rc = TA_DIV(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_DIV_Unguarded(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4454,10 +6501,16 @@ public class TaCodegenServe {
                 rc = TA_DX(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_DX_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4482,10 +6535,17 @@ public class TaCodegenServe {
                 rc = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                double optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_EMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4507,10 +6567,16 @@ public class TaCodegenServe {
                 rc = TA_EXP(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_EXP_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4532,10 +6598,16 @@ public class TaCodegenServe {
                 rc = TA_FLOOR(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_FLOOR_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4559,10 +6631,16 @@ public class TaCodegenServe {
                 rc = TA_HT_DCPERIOD(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_DCPERIOD_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4586,10 +6664,16 @@ public class TaCodegenServe {
                 rc = TA_HT_DCPHASE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_DCPHASE_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4614,11 +6698,17 @@ public class TaCodegenServe {
                 rc = TA_HT_PHASOR(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_PHASOR_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4643,11 +6733,17 @@ public class TaCodegenServe {
                 rc = TA_HT_SINE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_SINE_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4671,10 +6767,16 @@ public class TaCodegenServe {
                 rc = TA_HT_TRENDLINE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_TRENDLINE_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4698,10 +6800,16 @@ public class TaCodegenServe {
                 rc = TA_HT_TRENDMODE(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_HT_TRENDMODE_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4729,10 +6837,16 @@ public class TaCodegenServe {
                 rc = TA_IMI(startIdx, endIdx, inOpen, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_IMI_Unguarded(startIdx, endIdx, inOpen, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4757,10 +6871,16 @@ public class TaCodegenServe {
                 rc = TA_KAMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_KAMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4783,10 +6903,16 @@ public class TaCodegenServe {
                 rc = TA_LINEARREG(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LINEARREG_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4809,10 +6935,16 @@ public class TaCodegenServe {
                 rc = TA_LINEARREG_ANGLE(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LINEARREG_ANGLE_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4835,10 +6967,16 @@ public class TaCodegenServe {
                 rc = TA_LINEARREG_INTERCEPT(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LINEARREG_INTERCEPT_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4861,10 +6999,16 @@ public class TaCodegenServe {
                 rc = TA_LINEARREG_SLOPE(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LINEARREG_SLOPE_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4886,10 +7030,16 @@ public class TaCodegenServe {
                 rc = TA_LN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LN_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4911,10 +7061,16 @@ public class TaCodegenServe {
                 rc = TA_LOG10(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_LOG10_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4938,10 +7094,16 @@ public class TaCodegenServe {
                 rc = TA_MA(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -4968,12 +7130,18 @@ public class TaCodegenServe {
                 rc = TA_MACD(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MACD_Unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"outReal2\":"); sb.Append(FormatArray(outArr2, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5003,12 +7171,18 @@ public class TaCodegenServe {
                 rc = TA_MACDEXT(startIdx, endIdx, inReal, optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MACDEXT_Unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"outReal2\":"); sb.Append(FormatArray(outArr2, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5033,12 +7207,18 @@ public class TaCodegenServe {
                 rc = TA_MACDFIX(startIdx, endIdx, inReal, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MACDFIX_Unguarded(startIdx, endIdx, inReal, optInSignalPeriod, out outBegIdx, out outNBElement, outArr0, outArr1, outArr2);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"outReal2\":"); sb.Append(FormatArray(outArr2, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5065,11 +7245,17 @@ public class TaCodegenServe {
                 rc = TA_MAMA(startIdx, endIdx, inReal, optInFastLimit, optInSlowLimit, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MAMA_Unguarded(startIdx, endIdx, inReal, optInFastLimit, optInSlowLimit, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5097,10 +7283,16 @@ public class TaCodegenServe {
                 rc = TA_MAVP(startIdx, endIdx, inReal0, inReal1, optInMinPeriod, optInMaxPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MAVP_Unguarded(startIdx, endIdx, inReal0, inReal1, optInMinPeriod, optInMaxPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5123,10 +7315,16 @@ public class TaCodegenServe {
                 rc = TA_MAX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MAX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5149,10 +7347,16 @@ public class TaCodegenServe {
                 rc = TA_MAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MAXINDEX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5177,10 +7381,16 @@ public class TaCodegenServe {
                 rc = TA_MEDPRICE(startIdx, endIdx, inHigh, inLow, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MEDPRICE_Unguarded(startIdx, endIdx, inHigh, inLow, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5214,10 +7424,16 @@ public class TaCodegenServe {
                 rc = TA_MFI(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MFI_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, inVolume, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5240,10 +7456,16 @@ public class TaCodegenServe {
                 rc = TA_MIDPOINT(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MIDPOINT_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5269,10 +7491,16 @@ public class TaCodegenServe {
                 rc = TA_MIDPRICE(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MIDPRICE_Unguarded(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5295,10 +7523,16 @@ public class TaCodegenServe {
                 rc = TA_MIN(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MIN_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5321,10 +7555,16 @@ public class TaCodegenServe {
                 rc = TA_MININDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MININDEX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5348,11 +7588,17 @@ public class TaCodegenServe {
                 rc = TA_MINMAX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MINMAX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5376,11 +7622,17 @@ public class TaCodegenServe {
                 rc = TA_MINMAXINDEX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MINMAXINDEX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outInteger\":"); sb.Append(FormatIntArray(outArr0, outNBElement));
                 sb.Append($",\"outInteger1\":"); sb.Append(FormatIntArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5411,10 +7663,16 @@ public class TaCodegenServe {
                 rc = TA_MINUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MINUS_DI_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5442,10 +7700,16 @@ public class TaCodegenServe {
                 rc = TA_MINUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MINUS_DM_Unguarded(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5468,10 +7732,16 @@ public class TaCodegenServe {
                 rc = TA_MOM(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MOM_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5496,10 +7766,16 @@ public class TaCodegenServe {
                 rc = TA_MULT(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_MULT_Unguarded(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5530,10 +7806,16 @@ public class TaCodegenServe {
                 rc = TA_NATR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_NATR_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5558,10 +7840,16 @@ public class TaCodegenServe {
                 rc = TA_NVI(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_NVI_Unguarded(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5586,10 +7874,16 @@ public class TaCodegenServe {
                 rc = TA_OBV(startIdx, endIdx, inReal, inVolume, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_OBV_Unguarded(startIdx, endIdx, inReal, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5620,10 +7914,16 @@ public class TaCodegenServe {
                 rc = TA_PLUS_DI(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_PLUS_DI_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5651,10 +7951,16 @@ public class TaCodegenServe {
                 rc = TA_PLUS_DM(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_PLUS_DM_Unguarded(startIdx, endIdx, inHigh, inLow, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5679,10 +7985,16 @@ public class TaCodegenServe {
                 rc = TA_PPO(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_PPO_Unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInSlowPeriod, optInMAType, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5707,10 +8019,16 @@ public class TaCodegenServe {
                 rc = TA_PVI(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_PVI_Unguarded(startIdx, endIdx, inClose, inVolume, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5733,10 +8051,16 @@ public class TaCodegenServe {
                 rc = TA_ROC(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ROC_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5759,10 +8083,16 @@ public class TaCodegenServe {
                 rc = TA_ROCP(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ROCP_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5785,10 +8115,16 @@ public class TaCodegenServe {
                 rc = TA_ROCR(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ROCR_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5811,10 +8147,16 @@ public class TaCodegenServe {
                 rc = TA_ROCR100(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ROCR100_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5839,10 +8181,16 @@ public class TaCodegenServe {
                 rc = TA_RSI(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_RSI_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5869,10 +8217,16 @@ public class TaCodegenServe {
                 rc = TA_SAR(startIdx, endIdx, inHigh, inLow, optInAcceleration, optInMaximum, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SAR_Unguarded(startIdx, endIdx, inHigh, inLow, optInAcceleration, optInMaximum, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5905,10 +8259,16 @@ public class TaCodegenServe {
                 rc = TA_SAREXT(startIdx, endIdx, inHigh, inLow, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SAREXT_Unguarded(startIdx, endIdx, inHigh, inLow, optInStartValue, optInOffsetOnReverse, optInAccelerationInitLong, optInAccelerationLong, optInAccelerationMaxLong, optInAccelerationInitShort, optInAccelerationShort, optInAccelerationMaxShort, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5930,10 +8290,16 @@ public class TaCodegenServe {
                 rc = TA_SIN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SIN_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5955,10 +8321,16 @@ public class TaCodegenServe {
                 rc = TA_SINH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SINH_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -5981,10 +8353,16 @@ public class TaCodegenServe {
                 rc = TA_SMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6006,10 +8384,16 @@ public class TaCodegenServe {
                 rc = TA_SQRT(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SQRT_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6033,10 +8417,16 @@ public class TaCodegenServe {
                 rc = TA_STDDEV(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_STDDEV_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6070,11 +8460,17 @@ public class TaCodegenServe {
                 rc = TA_STOCH(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_STOCH_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6106,11 +8502,17 @@ public class TaCodegenServe {
                 rc = TA_STOCHF(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_STOCHF_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6139,11 +8541,17 @@ public class TaCodegenServe {
                 rc = TA_STOCHRSI(startIdx, endIdx, inReal, optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_STOCHRSI_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType, out outBegIdx, out outNBElement, outArr0, outArr1);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"outReal1\":"); sb.Append(FormatArray(outArr1, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6168,10 +8576,16 @@ public class TaCodegenServe {
                 rc = TA_SUB(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SUB_Unguarded(startIdx, endIdx, inReal0, inReal1, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6194,10 +8608,16 @@ public class TaCodegenServe {
                 rc = TA_SUM(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_SUM_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6223,10 +8643,16 @@ public class TaCodegenServe {
                 rc = TA_T3(startIdx, endIdx, inReal, optInTimePeriod, optInVFactor, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_T3_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInVFactor, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6248,10 +8674,16 @@ public class TaCodegenServe {
                 rc = TA_TAN(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TAN_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6273,10 +8705,16 @@ public class TaCodegenServe {
                 rc = TA_TANH(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TANH_Unguarded(startIdx, endIdx, inReal, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6299,10 +8737,16 @@ public class TaCodegenServe {
                 rc = TA_TEMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TEMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6330,10 +8774,16 @@ public class TaCodegenServe {
                 rc = TA_TRANGE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TRANGE_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6356,10 +8806,16 @@ public class TaCodegenServe {
                 rc = TA_TRIMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TRIMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6382,10 +8838,16 @@ public class TaCodegenServe {
                 rc = TA_TRIX(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TRIX_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6408,10 +8870,16 @@ public class TaCodegenServe {
                 rc = TA_TSF(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TSF_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6439,10 +8907,16 @@ public class TaCodegenServe {
                 rc = TA_TYPPRICE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_TYPPRICE_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6473,10 +8947,16 @@ public class TaCodegenServe {
                 rc = TA_ULTOSC(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_ULTOSC_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod1, optInTimePeriod2, optInTimePeriod3, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6500,10 +8980,16 @@ public class TaCodegenServe {
                 rc = TA_VAR(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_VAR_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInNbDev, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6531,10 +9017,16 @@ public class TaCodegenServe {
                 rc = TA_WCLPRICE(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_WCLPRICE_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6563,10 +9055,16 @@ public class TaCodegenServe {
                 rc = TA_WILLR(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_WILLR_Unguarded(startIdx, endIdx, inHigh, inLow, inClose, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }
@@ -6589,10 +9087,16 @@ public class TaCodegenServe {
                 rc = TA_WMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
+                long _t0u = GetNanoTime();
+                for (int _biu = 0; _biu < bench_iters; _biu++) {
+                rc = TA_WMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
+                }
+                long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();
                 sb.Append($"{{\"retCode\":{rc},\"outBegIdx\":{outBegIdx},\"outNBElement\":{outNBElement}");
                 sb.Append($",\"outReal\":"); sb.Append(FormatArray(outArr0, outNBElement));
                 sb.Append($",\"timing_ns\":{elapsedNs}");
+                sb.Append($",\"timing_ns_unguarded\":{elapsedNsUng}");
                 sb.Append("}");
                 return sb.ToString();
             }

@@ -122,19 +122,43 @@ impl Core {
         } else if (((optInFastD_Period) as i32) < 1) || (((optInFastD_Period) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.stochrsi_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            optInFastK_Period,
-            optInFastD_Period,
-            optInFastD_MAType,
-            outBegIdx,
-            outNBElement,
-            outFastK,
-            outFastD,
-        );
+        let mut startIdx = startIdx;
+        let mut tempRSIBuffer: Vec<f64> = Vec::new();
+        let mut retCode: RetCode = RetCode::Success;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut lookbackSTOCHF: usize = 0_usize;
+        let mut tempArraySize: usize = 0_usize;
+        let mut outBegIdx1: usize = 0_usize;
+        let mut outBegIdx2: usize = 0_usize;
+        let mut outNbElement1: usize = 0_usize;
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
+        lookbackTotal = self.rsi_lookback(optInTimePeriod) + lookbackSTOCHF;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        (*outBegIdx) = startIdx;
+        tempArraySize = endIdx - startIdx + 1 + lookbackSTOCHF;
+        tempRSIBuffer = vec![0.0_f64; (tempArraySize * 1) as usize];
+        retCode = self.rsi(startIdx - lookbackSTOCHF, endIdx, inReal, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, &mut tempRSIBuffer[..]);
+        if retCode != RetCode::Success || outNbElement1 == 0 {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return retCode;
+        }
+        retCode = self.stochf(0, tempArraySize - 1, &tempRSIBuffer, &tempRSIBuffer, &tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, &mut outBegIdx2, outNBElement, outFastK, outFastD);
+        if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return retCode;
+        }
+        return RetCode::Success;
     }
     pub fn stochrsi_unguarded(
         &self,

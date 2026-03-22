@@ -80,15 +80,19 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.mult_unguarded(
-            startIdx,
-            endIdx,
-            inReal0,
-            inReal1,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        outIdx = 0;
+        i = startIdx;
+        while i <= endIdx {
+            outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
+            outIdx += 1;
+            i += 1;
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn mult_unguarded(
         &self,

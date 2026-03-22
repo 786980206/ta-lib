@@ -80,15 +80,20 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.add_unguarded(
-            startIdx,
-            endIdx,
-            inReal0,
-            inReal1,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut outIdx: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
+        i = startIdx;
+        outIdx = 0;
+        while i <= endIdx {
+            outReal[outIdx] = ((inReal0[i] + inReal1[i]) as f64);
+            i += 1;
+            outIdx += 1;
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn add_unguarded(
         &self,

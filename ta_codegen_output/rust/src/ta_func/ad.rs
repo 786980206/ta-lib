@@ -84,17 +84,34 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.ad_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            inVolume,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut nbBar: usize = 0_usize;
+        let mut currentBar: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut high: f64 = 0.0_f64;
+        let mut low: f64 = 0.0_f64;
+        let mut close: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut ad: f64 = 0.0_f64;
+        nbBar = endIdx - startIdx + 1;
+        (*outNBElement) = nbBar;
+        (*outBegIdx) = startIdx;
+        currentBar = startIdx;
+        outIdx = 0;
+        ad = 0.0;
+        while nbBar != 0 {
+            high = inHigh[currentBar];
+            low = inLow[currentBar];
+            tmp = high - low;
+            close = inClose[currentBar];
+            if tmp > 0.0 {
+                ad += (close - low - (high - close)) / tmp * ((inVolume[currentBar]) as f64);
+            }
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ad;
+            currentBar += 1;
+            nbBar -= 1;
+        }
+        return RetCode::Success;
     }
     pub fn ad_unguarded(
         &self,

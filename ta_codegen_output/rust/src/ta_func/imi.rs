@@ -93,16 +93,40 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.imi_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut lookback: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        outIdx = 0;
+        lookback = self.imi_lookback(optInTimePeriod);
+        if startIdx < lookback {
+            startIdx = lookback;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        (*outBegIdx) = startIdx;
+        while startIdx <= endIdx {
+            let mut upsum: f64 = 0.0;
+            let mut downsum: f64 = 0.0;
+            let mut i: usize = 0_usize;
+            for i in (startIdx - lookback as usize)..=(startIdx as usize) {
+                let mut close: f64 = inClose[i];
+                let mut open: f64 = inOpen[i];
+                if close > open {
+                    upsum += close - open;
+                } else {
+                    downsum += open - close;
+                }
+                outReal[outIdx] = 100.0 * (upsum / (upsum + downsum));
+            }
+            i = (startIdx as usize) + 1;
+            startIdx += 1;
+            outIdx += 1;
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn imi_unguarded(
         &self,

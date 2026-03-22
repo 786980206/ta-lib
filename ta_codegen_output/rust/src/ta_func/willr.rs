@@ -95,17 +95,84 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.willr_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut lowest: f64 = 0.0_f64;
+        let mut highest: f64 = 0.0_f64;
+        let mut tmp: f64 = 0.0_f64;
+        let mut diff: f64 = 0.0_f64;
+        let mut outIdx: usize = 0_usize;
+        let mut nbInitialElementNeeded: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lowestIdx: i32 = 0_i32;
+        let mut highestIdx: i32 = 0_i32;
+        let mut today: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
+        if startIdx < nbInitialElementNeeded {
+            startIdx = nbInitialElementNeeded;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        diff = 0.0;
+        outIdx = 0;
+        today = startIdx;
+        trailingIdx = startIdx - nbInitialElementNeeded;
+        highestIdx = 0 - 1;
+        lowestIdx = highestIdx;
+        lowest = 0.0;
+        highest = lowest;
+        diff = highest;
+        while today <= endIdx {
+            tmp = inLow[today];
+            if lowestIdx < (trailingIdx) as i32 {
+                lowestIdx = (trailingIdx) as i32;
+                lowest = inLow[(lowestIdx) as usize];
+                i = (lowestIdx) as usize;
+                while { i += 1; i } <= today {
+                    tmp = inLow[i];
+                    if tmp < lowest {
+                        lowestIdx = (i) as i32;
+                        lowest = tmp;
+                    }
+                }
+                diff = (highest - lowest) / (0_f64 - 100.0);
+            } else if tmp <= lowest {
+                lowestIdx = (today) as i32;
+                lowest = tmp;
+                diff = (highest - lowest) / (0_f64 - 100.0);
+            }
+            tmp = inHigh[today];
+            if highestIdx < (trailingIdx) as i32 {
+                highestIdx = (trailingIdx) as i32;
+                highest = inHigh[(highestIdx) as usize];
+                i = (highestIdx) as usize;
+                while { i += 1; i } <= today {
+                    tmp = inHigh[i];
+                    if tmp > highest {
+                        highestIdx = (i) as i32;
+                        highest = tmp;
+                    }
+                }
+                diff = (highest - lowest) / (0_f64 - 100.0);
+            } else if tmp >= highest {
+                highestIdx = (today) as i32;
+                highest = tmp;
+                diff = (highest - lowest) / (0_f64 - 100.0);
+            }
+            if diff != 0.0 {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((highest - inClose[today]) / diff) as f64);
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+            trailingIdx += 1;
+            today += 1;
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn willr_unguarded(
         &self,

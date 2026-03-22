@@ -99,17 +99,38 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.adxr_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut adx: Vec<f64> = Vec::new();
+        let mut adxrLookback: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut j: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut nbElement: usize = 0_usize;
+        let mut retCode: RetCode = RetCode::Success;
+        adxrLookback = self.adxr_lookback(optInTimePeriod);
+        if startIdx < adxrLookback {
+            startIdx = adxrLookback;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        adx = vec![0.0_f64; ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
+        retCode = self.adx((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
+        if retCode != RetCode::Success {
+            return retCode;
+        }
+        i = (optInTimePeriod - 1) as usize;
+        j = 0;
+        outIdx = 0;
+        nbElement = endIdx - startIdx + 2;
+        while { nbElement -= 1; nbElement } != 0 {
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((((adx[{ let _v = i; i += 1; _v }] + adx[{ let _v = j; j += 1; _v }]) / 2.0)) as f64);
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn adxr_unguarded(
         &self,

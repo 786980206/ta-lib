@@ -82,16 +82,44 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.trange_unguarded(
-            startIdx,
-            endIdx,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut val2: f64 = 0.0_f64;
+        let mut val3: f64 = 0.0_f64;
+        let mut greatest: f64 = 0.0_f64;
+        let mut tempCY: f64 = 0.0_f64;
+        let mut tempLT: f64 = 0.0_f64;
+        let mut tempHT: f64 = 0.0_f64;
+        if startIdx < 1 {
+            startIdx = 1;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        outIdx = 0;
+        today = startIdx;
+        while today <= endIdx {
+            tempLT = inLow[today];
+            tempHT = inHigh[today];
+            tempCY = inClose[today - 1];
+            greatest = tempHT - tempLT;
+            val2 = (tempCY - tempHT).abs();
+            if val2 > greatest {
+                greatest = val2;
+            }
+            val3 = (tempCY - tempLT).abs();
+            if val3 > greatest {
+                greatest = val3;
+            }
+            outReal[{ let _v = outIdx; outIdx += 1; _v }] = greatest;
+            today += 1;
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn trange_unguarded(
         &self,

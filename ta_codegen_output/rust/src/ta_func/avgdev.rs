@@ -91,15 +91,46 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.avgdev_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut today: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut lookback: usize = 0_usize;
+        lookback = (optInTimePeriod - 1) as usize;
+        if startIdx < lookback {
+            startIdx = lookback;
+        }
+        today = startIdx;
+        if today > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        (*outBegIdx) = today;
+        outIdx = 0;
+        while today <= endIdx {
+            let mut todaySum: f64 = 0.0_f64;
+            let mut todayDev: f64 = 0.0_f64;
+            let mut i: usize = 0_usize;
+            todaySum = 0.0;
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
+            i = 0;
+            while i < (optInTimePeriod) as usize {
+                todaySum += inReal[today - i];
+                i += 1;
+            }
+            todayDev = 0.0;
+            // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
+            i = 0;
+            while i < (optInTimePeriod) as usize {
+                todayDev += (inReal[today - i] - todaySum / ((optInTimePeriod) as f64)).abs();
+                i += 1;
+            }
+            outReal[outIdx] = todayDev / ((optInTimePeriod) as f64);
+            outIdx += 1;
+            today += 1;
+        }
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn avgdev_unguarded(
         &self,

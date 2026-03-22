@@ -80,15 +80,10 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.pvi_unguarded(
-            startIdx,
-            endIdx,
-            inClose,
-            inVolume,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        return RetCode::Success;
     }
     pub fn pvi_unguarded(
         &self,

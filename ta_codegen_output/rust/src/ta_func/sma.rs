@@ -91,15 +91,44 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.sma_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut periodTotal: f64 = 0.0_f64;
+        let mut tempReal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut trailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        lookbackTotal = (optInTimePeriod - 1) as usize;
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        periodTotal = 0.0;
+        trailingIdx = startIdx - lookbackTotal;
+        i = trailingIdx;
+        if optInTimePeriod > 1 {
+            while i < startIdx {
+                periodTotal += (inReal[i]) as f64;
+                i = i + 1;
+            }
+        }
+        outIdx = 0;
+        while i <= endIdx {
+            periodTotal += (inReal[i]) as f64;
+            i = i + 1;
+            tempReal = periodTotal;
+            periodTotal -= (inReal[trailingIdx]) as f64;
+            trailingIdx = trailingIdx + 1;
+            outReal[outIdx] = tempReal / ((optInTimePeriod) as f64);
+            outIdx = outIdx + 1;
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn sma_unguarded(
         &self,

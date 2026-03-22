@@ -237,7 +237,9 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
      * from running all 161 indicators back-to-back in one binary. */
     long long ref_ns = 0;
     long long timings[16] = {0};
+    long long timings_ung[16] = {0};
     int has_timing[16] = {0};
+    int has_timing_ung[16] = {0};
 
     #define BENCH_PASSES 3
     for( int pass = 0; pass < BENCH_PASSES; pass++ ) {
@@ -254,6 +256,13 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
                     timings[li] = ns;
                 has_timing[li] = 1;
             }
+            const char *tu = json_find_field(ctx->respBuf, "timing_ns_unguarded", &len);
+            if( tu ) {
+                long long ns = strtoll(tu, NULL, 10);
+                if( ns > 0 && (!has_timing_ung[li] || ns < timings_ung[li]) )
+                    timings_ung[li] = ns;
+                has_timing_ung[li] = 1;
+            }
         }
     }
 
@@ -267,15 +276,26 @@ static void bench_one_function(const TA_FuncInfo *fi, void *opaque) {
     printf("%-20s", fi->name);
     for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
         if( !LANGUAGES[li].active ) continue;
+        int is_cref = (strcmp(LANGUAGES[li].name, "cref") == 0);
         if( !has_timing[li] ) {
             printf(" %10s", "ERR");
-        } else if( strcmp(LANGUAGES[li].name, "cref") == 0 ) {
+            if( !is_cref && has_timing_ung[li] ) printf(" %10s", "ERR");
+        } else if( is_cref ) {
             printf(" %10lld", timings[li]);
         } else {
             double ratio = (ref_ns > 0) ? (double)timings[li] / (double)ref_ns : 0.0;
             const char *clr = (ratio > 1.10) ? "\033[31m" : (ratio < 0.90) ? "\033[32m" : "";
             const char *rst = (*clr) ? "\033[0m" : "";
             printf(" %s%10lld%s", clr, timings[li], rst);
+            /* Unguarded column */
+            if( has_timing_ung[li] && timings_ung[li] > 0 ) {
+                double ratio_u = (ref_ns > 0) ? (double)timings_ung[li] / (double)ref_ns : 0.0;
+                const char *clr_u = (ratio_u > 1.10) ? "\033[31m" : (ratio_u < 0.90) ? "\033[32m" : "";
+                const char *rst_u = (*clr_u) ? "\033[0m" : "";
+                printf(" %s%10lld%s", clr_u, timings_ung[li], rst_u);
+            } else if( has_timing_ung[li] ) {
+                printf(" %10s", "--");
+            }
         }
     }
     printf("\n");
@@ -343,14 +363,20 @@ int main(int argc, char *argv[]) {
 
     /* Header */
     printf("%-20s", "Function");
-    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
-        if( LANGUAGES[li].active )
-            printf(" %10s", LANGUAGES[li].display);
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( !LANGUAGES[li].active ) continue;
+        printf(" %10s", LANGUAGES[li].display);
+        if( strcmp(LANGUAGES[li].name, "cref") != 0 )
+            printf(" %10s", "ung");
+    }
     printf("\n");
     printf("%-20s", "--------");
-    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ )
-        if( LANGUAGES[li].active )
+    for( unsigned int li = 0; li < NUM_LANGUAGES; li++ ) {
+        if( !LANGUAGES[li].active ) continue;
+        printf(" %10s", "------");
+        if( strcmp(LANGUAGES[li].name, "cref") != 0 )
             printf(" %10s", "------");
+    }
     printf("\n");
 
     /* Run all indicators */

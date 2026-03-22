@@ -96,17 +96,167 @@ impl Core {
         if endIdx < startIdx {
             return RetCode::OutOfRangeStartIndex;
         }
-        return self.cdlharamicross_unguarded(
-            startIdx,
-            endIdx,
-            inOpen,
-            inHigh,
-            inLow,
-            inClose,
-            outBegIdx,
-            outNBElement,
-            outInteger,
-        );
+        let mut startIdx = startIdx;
+        let mut BodyDojiPeriodTotal: f64 = 0.0_f64;
+        let mut BodyLongPeriodTotal: f64 = 0.0_f64;
+        let mut i: usize = 0_usize;
+        let mut outIdx: usize = 0_usize;
+        let mut BodyDojiTrailingIdx: usize = 0_usize;
+        let mut BodyLongTrailingIdx: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        #[allow(non_snake_case)]
+        let BodyDoji_rangeType: i32 = self.candle_settings.body_doji.range_type;
+        #[allow(non_snake_case)]
+        let BodyDoji_avgPeriod: i32 = self.candle_settings.body_doji.avg_period;
+        #[allow(non_snake_case)]
+        let BodyDoji_factor: f64 = self.candle_settings.body_doji.factor;
+        #[allow(non_snake_case)]
+        let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
+        #[allow(non_snake_case)]
+        let BodyLong_avgPeriod: i32 = self.candle_settings.body_long.avg_period;
+        #[allow(non_snake_case)]
+        let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
+        lookbackTotal = self.cdlharamicross_lookback();
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            (*outBegIdx) = 0;
+            (*outNBElement) = 0;
+            return RetCode::Success;
+        }
+        BodyLongPeriodTotal = 0.0;
+        BodyDojiPeriodTotal = 0.0;
+        BodyLongTrailingIdx = startIdx - 1 - (BodyLong_avgPeriod) as usize;
+        BodyDojiTrailingIdx = startIdx - (BodyDoji_avgPeriod) as usize;
+        i = BodyLongTrailingIdx;
+        while i < startIdx - 1 {
+            let mut _candlerange_0: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_0 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_0 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_0 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_0 = 0.0;
+                }
+            }
+            BodyLongPeriodTotal += _candlerange_0;
+            i += 1;
+        }
+        i = BodyDojiTrailingIdx;
+        while i < startIdx {
+            let mut _candlerange_1: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_1 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_1 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_1 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_1 = 0.0;
+                }
+            }
+            BodyDojiPeriodTotal += _candlerange_1;
+            i += 1;
+        }
+        i = startIdx;
+        outIdx = 0;
+        loop {
+            if (inClose[i - 1] - inOpen[i - 1]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => inHigh[i - 1] - inLow[i - 1], _ => inHigh[i - 1] - inLow[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } {
+                if (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
+                    if (inClose[i]).max(inOpen[i]) < (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) > (inClose[i - 1]).min(inOpen[i - 1]) {
+                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 100) as i32;
+                    } else if (inClose[i]).max(inOpen[i]) <= (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) >= (inClose[i - 1]).min(inOpen[i - 1]) {
+                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 80) as i32;
+                    } else {
+                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                    }
+                } else {
+                    outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                }
+            } else {
+                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+            }
+            let mut _candlerange_2: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_2 = (inClose[i - 1] - inOpen[i - 1]).abs();
+                }
+                1 => {
+                    _candlerange_2 = inHigh[i - 1] - inLow[i - 1];
+                }
+                2 => {
+                    _candlerange_2 = inHigh[i - 1] - inLow[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs();
+                }
+                _ => {
+                    _candlerange_2 = 0.0;
+                }
+            }
+            let mut _candlerange_3: f64;
+            match BodyLong_rangeType {
+                0 => {
+                    _candlerange_3 = (inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx]).abs();
+                }
+                1 => {
+                    _candlerange_3 = inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx];
+                }
+                2 => {
+                    _candlerange_3 = inHigh[BodyLongTrailingIdx] - inLow[BodyLongTrailingIdx] - (inClose[BodyLongTrailingIdx] - inOpen[BodyLongTrailingIdx]).abs();
+                }
+                _ => {
+                    _candlerange_3 = 0.0;
+                }
+            }
+            BodyLongPeriodTotal += _candlerange_2 - _candlerange_3;
+            let mut _candlerange_4: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_4 = (inClose[i] - inOpen[i]).abs();
+                }
+                1 => {
+                    _candlerange_4 = inHigh[i] - inLow[i];
+                }
+                2 => {
+                    _candlerange_4 = inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs();
+                }
+                _ => {
+                    _candlerange_4 = 0.0;
+                }
+            }
+            let mut _candlerange_5: f64;
+            match BodyDoji_rangeType {
+                0 => {
+                    _candlerange_5 = (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]).abs();
+                }
+                1 => {
+                    _candlerange_5 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx];
+                }
+                2 => {
+                    _candlerange_5 = inHigh[BodyDojiTrailingIdx] - inLow[BodyDojiTrailingIdx] - (inClose[BodyDojiTrailingIdx] - inOpen[BodyDojiTrailingIdx]).abs();
+                }
+                _ => {
+                    _candlerange_5 = 0.0;
+                }
+            }
+            BodyDojiPeriodTotal += _candlerange_4 - _candlerange_5;
+            i += 1;
+            BodyLongTrailingIdx += 1;
+            BodyDojiTrailingIdx += 1;
+            if !(i <= endIdx) { break; }
+        }
+        (*outNBElement) = outIdx;
+        (*outBegIdx) = startIdx;
+        return RetCode::Success;
     }
     pub fn cdlharamicross_unguarded(
         &self,

@@ -96,15 +96,144 @@ impl Core {
         } else if (((optInTimePeriod) as i32) < 2) || (((optInTimePeriod) as i32) > 100000) {
             return RetCode::BadParam;
         }
-        return self.cmo_unguarded(
-            startIdx,
-            endIdx,
-            inReal,
-            optInTimePeriod,
-            outBegIdx,
-            outNBElement,
-            outReal,
-        );
+        let mut startIdx = startIdx;
+        let mut outIdx: usize = 0_usize;
+        let mut today: usize = 0_usize;
+        let mut lookbackTotal: usize = 0_usize;
+        let mut unstablePeriod: usize = 0_usize;
+        let mut i: usize = 0_usize;
+        let mut prevGain: f64 = 0.0_f64;
+        let mut prevLoss: f64 = 0.0_f64;
+        let mut prevValue: f64 = 0.0_f64;
+        let mut savePrevValue: f64 = 0.0_f64;
+        let mut tempValue1: f64 = 0.0_f64;
+        let mut tempValue2: f64 = 0.0_f64;
+        let mut tempValue3: f64 = 0.0_f64;
+        let mut tempValue4: f64 = 0.0_f64;
+        (*outBegIdx) = 0;
+        (*outNBElement) = 0;
+        lookbackTotal = self.cmo_lookback(optInTimePeriod);
+        if startIdx < lookbackTotal {
+            startIdx = lookbackTotal;
+        }
+        if startIdx > endIdx {
+            return RetCode::Success;
+        }
+        outIdx = 0;
+        if optInTimePeriod == 1 {
+            (*outBegIdx) = startIdx;
+            i = endIdx - startIdx + 1;
+            (*outNBElement) = i;
+            {
+            let _n = (i * 1) as usize;
+            let _di = (0) as usize;
+            let _si = (startIdx) as usize;
+            outReal[_di.._di + _n].copy_from_slice(&inReal[_si.._si + _n]);
+        };
+            return RetCode::Success;
+        }
+        today = startIdx - lookbackTotal;
+        prevValue = inReal[today];
+        unstablePeriod = (self.unstable_period[FuncUnstId::Cmo as usize]) as usize;
+        if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
+            savePrevValue = prevValue;
+            prevGain = 0.0;
+            prevLoss = 0.0;
+            // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+            i = (optInTimePeriod) as usize;
+            while i > 0 {
+                tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+                tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+                if tempValue2 < 0_f64 {
+                    prevLoss -= tempValue2;
+                } else {
+                    prevGain += tempValue2;
+                }
+                i -= 1;
+            }
+            tempValue1 = prevLoss / ((optInTimePeriod) as f64);
+            tempValue2 = prevGain / ((optInTimePeriod) as f64);
+            tempValue3 = tempValue2 - tempValue1;
+            tempValue4 = tempValue1 + tempValue2;
+            if !((tempValue4).abs() < 1e-14) {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100_f64 * (tempValue3 / tempValue4);
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+            if today > endIdx {
+                (*outBegIdx) = startIdx;
+                (*outNBElement) = outIdx;
+                return RetCode::Success;
+            }
+            today -= (optInTimePeriod) as usize;
+            prevValue = savePrevValue;
+        }
+        prevGain = 0.0;
+        prevLoss = 0.0;
+        today += 1;
+        // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
+        i = (optInTimePeriod) as usize;
+        while i > 0 {
+            tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+            tempValue2 = tempValue1 - prevValue;
+            prevValue = tempValue1;
+            if tempValue2 < 0_f64 {
+                prevLoss -= tempValue2;
+            } else {
+                prevGain += tempValue2;
+            }
+            i -= 1;
+        }
+        prevLoss /= ((optInTimePeriod) as f64);
+        prevGain /= ((optInTimePeriod) as f64);
+        if today > startIdx {
+            tempValue1 = prevGain + prevLoss;
+            if !((tempValue1).abs() < 1e-14) {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+        } else {
+            while today < startIdx {
+                tempValue1 = inReal[today];
+                tempValue2 = tempValue1 - prevValue;
+                prevValue = tempValue1;
+                prevLoss *= ((optInTimePeriod - 1) as f64);
+                prevGain *= ((optInTimePeriod - 1) as f64);
+                if tempValue2 < 0_f64 {
+                    prevLoss -= tempValue2;
+                } else {
+                    prevGain += tempValue2;
+                }
+                prevLoss /= ((optInTimePeriod) as f64);
+                prevGain /= ((optInTimePeriod) as f64);
+                today += 1;
+            }
+        }
+        while today <= endIdx {
+            tempValue1 = inReal[{ let _v = today; today += 1; _v }];
+            tempValue2 = tempValue1 - prevValue;
+            prevValue = tempValue1;
+            prevLoss *= ((optInTimePeriod - 1) as f64);
+            prevGain *= ((optInTimePeriod - 1) as f64);
+            if tempValue2 < 0_f64 {
+                prevLoss -= tempValue2;
+            } else {
+                prevGain += tempValue2;
+            }
+            prevLoss /= ((optInTimePeriod) as f64);
+            prevGain /= ((optInTimePeriod) as f64);
+            tempValue1 = prevGain + prevLoss;
+            if !((tempValue1).abs() < 1e-14) {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+            } else {
+                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+            }
+        }
+        (*outBegIdx) = startIdx;
+        (*outNBElement) = outIdx;
+        return RetCode::Success;
     }
     pub fn cmo_unguarded(
         &self,

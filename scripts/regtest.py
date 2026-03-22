@@ -18,6 +18,10 @@ Filters (applied to generate AND test):
   --function=SMA,RSI         Filter indicators
   --codegen-only             Regtest: skip C reference tests
 
+Display options:
+  --no-guarded               Hide guarded timing columns
+  --no-unguarded             Hide unguarded timing columns
+
 Perftest options:
   --points=5000              Data points (default 5000)
   --iters=20                 Iterations (default 20)
@@ -132,7 +136,7 @@ def main():
                 f.write(src_text)
             lib_a = os.path.join(build_dir, "libta-lib.a")
             rc_ref = subprocess.run([
-                "cc", "-O3", "-DNDEBUG", "-Wno-everything",
+                "cc", "-O3", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
                 f"-I{c_out}",
                 "-o", os.path.join(bin_dir, "ta_ref_serve"),
                 tmp_ref, lib_a, "-lm"
