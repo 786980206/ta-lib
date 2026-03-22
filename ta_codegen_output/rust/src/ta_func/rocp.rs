@@ -139,6 +139,8 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }

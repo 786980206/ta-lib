@@ -212,6 +212,11 @@ impl Core {
         #[allow(non_snake_case)]
         let BodyLong_factor: f64 = self.candle_settings.body_long.factor;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outInteger.len());
         lookbackTotal = self.cdldarkcloudcover_lookback(optInPenetration);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

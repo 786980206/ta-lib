@@ -208,6 +208,9 @@ impl Core {
         let mut localNbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx < inPeriods.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = self.ma_lookback(optInMaxPeriod, optInMAType);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

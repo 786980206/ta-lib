@@ -173,6 +173,8 @@ impl Core {
         let mut secondEMAIdx: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         (*outNBElement) = 0;
         (*outBegIdx) = 0;
         lookbackEMA = self.ema_lookback(optInTimePeriod);

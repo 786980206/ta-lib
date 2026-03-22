@@ -167,6 +167,8 @@ impl Core {
         let mut retCode: RetCode = RetCode::Success;
         let mut nbElementToOutput: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         emaLookback = self.ema_lookback(optInTimePeriod);
         rocLookback = self.rocr_lookback(1);
         totalLookback = emaLookback * 3 + rocLookback;

@@ -282,6 +282,11 @@ impl Core {
         #[allow(non_snake_case)]
         let ShadowVeryLong_factor: f64 = self.candle_settings.shadow_very_long.factor;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outInteger.len());
         lookbackTotal = self.cdlhighwave_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

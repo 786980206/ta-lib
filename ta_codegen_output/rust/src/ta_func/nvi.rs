@@ -97,6 +97,9 @@ impl Core {
         outReal: &mut [f64],
     ) -> RetCode {
         unsafe {
+        assert!(endIdx < inClose.len());
+        assert!(endIdx < inVolume.len());
+        assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         return RetCode::Success;

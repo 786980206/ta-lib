@@ -195,6 +195,10 @@ impl Core {
         let mut circBuffer: [f64; 30 as usize] = [0.0_f64; 30 as usize];
         let mut circBuffer_Idx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

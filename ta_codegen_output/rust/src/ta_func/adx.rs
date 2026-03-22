@@ -322,6 +322,10 @@ impl Core {
         let mut prevADX: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (2 * optInTimePeriod + self.unstable_period[FuncUnstId::Adx as usize] - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

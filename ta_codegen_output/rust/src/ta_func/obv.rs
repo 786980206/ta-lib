@@ -122,6 +122,9 @@ impl Core {
         let mut tempReal: f64 = 0.0_f64;
         let mut prevOBV: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx < inVolume.len());
+        assert!(endIdx - startIdx < outReal.len());
         prevOBV = (*inVolume.get_unchecked(startIdx));
         prevReal = (*inReal.get_unchecked(startIdx));
         outIdx = 0;

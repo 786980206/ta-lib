@@ -114,6 +114,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut lookbackTotal: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = self.ema_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

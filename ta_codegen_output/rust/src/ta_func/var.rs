@@ -168,6 +168,8 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;

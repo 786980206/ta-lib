@@ -767,6 +767,20 @@ fn gen_unguarded_func(
     // Wrap entire body in unsafe block when using get_unchecked
     if ctx.unchecked {
         out.push_str("        unsafe {\n");
+        // Pre-loop bounds assertions: give LLVM proof that endIdx is within all
+        // input/output array bounds. This enables loop unswitching and vectorization
+        // while get_unchecked eliminates per-access bounds checks. O(1) per call.
+        for input in &func.inputs {
+            out.push_str(&format!(
+                "        assert!(endIdx < {}.len());\n", input.name
+            ));
+        }
+        for output in &func.outputs {
+            // Output arrays are sized by the caller — assert they have enough room
+            out.push_str(&format!(
+                "        assert!(endIdx - startIdx < {}.len());\n", output.name
+            ));
+        }
     }
 
     // Emit VarDecl initializations only when there's no body assignment for the same var

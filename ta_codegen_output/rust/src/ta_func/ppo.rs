@@ -171,6 +171,8 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut j: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         tempBuffer = vec![0.0_f64; ((endIdx - startIdx + 1) * 1) as usize];
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;

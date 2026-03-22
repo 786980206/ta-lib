@@ -113,6 +113,10 @@ impl Core {
         outMACDHist: &mut [f64],
     ) -> RetCode {
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outMACD.len());
+        assert!(endIdx - startIdx < outMACDSignal.len());
+        assert!(endIdx - startIdx < outMACDHist.len());
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
         } // unsafe
     }

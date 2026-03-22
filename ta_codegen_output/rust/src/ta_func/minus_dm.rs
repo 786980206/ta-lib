@@ -224,6 +224,9 @@ impl Core {
         let mut diffM: f64 = 0.0_f64;
         let mut i: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx - startIdx < outReal.len());
         if optInTimePeriod > 1 {
             lookbackTotal = (optInTimePeriod + self.unstable_period[FuncUnstId::MinusDM as usize] - 1) as usize;
         } else {

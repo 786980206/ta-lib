@@ -161,6 +161,8 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut highestIdx: i32 = 0_i32;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         nbInitialElementNeeded = (optInTimePeriod - 1) as usize;
         if startIdx < nbInitialElementNeeded {
             startIdx = nbInitialElementNeeded;

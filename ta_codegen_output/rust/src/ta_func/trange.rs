@@ -143,6 +143,10 @@ impl Core {
         let mut tempLT: f64 = 0.0_f64;
         let mut tempHT: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         if startIdx < 1 {
             startIdx = 1;
         }

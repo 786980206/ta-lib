@@ -184,6 +184,10 @@ impl Core {
         let mut tempValue: f64 = 0.0_f64;
         let mut tempBuffer: Vec<f64> = Vec::new();
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = self.natr_lookback(optInTimePeriod);

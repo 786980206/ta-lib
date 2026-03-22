@@ -185,6 +185,9 @@ impl Core {
         let mut outBegIdx2: usize = 0_usize;
         let mut outNbElement1: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outFastK.len());
+        assert!(endIdx - startIdx < outFastD.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackSTOCHF = self.stochf_lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);

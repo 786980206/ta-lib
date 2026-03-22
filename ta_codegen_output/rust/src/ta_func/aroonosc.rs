@@ -189,6 +189,9 @@ impl Core {
         let mut today: usize = 0_usize;
         let mut i: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx - startIdx < outReal.len());
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }

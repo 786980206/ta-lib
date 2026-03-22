@@ -232,6 +232,8 @@ impl Core {
         let mut factor: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

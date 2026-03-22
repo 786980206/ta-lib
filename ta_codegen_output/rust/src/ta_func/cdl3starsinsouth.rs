@@ -460,6 +460,11 @@ impl Core {
         #[allow(non_snake_case)]
         let ShadowVeryShort_factor: f64 = self.candle_settings.shadow_very_short.factor;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outInteger.len());
         lookbackTotal = self.cdl3starsinsouth_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

@@ -136,6 +136,11 @@ impl Core {
         let mut tmp: f64 = 0.0_f64;
         let mut ad: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx < inVolume.len());
+        assert!(endIdx - startIdx < outReal.len());
         nbBar = endIdx - startIdx + 1;
         (*outNBElement) = nbBar;
         (*outBegIdx) = startIdx;

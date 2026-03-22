@@ -206,6 +206,8 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut trailingValue: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         constMax = 2.0 / (30.0 + 1.0);
         constDiff = 2.0 / (2.0 + 1.0) - constMax;
         (*outBegIdx) = 0;

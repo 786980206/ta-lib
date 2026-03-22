@@ -471,6 +471,8 @@ impl Core {
         let mut DCPeriodInt: usize = 0_usize;
         let mut DCPeriod: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         a = 0.0962;
         b = 0.5769;
         smoothPrice_Idx = 0;

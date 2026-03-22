@@ -311,6 +311,9 @@ impl Core {
         let mut sar: f64 = 0.0_f64;
         let mut ep_temp: [f64; 1 as usize] = [0.0_f64; 1 as usize];
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx - startIdx < outReal.len());
         if startIdx < 1 {
             startIdx = 1;
         }

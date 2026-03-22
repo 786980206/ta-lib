@@ -237,6 +237,9 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut nbInitialElementNeeded: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal0.len());
+        assert!(endIdx < inReal1.len());
+        assert!(endIdx - startIdx < outReal.len());
         S_xx = 0.0;
         S_xy = 0.0;
         S_x = 0.0;

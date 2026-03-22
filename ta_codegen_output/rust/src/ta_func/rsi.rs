@@ -265,6 +265,8 @@ impl Core {
         let mut tempValue1: f64 = 0.0_f64;
         let mut tempValue2: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         lookbackTotal = ((self.rsi_lookback(optInTimePeriod)) as usize) as usize;

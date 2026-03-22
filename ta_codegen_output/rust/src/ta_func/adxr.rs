@@ -155,6 +155,10 @@ impl Core {
         let mut nbElement: usize = 0_usize;
         let mut retCode: RetCode = RetCode::Success;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         adxrLookback = self.adxr_lookback(optInTimePeriod);
         if startIdx < adxrLookback {
             startIdx = adxrLookback;

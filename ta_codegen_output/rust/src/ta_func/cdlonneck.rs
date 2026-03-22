@@ -283,6 +283,11 @@ impl Core {
         #[allow(non_snake_case)]
         let Equal_factor: f64 = self.candle_settings.equal.factor;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outInteger.len());
         lookbackTotal = self.cdlonneck_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

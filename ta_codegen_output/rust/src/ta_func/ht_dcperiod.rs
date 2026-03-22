@@ -425,6 +425,8 @@ impl Core {
         let mut todayValue: f64 = 0.0_f64;
         let mut smoothPeriod: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         a = 0.0962;
         b = 0.5769;
         rad2Deg = 180.0 / (4.0 * (1_f64).atan());

@@ -264,6 +264,10 @@ impl Core {
         let mut tempBuffer1: Vec<f64> = Vec::new();
         let mut tempBuffer2: Vec<f64> = Vec::new();
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outRealUpperBand.len());
+        assert!(endIdx - startIdx < outRealMiddleBand.len());
+        assert!(endIdx - startIdx < outRealLowerBand.len());
         if inReal == outRealUpperBand {
             tempBuffer1 = outRealMiddleBand.to_vec();
             tempBuffer2 = outRealLowerBand.to_vec();

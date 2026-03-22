@@ -173,6 +173,8 @@ impl Core {
         let mut trailingValue: f64 = 0.0_f64;
         let mut lookbackTotal: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

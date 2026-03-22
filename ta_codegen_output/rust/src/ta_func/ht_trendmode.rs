@@ -566,6 +566,8 @@ impl Core {
         let mut sine: f64 = 0.0_f64;
         let mut leadSine: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outInteger.len());
         a = 0.0962;
         b = 0.5769;
         smoothPrice_Idx = 0;

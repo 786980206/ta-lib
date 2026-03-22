@@ -146,6 +146,8 @@ impl Core {
         let mut retCode: RetCode = RetCode::Success;
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         retCode = self.var_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
         if retCode != RetCode::Success {
             return retCode;

@@ -144,6 +144,9 @@ impl Core {
         let mut lookback: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         outIdx = 0;
         lookback = self.imi_lookback(optInTimePeriod);
         if startIdx < lookback {

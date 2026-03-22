@@ -198,6 +198,9 @@ impl Core {
         let mut trailingIdx: usize = 0_usize;
         let mut outIdx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal0.len());
+        assert!(endIdx < inReal1.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (optInTimePeriod - 1) as usize;
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

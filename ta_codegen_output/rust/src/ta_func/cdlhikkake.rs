@@ -153,6 +153,11 @@ impl Core {
         let mut patternIdx: usize = 0_usize;
         let mut patternResult: i32 = 0_i32;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outInteger.len());
         lookbackTotal = self.cdlhikkake_lookback();
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

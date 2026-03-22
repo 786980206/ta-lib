@@ -251,6 +251,11 @@ impl Core {
         let mut mflow_negative: [f64; 50 as usize] = [0.0_f64; 50 as usize];
         let mut mflow_Idx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx < inVolume.len());
+        assert!(endIdx - startIdx < outReal.len());
         mflow_Idx = 0;
         {
             let _n = ((optInTimePeriod) as usize * 1) as usize;

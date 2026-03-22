@@ -160,6 +160,8 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut tempValue1: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = self.linearreg_angle_lookback(optInTimePeriod);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;

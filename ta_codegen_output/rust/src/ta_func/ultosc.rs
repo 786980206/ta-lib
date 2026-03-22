@@ -395,6 +395,10 @@ impl Core {
         let mut periods: [i32; 3 as usize] = [0i32; 3 as usize];
         let mut sortedPeriods: [i32; 3 as usize] = [0i32; 3 as usize];
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
         (*periods.get_unchecked_mut(0)) = optInTimePeriod1;

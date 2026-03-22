@@ -202,6 +202,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut todayIdx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         if optInTimePeriod == 1 {
             nbElement = endIdx - startIdx + 1;
             (*outNBElement) = nbElement;

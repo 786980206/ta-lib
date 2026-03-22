@@ -264,6 +264,11 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut bufferIsAllocated: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outFastK.len());
+        assert!(endIdx - startIdx < outFastD.len());
         lookbackK = (optInFastK_Period - 1) as usize;
         lookbackFastD = self.ma_lookback(optInFastD_Period, optInFastD_MAType);
         lookbackTotal = lookbackK + lookbackFastD;

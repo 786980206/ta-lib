@@ -250,6 +250,10 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut tempMAType: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outMACD.len());
+        assert!(endIdx - startIdx < outMACDSignal.len());
+        assert!(endIdx - startIdx < outMACDHist.len());
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;

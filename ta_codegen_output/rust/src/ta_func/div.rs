@@ -109,6 +109,9 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal0.len());
+        assert!(endIdx < inReal1.len());
+        assert!(endIdx - startIdx < outReal.len());
         // for( i = startIdx, outIdx = 0; i <= endIdx; i += 1, outIdx += 1 )
         i = startIdx;
         outIdx = 0;

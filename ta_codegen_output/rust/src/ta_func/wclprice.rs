@@ -110,6 +110,10 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut i: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             (*outReal.get_unchecked_mut(outIdx)) = (((((*inClose.get_unchecked(i)) as f64).mul_add(2.0, (*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)))) / 4.0) as f64);

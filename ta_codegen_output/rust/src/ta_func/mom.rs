@@ -130,6 +130,8 @@ impl Core {
         let mut outIdx: usize = 0_usize;
         let mut trailingIdx: usize = 0_usize;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         if startIdx < (optInTimePeriod) as usize {
             startIdx = (optInTimePeriod) as usize;
         }

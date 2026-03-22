@@ -248,6 +248,8 @@ impl Core {
         let mut c4: f64 = 0.0_f64;
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
         lookbackTotal = (6 * (optInTimePeriod - 1) + self.unstable_period[FuncUnstId::T3 as usize]) as usize;
         if startIdx <= lookbackTotal {
             startIdx = lookbackTotal;

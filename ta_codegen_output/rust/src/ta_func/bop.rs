@@ -121,6 +121,11 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inOpen.len());
+        assert!(endIdx < inHigh.len());
+        assert!(endIdx < inLow.len());
+        assert!(endIdx < inClose.len());
+        assert!(endIdx - startIdx < outReal.len());
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));

@@ -430,6 +430,9 @@ impl Core {
         let mut rad2Deg: f64 = 0.0_f64;
         let mut todayValue: f64 = 0.0_f64;
         unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outInPhase.len());
+        assert!(endIdx - startIdx < outQuadrature.len());
         a = 0.0962;
         b = 0.5769;
         rad2Deg = 180.0 / (4.0 * (1_f64).atan());
