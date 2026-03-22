@@ -23,6 +23,9 @@ public class TaCodegenServe {
         return (ts / freq) * 1000000000L + (ts % freq) * 1000000000L / freq;
     }
 
+    [DllImport("ta_codegen_funcs", EntryPoint = "TA_Initialize")]
+    static extern int TA_Initialize();
+
     [DllImport("ta_codegen_funcs", EntryPoint = "TA_SetUnstablePeriod")]
     static extern void TA_SetUnstablePeriod(int id, int period);
 
@@ -9363,6 +9366,7 @@ public class TaCodegenServe {
     }
 
     static void Main(string[] args) {
+        TA_Initialize();
         string? line;
         while ((line = Console.ReadLine()) != null) {
             if (string.IsNullOrWhiteSpace(line)) continue;
