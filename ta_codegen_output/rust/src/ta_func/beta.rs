@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 5, range: 1..=100000)
+    #[inline]
     pub fn beta_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
@@ -207,6 +208,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn beta_unguarded(
         &self,
         mut startIdx: usize,

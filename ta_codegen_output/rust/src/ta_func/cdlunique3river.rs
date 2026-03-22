@@ -250,6 +250,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlunique3river_unguarded(
         &self,
         mut startIdx: usize,

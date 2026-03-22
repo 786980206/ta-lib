@@ -93,6 +93,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn atan_unguarded(
         &self,
         mut startIdx: usize,

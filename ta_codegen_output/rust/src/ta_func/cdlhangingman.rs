@@ -386,6 +386,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlhangingman_unguarded(
         &self,
         mut startIdx: usize,

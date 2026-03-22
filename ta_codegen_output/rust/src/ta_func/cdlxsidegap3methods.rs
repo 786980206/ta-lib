@@ -114,6 +114,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlxsidegap3methods_unguarded(
         &self,
         mut startIdx: usize,

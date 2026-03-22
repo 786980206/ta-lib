@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
+    #[inline]
     pub fn tsf_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
@@ -138,6 +139,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn tsf_unguarded(
         &self,
         mut startIdx: usize,

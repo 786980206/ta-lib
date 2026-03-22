@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInFastLimit` - Number of period (default: 0, range: 0.01..=0.99)
     /// * `optInSlowLimit` - Number of period (default: 0, range: 0.01..=0.99)
+    #[inline]
     pub fn mama_lookback(&self, mut optInFastLimit: f64, mut optInSlowLimit: f64) -> usize {
         return (32 + self.unstable_period[FuncUnstId::Mama as usize]) as usize;
     }
@@ -394,6 +395,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn mama_unguarded(
         &self,
         mut startIdx: usize,

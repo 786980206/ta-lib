@@ -56,6 +56,7 @@ impl Core {
     /// * `optInTimePeriod1` - Number of period (default: 7, range: 1..=100000)
     /// * `optInTimePeriod2` - Number of period (default: 14, range: 1..=100000)
     /// * `optInTimePeriod3` - Number of period (default: 28, range: 1..=100000)
+    #[inline]
     pub fn ultosc_lookback(&self, mut optInTimePeriod1: i32, mut optInTimePeriod2: i32, mut optInTimePeriod3: i32) -> usize {
         if ((optInTimePeriod1) as i32) == (i32::MIN) {
             optInTimePeriod1 = 7;
@@ -351,6 +352,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn ultosc_unguarded(
         &self,
         mut startIdx: usize,

@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 14, range: 1..=100000)
+    #[inline]
     pub fn atr_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
@@ -148,6 +149,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return retCode;
     }
+    #[inline]
     pub fn atr_unguarded(
         &self,
         mut startIdx: usize,

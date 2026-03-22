@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
+    #[inline]
     pub fn trix_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
@@ -124,14 +125,14 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -146,6 +147,7 @@ impl Core {
         }
         return RetCode::Success;
     }
+    #[inline]
     pub fn trix_unguarded(
         &self,
         mut startIdx: usize,
@@ -187,14 +189,14 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, &tempBuffer.clone(), optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;

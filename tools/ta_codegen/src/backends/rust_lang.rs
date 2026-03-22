@@ -248,6 +248,7 @@ fn gen_lookback(
             params.push(format!("mut {}: {}", opt.name, rust_type));
         }
 
+        out.push_str("    #[inline]\n");
         out.push_str(&format!(
             "    pub fn {}_lookback(&self, {}) -> usize {{\n",
             snake,
@@ -625,6 +626,8 @@ fn gen_unguarded_func(
     let func_name = format!("{snake}_unguarded");
 
     // Function signature — always pub fn (unsafe is contained internally)
+    // #[inline] enables cross-module inlining for cross-indicator calls
+    out.push_str("    #[inline]\n");
     out.push_str(&format!("    pub fn {func_name}(\n"));
     out.push_str("        &self,\n");
     out.push_str("        mut startIdx: usize,\n");
@@ -3690,14 +3693,15 @@ fn render_cross_indicator_args(
         .enumerate()
         .map(|(i, arg)| {
             let is_output = i >= output_start;
-            // Detect input-output aliasing: same Vec var used as both input and output
+            // Detect input-output aliasing: same Vec var used as both input and output.
+            // Use unsafe slice-from-raw-parts to avoid clone (EMA reads [today]
+            // and writes [outIdx] where outIdx <= today, so aliasing is safe).
             if !is_output {
                 if let Expr::Var(name) = arg {
                     if (ctx.vec_vars.contains(name) || is_vec_local_var(name))
                         && output_vars.contains(&name.as_str())
                     {
-                        // Clone to avoid borrow conflict
-                        return format!("&{name}.clone()");
+                        return format!("unsafe {{ std::slice::from_raw_parts({name}.as_ptr(), {name}.len()) }}");
                     }
                 }
             }

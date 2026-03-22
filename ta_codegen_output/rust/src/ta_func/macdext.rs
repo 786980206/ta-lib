@@ -56,6 +56,7 @@ impl Core {
     /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
     /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
     /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
+    #[inline]
     pub fn macdext_lookback(&self, mut optInFastPeriod: i32, mut optInFastMAType: i32, mut optInSlowPeriod: i32, mut optInSlowMAType: i32, mut optInSignalPeriod: i32, mut optInSignalMAType: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
             optInFastPeriod = 12;
@@ -217,6 +218,7 @@ impl Core {
         (*outNBElement) = outNbElement2;
         return RetCode::Success;
     }
+    #[inline]
     pub fn macdext_unguarded(
         &self,
         mut startIdx: usize,

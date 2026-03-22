@@ -105,6 +105,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn obv_unguarded(
         &self,
         mut startIdx: usize,

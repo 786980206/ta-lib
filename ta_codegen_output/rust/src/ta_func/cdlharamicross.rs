@@ -263,6 +263,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlharamicross_unguarded(
         &self,
         mut startIdx: usize,

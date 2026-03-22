@@ -250,6 +250,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlinneck_unguarded(
         &self,
         mut startIdx: usize,

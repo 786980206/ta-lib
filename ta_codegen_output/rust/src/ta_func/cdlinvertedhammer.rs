@@ -317,6 +317,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlinvertedhammer_unguarded(
         &self,
         mut startIdx: usize,

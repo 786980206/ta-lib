@@ -122,6 +122,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn trange_unguarded(
         &self,
         mut startIdx: usize,

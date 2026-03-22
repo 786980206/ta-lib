@@ -315,6 +315,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlidentical3crows_unguarded(
         &self,
         mut startIdx: usize,

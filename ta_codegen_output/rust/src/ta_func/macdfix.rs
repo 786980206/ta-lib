@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInSignalPeriod` - Number of period (default: 9, range: 1..=100000)
+    #[inline]
     pub fn macdfix_lookback(&self, mut optInSignalPeriod: i32) -> usize {
         if ((optInSignalPeriod) as i32) == (i32::MIN) {
             optInSignalPeriod = 9;
@@ -98,6 +99,7 @@ impl Core {
         let mut startIdx = startIdx;
         return self.macd_unguarded(startIdx, endIdx, inReal, 0, 0, optInSignalPeriod, outBegIdx, outNBElement, outMACD, outMACDSignal, outMACDHist);
     }
+    #[inline]
     pub fn macdfix_unguarded(
         &self,
         mut startIdx: usize,

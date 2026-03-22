@@ -1790,10 +1790,16 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
         s.push_str("            let use_preloaded = params[\"use_preloaded\"].as_i64().unwrap_or(0);\n");
         s.push_str("            let bench_iters = std::cmp::max(1, params[\"iters\"].as_i64().unwrap_or(1)) as u64;\n");
 
-        // Declare input arrays with default init (Rust definite-assignment)
+        // Declare input arrays: Vec for JSON fallback, &[f64] for actual reference.
+        // Preloaded path borrows from ref_data (zero-copy), JSON path owns a Vec.
         for name in &input_names {
             s.push_str(&format!(
-                "            let mut {name}: Vec<f64> = Vec::new();\n"
+                "            let mut _json_{name}: Vec<f64> = Vec::new();\n"
+            ));
+        }
+        for name in &input_names {
+            s.push_str(&format!(
+                "            let {name}: &[f64];\n"
             ));
         }
 
@@ -1808,13 +1814,16 @@ pub fn generate_rust_server(funcs: &[FuncDef]) -> String {
                 "high".to_string()
             };
             s.push_str(&format!(
-                "                {name} = ref_data.{ref_field}[..ref_data.n].to_vec();\n"
+                "                {name} = &ref_data.{ref_field}[..ref_data.n];\n"
             ));
         }
         s.push_str("            } else {\n");
         for name in &input_names {
             s.push_str(&format!(
-                "                {name} = parse_f64_array(&params[\"{name}\"]);\n"
+                "                _json_{name} = parse_f64_array(&params[\"{name}\"]);\n"
+            ));
+            s.push_str(&format!(
+                "                {name} = &_json_{name};\n"
             ));
         }
         s.push_str("            }\n");

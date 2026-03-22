@@ -56,6 +56,7 @@ impl Core {
     /// * `optInTimePeriod` - Number of period (default: 14, range: 2..=100000)
     /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
     /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
+    #[inline]
     pub fn stochrsi_lookback(&self, mut optInTimePeriod: i32, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 14;
@@ -160,6 +161,7 @@ impl Core {
         }
         return RetCode::Success;
     }
+    #[inline]
     pub fn stochrsi_unguarded(
         &self,
         mut startIdx: usize,

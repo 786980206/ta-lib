@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInFastPeriod` - Number of period (default: 12, range: 2..=100000)
     /// * `optInSlowPeriod` - Number of period (default: 26, range: 2..=100000)
+    #[inline]
     pub fn ppo_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
             optInFastPeriod = 12;
@@ -146,6 +147,7 @@ impl Core {
         }
         return retCode;
     }
+    #[inline]
     pub fn ppo_unguarded(
         &self,
         mut startIdx: usize,

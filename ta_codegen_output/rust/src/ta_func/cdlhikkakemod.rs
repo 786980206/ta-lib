@@ -234,6 +234,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlhikkakemod_unguarded(
         &self,
         mut startIdx: usize,

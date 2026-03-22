@@ -112,17 +112,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(20) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -173,11 +179,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -217,20 +225,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -276,14 +292,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -325,20 +345,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(3) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(10) as i32;
@@ -390,17 +418,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -450,17 +484,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -510,11 +550,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
@@ -563,14 +605,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -617,14 +663,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -669,11 +719,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -713,11 +765,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -757,17 +811,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -817,11 +877,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -864,20 +926,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -923,11 +993,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDevUp = params["optInNbDevUp"].as_f64().unwrap_or(2.0) as f64;
@@ -983,14 +1055,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -1035,20 +1111,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -1094,17 +1178,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -1151,20 +1241,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1210,20 +1308,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1269,20 +1375,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1328,20 +1442,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1387,20 +1509,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1446,20 +1576,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1505,20 +1643,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1564,20 +1710,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -1626,20 +1780,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1685,20 +1847,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1744,20 +1914,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1803,20 +1981,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1862,20 +2048,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1921,20 +2115,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -1980,20 +2182,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -2042,20 +2252,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2101,20 +2319,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2160,20 +2386,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2219,20 +2453,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2278,20 +2520,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -2340,20 +2590,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -2402,20 +2660,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2461,20 +2727,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2520,20 +2794,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2579,20 +2861,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2638,20 +2928,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2697,20 +2995,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2756,20 +3062,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2815,20 +3129,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2874,20 +3196,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2933,20 +3263,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -2992,20 +3330,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3051,20 +3397,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3110,20 +3464,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3169,20 +3531,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3228,20 +3598,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3287,20 +3665,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3346,20 +3732,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3405,20 +3799,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3464,20 +3866,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3523,20 +3933,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3582,20 +4000,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.5) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -3644,20 +4070,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -3706,20 +4140,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInPenetration = params["optInPenetration"].as_f64().unwrap_or(0.3) as f64;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -3768,20 +4210,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3827,20 +4277,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3886,20 +4344,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -3945,20 +4411,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4004,20 +4478,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4063,20 +4545,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4122,20 +4612,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4181,20 +4679,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4240,20 +4746,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4299,20 +4813,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4358,20 +4880,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4417,20 +4947,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4476,20 +5014,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4535,20 +5081,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4594,20 +5148,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4653,20 +5215,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4712,20 +5282,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outIntBuf0: Vec<i32> = vec![0i32; out_size];
@@ -4771,11 +5349,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -4815,11 +5395,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -4865,14 +5447,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -4917,11 +5503,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -4961,11 +5549,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5005,11 +5595,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -5052,14 +5644,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5101,17 +5697,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -5161,11 +5763,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -5213,11 +5817,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5257,11 +5863,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5301,11 +5909,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[6] = period as i32;
@@ -5348,11 +5958,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[7] = period as i32;
@@ -5395,11 +6007,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[8] = period as i32;
@@ -5444,11 +6058,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[9] = period as i32;
@@ -5493,11 +6109,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[10] = period as i32;
@@ -5540,11 +6158,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             if let Some(period) = params["unstablePeriod"].as_i64() {
                 core.unstable_period[11] = period as i32;
@@ -5587,14 +6207,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inOpen: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inOpen: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inOpen: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inOpen = ref_data.open[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inOpen = &ref_data.open[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inOpen = parse_f64_array(&params["inOpen"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inOpen = parse_f64_array(&params["inOpen"]);
+                inOpen = &_json_inOpen;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -5642,11 +6266,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -5692,11 +6318,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -5739,11 +6367,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -5786,11 +6416,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -5833,11 +6465,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -5880,11 +6514,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5924,11 +6560,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -5968,11 +6606,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let optInMAType = params["optInMAType"].as_i64().unwrap_or(0) as i32;
@@ -6018,11 +6658,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
@@ -6075,11 +6717,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInFastMAType = params["optInFastMAType"].as_i64().unwrap_or(0) as i32;
@@ -6141,11 +6785,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInSignalPeriod = params["optInSignalPeriod"].as_i64().unwrap_or(9) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6192,11 +6838,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInFastLimit = params["optInFastLimit"].as_f64().unwrap_or(0.5) as f64;
             let optInSlowLimit = params["optInSlowLimit"].as_f64().unwrap_or(0.05) as f64;
@@ -6247,14 +6895,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let optInMinPeriod = params["optInMinPeriod"].as_i64().unwrap_or(2) as i32;
             let optInMaxPeriod = params["optInMaxPeriod"].as_i64().unwrap_or(30) as i32;
@@ -6305,11 +6957,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6352,11 +7006,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6399,14 +7055,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -6448,20 +7108,28 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -6513,11 +7181,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6560,14 +7230,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6612,11 +7286,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6659,11 +7335,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6706,11 +7384,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6755,11 +7435,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6804,17 +7486,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -6864,14 +7552,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -6919,11 +7611,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -6966,14 +7660,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7015,17 +7713,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -7075,14 +7779,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inClose: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inClose: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inClose = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inClose = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inClose = parse_f64_array(&params["inClose"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7124,14 +7832,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inReal: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7173,17 +7885,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -7233,14 +7951,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -7288,11 +8010,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInFastPeriod = params["optInFastPeriod"].as_i64().unwrap_or(12) as i32;
             let optInSlowPeriod = params["optInSlowPeriod"].as_i64().unwrap_or(26) as i32;
@@ -7341,14 +8065,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inClose: Vec<f64> = Vec::new();
-            let mut inVolume: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let mut _json_inVolume: Vec<f64> = Vec::new();
+            let inClose: &[f64];
+            let inVolume: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inClose = ref_data.close[..ref_data.n].to_vec();
-                inVolume = ref_data.volume[..ref_data.n].to_vec();
+                inClose = &ref_data.close[..ref_data.n];
+                inVolume = &ref_data.volume[..ref_data.n];
             } else {
-                inClose = parse_f64_array(&params["inClose"]);
-                inVolume = parse_f64_array(&params["inVolume"]);
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
+                _json_inVolume = parse_f64_array(&params["inVolume"]);
+                inVolume = &_json_inVolume;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7390,11 +8118,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -7437,11 +8167,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -7484,11 +8216,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -7531,11 +8265,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(10) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -7578,11 +8314,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             if let Some(period) = params["unstablePeriod"].as_i64() {
@@ -7628,14 +8366,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInAcceleration = params["optInAcceleration"].as_f64().unwrap_or(0.02) as f64;
             let optInMaximum = params["optInMaximum"].as_f64().unwrap_or(0.2) as f64;
@@ -7683,14 +8425,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
             }
             let optInStartValue = params["optInStartValue"].as_f64().unwrap_or(0.0) as f64;
             let optInOffsetOnReverse = params["optInOffsetOnReverse"].as_f64().unwrap_or(0.0) as f64;
@@ -7756,11 +8502,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7800,11 +8548,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7844,11 +8594,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -7891,11 +8643,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -7935,11 +8689,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
@@ -7985,17 +8741,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
             let optInSlowK_Period = params["optInSlowK_Period"].as_i64().unwrap_or(3) as i32;
@@ -8056,17 +8818,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
             let optInFastD_Period = params["optInFastD_Period"].as_i64().unwrap_or(3) as i32;
@@ -8121,11 +8889,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let optInFastK_Period = params["optInFastK_Period"].as_i64().unwrap_or(5) as i32;
@@ -8182,14 +8952,18 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal0: Vec<f64> = Vec::new();
-            let mut inReal1: Vec<f64> = Vec::new();
+            let mut _json_inReal0: Vec<f64> = Vec::new();
+            let mut _json_inReal1: Vec<f64> = Vec::new();
+            let inReal0: &[f64];
+            let inReal1: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal0 = ref_data.close[..ref_data.n].to_vec();
-                inReal1 = ref_data.high[..ref_data.n].to_vec();
+                inReal0 = &ref_data.close[..ref_data.n];
+                inReal1 = &ref_data.high[..ref_data.n];
             } else {
-                inReal0 = parse_f64_array(&params["inReal0"]);
-                inReal1 = parse_f64_array(&params["inReal1"]);
+                _json_inReal0 = parse_f64_array(&params["inReal0"]);
+                inReal0 = &_json_inReal0;
+                _json_inReal1 = parse_f64_array(&params["inReal1"]);
+                inReal1 = &_json_inReal1;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8231,11 +9005,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8278,11 +9054,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInVFactor = params["optInVFactor"].as_f64().unwrap_or(0.7) as f64;
@@ -8331,11 +9109,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8375,11 +9155,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8419,11 +9201,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8466,17 +9250,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8520,11 +9310,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8567,11 +9359,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8614,11 +9408,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8661,17 +9457,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8715,17 +9517,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod1 = params["optInTimePeriod1"].as_i64().unwrap_or(7) as i32;
             let optInTimePeriod2 = params["optInTimePeriod2"].as_i64().unwrap_or(14) as i32;
@@ -8778,11 +9586,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(5) as i32;
             let optInNbDev = params["optInNbDev"].as_f64().unwrap_or(1.0) as f64;
@@ -8828,17 +9638,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
             let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
@@ -8882,17 +9698,23 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inHigh: Vec<f64> = Vec::new();
-            let mut inLow: Vec<f64> = Vec::new();
-            let mut inClose: Vec<f64> = Vec::new();
+            let mut _json_inHigh: Vec<f64> = Vec::new();
+            let mut _json_inLow: Vec<f64> = Vec::new();
+            let mut _json_inClose: Vec<f64> = Vec::new();
+            let inHigh: &[f64];
+            let inLow: &[f64];
+            let inClose: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inHigh = ref_data.high[..ref_data.n].to_vec();
-                inLow = ref_data.low[..ref_data.n].to_vec();
-                inClose = ref_data.close[..ref_data.n].to_vec();
+                inHigh = &ref_data.high[..ref_data.n];
+                inLow = &ref_data.low[..ref_data.n];
+                inClose = &ref_data.close[..ref_data.n];
             } else {
-                inHigh = parse_f64_array(&params["inHigh"]);
-                inLow = parse_f64_array(&params["inLow"]);
-                inClose = parse_f64_array(&params["inClose"]);
+                _json_inHigh = parse_f64_array(&params["inHigh"]);
+                inHigh = &_json_inHigh;
+                _json_inLow = parse_f64_array(&params["inLow"]);
+                inLow = &_json_inLow;
+                _json_inClose = parse_f64_array(&params["inClose"]);
+                inClose = &_json_inClose;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(14) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
@@ -8939,11 +9761,13 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
             let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
             let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut inReal: Vec<f64> = Vec::new();
+            let mut _json_inReal: Vec<f64> = Vec::new();
+            let inReal: &[f64];
             if use_preloaded != 0 && ref_data.n > 0 {
-                inReal = ref_data.close[..ref_data.n].to_vec();
+                inReal = &ref_data.close[..ref_data.n];
             } else {
-                inReal = parse_f64_array(&params["inReal"]);
+                _json_inReal = parse_f64_array(&params["inReal"]);
+                inReal = &_json_inReal;
             }
             let optInTimePeriod = params["optInTimePeriod"].as_i64().unwrap_or(30) as i32;
             let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };

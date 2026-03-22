@@ -560,6 +560,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdladvanceblock_unguarded(
         &self,
         mut startIdx: usize,

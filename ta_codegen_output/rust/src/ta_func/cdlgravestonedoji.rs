@@ -249,6 +249,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlgravestonedoji_unguarded(
         &self,
         mut startIdx: usize,

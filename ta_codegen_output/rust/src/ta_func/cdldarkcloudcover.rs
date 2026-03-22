@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInPenetration` - Number of period (default: 0, range: 0..=179769313486231570000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000)
+    #[inline]
     pub fn cdldarkcloudcover_lookback(&self, mut optInPenetration: f64) -> usize {
         #[allow(non_snake_case)]
         let BodyLong_rangeType: i32 = self.candle_settings.body_long.range_type;
@@ -185,6 +186,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdldarkcloudcover_unguarded(
         &self,
         mut startIdx: usize,

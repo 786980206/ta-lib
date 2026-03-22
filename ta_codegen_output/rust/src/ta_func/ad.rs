@@ -114,6 +114,7 @@ impl Core {
         }
         return RetCode::Success;
     }
+    #[inline]
     pub fn ad_unguarded(
         &self,
         mut startIdx: usize,

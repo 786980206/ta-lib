@@ -249,6 +249,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdllongleggeddoji_unguarded(
         &self,
         mut startIdx: usize,

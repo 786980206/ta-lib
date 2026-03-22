@@ -291,6 +291,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlkickingbylength_unguarded(
         &self,
         mut startIdx: usize,

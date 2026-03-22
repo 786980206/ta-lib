@@ -274,6 +274,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlcounterattack_unguarded(
         &self,
         mut startIdx: usize,

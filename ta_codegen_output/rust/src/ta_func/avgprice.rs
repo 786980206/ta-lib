@@ -97,6 +97,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn avgprice_unguarded(
         &self,
         mut startIdx: usize,

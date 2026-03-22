@@ -250,6 +250,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlupsidegap2crows_unguarded(
         &self,
         mut startIdx: usize,

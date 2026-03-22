@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInMinPeriod` - Number of period (default: 2, range: 2..=100000)
     /// * `optInMaxPeriod` - Number of period (default: 30, range: 2..=100000)
+    #[inline]
     pub fn mavp_lookback(&self, mut optInMinPeriod: i32, mut optInMaxPeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInMinPeriod) as i32) == (i32::MIN) {
             optInMinPeriod = 2;
@@ -181,6 +182,7 @@ impl Core {
         (*outNBElement) = outputSize;
         return RetCode::Success;
     }
+    #[inline]
     pub fn mavp_unguarded(
         &self,
         mut startIdx: usize,

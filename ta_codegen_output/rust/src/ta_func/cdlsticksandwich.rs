@@ -182,6 +182,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlsticksandwich_unguarded(
         &self,
         mut startIdx: usize,

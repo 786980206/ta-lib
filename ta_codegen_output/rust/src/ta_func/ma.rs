@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
+    #[inline]
     pub fn ma_lookback(&self, mut optInTimePeriod: i32, mut optInMAType: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
@@ -183,6 +184,7 @@ impl Core {
         }
         return retCode;
     }
+    #[inline]
     pub fn ma_unguarded(
         &self,
         mut startIdx: usize,

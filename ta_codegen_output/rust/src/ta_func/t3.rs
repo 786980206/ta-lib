@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInTimePeriod` - Number of period (default: 5, range: 2..=100000)
     /// * `optInVFactor` - Number of period (default: 0, range: 0..=1)
+    #[inline]
     pub fn t3_lookback(&self, mut optInTimePeriod: i32, mut optInVFactor: f64) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 5;
@@ -217,6 +218,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn t3_unguarded(
         &self,
         mut startIdx: usize,

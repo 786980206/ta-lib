@@ -249,6 +249,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlclosingmarubozu_unguarded(
         &self,
         mut startIdx: usize,

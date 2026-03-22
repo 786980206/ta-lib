@@ -410,6 +410,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdl3starsinsouth_unguarded(
         &self,
         mut startIdx: usize,

@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
     /// * `optInFastD_Period` - Number of period (default: 3, range: 1..=100000)
+    #[inline]
     pub fn stochf_lookback(&self, mut optInFastK_Period: i32, mut optInFastD_Period: i32, mut optInFastD_MAType: i32) -> usize {
         if ((optInFastK_Period) as i32) == (i32::MIN) {
             optInFastK_Period = 5;
@@ -230,6 +231,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn stochf_unguarded(
         &self,
         mut startIdx: usize,

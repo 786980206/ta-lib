@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 2..=100000)
+    #[inline]
     pub fn ema_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
@@ -94,6 +95,7 @@ impl Core {
         let mut optInK_1: f64 = 2.0 / ((optInTimePeriod + 1) as f64);
         return self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
     }
+    #[inline]
     pub fn ema_unguarded(
         &self,
         mut startIdx: usize,

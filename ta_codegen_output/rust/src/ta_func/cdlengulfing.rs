@@ -119,6 +119,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn cdlengulfing_unguarded(
         &self,
         mut startIdx: usize,

@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 30, range: 1..=100000)
+    #[inline]
     pub fn correl_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 30;
@@ -170,6 +171,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn correl_unguarded(
         &self,
         mut startIdx: usize,

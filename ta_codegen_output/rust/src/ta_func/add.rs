@@ -95,6 +95,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn add_unguarded(
         &self,
         mut startIdx: usize,

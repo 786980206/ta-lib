@@ -55,6 +55,7 @@ impl Core {
     ///
     /// * `optInFastPeriod` - Number of period (default: 3, range: 2..=100000)
     /// * `optInSlowPeriod` - Number of period (default: 10, range: 2..=100000)
+    #[inline]
     pub fn adosc_lookback(&self, mut optInFastPeriod: i32, mut optInSlowPeriod: i32) -> usize {
         if ((optInFastPeriod) as i32) == (i32::MIN) {
             optInFastPeriod = 3;
@@ -193,6 +194,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn adosc_unguarded(
         &self,
         mut startIdx: usize,

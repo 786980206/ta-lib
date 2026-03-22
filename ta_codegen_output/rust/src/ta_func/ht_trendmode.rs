@@ -476,6 +476,7 @@ impl Core {
         (*outNBElement) = outIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn ht_trendmode_unguarded(
         &self,
         mut startIdx: usize,

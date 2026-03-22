@@ -56,6 +56,7 @@ impl Core {
     /// * `optInFastK_Period` - Number of period (default: 5, range: 1..=100000)
     /// * `optInSlowK_Period` - Number of period (default: 3, range: 1..=100000)
     /// * `optInSlowD_Period` - Number of period (default: 3, range: 1..=100000)
+    #[inline]
     pub fn stoch_lookback(&self, mut optInFastK_Period: i32, mut optInSlowK_Period: i32, mut optInSlowK_MAType: i32, mut optInSlowD_Period: i32, mut optInSlowD_MAType: i32) -> usize {
         if ((optInFastK_Period) as i32) == (i32::MIN) {
             optInFastK_Period = 5;
@@ -223,7 +224,7 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
+        retCode = self.ma(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
@@ -248,6 +249,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         return RetCode::Success;
     }
+    #[inline]
     pub fn stoch_unguarded(
         &self,
         mut startIdx: usize,
@@ -359,7 +361,7 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
+        retCode = self.ma_unguarded(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }

@@ -54,6 +54,7 @@ impl Core {
     /// # Arguments
     ///
     /// * `optInTimePeriod` - Number of period (default: 20, range: 2..=100000)
+    #[inline]
     pub fn accbands_lookback(&self, mut optInTimePeriod: i32) -> usize {
         if ((optInTimePeriod) as i32) == (i32::MIN) {
             optInTimePeriod = 20;
@@ -162,6 +163,7 @@ impl Core {
         (*outNBElement) = outputSize;
         return RetCode::Success;
     }
+    #[inline]
     pub fn accbands_unguarded(
         &self,
         mut startIdx: usize,

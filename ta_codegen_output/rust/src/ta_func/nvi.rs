@@ -85,6 +85,7 @@ impl Core {
         (*outNBElement) = 0;
         return RetCode::Success;
     }
+    #[inline]
     pub fn nvi_unguarded(
         &self,
         mut startIdx: usize,
