@@ -12,6 +12,7 @@ Test control:
   --no-perftest              Skip performance benchmark
   --no-test                  Skip both regtest and perftest
   --test-only                Skip all build/generate, just run tests
+  --direct-bench-only        Skip build/generate/regtest/perftest, just run direct bench
 
 Filters (applied to generate AND test):
   --language=c,rust          Filter languages
@@ -41,7 +42,7 @@ from utilities.common import check_prerequisites, PREREQS_BUILD_SERVERS
 
 OUR_FLAGS = {
     "--no-build", "--no-generate", "--no-generate-indicators", "--no-generate-servers",
-    "--no-regtest", "--no-perftest", "--no-test", "--test-only",
+    "--no-regtest", "--no-perftest", "--no-test", "--test-only", "--direct-bench-only",
 }
 
 
@@ -66,13 +67,14 @@ def main():
 
     argv = sys.argv[1:]
     test_only      = "--test-only" in argv
-    no_build       = "--no-build" in argv or test_only
-    no_gen         = "--no-generate" in argv or test_only
+    direct_only    = "--direct-bench-only" in argv
+    no_build       = "--no-build" in argv or test_only or direct_only
+    no_gen         = "--no-generate" in argv or test_only or direct_only
     no_gen_ind     = "--no-generate-indicators" in argv or no_gen
     no_gen_srv     = "--no-generate-servers" in argv or no_gen
     no_test        = "--no-test" in argv
-    no_regtest     = "--no-regtest" in argv or no_test
-    no_perftest    = "--no-perftest" in argv or no_test
+    no_regtest     = "--no-regtest" in argv or no_test or direct_only
+    no_perftest    = "--no-perftest" in argv or no_test or direct_only
 
     # Alias --indicator(s) and --functions to --function
     def normalize_flag(a):
@@ -181,19 +183,37 @@ def main():
 
     # 5. regtest
     rc = 0
+    codegen_only = "--codegen-only" in passthrough
     if not no_regtest:
+        # 5a. C reference tests (skip if --codegen-only)
+        if not codegen_only:
+            print("\n" + "=" * 60)
+            print("REGTEST — C reference tests (252 points, all ranges)")
+            print("=" * 60)
+            # Only pass --function filter, not --language or --codegen flags
+            direct_args = [a for a in passthrough
+                           if a.startswith("--function=")]
+            rc = subprocess.run(
+                [os.path.join(bin_dir, "ta_regtest")] + direct_args,
+                cwd=bin_dir,
+            ).returncode
+            if rc != 0:
+                print(f"\nC reference regtest FAILED (exit {rc})")
+                sys.exit(rc)
+
+        # 5b. Cross-language codegen tests
         print("\n" + "=" * 60)
-        print("REGTEST — correctness (252 points, all ranges)")
+        print("REGTEST — cross-language codegen verification")
         print("=" * 60)
-        regtest_args = list(passthrough)
-        if not any(a.startswith("--codegen") for a in regtest_args):
-            regtest_args = ["--codegen"] + regtest_args
+        codegen_args = list(passthrough)
+        if not any(a.startswith("--codegen") for a in codegen_args):
+            codegen_args = ["--codegen-only"] + codegen_args
         rc = subprocess.run(
-            [os.path.join(bin_dir, "ta_regtest")] + regtest_args,
+            [os.path.join(bin_dir, "ta_regtest")] + codegen_args,
             cwd=bin_dir,
         ).returncode
         if rc != 0:
-            print(f"\nRegtest FAILED (exit {rc})")
+            print(f"\nCodegen regtest FAILED (exit {rc})")
             sys.exit(rc)
 
     # 6. perftest
@@ -214,6 +234,24 @@ def main():
         ).returncode
         if bench_rc != 0 and rc == 0:
             rc = bench_rc
+
+    # 7. direct bench (zero-overhead, no server)
+    if not no_perftest or direct_only:
+        bench_direct = os.path.join(bin_dir, "ta_bench_direct")
+        bench_cg = os.path.join(bin_dir, "ta_bench_cg")
+        if os.path.exists(bench_direct) and os.path.exists(bench_cg):
+            print("\n" + "=" * 60)
+            print("DIRECT BENCH — zero-overhead (direct function calls)")
+            print("=" * 60, flush=True)
+            direct_args = [a for a in passthrough
+                           if a.startswith("--function=")
+                           or a.startswith("--iters=")
+                           or a.startswith("--points=")]
+            direct_rc = subprocess.run(
+                [bench_direct] + direct_args, cwd=bin_dir,
+            ).returncode
+            if direct_rc != 0 and rc == 0:
+                rc = direct_rc
 
     sys.exit(rc)
 
