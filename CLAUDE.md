@@ -91,7 +91,7 @@ scripts/build.py ta_regtest
 # Run C reference tests (standard)
 cd bin && ./ta_regtest
 
-# Run codegen verification against all languages (all 158 indicators)
+# Run codegen verification against all languages (all 161 indicators)
 ./ta_regtest --codegen
 
 # Run codegen verification, skip C reference tests
@@ -129,7 +129,7 @@ All of ta_regtest's existing test logic, test data, range testing, and expected 
 
 ### Current State
 
-The system is fully implemented. `codegen_pipe.c/h` handles subprocess management and JSON-RPC communication. `test_codegen.c` has a generic callback driven by `TA_ForEachFunc` enumeration — it covers all 158 indicators automatically using ta_abstract function metadata. The callback handles:
+The system is fully implemented. `codegen_pipe.c/h` handles subprocess management and JSON-RPC communication. `test_codegen.c` has a generic callback driven by `TA_ForEachFunc` enumeration — it covers all 161 indicators automatically using ta_abstract function metadata. The callback handles:
 - Price inputs (STOCH, BBANDS, ADX) via `TA_InputParameterInfo.flags` → OHLCV arrays
 - Multi-output functions (BBANDS=3, MACD=3, STOCH=2) via per-`outputNb` `doRangeTest` calls
 - Integer outputs (CDL* candlestick patterns, MINMAXINDEX) with exact match comparison

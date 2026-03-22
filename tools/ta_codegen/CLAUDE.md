@@ -13,12 +13,19 @@ ta_func_defs/*.yaml          (extracted indicator definitions)
        ↓
     ir                       (parsed → FuncDef intermediate representation)
        ↓
-  ┌────┴────┐
-backends  server_gen
-  ↓           ↓
-rust_lang.rs  JSON-RPC servers (C, Java, .NET)
+  ┌────┴─────────────┐
+backends            server_gen / bench_gen
+  ↓                      ↓
+c.rs, rust_lang.rs,   JSON-RPC servers, bench binary,
+java.rs, dotnet.rs    include/ta_func_unguarded.h
+ta_abstract_c.rs
   ↓
-rust/src/ta_func/*.rs        (generated indicator code)
+ta_codegen_output/       (generated code per language)
+  c/ta_func/*.c          (C indicator code)
+  c/ta_abstract/         (ta_abstract introspection layer)
+  rust/src/ta_func/*.rs  (Rust indicator code)
+  java/, dotnet/         (Java/.NET code)
+include/ta_func.h        (generated public header)
 ```
 
 ### Key Modules
@@ -28,8 +35,14 @@ rust/src/ta_func/*.rs        (generated indicator code)
 | `parser` | Parses YAML files into raw function definitions |
 | `ir` | Intermediate representation (`FuncDef`, `ParamType`, etc.) |
 | `extractor` | Extracts indicator definitions from C source files → YAML |
+| `backends/c.rs` | Generates C indicator implementations (guarded + unguarded variants) |
 | `backends/rust_lang.rs` | Generates Rust indicator implementations with `<T: TaFloat>` generics |
-| `server_gen` | Generates JSON-RPC server wrappers for each target language |
+| `backends/java.rs` | Generates Java Core class methods |
+| `backends/dotnet.rs` | Generates .NET P/Invoke wrappers |
+| `backends/ta_abstract_c.rs` | Generates `ta_abstract` introspection layer (tables, frames, group index, runtime API) |
+| `backends/func_api_xml.rs` | Generates `ta_func_api.xml` metadata |
+| `server_gen` | Generates JSON-RPC server wrappers + `include/ta_func_unguarded.h` |
+| `bench_gen` | Generates direct-call benchmark binary |
 | `registry` | Function registry for tracking available indicators |
 
 ## Commands
@@ -53,11 +66,11 @@ cargo run -- extract --function=EMA          # Extract specific indicator
 ## Testing
 
 ```bash
-cd tools/ta_codegen && cargo test            # Run all 97+ tests
+cd tools/ta_codegen && cargo test            # Run all 445+ tests
 cd tools/ta_codegen && cargo clippy          # Strict pedantic lints enabled
 ```
 
-Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expression types, generic signatures, and function variants.
+Tests are in `tests/backend_suite.rs` and `tests/integration_test.rs` — they verify IR-to-backend rendering, expression types, generic signatures, and function variants across all backends.
 
 ## Cross-Language Testing Architecture
 
@@ -72,7 +85,7 @@ Tests are in `tests/backend_suite.rs` — they verify IR-to-Rust rendering, expr
 - `ta_codegen build` compiles servers into executables in `bin/`
 
 **What's working end-to-end:**
-- Generic callback in `test_codegen.c` auto-generates JSON-RPC requests from ta_abstract metadata for all 158 indicators
+- Generic callback in `test_codegen.c` auto-generates JSON-RPC requests from ta_abstract metadata for all 161 indicators
 - `list_functions` implemented — servers report available indicators with parameter metadata
 - `timing_ns` returned with each response — ta_regtest collects and prints a timing summary
 - `set_unstable_period` and `set_compatibility` implemented for all 24 unstable-period functions
@@ -148,9 +161,8 @@ All generated Rust indicator functions use `<T: TaFloat>` — a sealed trait imp
 
 ### Known Code Quality Issues (non-blocking)
 
-1. **Stale `_logic` suffix** in `render_func_call` for non-generic cross-indicator calls
-2. **`collect_for_loop_vars`** doesn't recurse into nested structures
-3. **`gen_opt_param_validation`** silently skips Real/Enum optional params
+1. **`collect_for_loop_vars`** doesn't recurse into nested structures
+2. **`gen_opt_param_validation`** silently skips Real/Enum optional params
 
 ## Linting
 
@@ -172,4 +184,5 @@ Strict Clippy pedantic lints are enabled in `src/lib.rs`. Allowed exceptions:
 - `ta_ref_serve` is statically linked against `libta-lib.a` — MUST rebuild when cmake rebuilds the library, or benchmarks compare against stale code
 - `regtest.py` auto-rebuilds ta_ref_serve in the cmake step
 - Benchmark noise: full 161-indicator runs have 10-20% variance from icache pressure. Use `ta_bench --function=NAME --iters=500` for ground truth.
+- All servers and bench binaries call `TA_Initialize()` at startup — required for candle settings defaults.
 - Thermal canary (SMA) runs between each indicator in ta_bench to normalize CPU thermal state
