@@ -160,7 +160,7 @@ impl Core {
                     outIdx += 1;
                     af = optInAcceleration;
                     ep = newLow;
-                    sar = sar + af * (ep - sar);
+                    sar = (af as f64).mul_add(ep - sar, sar);
                     if sar < prevHigh {
                         sar = prevHigh;
                     }
@@ -177,7 +177,7 @@ impl Core {
                             af = optInMaximum;
                         }
                     }
-                    sar = sar + af * (ep - sar);
+                    sar = (af as f64).mul_add(ep - sar, sar);
                     if sar > prevLow {
                         sar = prevLow;
                     }
@@ -198,7 +198,7 @@ impl Core {
                 outIdx += 1;
                 af = optInAcceleration;
                 ep = newHigh;
-                sar = sar + af * (ep - sar);
+                sar = (af as f64).mul_add(ep - sar, sar);
                 if sar > prevLow {
                     sar = prevLow;
                 }
@@ -215,7 +215,7 @@ impl Core {
                         af = optInMaximum;
                     }
                 }
-                sar = sar + af * (ep - sar);
+                sar = (af as f64).mul_add(ep - sar, sar);
                 if sar < prevHigh {
                     sar = prevHigh;
                 }
@@ -313,7 +313,7 @@ impl Core {
                     outIdx += 1;
                     af = optInAcceleration;
                     ep = newLow;
-                    sar = sar + af * (ep - sar);
+                    sar = (af as f64).mul_add(ep - sar, sar);
                     if sar < prevHigh {
                         sar = prevHigh;
                     }
@@ -330,7 +330,7 @@ impl Core {
                             af = optInMaximum;
                         }
                     }
-                    sar = sar + af * (ep - sar);
+                    sar = (af as f64).mul_add(ep - sar, sar);
                     if sar > prevLow {
                         sar = prevLow;
                     }
@@ -351,7 +351,7 @@ impl Core {
                 outIdx += 1;
                 af = optInAcceleration;
                 ep = newHigh;
-                sar = sar + af * (ep - sar);
+                sar = (af as f64).mul_add(ep - sar, sar);
                 if sar > prevLow {
                     sar = prevLow;
                 }
@@ -368,7 +368,7 @@ impl Core {
                         af = optInMaximum;
                     }
                 }
-                sar = sar + af * (ep - sar);
+                sar = (af as f64).mul_add(ep - sar, sar);
                 if sar < prevHigh {
                     sar = prevHigh;
                 }

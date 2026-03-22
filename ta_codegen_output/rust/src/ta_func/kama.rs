@@ -138,9 +138,9 @@ impl Core {
         } else {
             tempReal = (periodROC / sumROC1).abs();
         }
-        tempReal = tempReal * constDiff + constMax;
+        tempReal = (tempReal as f64).mul_add(constDiff, constMax);
         tempReal *= tempReal;
-        prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
+        prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         while today <= startIdx {
             tempReal = inReal[today];
             tempReal2 = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
@@ -153,9 +153,9 @@ impl Core {
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
-            tempReal = tempReal * constDiff + constMax;
+            tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         }
         outReal[0] = prevKAMA;
         outIdx = 1;
@@ -172,9 +172,9 @@ impl Core {
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
-            tempReal = tempReal * constDiff + constMax;
+            tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA as f64).mul_add(tempReal, prevKAMA);
             outReal[outIdx] = prevKAMA;
             outIdx += 1;
         }
@@ -238,9 +238,9 @@ impl Core {
         } else {
             tempReal = (periodROC / sumROC1).abs();
         }
-        tempReal = tempReal * constDiff + constMax;
+        tempReal = (tempReal as f64).mul_add(constDiff, constMax);
         tempReal *= tempReal;
-        prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA) * tempReal + prevKAMA;
+        prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         while today <= startIdx {
             tempReal = (*inReal.get_unchecked(today));
             tempReal2 = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
@@ -253,9 +253,9 @@ impl Core {
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
-            tempReal = tempReal * constDiff + constMax;
+            tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         }
         (*outReal.get_unchecked_mut(0)) = prevKAMA;
         outIdx = 1;
@@ -272,9 +272,9 @@ impl Core {
             } else {
                 tempReal = (periodROC / sumROC1).abs();
             }
-            tempReal = tempReal * constDiff + constMax;
+            tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA) * tempReal + prevKAMA;
+            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
             (*outReal.get_unchecked_mut(outIdx)) = prevKAMA;
             outIdx += 1;
         }

@@ -173,8 +173,8 @@ impl Core {
                 ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
             }
             today += 1;
-            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
-            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+            fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
+            slowEMA = (slowk as f64).mul_add(ad, one_minus_slowk * slowEMA);
         }
         outIdx = 0;
         while today <= endIdx {
@@ -186,8 +186,8 @@ impl Core {
                 ad += (close - low - (high - close)) / tmp * ((inVolume[today]) as f64);
             }
             today += 1;
-            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
-            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+            fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
+            slowEMA = (slowk as f64).mul_add(ad, one_minus_slowk * slowEMA);
             outReal[outIdx] = fastEMA - slowEMA;
             outIdx += 1;
         }
@@ -265,8 +265,8 @@ impl Core {
                 ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
             }
             today += 1;
-            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
-            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+            fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
+            slowEMA = (slowk as f64).mul_add(ad, one_minus_slowk * slowEMA);
         }
         outIdx = 0;
         while today <= endIdx {
@@ -278,8 +278,8 @@ impl Core {
                 ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
             }
             today += 1;
-            fastEMA = fastk * ad + one_minus_fastk * fastEMA;
-            slowEMA = slowk * ad + one_minus_slowk * slowEMA;
+            fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
+            slowEMA = (slowk as f64).mul_add(ad, one_minus_slowk * slowEMA);
             (*outReal.get_unchecked_mut(outIdx)) = fastEMA - slowEMA;
             outIdx += 1;
         }

@@ -3552,8 +3552,8 @@ fn rust_func_call_ta_candleaverage_renders_inline() {
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
-        rendered.contains("_cr") && rendered.contains("_avg"),
-        "ta_candleaverage should render with inline temp vars: {rendered}"
+        rendered.contains("match") && !rendered.contains("let _cr"),
+        "ta_candleaverage should render as single nested expression (no let bindings): {rendered}"
     );
 }
 

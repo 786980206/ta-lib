@@ -138,7 +138,7 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
             tempReal += e1;
             i -= 1;
         }
@@ -147,8 +147,8 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
             tempReal += e2;
             i -= 1;
         }
@@ -157,9 +157,9 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
             tempReal += e3;
             i -= 1;
         }
@@ -168,10 +168,10 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
             tempReal += e4;
             i -= 1;
         }
@@ -180,39 +180,39 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
             tempReal += e5;
             i -= 1;
         }
         e6 = tempReal / ((optInTimePeriod) as f64);
         while today <= startIdx {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
-            e6 = k * e5 + one_minus_k * e6;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
+            e6 = (k as f64).mul_add(e5, one_minus_k * e6);
         }
         tempReal = optInVFactor * optInVFactor;
         c1 = 0_f64 - tempReal * optInVFactor;
         c2 = 3.0 * (tempReal - c1);
         c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
-        c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
+        c4 = (3.0 as f64).mul_add(tempReal, (3.0 as f64).mul_add(optInVFactor, 1.0) - c1);
         outIdx = 0;
-        outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        outReal[outIdx] = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
         outIdx += 1;
         while today <= endIdx {
-            e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
-            e6 = k * e5 + one_minus_k * e6;
-            outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            e1 = (k as f64).mul_add(inReal[{ let _v = today; today += 1; _v }], one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
+            e6 = (k as f64).mul_add(e5, one_minus_k * e6);
+            outReal[outIdx] = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
             outIdx += 1;
         }
         (*outNBElement) = outIdx;
@@ -273,7 +273,7 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
             tempReal += e1;
             i -= 1;
         }
@@ -282,8 +282,8 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
             tempReal += e2;
             i -= 1;
         }
@@ -292,9 +292,9 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
             tempReal += e3;
             i -= 1;
         }
@@ -303,10 +303,10 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
             tempReal += e4;
             i -= 1;
         }
@@ -315,39 +315,39 @@ impl Core {
         // for( i = (optInTimePeriod - 1) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod - 1) as usize;
         while i > 0 {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
             tempReal += e5;
             i -= 1;
         }
         e6 = tempReal / ((optInTimePeriod) as f64);
         while today <= startIdx {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
-            e6 = k * e5 + one_minus_k * e6;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
+            e6 = (k as f64).mul_add(e5, one_minus_k * e6);
         }
         tempReal = optInVFactor * optInVFactor;
         c1 = 0_f64 - tempReal * optInVFactor;
         c2 = 3.0 * (tempReal - c1);
         c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
-        c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
+        c4 = (3.0 as f64).mul_add(tempReal, (3.0 as f64).mul_add(optInVFactor, 1.0) - c1);
         outIdx = 0;
-        (*outReal.get_unchecked_mut(outIdx)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        (*outReal.get_unchecked_mut(outIdx)) = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
         outIdx += 1;
         while today <= endIdx {
-            e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
-            e2 = k * e1 + one_minus_k * e2;
-            e3 = k * e2 + one_minus_k * e3;
-            e4 = k * e3 + one_minus_k * e4;
-            e5 = k * e4 + one_minus_k * e5;
-            e6 = k * e5 + one_minus_k * e6;
-            (*outReal.get_unchecked_mut(outIdx)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            e1 = (k as f64).mul_add((*inReal.get_unchecked({ let _v = today; today += 1; _v })), one_minus_k * e1);
+            e2 = (k as f64).mul_add(e1, one_minus_k * e2);
+            e3 = (k as f64).mul_add(e2, one_minus_k * e3);
+            e4 = (k as f64).mul_add(e3, one_minus_k * e4);
+            e5 = (k as f64).mul_add(e4, one_minus_k * e5);
+            e6 = (k as f64).mul_add(e5, one_minus_k * e6);
+            (*outReal.get_unchecked_mut(outIdx)) = (c4 as f64).mul_add(e3, (c3 as f64).mul_add(e4, (c1 as f64).mul_add(e6, c2 * e5)));
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

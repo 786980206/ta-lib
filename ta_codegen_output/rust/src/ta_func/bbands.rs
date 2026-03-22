@@ -225,7 +225,7 @@ impl Core {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
                 outRealLowerBand[i] = tempReal2 - tempReal;
-                outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+                outRealUpperBand[i] = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
                 i += 1;
             }
         } else {
@@ -234,7 +234,7 @@ impl Core {
             while i < ((((*outNBElement)) as usize)) as usize {
                 tempReal = tempBuffer2[i];
                 tempReal2 = outRealMiddleBand[i];
-                outRealUpperBand[i] = tempReal2 + tempReal * optInNbDevUp;
+                outRealUpperBand[i] = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
                 outRealLowerBand[i] = tempReal2 - tempReal * optInNbDevDn;
                 i += 1;
             }
@@ -379,7 +379,7 @@ impl Core {
                 tempReal = (*tempBuffer2.get_unchecked(i));
                 tempReal2 = (*outRealMiddleBand.get_unchecked(i));
                 (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal;
-                (*outRealUpperBand.get_unchecked_mut(i)) = tempReal2 + tempReal * optInNbDevUp;
+                (*outRealUpperBand.get_unchecked_mut(i)) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
                 i += 1;
             }
         } else {
@@ -388,7 +388,7 @@ impl Core {
             while i < ((((*outNBElement)) as usize)) as usize {
                 tempReal = (*tempBuffer2.get_unchecked(i));
                 tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                (*outRealUpperBand.get_unchecked_mut(i)) = tempReal2 + tempReal * optInNbDevUp;
+                (*outRealUpperBand.get_unchecked_mut(i)) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
                 (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal * optInNbDevDn;
                 i += 1;
             }

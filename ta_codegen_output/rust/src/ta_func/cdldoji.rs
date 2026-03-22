@@ -135,7 +135,7 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            if (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
+            if (inClose[i] - inOpen[i]).abs() <= ((BodyDoji_factor) * (if (BodyDoji_avgPeriod) != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => (inHigh[i]) - (inLow[i]), _ => (inHigh[i]) - (inLow[i]) - ((inClose[i]) - (inOpen[i])).abs() } }) / (if (BodyDoji_rangeType) == 2 { 2.0 } else { 1.0 })) {
                 outInteger[outIdx] = 100;
                 outIdx += 1;
             } else {
@@ -239,7 +239,7 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            if ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() <= { let _cr = match BodyDoji_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
+            if ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() <= ((BodyDoji_factor) * (if (BodyDoji_avgPeriod) != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { match BodyDoji_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => ((*inHigh.get_unchecked(i))) - ((*inLow.get_unchecked(i))), _ => ((*inHigh.get_unchecked(i))) - ((*inLow.get_unchecked(i))) - (((*inClose.get_unchecked(i))) - ((*inOpen.get_unchecked(i)))).abs() } }) / (if (BodyDoji_rangeType) == 2 { 2.0 } else { 1.0 })) {
                 (*outInteger.get_unchecked_mut(outIdx)) = 100;
                 outIdx += 1;
             } else {

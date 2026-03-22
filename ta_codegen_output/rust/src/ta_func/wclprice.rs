@@ -87,7 +87,7 @@ impl Core {
         let mut i: usize = 0_usize;
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
-            outReal[outIdx] = (((inHigh[i] + inLow[i] + inClose[i] * 2.0) / 4.0) as f64);
+            outReal[outIdx] = ((((inClose[i] as f64).mul_add(2.0, inHigh[i] + inLow[i])) / 4.0) as f64);
             outIdx += 1;
         }
         i = (endIdx as usize) + 1;
@@ -112,7 +112,7 @@ impl Core {
         unsafe {
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
-            (*outReal.get_unchecked_mut(outIdx)) = ((((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i)) * 2.0) / 4.0) as f64);
+            (*outReal.get_unchecked_mut(outIdx)) = (((((*inClose.get_unchecked(i)) as f64).mul_add(2.0, (*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)))) / 4.0) as f64);
             outIdx += 1;
         }
         i = (endIdx as usize) + 1;

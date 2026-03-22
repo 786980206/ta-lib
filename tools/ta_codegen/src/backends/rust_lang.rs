@@ -2582,6 +2582,21 @@ fn render_condition(
 }
 
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+/// Check if an expression is definitely integer-typed (conservative — only triggers on
+/// known integer variables, not heuristics). Used to gate mul_add emission.
+fn is_definitely_integer(expr: &Expr, ctx: &RustRenderCtx) -> bool {
+    match expr {
+        Expr::Var(name) => {
+            ctx.index_vars.contains(name)
+                || ctx.sentinel_vars.contains(name)
+                || ctx.int_output_names.contains(name)
+        }
+        Expr::IntLiteral(_) => false, // literals coerce to f64 in float context
+        Expr::BinOp(a, _, b) => is_definitely_integer(a, ctx) || is_definitely_integer(b, ctx),
+        _ => false,
+    }
+}
+
 fn render_expr(
     expr: &Expr,
     ctx: &RustRenderCtx,
@@ -2636,6 +2651,34 @@ fn render_expr(
             render_func_call(fname, args, ctx, opt_real_params, registry, helpers)
         }
         Expr::BinOp(left, op, right) => {
+            // Fused multiply-add: (a * b) + c → a.mul_add(b, c)
+            // Emits ARM fmadd (1 FP op, 4 cycles) vs fmul+fadd (2 FP ops, 8 cycles).
+            // Only for f64 operands (not integer arithmetic).
+            // Fused multiply-add: (a * b) + c → (a as f64).mul_add(b, c)
+            // Emits ARM fmadd (1 FP op) vs fmul+fadd (2 FP ops).
+            // Only when BOTH multiply operands are float (not i32 * f64 patterns).
+            if matches!(op, BinOp::Add) {
+                if let Expr::BinOp(a, BinOp::Mul, b) = left.as_ref() {
+                    let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
+                    let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
+                    if a_ok && b_ok {
+                        let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
+                        let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
+                        let c_str = render_expr(right, ctx, opt_real_params, registry, helpers);
+                        return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
+                    }
+                }
+                if let Expr::BinOp(a, BinOp::Mul, b) = right.as_ref() {
+                    let a_ok = expr_is_float_typed_ctx(a, Some(ctx)) && !is_definitely_integer(a, ctx);
+                    let b_ok = expr_is_float_typed_ctx(b, Some(ctx)) && !is_definitely_integer(b, ctx);
+                    if a_ok && b_ok {
+                        let a_str = render_expr(a, ctx, opt_real_params, registry, helpers);
+                        let b_str = render_expr(b, ctx, opt_real_params, registry, helpers);
+                        let c_str = render_expr(left, ctx, opt_real_params, registry, helpers);
+                        return format!("({a_str} as f64).mul_add({b_str}, {c_str})");
+                    }
+                }
+            }
             let op_str = match op {
                 BinOp::Add => " + ",
                 BinOp::Sub => " - ",
@@ -3614,18 +3657,19 @@ fn render_func_call(
             "(match {rt} {{ 0 => ({close} - {open}).abs(), 1 => {high} - {low}, _ => {high} - {low} - ({close} - {open}).abs() }})"
         )
     } else if fname == "ta_candleaverage" && args.len() == 8 {
-        // Inline the full method body — all branches present, no constant propagation.
+        // Inline as a single nested expression (no let bindings) matching C's ternary structure.
+        // This enables LLVM loop unswitching on the invariant rangeType checks.
         // ta_candleaverage(rangeType, avgPeriod, factor, sum, open, high, low, close)
         let r: Vec<String> = args.iter()
             .map(|a| render_expr(a, ctx, opt_real_params, registry, helpers))
             .collect();
         let (rt, ap, factor, sum) = (&r[0], &r[1], &r[2], &r[3]);
         let (open, high, low, close) = (&r[4], &r[5], &r[6], &r[7]);
+        // Single expression: factor * (if ap!=0 { sum/ap } else { candlerange }) / (if rt==2 { 2.0 } else { 1.0 })
         format!(
-            "{{ let _cr = match {rt} {{ 0 => ({close} - {open}).abs(), 1 => {high} - {low}, _ => {high} - {low} - ({close} - {open}).abs() }}; \
-             let _avg = if {ap} != 0 {{ ({sum}) / ({ap} as f64) }} else {{ _cr }}; \
-             let _div = if {rt} == 2 {{ 2.0 }} else {{ 1.0 }}; \
-             ({factor}) * _avg / _div }}"
+            "(({factor}) * (if ({ap}) != 0 {{ ({sum}) / ({ap} as f64) }} else {{ \
+             match {rt} {{ 0 => ({close} - {open}).abs(), 1 => ({high}) - ({low}), _ => ({high}) - ({low}) - (({close}) - ({open})).abs() }} \
+             }}) / (if ({rt}) == 2 {{ 2.0 }} else {{ 1.0 }}))"
         )
     } else if registry.contains(fname) {
         // In unguarded context, route to _unguarded to avoid re-validation + use get_unchecked.
