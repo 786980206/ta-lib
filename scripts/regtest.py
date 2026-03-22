@@ -142,7 +142,7 @@ def main():
             include_dir = os.path.join(root, "include")
             ta_common_dir = os.path.join(c_out, "ta_common")
             rc_ref = subprocess.run([
-                "cc", "-O3", "-DNDEBUG", "-Wno-everything",
+                "cc", "-O3", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
                 f"-I{c_out}",
                 f"-I{include_dir}",
                 f"-I{ta_common_dir}",
