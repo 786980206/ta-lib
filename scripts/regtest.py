@@ -100,18 +100,19 @@ def main():
                            check=True, cwd=build_dir)
         print("=== Building ta_regtest + ta_bench ===")
         subprocess.run(["cmake", "--build", ".", "--target",
-                        "ensure_ta_regtest_in_bin", "ta_bench", "-j", jobs],
+                        "ensure_ta_regtest_in_bin", "ta_bench", "ta_bench_direct",
+                        "-j", jobs],
                        check=True, cwd=build_dir)
-        src = os.path.join(build_dir, "bin", "ta_bench")
-        dst = os.path.join(bin_dir, "ta_bench")
-        if os.path.exists(src):
-            # Handle "Text file busy" if the binary is still running
-            try:
-                shutil.copy2(src, dst)
-            except OSError:
-                if os.path.exists(dst):
-                    os.remove(dst)
-                shutil.copy2(src, dst)
+        for name in ("ta_bench", "ta_bench_direct"):
+            src = os.path.join(build_dir, "bin", name)
+            dst = os.path.join(bin_dir, name)
+            if os.path.exists(src):
+                try:
+                    shutil.copy2(src, dst)
+                except OSError:
+                    if os.path.exists(dst):
+                        os.remove(dst)
+                    shutil.copy2(src, dst)
 
         # Rebuild ta_ref_serve against the fresh libta-lib.a
         # (statically linked, must be rebuilt whenever the library changes)
@@ -144,7 +145,7 @@ def main():
             include_dir = os.path.join(root, "include")
             ta_common_dir = os.path.join(c_out, "ta_common")
             rc_ref = subprocess.run([
-                "cc", "-O3", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
+                "cc", "-O3", "-flto", "-DNDEBUG", "-DTA_REF_SERVE", "-Wno-everything",
                 f"-I{c_out}",
                 f"-I{include_dir}",
                 f"-I{ta_common_dir}",
@@ -164,12 +165,18 @@ def main():
             cmd.append(f"--function={func_filter}")
         subprocess.run(cmd, check=True, cwd=codegen_dir)
 
-    # 3. generate servers
+    # 3a. generate servers
     if not no_gen_srv:
         print("\n=== Regenerating server files ===")
         cmd = ["cargo", "run", "--release", "--", "generate-servers"]
         if lang_filter:
             cmd.append(f"--backend={lang_filter}")
+        subprocess.run(cmd, check=True, cwd=codegen_dir)
+
+    # 3b. generate bench binary source
+    if not no_gen_srv:
+        print("\n=== Regenerating bench binary ===")
+        cmd = ["cargo", "run", "--release", "--", "generate-bench", "--backend=c"]
         subprocess.run(cmd, check=True, cwd=codegen_dir)
 
     # 4. compile servers (only if something was regenerated)

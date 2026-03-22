@@ -502,6 +502,7 @@ fn build_servers(backend_filter: Option<&str>) {
                         &format!("-I{}", ta_common_dir.to_str().unwrap()),
                         "-lm",
                         "-O3",
+                        "-flto",
                         "-DNDEBUG",
                         "-Wno-parentheses-equality",
                     ])
@@ -529,6 +530,7 @@ fn build_servers(backend_filter: Option<&str>) {
                             &format!("-I{}", ta_common_dir.to_str().unwrap()),
                             "-lm",
                             "-O3",
+                            "-flto",
                             "-DNDEBUG",
                             "-Wno-parentheses-equality",
                         ])
@@ -722,6 +724,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         format!("-I{}", ta_common_dir.to_str().unwrap()),
         "-lm".to_string(),
         "-O3".to_string(),
+        "-flto".to_string(),
         "-DNDEBUG".to_string(),
         "-Wno-parentheses-equality".to_string(),
     ];
