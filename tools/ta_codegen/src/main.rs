@@ -907,6 +907,14 @@ codegen-units = 1
     std::fs::write(&cargo_path, cargo_toml).unwrap();
     println!("  Scaffolding -> {}", cargo_path.display());
 
+    // --- .cargo/config.toml ---
+    let cargo_config_dir = rust_dir.join(".cargo");
+    std::fs::create_dir_all(&cargo_config_dir).unwrap();
+    let cargo_config = r#"[build]
+rustflags = ["-C", "target-cpu=native"]
+"#;
+    std::fs::write(cargo_config_dir.join("config.toml"), cargo_config).unwrap();
+
     // --- src/lib.rs ---
     let lib_rs = r#"#![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens, arithmetic_overflow)]
 pub mod ta_func;
