@@ -11,7 +11,12 @@
 #include <mach/mach_time.h>
 #endif
 
-#include "ta_lib_globals.c"
+#include "ta_func_unguarded.h"
+
+#include "ta_common/ta_global.c"
+#include "ta_common/ta_utility.c"
+#include "ta_common/ta_version.c"
+#include "ta_common/ta_retcode.c"
 
 #include "ta_ACCBANDS.c"
 #include "ta_ACOS.c"
@@ -138,12 +143,10 @@
 #include "ta_MOM.c"
 #include "ta_MULT.c"
 #include "ta_NATR.c"
-#include "ta_NVI.c"
 #include "ta_OBV.c"
 #include "ta_PLUS_DI.c"
 #include "ta_PLUS_DM.c"
 #include "ta_PPO.c"
-#include "ta_PVI.c"
 #include "ta_ROC.c"
 #include "ta_ROCP.c"
 #include "ta_ROCR.c"
@@ -2129,21 +2132,6 @@ static void bench_all(const char *filter, int iters) {
         printf("NATR %lld\n", best / iters);
         fflush(stdout);
     }
-    if( func_matches(filter, "NVI") ) {
-        long long best = 0;
-        for( int pass = 0; pass < 3; pass++ ) {
-            int outBegIdx, outNBElement;
-            long long t0 = get_nanotime();
-            for( int it = 0; it < iters; it++ ) {
-                TA_NVI(0, g_nPoints - 1, g_close, g_volume, &outBegIdx, &outNBElement, g_outBuf0);
-            }
-            long long elapsed = get_nanotime() - t0;
-            if( !best || elapsed < best ) best = elapsed;
-            g_sink += outNBElement;
-        }
-        printf("NVI %lld\n", best / iters);
-        fflush(stdout);
-    }
     if( func_matches(filter, "OBV") ) {
         long long best = 0;
         for( int pass = 0; pass < 3; pass++ ) {
@@ -2202,21 +2190,6 @@ static void bench_all(const char *filter, int iters) {
             g_sink += outNBElement;
         }
         printf("PPO %lld\n", best / iters);
-        fflush(stdout);
-    }
-    if( func_matches(filter, "PVI") ) {
-        long long best = 0;
-        for( int pass = 0; pass < 3; pass++ ) {
-            int outBegIdx, outNBElement;
-            long long t0 = get_nanotime();
-            for( int it = 0; it < iters; it++ ) {
-                TA_PVI(0, g_nPoints - 1, g_close, g_volume, &outBegIdx, &outNBElement, g_outBuf0);
-            }
-            long long elapsed = get_nanotime() - t0;
-            if( !best || elapsed < best ) best = elapsed;
-            g_sink += outNBElement;
-        }
-        printf("PVI %lld\n", best / iters);
         fflush(stdout);
     }
     if( func_matches(filter, "ROC") ) {
@@ -2688,6 +2661,7 @@ static void bench_all(const char *filter, int iters) {
 
 
 int main(int argc, char *argv[]) {
+    TA_Initialize();
     int n_points = 100000;
     int n_iters = 200;
     const char *func_filter = NULL;

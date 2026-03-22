@@ -34,6 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include "ta_func.h"
+#include "ta_utility.h"
+#include "ta_memory.h"
 
 TA_LIB_API int TA_PPO_Lookback( int optInFastPeriod, int optInSlowPeriod, TA_MAType optInMAType )
 {
@@ -321,4 +323,6 @@ TA_RetCode TA_S_PPO_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+#define TA_S_INT_PPO TA_S_PPO_Unguarded
 

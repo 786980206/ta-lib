@@ -20,6 +20,7 @@ optional_inputs:
     hint: Deviation multiplier for upper band
     range: [TA_REAL_MIN, TA_REAL_MAX]
     default: 2
+    precision: 2
     suggested: [-2, 2, 0.2]
   - name: optInNbDevDn
     type: real
@@ -27,6 +28,7 @@ optional_inputs:
     hint: Deviation multiplier for lower band
     range: [TA_REAL_MIN, TA_REAL_MAX]
     default: 2
+    precision: 2
     suggested: [-2, 2, 0.2]
   - name: optInMAType
     type: enum:MAType

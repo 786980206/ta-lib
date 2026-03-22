@@ -11,7 +11,12 @@
 #include <mach/mach_time.h>
 #endif
 
-#include "ta_lib_globals.c"
+#include "ta_func_unguarded.h"
+
+#include "ta_common/ta_global.c"
+#include "ta_common/ta_utility.c"
+#include "ta_common/ta_version.c"
+#include "ta_common/ta_retcode.c"
 
 #include "ta_func/ta_ACCBANDS.c"
 #include "ta_func/ta_ACOS.c"
@@ -138,12 +143,10 @@
 #include "ta_func/ta_MOM.c"
 #include "ta_func/ta_MULT.c"
 #include "ta_func/ta_NATR.c"
-#include "ta_func/ta_NVI.c"
 #include "ta_func/ta_OBV.c"
 #include "ta_func/ta_PLUS_DI.c"
 #include "ta_func/ta_PLUS_DM.c"
 #include "ta_func/ta_PPO.c"
-#include "ta_func/ta_PVI.c"
 #include "ta_func/ta_ROC.c"
 #include "ta_func/ta_ROCP.c"
 #include "ta_func/ta_ROCR.c"
@@ -706,7 +709,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -1096,7 +1099,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInNbDevUp = json_find_double(json, "optInNbDevUp");
         double optInNbDevDn = json_find_double(json, "optInNbDevDn");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -5639,7 +5642,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
         }
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -5744,11 +5747,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             json_find_double_array(json, "inReal", g_inBuf0, MAX_ARRAY_SIZE);
         }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
-        int optInFastMAType = json_find_int(json, "optInFastMAType");
+        TA_MAType optInFastMAType = (TA_MAType)json_find_int(json, "optInFastMAType");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInSlowMAType = json_find_int(json, "optInSlowMAType");
+        TA_MAType optInSlowMAType = (TA_MAType)json_find_int(json, "optInSlowMAType");
         int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
-        int optInSignalMAType = json_find_int(json, "optInSignalMAType");
+        TA_MAType optInSignalMAType = (TA_MAType)json_find_int(json, "optInSignalMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -5913,7 +5916,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         int optInMinPeriod = json_find_int(json, "optInMinPeriod");
         int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -6681,52 +6684,6 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
         pos += snprintf(resp + pos, resp_size - pos, ",\"timing_ns_unguarded\":%ld}", elapsed_ns_ung);
     }
-    else if ( methodLen == 6 && strncmp(method, "TA_NVI", 6) == 0 ) {
-        int startIdx = json_find_int(json, "startIdx");
-        int endIdx = json_find_int(json, "endIdx");
-        int use_preloaded = json_find_int(json, "use_preloaded");
-        if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 1);
-        } else {
-            json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
-            json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
-        }
-        int outBegIdx = 0, outNBElement = 0;
-        int bench_iters = json_find_int(json, "iters");
-        if( bench_iters < 1 ) bench_iters = 1;
-        TA_RetCode rc = 0;
-        if( use_preloaded ) {
-            preload_to_working(2, 1);
-        }
-        long _t0 = get_nanotime();
-        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-        rc = TA_NVI(
-            startIdx, endIdx,
-            g_inBuf0,
-            g_inBuf1,
-            &outBegIdx, &outNBElement, g_outBuf0);
-        }
-        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
-#ifndef TA_REF_SERVE
-        long _t0_ung = get_nanotime();
-        for( int _biu = 0; _biu < bench_iters; _biu++ ) {
-        rc = TA_NVI_Unguarded(
-            startIdx, endIdx,
-            g_inBuf0,
-            g_inBuf1,
-            &outBegIdx, &outNBElement, g_outBuf0);
-        }
-        long elapsed_ns_ung = (get_nanotime() - _t0_ung) / bench_iters;
-#else
-        long elapsed_ns_ung = 0;
-#endif /* TA_REF_SERVE */
-        int pos = snprintf(resp, resp_size,
-            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
-            (int)rc, outBegIdx, outNBElement, elapsed_ns);
-        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
-        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
-        pos += snprintf(resp + pos, resp_size - pos, ",\"timing_ns_unguarded\":%ld}", elapsed_ns_ung);
-    }
     else if ( methodLen == 6 && strncmp(method, "TA_OBV", 6) == 0 ) {
         int startIdx = json_find_int(json, "startIdx");
         int endIdx = json_find_int(json, "endIdx");
@@ -6887,7 +6844,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -6915,52 +6872,6 @@ static void handle_request(const char *json, char *resp, int resp_size) {
             optInFastPeriod,
             optInSlowPeriod,
             optInMAType,
-            &outBegIdx, &outNBElement, g_outBuf0);
-        }
-        long elapsed_ns_ung = (get_nanotime() - _t0_ung) / bench_iters;
-#else
-        long elapsed_ns_ung = 0;
-#endif /* TA_REF_SERVE */
-        int pos = snprintf(resp, resp_size,
-            "{\"retCode\":%d,\"outBegIdx\":%d,\"outNBElement\":%d,\"timing_ns\":%ld",
-            (int)rc, outBegIdx, outNBElement, elapsed_ns);
-        pos += snprintf(resp + pos, resp_size - pos, ",\"outReal\":");
-        pos += json_write_double_array(resp + pos, resp_size - pos, g_outBuf0, outNBElement);
-        pos += snprintf(resp + pos, resp_size - pos, ",\"timing_ns_unguarded\":%ld}", elapsed_ns_ung);
-    }
-    else if ( methodLen == 6 && strncmp(method, "TA_PVI", 6) == 0 ) {
-        int startIdx = json_find_int(json, "startIdx");
-        int endIdx = json_find_int(json, "endIdx");
-        int use_preloaded = json_find_int(json, "use_preloaded");
-        if( use_preloaded && g_refN > 0 ) {
-            preload_to_working(2, 1);
-        } else {
-            json_find_double_array(json, "inClose", g_inBuf0, MAX_ARRAY_SIZE);
-            json_find_double_array(json, "inVolume", g_inBuf1, MAX_ARRAY_SIZE);
-        }
-        int outBegIdx = 0, outNBElement = 0;
-        int bench_iters = json_find_int(json, "iters");
-        if( bench_iters < 1 ) bench_iters = 1;
-        TA_RetCode rc = 0;
-        if( use_preloaded ) {
-            preload_to_working(2, 1);
-        }
-        long _t0 = get_nanotime();
-        for( int _bi = 0; _bi < bench_iters; _bi++ ) {
-        rc = TA_PVI(
-            startIdx, endIdx,
-            g_inBuf0,
-            g_inBuf1,
-            &outBegIdx, &outNBElement, g_outBuf0);
-        }
-        long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
-#ifndef TA_REF_SERVE
-        long _t0_ung = get_nanotime();
-        for( int _biu = 0; _biu < bench_iters; _biu++ ) {
-        rc = TA_PVI_Unguarded(
-            startIdx, endIdx,
-            g_inBuf0,
-            g_inBuf1,
             &outBegIdx, &outNBElement, g_outBuf0);
         }
         long elapsed_ns_ung = (get_nanotime() - _t0_ung) / bench_iters;
@@ -7564,9 +7475,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInSlowK_Period = json_find_int(json, "optInSlowK_Period");
-        int optInSlowK_MAType = json_find_int(json, "optInSlowK_MAType");
+        TA_MAType optInSlowK_MAType = (TA_MAType)json_find_int(json, "optInSlowK_MAType");
         int optInSlowD_Period = json_find_int(json, "optInSlowD_Period");
-        int optInSlowD_MAType = json_find_int(json, "optInSlowD_MAType");
+        TA_MAType optInSlowD_MAType = (TA_MAType)json_find_int(json, "optInSlowD_MAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -7630,7 +7541,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
-        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        TA_MAType optInFastD_MAType = (TA_MAType)json_find_int(json, "optInFastD_MAType");
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
         if( bench_iters < 1 ) bench_iters = 1;
@@ -7689,7 +7600,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
-        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        TA_MAType optInFastD_MAType = (TA_MAType)json_find_int(json, "optInFastD_MAType");
         TA_SetUnstablePeriod(22, json_find_int(json, "unstablePeriod"));
         int outBegIdx = 0, outNBElement = 0;
         int bench_iters = json_find_int(json, "iters");
@@ -8542,7 +8453,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_APO_Lookback", 15) == 0 ) {
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int lookback = TA_APO_Lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -8590,7 +8501,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         double optInNbDevUp = json_find_double(json, "optInNbDevUp");
         double optInNbDevDn = json_find_double(json, "optInNbDevDn");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int lookback = TA_BBANDS_Lookback(optInTimePeriod, optInNbDevUp, optInNbDevDn, optInMAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9062,7 +8973,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     }
     else if ( methodLen == 14 && strncmp(method, "TA_MA_Lookback", 14) == 0 ) {
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int lookback = TA_MA_Lookback(optInTimePeriod, optInMAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9077,11 +8988,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     }
     else if ( methodLen == 19 && strncmp(method, "TA_MACDEXT_Lookback", 19) == 0 ) {
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
-        int optInFastMAType = json_find_int(json, "optInFastMAType");
+        TA_MAType optInFastMAType = (TA_MAType)json_find_int(json, "optInFastMAType");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInSlowMAType = json_find_int(json, "optInSlowMAType");
+        TA_MAType optInSlowMAType = (TA_MAType)json_find_int(json, "optInSlowMAType");
         int optInSignalPeriod = json_find_int(json, "optInSignalPeriod");
-        int optInSignalMAType = json_find_int(json, "optInSignalMAType");
+        TA_MAType optInSignalMAType = (TA_MAType)json_find_int(json, "optInSignalMAType");
         int lookback = TA_MACDEXT_Lookback(optInFastPeriod, optInFastMAType, optInSlowPeriod, optInSlowMAType, optInSignalPeriod, optInSignalMAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9102,7 +9013,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 16 && strncmp(method, "TA_MAVP_Lookback", 16) == 0 ) {
         int optInMinPeriod = json_find_int(json, "optInMinPeriod");
         int optInMaxPeriod = json_find_int(json, "optInMaxPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int lookback = TA_MAVP_Lookback(optInMinPeriod, optInMaxPeriod, optInMAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9195,11 +9106,6 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
     }
-    else if ( methodLen == 15 && strncmp(method, "TA_NVI_Lookback", 15) == 0 ) {
-        int lookback = TA_NVI_Lookback();
-        snprintf(resp, resp_size,
-            "{\"lookback\":%d}", lookback);
-    }
     else if ( methodLen == 15 && strncmp(method, "TA_OBV_Lookback", 15) == 0 ) {
         int lookback = TA_OBV_Lookback();
         snprintf(resp, resp_size,
@@ -9220,13 +9126,8 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 15 && strncmp(method, "TA_PPO_Lookback", 15) == 0 ) {
         int optInFastPeriod = json_find_int(json, "optInFastPeriod");
         int optInSlowPeriod = json_find_int(json, "optInSlowPeriod");
-        int optInMAType = json_find_int(json, "optInMAType");
+        TA_MAType optInMAType = (TA_MAType)json_find_int(json, "optInMAType");
         int lookback = TA_PPO_Lookback(optInFastPeriod, optInSlowPeriod, optInMAType);
-        snprintf(resp, resp_size,
-            "{\"lookback\":%d}", lookback);
-    }
-    else if ( methodLen == 15 && strncmp(method, "TA_PVI_Lookback", 15) == 0 ) {
-        int lookback = TA_PVI_Lookback();
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
     }
@@ -9311,9 +9212,9 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 17 && strncmp(method, "TA_STOCH_Lookback", 17) == 0 ) {
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInSlowK_Period = json_find_int(json, "optInSlowK_Period");
-        int optInSlowK_MAType = json_find_int(json, "optInSlowK_MAType");
+        TA_MAType optInSlowK_MAType = (TA_MAType)json_find_int(json, "optInSlowK_MAType");
         int optInSlowD_Period = json_find_int(json, "optInSlowD_Period");
-        int optInSlowD_MAType = json_find_int(json, "optInSlowD_MAType");
+        TA_MAType optInSlowD_MAType = (TA_MAType)json_find_int(json, "optInSlowD_MAType");
         int lookback = TA_STOCH_Lookback(optInFastK_Period, optInSlowK_Period, optInSlowK_MAType, optInSlowD_Period, optInSlowD_MAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9321,7 +9222,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 18 && strncmp(method, "TA_STOCHF_Lookback", 18) == 0 ) {
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
-        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        TA_MAType optInFastD_MAType = (TA_MAType)json_find_int(json, "optInFastD_MAType");
         int lookback = TA_STOCHF_Lookback(optInFastK_Period, optInFastD_Period, optInFastD_MAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9330,7 +9231,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int optInTimePeriod = json_find_int(json, "optInTimePeriod");
         int optInFastK_Period = json_find_int(json, "optInFastK_Period");
         int optInFastD_Period = json_find_int(json, "optInFastD_Period");
-        int optInFastD_MAType = json_find_int(json, "optInFastD_MAType");
+        TA_MAType optInFastD_MAType = (TA_MAType)json_find_int(json, "optInFastD_MAType");
         int lookback = TA_STOCHRSI_Lookback(optInTimePeriod, optInFastK_Period, optInFastD_Period, optInFastD_MAType);
         snprintf(resp, resp_size,
             "{\"lookback\":%d}", lookback);
@@ -9557,12 +9458,10 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MOM\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_MULT\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_NATR\"");
-        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_NVI\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_OBV\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PLUS_DI\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PLUS_DM\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PPO\"");
-        pos += snprintf(resp + pos, resp_size - pos, ",\"TA_PVI\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROC\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROCP\"");
         pos += snprintf(resp + pos, resp_size - pos, ",\"TA_ROCR\"");
@@ -9599,7 +9498,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
     else if ( methodLen == 19 && strncmp(method, "set_unstable_period", 19) == 0 ) {
         int id = json_find_int(json, "id");
         int period = json_find_int(json, "period");
-        TA_SetUnstablePeriod(id, period);
+        TA_SetUnstablePeriod((TA_FuncUnstId)id, (unsigned int)period);
         snprintf(resp, resp_size, "{\"status\":\"ok\"}");
     }
     else {
@@ -9609,6 +9508,7 @@ static void handle_request(const char *json, char *resp, int resp_size) {
 }
 
 int main(void) {
+    TA_Initialize();
     static char line[16*1024*1024];
     static char response[16*1024*1024];
     while( fgets(line, sizeof(line), stdin) ) {

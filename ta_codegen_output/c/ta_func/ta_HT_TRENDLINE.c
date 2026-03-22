@@ -34,6 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include "ta_func.h"
+#include "ta_utility.h"
+#include "ta_memory.h"
 
 TA_LIB_API int TA_HT_TRENDLINE_Lookback( void )
 {
@@ -1397,4 +1399,6 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+#define TA_S_INT_HT_TRENDLINE TA_S_HT_TRENDLINE_Unguarded
 

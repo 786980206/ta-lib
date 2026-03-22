@@ -34,6 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include "ta_func.h"
+#include "ta_utility.h"
+#include "ta_memory.h"
 
 TA_LIB_API int TA_AVGDEV_Lookback( int optInTimePeriod )
 {
@@ -273,4 +275,6 @@ TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+#define TA_S_INT_AVGDEV TA_S_AVGDEV_Unguarded
 

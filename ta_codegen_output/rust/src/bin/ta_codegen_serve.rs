@@ -7774,59 +7774,6 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
             resp.to_string()
         }
-        "TA_NVI" => {
-            let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
-            let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
-            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut _json_inClose: Vec<f64> = Vec::new();
-            let mut _json_inVolume: Vec<f64> = Vec::new();
-            let inClose: &[f64];
-            let inVolume: &[f64];
-            if use_preloaded != 0 && ref_data.n > 0 {
-                inClose = &ref_data.close[..ref_data.n];
-                inVolume = &ref_data.volume[..ref_data.n];
-            } else {
-                _json_inClose = parse_f64_array(&params["inClose"]);
-                inClose = &_json_inClose;
-                _json_inVolume = parse_f64_array(&params["inVolume"]);
-                inVolume = &_json_inVolume;
-            }
-            let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
-            let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
-            let mut outBegIdx: usize = 0;
-            let mut outNBElement: usize = 0;
-            let mut rc = RetCode::Success;
-            let start_time = Instant::now();
-            for _bi in 0..bench_iters {
-            rc = core.nvi(
-                startIdx, endIdx,
-                &inClose,
-                &inVolume,
-                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
-            );
-            }
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let start_time_ung = Instant::now();
-            for _biu in 0..bench_iters {
-            rc = core.nvi_unguarded(
-                startIdx, endIdx,
-                &inClose,
-                &inVolume,
-                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
-            );
-            }
-            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
-        }
         "TA_OBV" => {
             let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
             let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
@@ -8046,59 +7993,6 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
                 optInFastPeriod,
                 optInSlowPeriod,
                 optInMAType,
-                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
-            );
-            }
-            let elapsed_ns_ung = start_time_ung.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let mut resp = serde_json::json!({
-                "retCode": retcode_to_int(rc),
-                "outBegIdx": outBegIdx,
-                "outNBElement": outNBElement,
-                "timing_ns": elapsed_ns,
-                "timing_ns_unguarded": elapsed_ns_ung,
-            });
-            resp["outReal"] = serde_json::json!(&outBuf0[..outNBElement]);
-            resp.to_string()
-        }
-        "TA_PVI" => {
-            let startIdx = params["startIdx"].as_u64().unwrap_or(0) as usize;
-            let endIdx = params["endIdx"].as_u64().unwrap_or(0) as usize;
-            let use_preloaded = params["use_preloaded"].as_i64().unwrap_or(0);
-            let bench_iters = std::cmp::max(1, params["iters"].as_i64().unwrap_or(1)) as u64;
-            let mut _json_inClose: Vec<f64> = Vec::new();
-            let mut _json_inVolume: Vec<f64> = Vec::new();
-            let inClose: &[f64];
-            let inVolume: &[f64];
-            if use_preloaded != 0 && ref_data.n > 0 {
-                inClose = &ref_data.close[..ref_data.n];
-                inVolume = &ref_data.volume[..ref_data.n];
-            } else {
-                _json_inClose = parse_f64_array(&params["inClose"]);
-                inClose = &_json_inClose;
-                _json_inVolume = parse_f64_array(&params["inVolume"]);
-                inVolume = &_json_inVolume;
-            }
-            let out_size = if endIdx >= startIdx { endIdx - startIdx + 1 } else { 0 };
-            let mut outBuf0: Vec<f64> = vec![0.0f64; out_size];
-            let mut outBegIdx: usize = 0;
-            let mut outNBElement: usize = 0;
-            let mut rc = RetCode::Success;
-            let start_time = Instant::now();
-            for _bi in 0..bench_iters {
-            rc = core.pvi(
-                startIdx, endIdx,
-                &inClose,
-                &inVolume,
-                &mut outBegIdx, &mut outNBElement, &mut outBuf0,
-            );
-            }
-            let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let start_time_ung = Instant::now();
-            for _biu in 0..bench_iters {
-            rc = core.pvi_unguarded(
-                startIdx, endIdx,
-                &inClose,
-                &inVolume,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }
@@ -9933,12 +9827,10 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
                 "TA_MOM",
                 "TA_MULT",
                 "TA_NATR",
-                "TA_NVI",
                 "TA_OBV",
                 "TA_PLUS_DI",
                 "TA_PLUS_DM",
                 "TA_PPO",
-                "TA_PVI",
                 "TA_ROC",
                 "TA_ROCP",
                 "TA_ROCR",

@@ -120,6 +120,8 @@ pub struct OptInput {
     pub flags: Vec<String>,
     /// Optimization hints: [`suggested_start`, `suggested_end`, `suggested_increment`]
     pub suggested: Option<(f64, f64, f64)>,
+    /// Number of decimal digits for UI display (only for `TA_RealRange`).
+    pub precision: Option<i32>,
 }
 
 #[derive(Debug, Clone)]

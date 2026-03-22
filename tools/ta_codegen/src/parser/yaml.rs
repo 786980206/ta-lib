@@ -60,6 +60,8 @@ struct YamlOptParam {
     flags: YamlFlags,
     /// Optimization hints: [`suggested_start`, `suggested_end`, `suggested_increment`]
     suggested: Option<Vec<f64>>,
+    /// Number of decimal digits for UI display (only for real ranges).
+    precision: Option<i32>,
 }
 
 #[derive(Deserialize)]
@@ -149,6 +151,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
             hint: p.hint,
             flags: p.flags.into_vec(),
             suggested: p.suggested.and_then(|s| if s.len() >= 3 { Some((s[0], s[1], s[2])) } else { None }),
+            precision: p.precision,
         })
         .collect();
 

@@ -14,6 +14,7 @@ optional_inputs:
     hint: "Start value and direction. 0 for Auto, >0 for Long, <0 for Short"
     range: [TA_REAL_MIN, TA_REAL_MAX]
     default: 0
+    precision: 4
     suggested: [0, 0, 0]
   - name: optInOffsetOnReverse
     type: real
@@ -21,6 +22,7 @@ optional_inputs:
     hint: Percent offset added/removed to initial stop on short/long reversal
     range: [0, TA_REAL_MAX]
     default: 0
+    precision: 4
     suggested: [0.01, 0.15, 0.01]
   - name: optInAccelerationInitLong
     type: real
@@ -28,6 +30,7 @@ optional_inputs:
     hint: Acceleration Factor initial value for the Long direction
     range: [0, TA_REAL_MAX]
     default: 0.02
+    precision: 4
     suggested: [0.01, 0.19, 0.01]
   - name: optInAccelerationLong
     type: real
@@ -35,6 +38,7 @@ optional_inputs:
     hint: Acceleration Factor for the Long direction
     range: [0, TA_REAL_MAX]
     default: 0.02
+    precision: 4
     suggested: [0.01, 0.2, 0.01]
   - name: optInAccelerationMaxLong
     type: real
@@ -42,6 +46,7 @@ optional_inputs:
     hint: Acceleration Factor maximum value for the Long direction
     range: [0, TA_REAL_MAX]
     default: 0.2
+    precision: 4
     suggested: [0.2, 0.4, 0.01]
   - name: optInAccelerationInitShort
     type: real
@@ -49,6 +54,7 @@ optional_inputs:
     hint: Acceleration Factor initial value for the Short direction
     range: [0, TA_REAL_MAX]
     default: 0.02
+    precision: 4
     suggested: [0.01, 0.19, 0.01]
   - name: optInAccelerationShort
     type: real
@@ -56,6 +62,7 @@ optional_inputs:
     hint: Acceleration Factor for the Short direction
     range: [0, TA_REAL_MAX]
     default: 0.02
+    precision: 4
     suggested: [0.01, 0.2, 0.01]
   - name: optInAccelerationMaxShort
     type: real
@@ -63,6 +70,7 @@ optional_inputs:
     hint: Acceleration Factor maximum value for the Short direction
     range: [0, TA_REAL_MAX]
     default: 0.2
+    precision: 4
     suggested: [0.2, 0.4, 0.01]
 outputs:
   - name: outReal

@@ -273,7 +273,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         let c_lib_src = root.join("ta_func_defs/lib/c");
         let c_dir = root.join("ta_codegen_output/c");
         std::fs::create_dir_all(&c_dir).unwrap();
-        for filename in &["ta_lib_types.h", "ta_lib_globals.c"] {
+        for filename in &["ta_lib_types.h"] {
             let src = c_lib_src.join(filename);
             if src.exists() {
                 let dest = c_dir.join(filename);
@@ -281,6 +281,34 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 println!("  Copied {filename} -> {}", dest.display());
             }
         }
+
+        // Copy ta_common from src/ — unmodified c-ref code
+        let ta_common_dst = c_dir.join("ta_common");
+        std::fs::create_dir_all(&ta_common_dst).unwrap();
+        let ta_common_src = root.join("src/ta_common");
+        for filename in &["ta_memory.h", "ta_magic_nb.h", "ta_global.h", "ta_global.c", "ta_pragma.h", "ta_retcode.c", "ta_version.c"] {
+            let src = ta_common_src.join(filename);
+            if src.exists() {
+                std::fs::copy(&src, ta_common_dst.join(filename)).unwrap();
+            }
+        }
+        // Also copy ta_utility.h and ta_utility.c (from src/ta_func/)
+        for filename in &["ta_utility.h", "ta_utility.c"] {
+            let src = root.join("src/ta_func").join(filename);
+            if src.exists() {
+                std::fs::copy(&src, ta_common_dst.join(filename)).unwrap();
+            }
+        }
+        println!("  Copied ta_common/ -> {}", ta_common_dst.display());
+
+        // Generate ta_func_unguarded.h into include/
+        let unguarded_h = server_gen::generate_c_header_stub(all_funcs);
+        let unguarded_path = root.join("include").join("ta_func_unguarded.h");
+        std::fs::write(&unguarded_path, &unguarded_h).unwrap();
+        println!("  ta_func_unguarded.h -> {}", unguarded_path.display());
+
+        // Generate ta_abstract layer from YAML definitions
+        backends::ta_abstract_c::generate(all_funcs, &enums, &out_base);
     }
 }
 
@@ -376,11 +404,7 @@ fn generate_servers(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 let dir = out_base.join("c");
                 std::fs::create_dir_all(&dir).unwrap();
 
-                // Write ta_func.h stub for standalone compilation
-                let stub = server_gen::generate_c_header_stub(&funcs);
-                let stub_path = dir.join("ta_func.h");
-                std::fs::write(&stub_path, &stub).unwrap();
-                println!("  C header stub -> {}", stub_path.display());
+                // ta_func_unguarded.h is generated in generate(), not here
 
                 let output = server_gen::generate_c_server(&funcs);
                 let path = dir.join("ta_codegen_serve.c");
@@ -464,6 +488,8 @@ fn build_servers(backend_filter: Option<&str>) {
             "c" => {
                 print!("  Building C server... ");
                 let c_dir = out_base.join("c");
+                let include_dir = root.join("include");
+                let ta_common_dir = c_dir.join("ta_common");
                 let src = c_dir.join("ta_codegen_serve.c");
                 let dst = bin_dir.join("ta_codegen_serve_c");
                 match std::process::Command::new("gcc")
@@ -472,6 +498,8 @@ fn build_servers(backend_filter: Option<&str>) {
                         dst.to_str().unwrap(),
                         src.to_str().unwrap(),
                         &format!("-I{}", c_dir.to_str().unwrap()),
+                        &format!("-I{}", include_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_common_dir.to_str().unwrap()),
                         "-lm",
                         "-O3",
                         "-DNDEBUG",
@@ -497,6 +525,8 @@ fn build_servers(backend_filter: Option<&str>) {
                             bench_src.to_str().unwrap(),
                             &format!("-I{}", bench_inc_c.to_str().unwrap()),
                             &format!("-I{}", bench_inc_func.to_str().unwrap()),
+                            &format!("-I{}", include_dir.to_str().unwrap()),
+                            &format!("-I{}", ta_common_dir.to_str().unwrap()),
                             "-lm",
                             "-O3",
                             "-DNDEBUG",
@@ -635,13 +665,11 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     // This handles forward declarations (e.g., MA calls SMA/EMA/WMA).
     let mut unity_src = String::new();
     unity_src.push_str("/* Unity build for shared library */\n");
-    unity_src.push_str("#include \"ta_func.h\"\n");
-    // Include globals (ta_unstable_period, ta_compatibility, TA_Globals)
-    let globals_path = out_base.join("c/ta_lib_globals.c");
-    if globals_path.exists() {
-        unity_src.push_str(&format!("#include \"{}\"\n", globals_path.to_str().unwrap()));
-    }
-    unity_src.push('\n');
+    unity_src.push_str("#include \"ta_func_unguarded.h\"\n");
+    unity_src.push_str("#include \"ta_common/ta_global.c\"\n");
+    unity_src.push_str("#include \"ta_common/ta_utility.c\"\n");
+    unity_src.push_str("#include \"ta_common/ta_version.c\"\n");
+    unity_src.push_str("#include \"ta_common/ta_retcode.c\"\n\n");
 
     let mut c_names: Vec<String> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&c_dir) {
@@ -678,6 +706,11 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     let unity_path = c_dir.join("ta_codegen_funcs.c");
     std::fs::write(&unity_path, &unity_src).unwrap();
 
+    // Derive root from out_base (ta_codegen_output's parent)
+    let root = out_base.parent().unwrap();
+    let include_dir = root.join("include");
+    let ta_common_dir = out_base.join("c/ta_common");
+
     let args = vec![
         shared_flag.to_string(),
         "-fPIC".to_string(),
@@ -685,6 +718,8 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
         dst.to_str().unwrap().to_string(),
         unity_path.to_str().unwrap().to_string(),
         format!("-I{}", c_dir.parent().unwrap().to_str().unwrap()),
+        format!("-I{}", include_dir.to_str().unwrap()),
+        format!("-I{}", ta_common_dir.to_str().unwrap()),
         "-lm".to_string(),
         "-O3".to_string(),
         "-DNDEBUG".to_string(),

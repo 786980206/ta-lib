@@ -34,6 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include "ta_func.h"
+#include "ta_utility.h"
+#include "ta_memory.h"
 
 TA_LIB_API int TA_MACDEXT_Lookback( int optInFastPeriod, TA_MAType optInFastMAType, int optInSlowPeriod, TA_MAType optInSlowMAType, int optInSignalPeriod, TA_MAType optInSignalMAType )
 {
@@ -609,4 +611,6 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+#define TA_S_INT_MACDEXT TA_S_MACDEXT_Unguarded
 

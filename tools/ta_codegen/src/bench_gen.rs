@@ -19,8 +19,13 @@ pub fn generate_c_bench(funcs: &[FuncDef]) -> String {
     s.push_str("#include <math.h>\n#include <time.h>\n");
     s.push_str("#ifdef __APPLE__\n#include <mach/mach_time.h>\n#endif\n\n");
 
+    // Include ta_func_unguarded.h first for TA_INT_* macros
+    s.push_str("#include \"ta_func_unguarded.h\"\n\n");
     // Globals + indicator includes (same single-TU pattern as server)
-    s.push_str("#include \"ta_lib_globals.c\"\n\n");
+    s.push_str("#include \"ta_common/ta_global.c\"\n");
+    s.push_str("#include \"ta_common/ta_utility.c\"\n");
+    s.push_str("#include \"ta_common/ta_version.c\"\n");
+    s.push_str("#include \"ta_common/ta_retcode.c\"\n\n");
     let mut sorted: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
     sorted.sort_unstable();
     if let Some(pos) = sorted.iter().position(|n| *n == "MA") {
@@ -219,6 +224,7 @@ static int func_matches(const char *filter, const char *name) {
 
 const MAIN_FUNC: &str = r#"
 int main(int argc, char *argv[]) {
+    TA_Initialize();
     int n_points = 100000;
     int n_iters = 200;
     const char *func_filter = NULL;

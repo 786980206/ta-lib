@@ -62,7 +62,7 @@ impl Core {
         let Near_factor: f64 = self.candle_settings.near.factor;
         return (Near_avgPeriod + 3) as usize;
     }
-    /// Three-Line Strike
+    /// Three-Line Strike 
     ///
     /// # Arguments
     ///

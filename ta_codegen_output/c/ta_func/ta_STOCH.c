@@ -34,6 +34,8 @@
 #include <string.h>
 #include <math.h>
 #include "ta_func.h"
+#include "ta_utility.h"
+#include "ta_memory.h"
 
 TA_LIB_API int TA_STOCH_Lookback( int optInFastK_Period, int optInSlowK_Period, TA_MAType optInSlowK_MAType, int optInSlowD_Period, TA_MAType optInSlowD_MAType )
 {
@@ -717,4 +719,6 @@ TA_RetCode TA_S_STOCH_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
+
+#define TA_S_INT_STOCH TA_S_STOCH_Unguarded
 

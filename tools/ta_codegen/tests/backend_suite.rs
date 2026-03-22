@@ -3825,6 +3825,7 @@ fn rust_lookback_param_minus() {
             hint: None,
             flags: vec![],
             suggested: None,
+            precision: None,
         }],
         outputs: vec![ir::Output {
             name: "outReal".to_string(),

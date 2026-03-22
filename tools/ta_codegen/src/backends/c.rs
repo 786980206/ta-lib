@@ -33,6 +33,10 @@ pub fn generate(
         ));
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
         out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
+        out.push_str(&format!(
+            "#define TA_S_INT_{} TA_S_{}_Unguarded\n\n",
+            func.name, func.name
+        ));
         out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
     } else {
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
@@ -43,6 +47,10 @@ pub fn generate(
         ));
         out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
         out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
+        out.push_str(&format!(
+            "#define TA_S_INT_{} TA_S_{}_Unguarded\n\n",
+            func.name, func.name
+        ));
     }
     out
 }
@@ -84,10 +92,13 @@ fn gen_header(_func: &FuncDef) -> String {
          */\n\n",
     );
 
+    // Match the exact includes from the c-ref (gen_code output).
     out.push_str(
         "#include <string.h>\n\
          #include <math.h>\n\
-         #include \"ta_func.h\"\n\n",
+         #include \"ta_func.h\"\n\
+         #include \"ta_utility.h\"\n\
+         #include \"ta_memory.h\"\n\n",
     );
 
     out

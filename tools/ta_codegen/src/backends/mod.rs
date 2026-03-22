@@ -5,3 +5,4 @@ pub mod func_list;
 pub mod java;
 pub mod makefile_am;
 pub mod rust_lang;
+pub mod ta_abstract_c;

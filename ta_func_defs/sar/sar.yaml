@@ -14,6 +14,7 @@ optional_inputs:
     hint: Acceleration Factor used up to the Maximum value
     range: [0, TA_REAL_MAX]
     default: 0.02
+    precision: 4
     suggested: [0.01, 0.2, 0.01]
   - name: optInMaximum
     type: real
@@ -21,6 +22,7 @@ optional_inputs:
     hint: Acceleration Factor Maximum value
     range: [0, TA_REAL_MAX]
     default: 0.2
+    precision: 4
     suggested: [0.2, 0.4, 0.01]
 outputs:
   - name: outReal

@@ -41897,72 +41897,6 @@ class Core {
           return retCode ;
        }
 
-       public int nviLookback( )
-       {
-          return 0 ;
-
-       }
-       public RetCode nvi( int startIdx,
-                           int endIdx,
-                           double inClose[],
-                           double inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
-       {
-          if( startIdx < 0 ) {
-             return RetCode.OutOfRangeStartIndex ;
-          }
-          if( (endIdx < 0) || (endIdx < startIdx)) {
-             return RetCode.OutOfRangeEndIndex ;
-          }
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode nviLogic( int startIdx,
-                                int endIdx,
-                                double inClose[],
-                                double inVolume[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
-       {
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode nvi( int startIdx,
-                           int endIdx,
-                           float inClose[],
-                           float inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
-       {
-          if( startIdx < 0 ) {
-             return RetCode.OutOfRangeStartIndex ;
-          }
-          if( (endIdx < 0) || (endIdx < startIdx)) {
-             return RetCode.OutOfRangeEndIndex ;
-          }
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode nviLogic( int startIdx,
-                                int endIdx,
-                                float inClose[],
-                                float inVolume[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
-       {
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-
        public int obvLookback( )
        {
           return 0 ;
@@ -43505,72 +43439,6 @@ class Core {
              }
           }
           return retCode ;
-       }
-
-       public int pviLookback( )
-       {
-          return 0 ;
-
-       }
-       public RetCode pvi( int startIdx,
-                           int endIdx,
-                           double inClose[],
-                           double inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
-       {
-          if( startIdx < 0 ) {
-             return RetCode.OutOfRangeStartIndex ;
-          }
-          if( (endIdx < 0) || (endIdx < startIdx)) {
-             return RetCode.OutOfRangeEndIndex ;
-          }
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode pviLogic( int startIdx,
-                                int endIdx,
-                                double inClose[],
-                                double inVolume[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
-       {
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode pvi( int startIdx,
-                           int endIdx,
-                           float inClose[],
-                           float inVolume[],
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
-       {
-          if( startIdx < 0 ) {
-             return RetCode.OutOfRangeStartIndex ;
-          }
-          if( (endIdx < 0) || (endIdx < startIdx)) {
-             return RetCode.OutOfRangeEndIndex ;
-          }
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
-       }
-       public RetCode pviLogic( int startIdx,
-                                int endIdx,
-                                float inClose[],
-                                float inVolume[],
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
-       {
-          outBegIdx.value = 0;
-          outNBElement.value = 0;
-          return RetCode.Success ;
        }
 
        public int rocLookback( int optInTimePeriod )
@@ -52496,12 +52364,10 @@ public class TaCodegenServe {
         else if (json.contains("\"TA_MOM\"")) return handle_MOM(json);
         else if (json.contains("\"TA_MULT\"")) return handle_MULT(json);
         else if (json.contains("\"TA_NATR\"")) return handle_NATR(json);
-        else if (json.contains("\"TA_NVI\"")) return handle_NVI(json);
         else if (json.contains("\"TA_OBV\"")) return handle_OBV(json);
         else if (json.contains("\"TA_PLUS_DI\"")) return handle_PLUS_DI(json);
         else if (json.contains("\"TA_PLUS_DM\"")) return handle_PLUS_DM(json);
         else if (json.contains("\"TA_PPO\"")) return handle_PPO(json);
-        else if (json.contains("\"TA_PVI\"")) return handle_PVI(json);
         else if (json.contains("\"TA_ROC\"")) return handle_ROC(json);
         else if (json.contains("\"TA_ROCP\"")) return handle_ROCP(json);
         else if (json.contains("\"TA_ROCR\"")) return handle_ROCR(json);
@@ -52787,8 +52653,6 @@ public class TaCodegenServe {
             sb.append(",");
             sb.append("\"TA_NATR\"");
             sb.append(",");
-            sb.append("\"TA_NVI\"");
-            sb.append(",");
             sb.append("\"TA_OBV\"");
             sb.append(",");
             sb.append("\"TA_PLUS_DI\"");
@@ -52796,8 +52660,6 @@ public class TaCodegenServe {
             sb.append("\"TA_PLUS_DM\"");
             sb.append(",");
             sb.append("\"TA_PPO\"");
-            sb.append(",");
-            sb.append("\"TA_PVI\"");
             sb.append(",");
             sb.append("\"TA_ROC\"");
             sb.append(",");
@@ -60028,56 +59890,6 @@ public class TaCodegenServe {
         return sb.toString();
     }
 
-    static String handle_NVI(String json) {
-        int startIdx = jsonInt(json, "startIdx");
-        int endIdx = jsonInt(json, "endIdx");
-        int use_preloaded = jsonInt(json, "use_preloaded");
-        int bench_iters = jsonInt(json, "iters");
-        if (bench_iters < 1) bench_iters = 1;
-        double[] inClose = new double[MAX_ARRAY_SIZE];
-        double[] inVolume = new double[MAX_ARRAY_SIZE];
-        if (use_preloaded != 0 && refN > 0) {
-            System.arraycopy(refClose, 0, inClose, 0, refN);
-            System.arraycopy(refVolume, 0, inVolume, 0, refN);
-        } else {
-            double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
-            inClose = _tmp_inClose;
-            double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
-            inVolume = _tmp_inVolume;
-        }
-        double[] outArr0 = new double[endIdx - startIdx + 1];
-        MInteger outBegIdx = new MInteger();
-        MInteger outNBElement = new MInteger();
-        RetCode rc = RetCode.Success;
-        long startNs = System.nanoTime();
-        for (int _bi = 0; _bi < bench_iters; _bi++) {
-        rc = core.nvi(
-            startIdx, endIdx,
-            inClose,
-            inVolume,
-            outBegIdx, outNBElement, outArr0);
-        }
-        long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
-        long startNsUng = System.nanoTime();
-        for (int _biu = 0; _biu < bench_iters; _biu++) {
-        rc = core.nviLogic(
-            startIdx, endIdx,
-            inClose,
-            inVolume,
-            outBegIdx, outNBElement, outArr0);
-        }
-        long elapsedNsUng = (System.nanoTime() - startNsUng) / bench_iters;
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"retCode\":").append(rc.toInt());
-        sb.append(",\"outBegIdx\":").append(outBegIdx.value);
-        sb.append(",\"outNBElement\":").append(outNBElement.value);
-        sb.append(",\"outReal\":").append(doubleArrayToJson(outArr0, outNBElement.value));
-        sb.append(",\"timing_ns\":").append(elapsedNs);
-        sb.append(",\"timing_ns_unguarded\":").append(elapsedNsUng);
-        sb.append("}");
-        return sb.toString();
-    }
-
     static String handle_OBV(String json) {
         int startIdx = jsonInt(json, "startIdx");
         int endIdx = jsonInt(json, "endIdx");
@@ -60281,56 +60093,6 @@ public class TaCodegenServe {
             optInFastPeriod,
             optInSlowPeriod,
             optInMAType,
-            outBegIdx, outNBElement, outArr0);
-        }
-        long elapsedNsUng = (System.nanoTime() - startNsUng) / bench_iters;
-        StringBuilder sb = new StringBuilder();
-        sb.append("{\"retCode\":").append(rc.toInt());
-        sb.append(",\"outBegIdx\":").append(outBegIdx.value);
-        sb.append(",\"outNBElement\":").append(outNBElement.value);
-        sb.append(",\"outReal\":").append(doubleArrayToJson(outArr0, outNBElement.value));
-        sb.append(",\"timing_ns\":").append(elapsedNs);
-        sb.append(",\"timing_ns_unguarded\":").append(elapsedNsUng);
-        sb.append("}");
-        return sb.toString();
-    }
-
-    static String handle_PVI(String json) {
-        int startIdx = jsonInt(json, "startIdx");
-        int endIdx = jsonInt(json, "endIdx");
-        int use_preloaded = jsonInt(json, "use_preloaded");
-        int bench_iters = jsonInt(json, "iters");
-        if (bench_iters < 1) bench_iters = 1;
-        double[] inClose = new double[MAX_ARRAY_SIZE];
-        double[] inVolume = new double[MAX_ARRAY_SIZE];
-        if (use_preloaded != 0 && refN > 0) {
-            System.arraycopy(refClose, 0, inClose, 0, refN);
-            System.arraycopy(refVolume, 0, inVolume, 0, refN);
-        } else {
-            double[] _tmp_inClose = jsonDoubleArray(json, "inClose");
-            inClose = _tmp_inClose;
-            double[] _tmp_inVolume = jsonDoubleArray(json, "inVolume");
-            inVolume = _tmp_inVolume;
-        }
-        double[] outArr0 = new double[endIdx - startIdx + 1];
-        MInteger outBegIdx = new MInteger();
-        MInteger outNBElement = new MInteger();
-        RetCode rc = RetCode.Success;
-        long startNs = System.nanoTime();
-        for (int _bi = 0; _bi < bench_iters; _bi++) {
-        rc = core.pvi(
-            startIdx, endIdx,
-            inClose,
-            inVolume,
-            outBegIdx, outNBElement, outArr0);
-        }
-        long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
-        long startNsUng = System.nanoTime();
-        for (int _biu = 0; _biu < bench_iters; _biu++) {
-        rc = core.pviLogic(
-            startIdx, endIdx,
-            inClose,
-            inVolume,
             outBegIdx, outNBElement, outArr0);
         }
         long elapsedNsUng = (System.nanoTime() - startNsUng) / bench_iters;
