@@ -140,9 +140,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 1 && (inClose[i - 1] - inOpen[i - 1]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => inHigh[i - 1] - inLow[i - 1], _ => inHigh[i - 1] - inLow[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inOpen[i] > inHigh[i - 1] && inClose[i] > inOpen[i - 1] && inClose[i] < inClose[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs() * optInPenetration {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (0 - 100) as i32;
+                outInteger[outIdx] = (0 - 100) as i32;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyLong_rangeType {
@@ -243,9 +245,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 1 && ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() > { let _cr = match BodyLong_rangeType { 0 => ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs(), 1 => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)), _ => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)) - ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (*inOpen.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) > (*inOpen.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) < (*inClose.get_unchecked(i - 1)) - ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() * optInPenetration {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (0 - 100) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = (0 - 100) as i32;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyLong_rangeType {

@@ -96,7 +96,8 @@ impl Core {
             } else if tempReal < prevReal {
                 prevOBV -= inVolume[i];
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevOBV;
+            outReal[outIdx] = prevOBV;
+            outIdx += 1;
             prevReal = tempReal;
         }
         i = (endIdx as usize) + 1;
@@ -130,7 +131,8 @@ impl Core {
             } else if tempReal < prevReal {
                 prevOBV -= (*inVolume.get_unchecked(i));
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevOBV;
+            (*outReal.get_unchecked_mut(outIdx)) = prevOBV;
+            outIdx += 1;
             prevReal = tempReal;
         }
         i = (endIdx as usize) + 1;

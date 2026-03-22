@@ -187,7 +187,8 @@ impl Core {
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
             slowEMA = slowk * ad + one_minus_slowk * slowEMA;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = fastEMA - slowEMA;
+            outReal[outIdx] = fastEMA - slowEMA;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -277,7 +278,8 @@ impl Core {
             today += 1;
             fastEMA = fastk * ad + one_minus_fastk * fastEMA;
             slowEMA = slowk * ad + one_minus_slowk * slowEMA;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = fastEMA - slowEMA;
+            (*outReal.get_unchecked_mut(outIdx)) = fastEMA - slowEMA;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

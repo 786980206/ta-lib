@@ -131,7 +131,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (highestIdx) as i32;
+            outInteger[outIdx] = (highestIdx) as i32;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }
@@ -189,7 +190,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (highestIdx) as i32;
+            (*outInteger.get_unchecked_mut(outIdx)) = (highestIdx) as i32;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }

@@ -120,7 +120,8 @@ impl Core {
             periodTotal += inReal[{ let _v = i; i += 1; _v }];
             tempReal = periodTotal;
             periodTotal -= inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal;
+            outReal[outIdx] = tempReal;
+            outIdx += 1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;
@@ -166,7 +167,8 @@ impl Core {
             periodTotal += (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
             tempReal = periodTotal;
             periodTotal -= (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = tempReal;
+            (*outReal.get_unchecked_mut(outIdx)) = tempReal;
+            outIdx += 1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;

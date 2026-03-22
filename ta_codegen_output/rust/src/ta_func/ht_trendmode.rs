@@ -467,7 +467,8 @@ impl Core {
                 trend = 1;
             }
             if today >= startIdx {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (trend) as i32;
+                outInteger[outIdx] = (trend) as i32;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;
@@ -873,7 +874,8 @@ impl Core {
                 trend = 1;
             }
             if today >= startIdx {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (trend) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = (trend) as i32;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;

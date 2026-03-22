@@ -163,9 +163,11 @@ impl Core {
                 diff = (highest - lowest) / (0_f64 - 100.0);
             }
             if diff != 0.0 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((highest - inClose[today]) / diff) as f64);
+                outReal[outIdx] = (((highest - inClose[today]) / diff) as f64);
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;
@@ -254,9 +256,11 @@ impl Core {
                 diff = (highest - lowest) / (0_f64 - 100.0);
             }
             if diff != 0.0 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((highest - (*inClose.get_unchecked(today))) / diff) as f64);
+                (*outReal.get_unchecked_mut(outIdx)) = (((highest - (*inClose.get_unchecked(today))) / diff) as f64);
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;

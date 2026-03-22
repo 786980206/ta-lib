@@ -410,7 +410,8 @@ impl Core {
             }
             if today >= startIdx {
                 outSine[outIdx] = (DCPhase * deg2Rad).sin();
-                outLeadSine[{ let _v = outIdx; outIdx += 1; _v }] = ((DCPhase + 45_f64) * deg2Rad).sin();
+                outLeadSine[outIdx] = ((DCPhase + 45_f64) * deg2Rad).sin();
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;
@@ -758,7 +759,8 @@ impl Core {
             }
             if today >= startIdx {
                 (*outSine.get_unchecked_mut(outIdx)) = (DCPhase * deg2Rad).sin();
-                (*outLeadSine.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((DCPhase + 45_f64) * deg2Rad).sin();
+                (*outLeadSine.get_unchecked_mut(outIdx)) = ((DCPhase + 45_f64) * deg2Rad).sin();
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;

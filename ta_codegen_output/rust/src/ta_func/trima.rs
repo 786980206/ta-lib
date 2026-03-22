@@ -141,7 +141,8 @@ impl Core {
             i = (todayIdx as usize) + 1;
             outIdx = 0;
             tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+            outReal[outIdx] = numerator * factor;
+            outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
@@ -154,7 +155,8 @@ impl Core {
                 numeratorAdd += tempReal;
                 numerator += tempReal;
                 tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+                outReal[outIdx] = numerator * factor;
+                outIdx += 1;
             }
         } else {
             i = (optInTimePeriod >> 1) as usize;
@@ -184,7 +186,8 @@ impl Core {
             i = (todayIdx as usize) + 1;
             outIdx = 0;
             tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+            outReal[outIdx] = numerator * factor;
+            outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
@@ -197,7 +200,8 @@ impl Core {
                 numeratorAdd += tempReal;
                 numerator += tempReal;
                 tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = numerator * factor;
+                outReal[outIdx] = numerator * factor;
+                outIdx += 1;
             }
         }
         (*outNBElement) = outIdx;
@@ -264,7 +268,8 @@ impl Core {
             i = (todayIdx as usize) + 1;
             outIdx = 0;
             tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
+            (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+            outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
@@ -277,7 +282,8 @@ impl Core {
                 numeratorAdd += tempReal;
                 numerator += tempReal;
                 tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
+                (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+                outIdx += 1;
             }
         } else {
             i = (optInTimePeriod >> 1) as usize;
@@ -307,7 +313,8 @@ impl Core {
             i = (todayIdx as usize) + 1;
             outIdx = 0;
             tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
+            (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+            outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
@@ -320,7 +327,8 @@ impl Core {
                 numeratorAdd += tempReal;
                 numerator += tempReal;
                 tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = numerator * factor;
+                (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+                outIdx += 1;
             }
         }
         (*outNBElement) = outIdx;

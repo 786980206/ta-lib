@@ -136,9 +136,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (inHigh[i] - (if inClose[i] >= inOpen[i] { inClose[i] } else { inOpen[i] })) > (inClose[i] - inOpen[i]).abs() && ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) > (inClose[i] - inOpen[i]).abs() && (inClose[i] - inOpen[i]).abs() < { let _cr = match BodyShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyShort_avgPeriod != 0 { (BodyPeriodTotal) / (BodyShort_avgPeriod as f64) } else { _cr }; let _div = if BodyShort_rangeType == 2 { 2.0 } else { 1.0 }; (BodyShort_factor) * _avg / _div } {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) * 100) as i32;
+                outInteger[outIdx] = ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) * 100) as i32;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyShort_rangeType {
@@ -237,9 +239,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((*inHigh.get_unchecked(i)) - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inClose.get_unchecked(i)) } else { (*inOpen.get_unchecked(i)) })) > ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inOpen.get_unchecked(i)) } else { (*inClose.get_unchecked(i)) }) - (*inLow.get_unchecked(i))) > ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() && ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() < { let _cr = match BodyShort_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyShort_avgPeriod != 0 { (BodyPeriodTotal) / (BodyShort_avgPeriod as f64) } else { _cr }; let _div = if BodyShort_rangeType == 2 { 2.0 } else { 1.0 }; (BodyShort_factor) * _avg / _div } {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) * 100) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) * 100) as i32;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyShort_rangeType {

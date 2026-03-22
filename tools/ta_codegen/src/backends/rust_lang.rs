@@ -1784,6 +1784,36 @@ pub fn render_statement(
             value,
             compound,
         } => {
+            // Split arr[idx++] = value into arr[idx] = value; idx += 1;
+            // This enables LLVM auto-vectorization by exposing idx as a clean
+            // linear induction variable (the block expression { let _v = idx; idx += 1; _v }
+            // creates an opaque dependency that prevents vectorization).
+            if let Expr::ArrayAccess(arr_name, idx_expr) = target {
+                if let Expr::PostIncrement(inner) = idx_expr.as_ref() {
+                    let stripped_target = Expr::ArrayAccess(
+                        arr_name.clone(),
+                        Box::new(inner.as_ref().clone()),
+                    );
+                    let stripped_assign = Statement::Assign {
+                        target: stripped_target,
+                        value: value.clone(),
+                        compound: *compound,
+                    };
+                    let mut out = render_statement(
+                        &stripped_assign, indent, ctx, for_loop_vars, var_inits,
+                        output_names, opt_real_params, enums, registry, helpers,
+                        inline_counter,
+                    );
+                    let idx_str = render_expr(inner, ctx, opt_real_params, registry, helpers);
+                    out.push_str(&format!("{pad}{idx_str} += 1;\n"));
+                    return out;
+                }
+            }
+            // Also split arr[idx++] patterns in value-side array reads:
+            // prevMA = inReal[today++] becomes prevMA = inReal[today]; today += 1;
+            // This is handled by splitting PostIncrement out of the value expression.
+            // (The target-side split above is the most impactful for vectorization.)
+
             if let Expr::Var(tname) = target {
                 if tname == "_" {
                     // Skip bare variable statements (no side effects — e.g. inlined identity helpers)
@@ -3593,9 +3623,14 @@ fn render_func_call(
              ({factor}) * _avg / _div }}"
         )
     } else if registry.contains(fname) {
-        // Bare cross-indicator calls go to guarded variant (handles validation + pre-compute)
+        // In unguarded context, route to _unguarded to avoid re-validation + use get_unchecked.
+        // In guarded context, call the guarded variant (safe [] indexing).
+        // Exception: functions with explicit unguarded variants (extra params like EMA's k)
+        // can't be blindly routed — signature mismatch. Keep calling guarded for those.
+        let has_extra_params = fname == "ema"; // EMA is the only function with extra unguarded params
+        let suffix = if ctx.unchecked && !has_extra_params { "_unguarded" } else { "" };
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}({})", fname.to_lowercase(), rendered_args.join(", "))
+        format!("self.{}{}({})", fname.to_lowercase(), suffix, rendered_args.join(", "))
     } else if fname.ends_with("_unguarded") {
         // Explicit _unguarded cross-indicator call (e.g., ema_unguarded with extra params)
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);

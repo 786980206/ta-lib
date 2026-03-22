@@ -137,9 +137,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 1 && ((if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && inLow[i - 1] > inClose[i - 2] && inClose[i] <= inClose[i - 2] + { let _cr = match Equal_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Equal_avgPeriod != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { _cr }; let _div = if Equal_rangeType == 2 { 2.0 } else { 1.0 }; (Equal_factor) * _avg / _div } && inClose[i] >= inClose[i - 2] - { let _cr = match Equal_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Equal_avgPeriod != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { _cr }; let _div = if Equal_rangeType == 2 { 2.0 } else { 1.0 }; (Equal_factor) * _avg / _div } {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 100;
+                outInteger[outIdx] = 100;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match Equal_rangeType {
@@ -239,9 +241,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 1 && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (*inLow.get_unchecked(i - 1)) > (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i)) <= (*inClose.get_unchecked(i - 2)) + { let _cr = match Equal_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Equal_avgPeriod != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { _cr }; let _div = if Equal_rangeType == 2 { 2.0 } else { 1.0 }; (Equal_factor) * _avg / _div } && (*inClose.get_unchecked(i)) >= (*inClose.get_unchecked(i - 2)) - { let _cr = match Equal_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Equal_avgPeriod != 0 { (EqualPeriodTotal) / (Equal_avgPeriod as f64) } else { _cr }; let _div = if Equal_rangeType == 2 { 2.0 } else { 1.0 }; (Equal_factor) * _avg / _div } {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100;
+                (*outInteger.get_unchecked_mut(outIdx)) = 100;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match Equal_rangeType {

@@ -157,9 +157,11 @@ impl Core {
             tempValue3 = tempValue2 - tempValue1;
             tempValue4 = tempValue1 + tempValue2;
             if !((tempValue4).abs() < 1e-14) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100_f64 * (tempValue3 / tempValue4);
+                outReal[outIdx] = 100_f64 * (tempValue3 / tempValue4);
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
             if today > endIdx {
                 (*outBegIdx) = startIdx;
@@ -190,9 +192,11 @@ impl Core {
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outReal[outIdx] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
         } else {
             while today < startIdx {
@@ -226,9 +230,11 @@ impl Core {
             prevGain /= ((optInTimePeriod) as f64);
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outReal[outIdx] = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
         }
         (*outBegIdx) = startIdx;
@@ -306,9 +312,11 @@ impl Core {
             tempValue3 = tempValue2 - tempValue1;
             tempValue4 = tempValue1 + tempValue2;
             if !((tempValue4).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100_f64 * (tempValue3 / tempValue4);
+                (*outReal.get_unchecked_mut(outIdx)) = 100_f64 * (tempValue3 / tempValue4);
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             if today > endIdx {
                 (*outBegIdx) = startIdx;
@@ -339,9 +347,11 @@ impl Core {
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
         } else {
             while today < startIdx {
@@ -375,9 +385,11 @@ impl Core {
             prevGain /= ((optInTimePeriod) as f64);
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * ((prevGain - prevLoss) / tempValue1);
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
         }
         (*outBegIdx) = startIdx;

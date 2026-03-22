@@ -214,9 +214,11 @@ impl Core {
                 diff = (highest - lowest) / 100.0;
             }
             if diff != 0.0 {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = (inClose[today] - lowest) / diff;
+                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
+                outIdx += 1;
             } else {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                tempBuffer[outIdx] = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;
@@ -348,14 +350,16 @@ impl Core {
                 diff = (highest - lowest) / 100.0;
             }
             if diff != 0.0 {
-                (*tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((*inClose.get_unchecked(today)) - lowest) / diff;
+                (*tempBuffer.get_unchecked_mut(outIdx)) = ((*inClose.get_unchecked(today)) - lowest) / diff;
+                outIdx += 1;
             } else {
-                (*tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*tempBuffer.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
+        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer.clone(), optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
@@ -363,7 +367,7 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ma(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+        retCode = self.ma_unguarded(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
         {
             let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;

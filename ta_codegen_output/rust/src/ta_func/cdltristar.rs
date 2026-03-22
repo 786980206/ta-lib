@@ -146,7 +146,8 @@ impl Core {
                 }
                 outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyDoji_rangeType {
@@ -255,7 +256,8 @@ impl Core {
                 }
                 outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyDoji_rangeType {

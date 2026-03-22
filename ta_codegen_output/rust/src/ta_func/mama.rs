@@ -364,7 +364,8 @@ impl Core {
             fama = tempReal * mama + (1_f64 - tempReal) * fama;
             if today >= startIdx {
                 outMAMA[outIdx] = mama;
-                outFAMA[{ let _v = outIdx; outIdx += 1; _v }] = fama;
+                outFAMA[outIdx] = fama;
+                outIdx += 1;
             }
             Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
             Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;
@@ -683,7 +684,8 @@ impl Core {
             fama = tempReal * mama + (1_f64 - tempReal) * fama;
             if today >= startIdx {
                 (*outMAMA.get_unchecked_mut(outIdx)) = mama;
-                (*outFAMA.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = fama;
+                (*outFAMA.get_unchecked_mut(outIdx)) = fama;
+                outIdx += 1;
             }
             Re = 0.2 * (I2 * prevI2 + Q2 * prevQ2) + 0.8 * Re;
             Im = 0.2 * (I2 * prevQ2 - Q2 * prevI2) + 0.8 * Im;

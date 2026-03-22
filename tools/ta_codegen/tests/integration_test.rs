@@ -494,10 +494,10 @@ fn test_rust_generates_generic_variants() {
         "Missing sma_unguarded function"
     );
 
-    // Guarded function should delegate to unguarded
+    // Guarded function should render inline body with safe [] indexing (not delegate)
     assert!(
-        output.contains("self.sma_unguarded("),
-        "Guarded fn should delegate to sma_unguarded"
+        !output.contains("self.sma_unguarded("),
+        "Guarded fn should NOT delegate to sma_unguarded — it renders its own body"
     );
 
     // Should NOT contain old 4-variant patterns

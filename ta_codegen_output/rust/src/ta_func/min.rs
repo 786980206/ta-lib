@@ -131,7 +131,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = lowest;
+            outReal[outIdx] = lowest;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }
@@ -189,7 +190,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = lowest;
+            (*outReal.get_unchecked_mut(outIdx)) = lowest;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }

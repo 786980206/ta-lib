@@ -155,7 +155,8 @@ impl Core {
                     if sar < newHigh {
                         sar = newHigh;
                     }
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                    outReal[outIdx] = sar;
+                    outIdx += 1;
                     af = optInAcceleration;
                     ep = newLow;
                     sar = sar + af * (ep - sar);
@@ -166,7 +167,8 @@ impl Core {
                         sar = newHigh;
                     }
                 } else {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                    outReal[outIdx] = sar;
+                    outIdx += 1;
                     if newHigh > ep {
                         ep = newHigh;
                         af += optInAcceleration;
@@ -191,7 +193,8 @@ impl Core {
                 if sar > newLow {
                     sar = newLow;
                 }
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                outReal[outIdx] = sar;
+                outIdx += 1;
                 af = optInAcceleration;
                 ep = newHigh;
                 sar = sar + af * (ep - sar);
@@ -202,7 +205,8 @@ impl Core {
                     sar = newLow;
                 }
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = sar;
+                outReal[outIdx] = sar;
+                outIdx += 1;
                 if newLow < ep {
                     ep = newLow;
                     af += optInAcceleration;
@@ -262,7 +266,7 @@ impl Core {
             af = optInAcceleration;
         }
         let mut _dup_out: usize = 0_usize;
-        retCode = self.minus_dm(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
+        retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
         if (*ep_temp.get_unchecked(0)) > 0_f64 {
             isLong = 0;
         } else {
@@ -303,7 +307,8 @@ impl Core {
                     if sar < newHigh {
                         sar = newHigh;
                     }
-                    (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = sar;
+                    (*outReal.get_unchecked_mut(outIdx)) = sar;
+                    outIdx += 1;
                     af = optInAcceleration;
                     ep = newLow;
                     sar = sar + af * (ep - sar);
@@ -314,7 +319,8 @@ impl Core {
                         sar = newHigh;
                     }
                 } else {
-                    (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = sar;
+                    (*outReal.get_unchecked_mut(outIdx)) = sar;
+                    outIdx += 1;
                     if newHigh > ep {
                         ep = newHigh;
                         af += optInAcceleration;
@@ -339,7 +345,8 @@ impl Core {
                 if sar > newLow {
                     sar = newLow;
                 }
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = sar;
+                (*outReal.get_unchecked_mut(outIdx)) = sar;
+                outIdx += 1;
                 af = optInAcceleration;
                 ep = newHigh;
                 sar = sar + af * (ep - sar);
@@ -350,7 +357,8 @@ impl Core {
                     sar = newLow;
                 }
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = sar;
+                (*outReal.get_unchecked_mut(outIdx)) = sar;
+                outIdx += 1;
                 if newLow < ep {
                     ep = newLow;
                     af += optInAcceleration;

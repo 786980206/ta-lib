@@ -136,9 +136,11 @@ impl Core {
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
                 if diffP > 0_f64 && diffP > diffM {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = diffP;
+                    outReal[outIdx] = diffP;
+                    outIdx += 1;
                 } else {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                    outReal[outIdx] = 0.0;
+                    outIdx += 1;
                 }
             }
             (*outNBElement) = outIdx;
@@ -192,7 +194,8 @@ impl Core {
             } else {
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevPlusDM;
+            outReal[outIdx] = prevPlusDM;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -247,9 +250,11 @@ impl Core {
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
                 if diffP > 0_f64 && diffP > diffM {
-                    (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = diffP;
+                    (*outReal.get_unchecked_mut(outIdx)) = diffP;
+                    outIdx += 1;
                 } else {
-                    (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                    (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                    outIdx += 1;
                 }
             }
             (*outNBElement) = outIdx;
@@ -303,7 +308,8 @@ impl Core {
             } else {
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevPlusDM;
+            (*outReal.get_unchecked_mut(outIdx)) = prevPlusDM;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

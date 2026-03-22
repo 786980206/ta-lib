@@ -129,7 +129,8 @@ impl Core {
                 }
             }
             i = (today as usize) + 1;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (highest + lowest) / 2.0;
+            outReal[outIdx] = (highest + lowest) / 2.0;
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;
@@ -183,7 +184,8 @@ impl Core {
                 }
             }
             i = (today as usize) + 1;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (highest + lowest) / 2.0;
+            (*outReal.get_unchecked_mut(outIdx)) = (highest + lowest) / 2.0;
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;

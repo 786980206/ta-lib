@@ -202,7 +202,8 @@ impl Core {
         c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
         c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
         outIdx = 0;
-        outReal[{ let _v = outIdx; outIdx += 1; _v }] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        outIdx += 1;
         while today <= endIdx {
             e1 = k * inReal[{ let _v = today; today += 1; _v }] + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
@@ -210,7 +211,8 @@ impl Core {
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            outReal[outIdx] = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -334,7 +336,8 @@ impl Core {
         c3 = (0_f64 - 6.0) * tempReal - 3.0 * (optInVFactor - c1);
         c4 = 1.0 + 3.0 * optInVFactor - c1 + 3.0 * tempReal;
         outIdx = 0;
-        (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        (*outReal.get_unchecked_mut(outIdx)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+        outIdx += 1;
         while today <= endIdx {
             e1 = k * (*inReal.get_unchecked({ let _v = today; today += 1; _v })) + one_minus_k * e1;
             e2 = k * e1 + one_minus_k * e2;
@@ -342,7 +345,8 @@ impl Core {
             e4 = k * e3 + one_minus_k * e4;
             e5 = k * e4 + one_minus_k * e5;
             e6 = k * e5 + one_minus_k * e6;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            (*outReal.get_unchecked_mut(outIdx)) = c1 * e6 + c2 * e5 + c3 * e4 + c4 * e3;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

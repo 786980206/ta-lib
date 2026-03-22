@@ -128,7 +128,8 @@ impl Core {
                 SumXY += ((i) as f64) * tempValue1;
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = (m).atan() * (180.0 / 3.141592653589793);
+            outReal[outIdx] = (m).atan() * (180.0 / 3.141592653589793);
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;
@@ -182,7 +183,8 @@ impl Core {
                 SumXY += ((i) as f64) * tempValue1;
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (m).atan() * (180.0 / 3.141592653589793);
+            (*outReal.get_unchecked_mut(outIdx)) = (m).atan() * (180.0 / 3.141592653589793);
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;

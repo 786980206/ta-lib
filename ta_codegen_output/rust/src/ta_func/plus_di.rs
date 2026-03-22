@@ -155,12 +155,15 @@ impl Core {
                     _true_range_0 = range_0;
                     tempReal = _true_range_0;
                     if (tempReal).abs() < 1e-14 {
-                        outReal[{ let _v = outIdx; outIdx += 1; _v }] = (0.0) as f64;
+                        outReal[outIdx] = (0.0) as f64;
+                        outIdx += 1;
                     } else {
-                        outReal[{ let _v = outIdx; outIdx += 1; _v }] = diffP / tempReal;
+                        outReal[outIdx] = diffP / tempReal;
+                        outIdx += 1;
                     }
                 } else {
-                    outReal[{ let _v = outIdx; outIdx += 1; _v }] = (0.0) as f64;
+                    outReal[outIdx] = (0.0) as f64;
+                    outIdx += 1;
                 }
                 prevClose = inClose[today];
             }
@@ -265,9 +268,11 @@ impl Core {
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = inClose[today];
             if !((prevTR).abs() < 1e-14) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (100.0 * (prevPlusDM / prevTR));
+                outReal[outIdx] = (100.0 * (prevPlusDM / prevTR));
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
         }
         (*outNBElement) = outIdx;
@@ -341,12 +346,15 @@ impl Core {
                     _true_range_0 = range_0;
                     tempReal = _true_range_0;
                     if (tempReal).abs() < 1e-14 {
-                        (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (0.0) as f64;
+                        (*outReal.get_unchecked_mut(outIdx)) = (0.0) as f64;
+                        outIdx += 1;
                     } else {
-                        (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = diffP / tempReal;
+                        (*outReal.get_unchecked_mut(outIdx)) = diffP / tempReal;
+                        outIdx += 1;
                     }
                 } else {
-                    (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (0.0) as f64;
+                    (*outReal.get_unchecked_mut(outIdx)) = (0.0) as f64;
+                    outIdx += 1;
                 }
                 prevClose = (*inClose.get_unchecked(today));
             }
@@ -451,9 +459,11 @@ impl Core {
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
             prevClose = (*inClose.get_unchecked(today));
             if !((prevTR).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (100.0 * (prevPlusDM / prevTR));
+                (*outReal.get_unchecked_mut(outIdx)) = (100.0 * (prevPlusDM / prevTR));
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
         }
         (*outNBElement) = outIdx;

@@ -131,7 +131,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (lowestIdx) as i32;
+            outInteger[outIdx] = (lowestIdx) as i32;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }
@@ -189,7 +190,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (lowestIdx) as i32;
+            (*outInteger.get_unchecked_mut(outIdx)) = (lowestIdx) as i32;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }

@@ -141,7 +141,8 @@ impl Core {
         outIdx = 1;
         while today <= endIdx {
             prevMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevMA) * ((optInK_1) as f64) + prevMA;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevMA;
+            (*outReal.get_unchecked_mut(outIdx)) = prevMA;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

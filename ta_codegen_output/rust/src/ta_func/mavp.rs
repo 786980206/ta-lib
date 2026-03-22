@@ -245,7 +245,7 @@ impl Core {
         while i < outputSize {
             curPeriod = ((*localPeriodArray.get_unchecked(i))) as usize;
             if curPeriod != 0 {
-                retCode = self.ma(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
+                retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
                     (*outBegIdx) = 0;
                     (*outNBElement) = 0;

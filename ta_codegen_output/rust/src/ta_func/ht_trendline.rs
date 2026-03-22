@@ -385,7 +385,8 @@ impl Core {
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
             if today >= startIdx {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal2;
+                outReal[outIdx] = tempReal2;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;
@@ -709,7 +710,8 @@ impl Core {
             iTrend2 = iTrend1;
             iTrend1 = tempReal;
             if today >= startIdx {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = tempReal2;
+                (*outReal.get_unchecked_mut(outIdx)) = tempReal2;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;

@@ -348,7 +348,8 @@ impl Core {
             period = 0.2 * period + 0.8 * tempReal;
             smoothPeriod = 0.33 * period + 0.67 * smoothPeriod;
             if today >= startIdx {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = smoothPeriod;
+                outReal[outIdx] = smoothPeriod;
+                outIdx += 1;
             }
             today += 1;
         }
@@ -634,7 +635,8 @@ impl Core {
             period = 0.2 * period + 0.8 * tempReal;
             smoothPeriod = 0.33 * period + 0.67 * smoothPeriod;
             if today >= startIdx {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = smoothPeriod;
+                (*outReal.get_unchecked_mut(outIdx)) = smoothPeriod;
+                outIdx += 1;
             }
             today += 1;
         }

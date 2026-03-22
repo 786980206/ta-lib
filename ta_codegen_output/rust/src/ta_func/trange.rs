@@ -114,7 +114,8 @@ impl Core {
             if val3 > greatest {
                 greatest = val3;
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = greatest;
+            outReal[outIdx] = greatest;
+            outIdx += 1;
             today += 1;
         }
         (*outNBElement) = outIdx;
@@ -164,7 +165,8 @@ impl Core {
             if val3 > greatest {
                 greatest = val3;
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = greatest;
+            (*outReal.get_unchecked_mut(outIdx)) = greatest;
+            outIdx += 1;
             today += 1;
         }
         (*outNBElement) = outIdx;

@@ -142,7 +142,8 @@ impl Core {
             periodSub -= trailingValue;
             periodSum += tempReal * ((optInTimePeriod) as f64);
             trailingValue = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = periodSum / ((divider) as f64);
+            outReal[outIdx] = periodSum / ((divider) as f64);
+            outIdx += 1;
             periodSum -= periodSub;
         }
         (*outNBElement) = outIdx;
@@ -210,7 +211,8 @@ impl Core {
             periodSub -= trailingValue;
             periodSum += tempReal * ((optInTimePeriod) as f64);
             trailingValue = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = periodSum / ((divider) as f64);
+            (*outReal.get_unchecked_mut(outIdx)) = periodSum / ((divider) as f64);
+            outIdx += 1;
             periodSum -= periodSub;
         }
         (*outNBElement) = outIdx;

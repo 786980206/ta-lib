@@ -92,9 +92,11 @@ impl Core {
         for i in (startIdx as usize)..=(endIdx as usize) {
             tempReal = inHigh[i] - inLow[i];
             if (tempReal) < 1e-14 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (((inClose[i] - inOpen[i]) / tempReal) as f64);
+                outReal[outIdx] = (((inClose[i] - inOpen[i]) / tempReal) as f64);
+                outIdx += 1;
             }
         }
         i = (endIdx as usize) + 1;
@@ -122,9 +124,11 @@ impl Core {
         for i in (startIdx as usize)..=(endIdx as usize) {
             tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
             if (tempReal) < 1e-14 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))) / tempReal) as f64);
+                (*outReal.get_unchecked_mut(outIdx)) = ((((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))) / tempReal) as f64);
+                outIdx += 1;
             }
         }
         i = (endIdx as usize) + 1;

@@ -153,9 +153,11 @@ impl Core {
             }
             tempReal = lastValue - theAverage;
             if tempReal != 0.0 && tempReal2 != 0.0 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+                outReal[outIdx] = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
             circBuffer_Idx += 1;
             if circBuffer_Idx >= (optInTimePeriod) as usize {
@@ -238,9 +240,11 @@ impl Core {
             }
             tempReal = lastValue - theAverage;
             if tempReal != 0.0 && tempReal2 != 0.0 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+                (*outReal.get_unchecked_mut(outIdx)) = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             circBuffer_Idx += 1;
             if circBuffer_Idx >= (optInTimePeriod) as usize {

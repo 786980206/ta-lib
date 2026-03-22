@@ -185,12 +185,15 @@ impl Core {
             if inHigh[i - 2] < inHigh[i - 3] && inLow[i - 2] > inLow[i - 3] && inHigh[i - 1] < inHigh[i - 2] && inLow[i - 1] > inLow[i - 2] && (inHigh[i] < inHigh[i - 1] && inLow[i] < inLow[i - 1] && inClose[i - 2] <= inLow[i - 2] + { let _cr = match Near_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } || inHigh[i] > inHigh[i - 1] && inLow[i] > inLow[i - 1] && inClose[i - 2] >= inHigh[i - 2] - { let _cr = match Near_rangeType { 0 => (inClose[i - 2] - inOpen[i - 2]).abs(), 1 => inHigh[i - 2] - inLow[i - 2], _ => inHigh[i - 2] - inLow[i - 2] - (inClose[i - 2] - inOpen[i - 2]).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div }) {
                 patternResult = 100 * (if inHigh[i] < inHigh[i - 1] { 1 } else { 0 - 1 });
                 patternIdx = i;
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (patternResult) as i32;
+                outInteger[outIdx] = (patternResult) as i32;
+                outIdx += 1;
             } else if i <= patternIdx + 3 && (patternResult > 0 && inClose[i] > inHigh[patternIdx - 1] || patternResult < 0 && inClose[i] < inLow[patternIdx - 1]) {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+                outInteger[outIdx] = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+                outIdx += 1;
                 patternIdx = 0;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_3: f64;
             match Near_rangeType {
@@ -338,12 +341,15 @@ impl Core {
             if (*inHigh.get_unchecked(i - 2)) < (*inHigh.get_unchecked(i - 3)) && (*inLow.get_unchecked(i - 2)) > (*inLow.get_unchecked(i - 3)) && (*inHigh.get_unchecked(i - 1)) < (*inHigh.get_unchecked(i - 2)) && (*inLow.get_unchecked(i - 1)) > (*inLow.get_unchecked(i - 2)) && ((*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) <= (*inLow.get_unchecked(i - 2)) + { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div } || (*inHigh.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) > (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) >= (*inHigh.get_unchecked(i - 2)) - { let _cr = match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)), _ => (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs() }; let _avg = if Near_avgPeriod != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { _cr }; let _div = if Near_rangeType == 2 { 2.0 } else { 1.0 }; (Near_factor) * _avg / _div }) {
                 patternResult = 100 * (if (*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) { 1 } else { 0 - 1 });
                 patternIdx = i;
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (patternResult) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult) as i32;
+                outIdx += 1;
             } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked(i)) > (*inHigh.get_unchecked(patternIdx - 1)) || patternResult < 0 && (*inClose.get_unchecked(i)) < (*inLow.get_unchecked(patternIdx - 1))) {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+                outIdx += 1;
                 patternIdx = 0;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_3: f64;
             match Near_rangeType {

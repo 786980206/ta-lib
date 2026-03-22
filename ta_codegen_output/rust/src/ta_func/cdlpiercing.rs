@@ -155,9 +155,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (inClose[i - 1] - inOpen[i - 1]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => inHigh[i - 1] - inLow[i - 1], _ => inHigh[i - 1] - inLow[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal[1]) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) == 1 && (inClose[i] - inOpen[i]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal[0]) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && inOpen[i] < inLow[i - 1] && inClose[i] < inOpen[i - 1] && inClose[i] > inClose[i - 1] + (inClose[i - 1] - inOpen[i - 1]).abs() * 0.5 {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 100;
+                outInteger[outIdx] = 100;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             // for( totIdx = 1; totIdx >= 0; totIdx -= 1 )
             totIdx = 1;
@@ -281,9 +283,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() > { let _cr = match BodyLong_rangeType { 0 => ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs(), 1 => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)), _ => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)) - ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() }; let _avg = if BodyLong_avgPeriod != 0 { ((*BodyLongPeriodTotal.get_unchecked(1))) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) == 1 && ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() > { let _cr = match BodyLong_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyLong_avgPeriod != 0 { ((*BodyLongPeriodTotal.get_unchecked(0))) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } && (*inOpen.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) < (*inOpen.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) > (*inClose.get_unchecked(i - 1)) + ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() * 0.5 {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100;
+                (*outInteger.get_unchecked_mut(outIdx)) = 100;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             // for( totIdx = 1; totIdx >= 0; totIdx -= 1 )
             totIdx = 1;

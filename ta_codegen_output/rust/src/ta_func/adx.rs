@@ -283,7 +283,8 @@ impl Core {
                     prevADX = ((prevADX * (((optInTimePeriod - 1)) as f64) + tempReal) / ((optInTimePeriod) as f64));
                 }
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevADX;
+            outReal[outIdx] = prevADX;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -488,7 +489,8 @@ impl Core {
                     prevADX = ((prevADX * (((optInTimePeriod - 1)) as f64) + tempReal) / ((optInTimePeriod) as f64));
                 }
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevADX;
+            (*outReal.get_unchecked_mut(outIdx)) = prevADX;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

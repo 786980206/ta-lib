@@ -137,7 +137,8 @@ impl Core {
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
             periodTotal2 -= tempReal;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = meanValue2 - meanValue1 * meanValue1;
+            outReal[outIdx] = meanValue2 - meanValue1 * meanValue1;
+            outIdx += 1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;
@@ -198,7 +199,8 @@ impl Core {
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
             periodTotal2 -= tempReal;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = meanValue2 - meanValue1 * meanValue1;
+            (*outReal.get_unchecked_mut(outIdx)) = meanValue2 - meanValue1 * meanValue1;
+            outIdx += 1;
             if !(i <= endIdx) { break; }
         }
         (*outNBElement) = outIdx;

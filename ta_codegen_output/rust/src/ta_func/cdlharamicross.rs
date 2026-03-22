@@ -175,17 +175,22 @@ impl Core {
             if (inClose[i - 1] - inOpen[i - 1]).abs() > { let _cr = match BodyLong_rangeType { 0 => (inClose[i - 1] - inOpen[i - 1]).abs(), 1 => inHigh[i - 1] - inLow[i - 1], _ => inHigh[i - 1] - inLow[i - 1] - (inClose[i - 1] - inOpen[i - 1]).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } {
                 if (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
                     if (inClose[i]).max(inOpen[i]) < (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) > (inClose[i - 1]).min(inOpen[i - 1]) {
-                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 100) as i32;
+                        outInteger[outIdx] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 100) as i32;
+                        outIdx += 1;
                     } else if (inClose[i]).max(inOpen[i]) <= (inClose[i - 1]).max(inOpen[i - 1]) && (inClose[i]).min(inOpen[i]) >= (inClose[i - 1]).min(inOpen[i - 1]) {
-                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 80) as i32;
+                        outInteger[outIdx] = ((0 - (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 })) * 80) as i32;
+                        outIdx += 1;
                     } else {
-                        outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                        outInteger[outIdx] = 0;
+                        outIdx += 1;
                     }
                 } else {
-                    outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                    outInteger[outIdx] = 0;
+                    outIdx += 1;
                 }
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_2: f64;
             match BodyLong_rangeType {
@@ -349,17 +354,22 @@ impl Core {
             if ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() > { let _cr = match BodyLong_rangeType { 0 => ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs(), 1 => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)), _ => (*inHigh.get_unchecked(i - 1)) - (*inLow.get_unchecked(i - 1)) - ((*inClose.get_unchecked(i - 1)) - (*inOpen.get_unchecked(i - 1))).abs() }; let _avg = if BodyLong_avgPeriod != 0 { (BodyLongPeriodTotal) / (BodyLong_avgPeriod as f64) } else { _cr }; let _div = if BodyLong_rangeType == 2 { 2.0 } else { 1.0 }; (BodyLong_factor) * _avg / _div } {
                 if ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() <= { let _cr = match BodyDoji_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } {
                     if ((*inClose.get_unchecked(i))).max((*inOpen.get_unchecked(i))) < ((*inClose.get_unchecked(i - 1))).max((*inOpen.get_unchecked(i - 1))) && ((*inClose.get_unchecked(i))).min((*inOpen.get_unchecked(i))) > ((*inClose.get_unchecked(i - 1))).min((*inOpen.get_unchecked(i - 1))) {
-                        (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) * 100) as i32;
+                        (*outInteger.get_unchecked_mut(outIdx)) = ((0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) * 100) as i32;
+                        outIdx += 1;
                     } else if ((*inClose.get_unchecked(i))).max((*inOpen.get_unchecked(i))) <= ((*inClose.get_unchecked(i - 1))).max((*inOpen.get_unchecked(i - 1))) && ((*inClose.get_unchecked(i))).min((*inOpen.get_unchecked(i))) >= ((*inClose.get_unchecked(i - 1))).min((*inOpen.get_unchecked(i - 1))) {
-                        (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) * 80) as i32;
+                        (*outInteger.get_unchecked_mut(outIdx)) = ((0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) * 80) as i32;
+                        outIdx += 1;
                     } else {
-                        (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                        (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                        outIdx += 1;
                     }
                 } else {
-                    (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                    (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                    outIdx += 1;
                 }
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_2: f64;
             match BodyLong_rangeType {

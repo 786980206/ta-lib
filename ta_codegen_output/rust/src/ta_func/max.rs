@@ -131,7 +131,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = highest;
+            outReal[outIdx] = highest;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }
@@ -189,7 +190,8 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = highest;
+            (*outReal.get_unchecked_mut(outIdx)) = highest;
+            outIdx += 1;
             trailingIdx += 1;
             today += 1;
         }

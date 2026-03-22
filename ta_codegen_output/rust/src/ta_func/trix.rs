@@ -201,7 +201,7 @@ impl Core {
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.roc(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
+        retCode = self.roc_unguarded(0, nbElementToOutput, &tempBuffer, 1, &mut begIdx, outNBElement, outReal);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;

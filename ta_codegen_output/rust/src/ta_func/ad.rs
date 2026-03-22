@@ -107,7 +107,8 @@ impl Core {
             if tmp > 0.0 {
                 ad += (close - low - (high - close)) / tmp * ((inVolume[currentBar]) as f64);
             }
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ad;
+            outReal[outIdx] = ad;
+            outIdx += 1;
             currentBar += 1;
             nbBar -= 1;
         }
@@ -148,7 +149,8 @@ impl Core {
             if tmp > 0.0 {
                 ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(currentBar))) as f64);
             }
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ad;
+            (*outReal.get_unchecked_mut(outIdx)) = ad;
+            outIdx += 1;
             currentBar += 1;
             nbBar -= 1;
         }

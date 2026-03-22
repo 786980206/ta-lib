@@ -172,9 +172,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (inClose[i] - inOpen[i]).abs() <= { let _cr = match BodyDoji_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && (inHigh[i] - (if inClose[i] >= inOpen[i] { inClose[i] } else { inOpen[i] })) < { let _cr = match ShadowVeryShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if ShadowVeryShort_avgPeriod != 0 { (ShadowVeryShortPeriodTotal) / (ShadowVeryShort_avgPeriod as f64) } else { _cr }; let _div = if ShadowVeryShort_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowVeryShort_factor) * _avg / _div } && ((if inClose[i] >= inOpen[i] { inOpen[i] } else { inClose[i] }) - inLow[i]) > { let _cr = match ShadowVeryShort_rangeType { 0 => (inClose[i] - inOpen[i]).abs(), 1 => inHigh[i] - inLow[i], _ => inHigh[i] - inLow[i] - (inClose[i] - inOpen[i]).abs() }; let _avg = if ShadowVeryShort_avgPeriod != 0 { (ShadowVeryShortPeriodTotal) / (ShadowVeryShort_avgPeriod as f64) } else { _cr }; let _div = if ShadowVeryShort_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowVeryShort_factor) * _avg / _div } {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 100;
+                outInteger[outIdx] = 100;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             let mut _candlerange_2: f64;
             match BodyDoji_rangeType {
@@ -335,9 +337,11 @@ impl Core {
         outIdx = 0;
         loop {
             if ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() <= { let _cr = match BodyDoji_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if BodyDoji_avgPeriod != 0 { (BodyDojiPeriodTotal) / (BodyDoji_avgPeriod as f64) } else { _cr }; let _div = if BodyDoji_rangeType == 2 { 2.0 } else { 1.0 }; (BodyDoji_factor) * _avg / _div } && ((*inHigh.get_unchecked(i)) - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inClose.get_unchecked(i)) } else { (*inOpen.get_unchecked(i)) })) < { let _cr = match ShadowVeryShort_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if ShadowVeryShort_avgPeriod != 0 { (ShadowVeryShortPeriodTotal) / (ShadowVeryShort_avgPeriod as f64) } else { _cr }; let _div = if ShadowVeryShort_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowVeryShort_factor) * _avg / _div } && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inOpen.get_unchecked(i)) } else { (*inClose.get_unchecked(i)) }) - (*inLow.get_unchecked(i))) > { let _cr = match ShadowVeryShort_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)), _ => (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() }; let _avg = if ShadowVeryShort_avgPeriod != 0 { (ShadowVeryShortPeriodTotal) / (ShadowVeryShort_avgPeriod as f64) } else { _cr }; let _div = if ShadowVeryShort_rangeType == 2 { 2.0 } else { 1.0 }; (ShadowVeryShort_factor) * _avg / _div } {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100;
+                (*outInteger.get_unchecked_mut(outIdx)) = 100;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             let mut _candlerange_2: f64;
             match BodyDoji_rangeType {

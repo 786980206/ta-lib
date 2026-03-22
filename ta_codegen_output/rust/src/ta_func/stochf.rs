@@ -197,9 +197,11 @@ impl Core {
                 diff = (highest - lowest) / 100.0;
             }
             if diff != 0.0 {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = (inClose[today] - lowest) / diff;
+                tempBuffer[outIdx] = (inClose[today] - lowest) / diff;
+                outIdx += 1;
             } else {
-                tempBuffer[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                tempBuffer[outIdx] = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;
@@ -326,14 +328,16 @@ impl Core {
                 diff = (highest - lowest) / 100.0;
             }
             if diff != 0.0 {
-                (*tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((*inClose.get_unchecked(today)) - lowest) / diff;
+                (*tempBuffer.get_unchecked_mut(outIdx)) = ((*inClose.get_unchecked(today)) - lowest) / diff;
+                outIdx += 1;
             } else {
-                (*tempBuffer.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*tempBuffer.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }

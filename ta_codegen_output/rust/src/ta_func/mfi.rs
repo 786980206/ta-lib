@@ -161,9 +161,11 @@ impl Core {
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * (posSumMF / tempValue1);
+                outReal[outIdx] = 100.0 * (posSumMF / tempValue1);
+                outIdx += 1;
             }
         } else {
             while today < startIdx {
@@ -209,9 +211,11 @@ impl Core {
             }
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 100.0 * (posSumMF / tempValue1);
+                outReal[outIdx] = 100.0 * (posSumMF / tempValue1);
+                outIdx += 1;
             }
             mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
         }
@@ -296,9 +300,11 @@ impl Core {
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100.0 * (posSumMF / tempValue1);
+                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (posSumMF / tempValue1);
+                outIdx += 1;
             }
         } else {
             while today < startIdx {
@@ -344,9 +350,11 @@ impl Core {
             }
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 100.0 * (posSumMF / tempValue1);
+                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (posSumMF / tempValue1);
+                outIdx += 1;
             }
             mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
         }

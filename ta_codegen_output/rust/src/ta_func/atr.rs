@@ -141,7 +141,8 @@ impl Core {
             prevATR *= ((optInTimePeriod - 1) as f64);
             prevATR += tempBuffer[{ let _v = today; today += 1; _v }];
             prevATR /= ((optInTimePeriod) as f64);
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevATR;
+            outReal[outIdx] = prevATR;
+            outIdx += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
@@ -179,14 +180,14 @@ impl Core {
             return RetCode::Success;
         }
         if optInTimePeriod <= 1 {
-            return self.trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
+            return self.trange_unguarded(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal);
         }
         tempBuffer = vec![0.0_f64; ((lookbackTotal + (endIdx - startIdx) + 1) * 1) as usize];
-        retCode = self.trange(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
+        retCode = self.trange_unguarded(startIdx - lookbackTotal + 1, endIdx, inHigh, inLow, inClose, &mut outBegIdx1, &mut outNbElement1, &mut tempBuffer[..]);
         if retCode != RetCode::Success {
             return retCode;
         }
-        retCode = self.sma((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
+        retCode = self.sma_unguarded((optInTimePeriod - 1) as usize, (optInTimePeriod - 1) as usize, &tempBuffer, optInTimePeriod, &mut outBegIdx1, &mut outNbElement1, std::slice::from_mut(&mut prevATR));
         if retCode != RetCode::Success {
             return retCode;
         }
@@ -205,7 +206,8 @@ impl Core {
             prevATR *= ((optInTimePeriod - 1) as f64);
             prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
             prevATR /= ((optInTimePeriod) as f64);
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevATR;
+            (*outReal.get_unchecked_mut(outIdx)) = prevATR;
+            outIdx += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

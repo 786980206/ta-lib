@@ -110,9 +110,11 @@ impl Core {
         while inIdx <= endIdx {
             tempReal = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             if tempReal != 0.0 {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[inIdx] / tempReal) as f64);
+                outReal[outIdx] = ((inReal[inIdx] / tempReal) as f64);
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
             inIdx += 1;
         }
@@ -149,9 +151,11 @@ impl Core {
         while inIdx <= endIdx {
             tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
             if tempReal != 0.0 {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((*inReal.get_unchecked(inIdx)) / tempReal) as f64);
+                (*outReal.get_unchecked_mut(outIdx)) = (((*inReal.get_unchecked(inIdx)) / tempReal) as f64);
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             inIdx += 1;
         }

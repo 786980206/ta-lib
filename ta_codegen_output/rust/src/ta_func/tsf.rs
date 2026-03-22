@@ -130,7 +130,8 @@ impl Core {
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
             b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = b + m * ((optInTimePeriod) as f64);
+            outReal[outIdx] = b + m * ((optInTimePeriod) as f64);
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;
@@ -186,7 +187,8 @@ impl Core {
             }
             m = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
             b = (SumY - m * SumX) / ((optInTimePeriod) as f64);
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = b + m * ((optInTimePeriod) as f64);
+            (*outReal.get_unchecked_mut(outIdx)) = b + m * ((optInTimePeriod) as f64);
+            outIdx += 1;
             today += 1;
         }
         (*outBegIdx) = startIdx;

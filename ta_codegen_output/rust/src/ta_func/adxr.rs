@@ -126,7 +126,8 @@ impl Core {
         outIdx = 0;
         nbElement = endIdx - startIdx + 2;
         while { nbElement -= 1; nbElement } != 0 {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((((adx[{ let _v = i; i += 1; _v }] + adx[{ let _v = j; j += 1; _v }]) / 2.0)) as f64);
+            outReal[outIdx] = ((((adx[{ let _v = i; i += 1; _v }] + adx[{ let _v = j; j += 1; _v }]) / 2.0)) as f64);
+            outIdx += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;
@@ -162,7 +163,7 @@ impl Core {
             return RetCode::Success;
         }
         adx = vec![0.0_f64; ((endIdx - startIdx + (optInTimePeriod) as usize) * 1) as usize];
-        retCode = self.adx((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
+        retCode = self.adx_unguarded((startIdx - ((optInTimePeriod - 1)) as usize) as usize, endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, &mut adx[..]);
         if retCode != RetCode::Success {
             return retCode;
         }
@@ -171,7 +172,8 @@ impl Core {
         outIdx = 0;
         nbElement = endIdx - startIdx + 2;
         while { nbElement -= 1; nbElement } != 0 {
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((((*adx.get_unchecked({ let _v = i; i += 1; _v })) + (*adx.get_unchecked({ let _v = j; j += 1; _v }))) / 2.0)) as f64);
+            (*outReal.get_unchecked_mut(outIdx)) = (((((*adx.get_unchecked({ let _v = i; i += 1; _v })) + (*adx.get_unchecked({ let _v = j; j += 1; _v }))) / 2.0)) as f64);
+            outIdx += 1;
         }
         (*outBegIdx) = startIdx;
         (*outNBElement) = outIdx;

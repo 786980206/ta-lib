@@ -405,7 +405,8 @@ impl Core {
                 DCPhase -= 360.0;
             }
             if today >= startIdx {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = DCPhase;
+                outReal[outIdx] = DCPhase;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;
@@ -749,7 +750,8 @@ impl Core {
                 DCPhase -= 360.0;
             }
             if today >= startIdx {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = DCPhase;
+                (*outReal.get_unchecked_mut(outIdx)) = DCPhase;
+                outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;
             today += 1;

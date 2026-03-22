@@ -174,7 +174,8 @@ impl Core {
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
             prevKAMA = (inReal[{ let _v = today; today += 1; _v }] - prevKAMA) * tempReal + prevKAMA;
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = prevKAMA;
+            outReal[outIdx] = prevKAMA;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
@@ -272,7 +273,8 @@ impl Core {
             tempReal = tempReal * constDiff + constMax;
             tempReal *= tempReal;
             prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA) * tempReal + prevKAMA;
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = prevKAMA;
+            (*outReal.get_unchecked_mut(outIdx)) = prevKAMA;
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;

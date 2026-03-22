@@ -13,3 +13,7 @@ path = "src/bin/ta_codegen_serve.rs"
 
 [dependencies]
 serde_json = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1

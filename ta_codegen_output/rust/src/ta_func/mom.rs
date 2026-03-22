@@ -107,7 +107,8 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            outReal[{ let _v = outIdx; outIdx += 1; _v }] = ((inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }]) as f64);
+            outReal[outIdx] = ((inReal[{ let _v = inIdx; inIdx += 1; _v }] - inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }]) as f64);
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;
@@ -139,7 +140,8 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (((*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v })) - (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }))) as f64);
+            (*outReal.get_unchecked_mut(outIdx)) = (((*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v })) - (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }))) as f64);
+            outIdx += 1;
         }
         (*outNBElement) = outIdx;
         (*outBegIdx) = startIdx;

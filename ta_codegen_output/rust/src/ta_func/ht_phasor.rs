@@ -259,7 +259,8 @@ impl Core {
                 Q1 *= adjustedPrevPeriod;
                 if today >= startIdx {
                     outQuadrature[outIdx] = Q1;
-                    outInPhase[{ let _v = outIdx; outIdx += 1; _v }] = I1ForEvenPrev3;
+                    outInPhase[outIdx] = I1ForEvenPrev3;
+                    outIdx += 1;
                 }
                 hilbertTempReal = a * I1ForEvenPrev3;
                 jI = 0_f64 - jI_Even[hilbertIdx];
@@ -307,7 +308,8 @@ impl Core {
                 Q1 *= adjustedPrevPeriod;
                 if today >= startIdx {
                     outQuadrature[outIdx] = Q1;
-                    outInPhase[{ let _v = outIdx; outIdx += 1; _v }] = I1ForOddPrev3;
+                    outInPhase[outIdx] = I1ForOddPrev3;
+                    outIdx += 1;
                 }
                 hilbertTempReal = a * I1ForOddPrev3;
                 jI = 0_f64 - jI_Odd[hilbertIdx];
@@ -548,7 +550,8 @@ impl Core {
                 Q1 *= adjustedPrevPeriod;
                 if today >= startIdx {
                     (*outQuadrature.get_unchecked_mut(outIdx)) = Q1;
-                    (*outInPhase.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = I1ForEvenPrev3;
+                    (*outInPhase.get_unchecked_mut(outIdx)) = I1ForEvenPrev3;
+                    outIdx += 1;
                 }
                 hilbertTempReal = a * I1ForEvenPrev3;
                 jI = 0_f64 - (*jI_Even.get_unchecked(hilbertIdx));
@@ -596,7 +599,8 @@ impl Core {
                 Q1 *= adjustedPrevPeriod;
                 if today >= startIdx {
                     (*outQuadrature.get_unchecked_mut(outIdx)) = Q1;
-                    (*outInPhase.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = I1ForOddPrev3;
+                    (*outInPhase.get_unchecked_mut(outIdx)) = I1ForOddPrev3;
+                    outIdx += 1;
                 }
                 hilbertTempReal = a * I1ForOddPrev3;
                 jI = 0_f64 - (*jI_Odd.get_unchecked(hilbertIdx));

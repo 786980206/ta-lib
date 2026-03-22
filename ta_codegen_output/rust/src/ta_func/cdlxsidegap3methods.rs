@@ -101,9 +101,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) && (if inClose[i - 1] >= inOpen[i - 1] { 1 } else { 0 - 1 }) == 0 - (if inClose[i] >= inOpen[i] { 1 } else { 0 - 1 }) && inOpen[i] < (inClose[i - 1]).max(inOpen[i - 1]) && inOpen[i] > (inClose[i - 1]).min(inOpen[i - 1]) && inClose[i] < (inClose[i - 2]).max(inOpen[i - 2]) && inClose[i] > (inClose[i - 2]).min(inOpen[i - 2]) && ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) == 1 && ((if (inOpen[i - 1]).min(inClose[i - 1]) > (inOpen[i - 2]).max(inClose[i - 2]) { 1 } else { 0 }) != 0) || ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if (inOpen[i - 1]).max(inClose[i - 1]) < (inOpen[i - 2]).min(inClose[i - 2]) { 1 } else { 0 }) != 0)) {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) * 100) as i32;
+                outInteger[outIdx] = ((if inClose[i - 2] >= inOpen[i - 2] { 1 } else { 0 - 1 }) * 100) as i32;
+                outIdx += 1;
             } else {
-                outInteger[{ let _v = outIdx; outIdx += 1; _v }] = 0;
+                outInteger[outIdx] = 0;
+                outIdx += 1;
             }
             i += 1;
             if !(i <= endIdx) { break; }
@@ -141,9 +143,11 @@ impl Core {
         outIdx = 0;
         loop {
             if (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 0 - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) && (*inOpen.get_unchecked(i)) < ((*inClose.get_unchecked(i - 1))).max((*inOpen.get_unchecked(i - 1))) && (*inOpen.get_unchecked(i)) > ((*inClose.get_unchecked(i - 1))).min((*inOpen.get_unchecked(i - 1))) && (*inClose.get_unchecked(i)) < ((*inClose.get_unchecked(i - 2))).max((*inOpen.get_unchecked(i - 2))) && (*inClose.get_unchecked(i)) > ((*inClose.get_unchecked(i - 2))).min((*inOpen.get_unchecked(i - 2))) && ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == 1 && ((if ((*inOpen.get_unchecked(i - 1))).min((*inClose.get_unchecked(i - 1))) > ((*inOpen.get_unchecked(i - 2))).max((*inClose.get_unchecked(i - 2))) { 1 } else { 0 }) != 0) || ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && ((if ((*inOpen.get_unchecked(i - 1))).max((*inClose.get_unchecked(i - 1))) < ((*inOpen.get_unchecked(i - 2))).min((*inClose.get_unchecked(i - 2))) { 1 } else { 0 }) != 0)) {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) * 100) as i32;
+                (*outInteger.get_unchecked_mut(outIdx)) = ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) * 100) as i32;
+                outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0;
+                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                outIdx += 1;
             }
             i += 1;
             if !(i <= endIdx) { break; }

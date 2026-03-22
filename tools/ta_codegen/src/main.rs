@@ -446,11 +446,15 @@ fn build_servers(backend_filter: Option<&str>) {
                 if bench_src.exists() {
                     print!("  Building C bench... ");
                     let bench_dst = bin_dir.join("ta_bench_cg");
+                    let bench_inc_c = out_base.join("c");
+                    let bench_inc_func = out_base.join("c/ta_func");
                     match std::process::Command::new("gcc")
                         .args([
                             "-o",
                             bench_dst.to_str().unwrap(),
                             bench_src.to_str().unwrap(),
+                            &format!("-I{}", bench_inc_c.to_str().unwrap()),
+                            &format!("-I{}", bench_inc_func.to_str().unwrap()),
                             "-lm",
                             "-O3",
                             "-DNDEBUG",
@@ -589,7 +593,13 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     // This handles forward declarations (e.g., MA calls SMA/EMA/WMA).
     let mut unity_src = String::new();
     unity_src.push_str("/* Unity build for shared library */\n");
-    unity_src.push_str("#include \"ta_func.h\"\n\n");
+    unity_src.push_str("#include \"ta_func.h\"\n");
+    // Include globals (ta_unstable_period, ta_compatibility, TA_Globals)
+    let globals_path = out_base.join("c/ta_lib_globals.c");
+    if globals_path.exists() {
+        unity_src.push_str(&format!("#include \"{}\"\n", globals_path.to_str().unwrap()));
+    }
+    unity_src.push('\n');
 
     let mut c_names: Vec<String> = Vec::new();
     if let Ok(entries) = std::fs::read_dir(&c_dir) {
@@ -888,6 +898,10 @@ path = "src/bin/ta_codegen_serve.rs"
 
 [dependencies]
 serde_json = "1"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
 "#;
     let cargo_path = rust_dir.join("Cargo.toml");
     std::fs::write(&cargo_path, cargo_toml).unwrap();

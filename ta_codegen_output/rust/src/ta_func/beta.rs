@@ -191,9 +191,11 @@ impl Core {
             trailing_last_price_y = tmp_real;
             tmp_real = n * S_xx - S_x * S_x;
             if !((tmp_real).abs() < 1e-14) {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = (n * S_xy - S_x * S_y) / tmp_real;
+                outReal[outIdx] = (n * S_xy - S_x * S_y) / tmp_real;
+                outIdx += 1;
             } else {
-                outReal[{ let _v = outIdx; outIdx += 1; _v }] = 0.0;
+                outReal[outIdx] = 0.0;
+                outIdx += 1;
             }
             S_xx -= x * x;
             S_xy -= x * y;
@@ -314,9 +316,11 @@ impl Core {
             trailing_last_price_y = tmp_real;
             tmp_real = n * S_xx - S_x * S_x;
             if !((tmp_real).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = (n * S_xy - S_x * S_y) / tmp_real;
+                (*outReal.get_unchecked_mut(outIdx)) = (n * S_xy - S_x * S_y) / tmp_real;
+                outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut({ let _v = outIdx; outIdx += 1; _v })) = 0.0;
+                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                outIdx += 1;
             }
             S_xx -= x * x;
             S_xy -= x * y;
