@@ -3630,9 +3630,9 @@ fn render_func_call(
     } else if registry.contains(fname) {
         // In unguarded context, route to _unguarded to avoid re-validation + use get_unchecked.
         // In guarded context, call the guarded variant (safe [] indexing).
-        // Exception: functions with explicit unguarded variants (extra params like EMA's k)
-        // can't be blindly routed — signature mismatch. Keep calling guarded for those.
-        let has_extra_params = fname == "ema"; // EMA is the only function with extra unguarded params
+        // Exception: EMA has an extra k param in its _unguarded signature.
+        // Can't blindly route — signature mismatch unless caller passes k.
+        let has_extra_params = fname == "ema" && args.len() <= 7;
         let suffix = if ctx.unchecked && !has_extra_params { "_unguarded" } else { "" };
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
         format!("self.{}{}({})", fname.to_lowercase(), suffix, rendered_args.join(", "))
