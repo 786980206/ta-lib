@@ -111,7 +111,7 @@ impl Core {
             let mut upsum: f64 = 0.0;
             let mut downsum: f64 = 0.0;
             let mut i: usize = 0_usize;
-            for i in (startIdx - lookback as usize)..=(startIdx as usize) {
+            for i in (startIdx - lookback as usize)..(startIdx as usize) + 1 {
                 let mut close: f64 = inClose[i];
                 let mut open: f64 = inOpen[i];
                 if close > open {
@@ -157,7 +157,7 @@ impl Core {
             let mut upsum: f64 = 0.0;
             let mut downsum: f64 = 0.0;
             let mut i: usize = 0_usize;
-            for i in (startIdx - lookback as usize)..=(startIdx as usize) {
+            for i in (startIdx - lookback as usize)..(startIdx as usize) + 1 {
                 let mut close: f64 = (*inClose.get_unchecked(i));
                 let mut open: f64 = (*inOpen.get_unchecked(i));
                 if close > open {

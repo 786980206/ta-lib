@@ -89,7 +89,7 @@ impl Core {
         let mut i: usize = 0_usize;
         let mut tempReal: f64 = 0.0_f64;
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = inHigh[i] - inLow[i];
             if (tempReal) < 1e-14 {
                 outReal[outIdx] = 0.0;
@@ -121,7 +121,7 @@ impl Core {
         let mut tempReal: f64 = 0.0_f64;
         unsafe {
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
             if (tempReal) < 1e-14 {
                 (*outReal.get_unchecked_mut(outIdx)) = 0.0;

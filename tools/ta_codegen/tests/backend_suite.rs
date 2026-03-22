@@ -1327,8 +1327,8 @@ fn rust_forc_emits_range_iteration_when_possible() {
     );
 
     assert!(
-        rendered.contains("..="),
-        "Simple ForC should emit range iteration: {rendered}"
+        rendered.contains("..") && rendered.contains("+ 1"),
+        "Simple ForC should emit exclusive range iteration: {rendered}"
     );
     assert!(
         !rendered.contains("while "),
@@ -2938,8 +2938,8 @@ fn rust_forc_range_iteration_post_loop_fixup() {
     };
     let rendered = render_rust_stmt(&stmt);
     assert!(
-        rendered.contains("..="),
-        "Range ForC should use ..= : {rendered}"
+        rendered.contains("..") && rendered.contains("+ 1"),
+        "Range ForC should use exclusive range: {rendered}"
     );
     // Post-loop fixup: i = (endIdx as usize) + 1
     assert!(
@@ -3975,8 +3975,8 @@ fn rust_while_with_for_loop_var_renders_for_in() {
         "While with for-loop-var pattern should render as for-in: {rendered}"
     );
     assert!(
-        rendered.contains("..="),
-        "While-to-for should use range syntax: {rendered}"
+        rendered.contains("..") && rendered.contains("+ 1"),
+        "While-to-for should use exclusive range syntax: {rendered}"
     );
 }
 

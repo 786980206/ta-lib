@@ -118,7 +118,7 @@ impl Core {
             lowest = inLow[trailingIdx];
             highest = inHigh[trailingIdx];
             trailingIdx += 1;
-            for i in (trailingIdx as usize)..=(today as usize) {
+            for i in (trailingIdx as usize)..(today as usize) + 1 {
                 tmp = inLow[i];
                 if tmp < lowest {
                     lowest = tmp;
@@ -173,7 +173,7 @@ impl Core {
             lowest = (*inLow.get_unchecked(trailingIdx));
             highest = (*inHigh.get_unchecked(trailingIdx));
             trailingIdx += 1;
-            for i in (trailingIdx as usize)..=(today as usize) {
+            for i in (trailingIdx as usize)..(today as usize) + 1 {
                 tmp = (*inLow.get_unchecked(i));
                 if tmp < lowest {
                     lowest = tmp;

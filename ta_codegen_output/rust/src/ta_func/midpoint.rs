@@ -115,7 +115,7 @@ impl Core {
         while today <= endIdx {
             lowest = inReal[{ let _v = trailingIdx; trailingIdx += 1; _v }];
             highest = lowest;
-            for i in (trailingIdx as usize)..=(today as usize) {
+            for i in (trailingIdx as usize)..(today as usize) + 1 {
                 tmp = inReal[i];
                 if tmp < lowest {
                     lowest = tmp;
@@ -166,7 +166,7 @@ impl Core {
         while today <= endIdx {
             lowest = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
             highest = lowest;
-            for i in (trailingIdx as usize)..=(today as usize) {
+            for i in (trailingIdx as usize)..(today as usize) + 1 {
                 tmp = (*inReal.get_unchecked(i));
                 if tmp < lowest {
                     lowest = tmp;

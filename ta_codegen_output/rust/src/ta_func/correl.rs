@@ -124,7 +124,7 @@ impl Core {
         sumY = sumX2;
         sumX = sumY;
         sumXY = sumX;
-        for today in (trailingIdx as usize)..=(startIdx as usize) {
+        for today in (trailingIdx as usize)..(startIdx as usize) + 1 {
             x = inReal0[today];
             sumX += x;
             sumX2 += x * x;
@@ -212,7 +212,7 @@ impl Core {
         sumY = sumX2;
         sumX = sumY;
         sumXY = sumX;
-        for today in (trailingIdx as usize)..=(startIdx as usize) {
+        for today in (trailingIdx as usize)..(startIdx as usize) + 1 {
             x = (*inReal0.get_unchecked(today));
             sumX += x;
             sumX2 += x * x;

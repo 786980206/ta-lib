@@ -1612,7 +1612,9 @@ pub fn render_statement(
             update,
             body: for_body,
         } => {
-            // Range-iteration fast path: for(i=start; i<=end; i++) → for i in (start as usize)..=(end as usize)
+            // Range-iteration fast path: for(i=start; i<=end; i++) → for i in start..(end+1)
+            // Uses exclusive range (not ..=) because LLVM vectorizes exclusive ranges
+            // but generates suboptimal cinc+double-compare for inclusive ranges.
             if let Expr::BinOp(cond_left, BinOp::LessEq, cond_right) = condition {
                 if let Expr::Var(iter_name) = cond_left.as_ref() {
                     if let Some(start_expr) = extract_init_value(init, iter_name) {
@@ -1620,7 +1622,7 @@ pub fn render_statement(
                             let start_str = render_expr(start_expr, ctx, opt_real_params, registry, helpers);
                             let end_str = render_expr(cond_right, ctx, opt_real_params, registry, helpers);
                             let mut out = format!(
-                                "{pad}for {iter_name} in ({start_str} as usize)..=({end_str} as usize) {{\n"
+                                "{pad}for {iter_name} in ({start_str} as usize)..({end_str} as usize) + 1 {{\n"
                             );
                             for s in for_body {
                                 out.push_str(&render_statement(
@@ -2081,7 +2083,7 @@ pub fn render_statement(
                         };
                         let end_expr = render_expr(right, ctx, opt_real_params, registry, helpers);
                         let mut out = format!(
-                            "{pad}for {iter_name} in ({start_expr} as usize)..=({end_expr} as usize) {{\n"
+                            "{pad}for {iter_name} in ({start_expr} as usize)..({end_expr} as usize) + 1 {{\n"
                         );
                         for s in &while_body[..while_body.len() - 1] {
                             out.push_str(&render_statement(

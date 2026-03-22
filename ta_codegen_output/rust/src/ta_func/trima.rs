@@ -133,7 +133,7 @@ impl Core {
             }
             numeratorAdd = 0.0;
             middleIdx += 1;
-            for i in (middleIdx as usize)..=(todayIdx as usize) {
+            for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
                 tempReal = inReal[i];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
@@ -178,7 +178,7 @@ impl Core {
             }
             numeratorAdd = 0.0;
             middleIdx += 1;
-            for i in (middleIdx as usize)..=(todayIdx as usize) {
+            for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
                 tempReal = inReal[i];
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
@@ -260,7 +260,7 @@ impl Core {
             }
             numeratorAdd = 0.0;
             middleIdx += 1;
-            for i in (middleIdx as usize)..=(todayIdx as usize) {
+            for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
                 tempReal = (*inReal.get_unchecked(i));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
@@ -305,7 +305,7 @@ impl Core {
             }
             numeratorAdd = 0.0;
             middleIdx += 1;
-            for i in (middleIdx as usize)..=(todayIdx as usize) {
+            for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
                 tempReal = (*inReal.get_unchecked(i));
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;

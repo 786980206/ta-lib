@@ -89,7 +89,7 @@ impl Core {
         prevOBV = inVolume[startIdx];
         prevReal = inReal[startIdx];
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = inReal[i];
             if tempReal > prevReal {
                 prevOBV += inVolume[i];
@@ -124,7 +124,7 @@ impl Core {
         prevOBV = (*inVolume.get_unchecked(startIdx));
         prevReal = (*inReal.get_unchecked(startIdx));
         outIdx = 0;
-        for i in (startIdx as usize)..=(endIdx as usize) {
+        for i in (startIdx as usize)..(endIdx as usize) + 1 {
             tempReal = (*inReal.get_unchecked(i));
             if tempReal > prevReal {
                 prevOBV += (*inVolume.get_unchecked(i));
