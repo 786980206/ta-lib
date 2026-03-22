@@ -109,6 +109,25 @@ fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::Par
             .filter(|(name, _)| !guarded_param_names.contains(name))
             .cloned()
             .collect();
+        // Extract pre-compute expressions from the guarded body.
+        // These are VarDecl inits for the extra param names (e.g., optInK_1 = 2.0/(period+1)).
+        let extra_names: std::collections::HashSet<_> = func_def
+            .unguarded_extra_params
+            .iter()
+            .map(|(name, _)| name.as_str())
+            .collect();
+        func_def.pre_compute = guarded
+            .body
+            .iter()
+            .filter_map(|stmt| {
+                if let ir::Statement::VarDecl { name, init: Some(expr), .. } = stmt {
+                    if extra_names.contains(name.as_str()) {
+                        return Some((name.clone(), expr.clone()));
+                    }
+                }
+                None
+            })
+            .collect();
     } else {
         func_def.unguarded_body = func_def.body.clone();
     }
@@ -168,13 +187,13 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         }
     }
 
+    // Phase 1: Load all FuncDefs
     let mut generated_funcs: Vec<ir::FuncDef> = Vec::new();
 
     for entry in &func_dirs {
         let dir = entry.path();
         let func_name_lower = entry.file_name().to_string_lossy().to_string();
 
-        // Apply function filter
         if let Some(ref names) = filter_names {
             if !names.iter().any(|n| n == &func_name_lower.to_uppercase()) {
                 continue;
@@ -197,12 +216,35 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         let mut func_def = parser::yaml::parse_yaml(&yaml_path);
         let parsed = parser::c_source::parse_c_source(&c_path);
         wire_parsed_source(&mut func_def, &parsed);
-
-        for backend in &backends_to_run {
-            generate_backend(&func_def, backend, &enums, &registry, &helper_registry, &out_base);
-        }
-
         generated_funcs.push(func_def);
+    }
+
+    // Phase 2: Build PreComputeMap from all loaded FuncDefs.
+    // Maps function name → (insert_index, pre-compute expressions).
+    // insert_index = 2 (start/end) + num_inputs + num_optional_inputs.
+    let pre_compute_map: ir::PreComputeMap = generated_funcs
+        .iter()
+        .filter(|f| !f.pre_compute.is_empty())
+        .map(|f| {
+            let insert_idx = 2 + f.inputs.len() + f.optional_inputs.len();
+            (f.name.to_lowercase(), (insert_idx, f.pre_compute.clone()))
+        })
+        .collect();
+
+    // Phase 3: Expand pre-compute in unguarded bodies, then generate output.
+    // When DEMA's unguarded body calls ema(), rewrite to:
+    //   let optInK_1 = <pre_compute_expr>;
+    //   ema_unguarded(... optInK_1 ...)
+    // This is an IR transformation — backends render the rewritten body as-is.
+    for func_def in &mut generated_funcs {
+        ir::expand_pre_compute(&mut func_def.unguarded_body, &pre_compute_map, &registry);
+    }
+
+    // Phase 4: Generate output for each backend
+    for func_def in &generated_funcs {
+        for backend in &backends_to_run {
+            generate_backend(func_def, backend, &enums, &registry, &helper_registry, &out_base);
+        }
     }
 
     // Generate Rust crate scaffolding when Rust is one of the backends

@@ -1521,6 +1521,7 @@ fn backends_render_max_min_fmax_fmin_abs() {
         body: body.clone(),
         unguarded_body: body,
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     };
 
@@ -2021,6 +2022,7 @@ fn make_func_with_helper_call(
         body: body.clone(),
         unguarded_body: body,
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     }
 }
@@ -2168,6 +2170,7 @@ fn inlining_counter_avoids_name_collisions() {
         ],
         unguarded_body: vec![],
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     };
     let enums = HashMap::new();
@@ -3832,6 +3835,7 @@ fn rust_lookback_param_minus() {
         body: body.clone(),
         unguarded_body: body,
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     };
     let enums = HashMap::new();
@@ -3876,6 +3880,7 @@ fn rust_lookback_none() {
         body: body.clone(),
         unguarded_body: body,
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     };
     let enums = HashMap::new();
@@ -4082,6 +4087,7 @@ fn rust_lookback_code_renders_var_types_correctly() {
         body: body.clone(),
         unguarded_body: body,
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     };
     let enums = HashMap::new();

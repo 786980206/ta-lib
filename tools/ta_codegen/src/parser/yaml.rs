@@ -176,6 +176,7 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         body: vec![],
         unguarded_body: vec![],
         unguarded_extra_params: vec![],
+        pre_compute: vec![],
         has_explicit_unguarded: false,
     }
 }

@@ -107,14 +107,14 @@
          tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
          firstEMA = new double[(int)((tempInt*1))];
       }
-      retCode = ema((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }
@@ -235,14 +235,14 @@
          tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
          firstEMA = new double[(int)((tempInt*1))];
       }
-      retCode = ema((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+      retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
       if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }
          return retCode ;
       }
       secondEMA = new double[(int)((firstEMANbElement.value*1))];
-      retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+      retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
       if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
          if( (firstEMA!=outReal) ) {
          }

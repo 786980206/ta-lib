@@ -221,7 +221,7 @@ impl Core {
                 retCode = self.sma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
             }
             1 => {
-                retCode = self.ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+                retCode = self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), outBegIdx, outNBElement, outReal);
             }
             2 => {
                 retCode = self.wma_unguarded(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);

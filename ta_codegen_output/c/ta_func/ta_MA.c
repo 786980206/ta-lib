@@ -196,7 +196,7 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
       retCode = TA_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
       retCode = TA_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
@@ -354,7 +354,7 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
       retCode = TA_S_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_S_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
       retCode = TA_S_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);

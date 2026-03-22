@@ -181,7 +181,7 @@ impl Core {
         (*outBegIdx) = startIdx;
         nbElementToOutput = endIdx - startIdx + 1 + totalLookback;
         tempBuffer = vec![0.0_f64; (nbElementToOutput * 1) as usize];
-        retCode = self.ema(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema_unguarded(startIdx - totalLookback, endIdx, inReal, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
@@ -189,14 +189,14 @@ impl Core {
         }
         nbElementToOutput -= 1;
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema_unguarded(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;
             return retCode;
         }
         nbElementToOutput -= emaLookback;
-        retCode = self.ema(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
+        retCode = self.ema_unguarded(0, nbElementToOutput, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut begIdx, &mut nbElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || nbElement == 0 {
             (*outNBElement) = 0;
             (*outBegIdx) = 0;

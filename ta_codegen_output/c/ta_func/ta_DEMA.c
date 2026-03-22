@@ -191,7 +191,7 @@ TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
          return TA_ALLOC_ERR;
       }
    }
-   retCode = TA_EMA((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_INT_EMA((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       if( (firstEMA!=outReal) )
@@ -209,7 +209,7 @@ TA_LIB_API TA_RetCode TA_DEMA_Unguarded( int    startIdx,
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       if( (firstEMA!=outReal) )
@@ -391,7 +391,7 @@ TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
          return TA_ALLOC_ERR;
       }
    }
-   retCode = TA_S_EMA((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,&firstEMABegIdx,&firstEMANbElement,firstEMA);
+   retCode = TA_S_INT_EMA((startIdx-lookbackEMA),endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&firstEMABegIdx,&firstEMANbElement,firstEMA);
    if( ((retCode!=TA_SUCCESS)||(firstEMANbElement==0)) )
    {
       if( ((void *)firstEMA!=(void *)outReal) )
@@ -409,7 +409,7 @@ TA_RetCode TA_S_DEMA_Unguarded( int    startIdx,
       }
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,&secondEMABegIdx,&secondEMANbElement,secondEMA);
+   retCode = TA_INT_EMA(0,(firstEMANbElement-1),firstEMA,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&secondEMABegIdx,&secondEMANbElement,secondEMA);
    if( ((retCode!=TA_SUCCESS)||(secondEMANbElement==0)) )
    {
       if( ((void *)firstEMA!=(void *)outReal) )

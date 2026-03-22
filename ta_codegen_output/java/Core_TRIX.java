@@ -102,7 +102,7 @@
       outBegIdx.value = startIdx;
       nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
       tempBuffer = new double[(int)((nbElementToOutput*1))];
-      retCode = ema((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -110,14 +110,14 @@
       }
       nbElementToOutput -= 1;
       nbElementToOutput -= emaLookback;
-      retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
-      retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -228,7 +228,7 @@
       outBegIdx.value = startIdx;
       nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
       tempBuffer = new double[(int)((nbElementToOutput*1))];
-      retCode = ema((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
@@ -236,14 +236,14 @@
       }
       nbElementToOutput -= 1;
       nbElementToOutput -= emaLookback;
-      retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;
          return retCode ;
       }
       nbElementToOutput -= emaLookback;
-      retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+      retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
       if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
          outNBElement.value = 0;
          outBegIdx.value = 0;

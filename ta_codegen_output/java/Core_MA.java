@@ -135,7 +135,7 @@
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
          retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
@@ -259,7 +259,7 @@
          retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
          break;
       case MAType.Ema:
-         retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+         retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), outBegIdx, outNBElement, outReal);
          break;
       case MAType.Wma:
          retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);

@@ -175,7 +175,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
-   retCode = TA_EMA((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_INT_EMA((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -185,7 +185,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
    }
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
-   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_INT_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -194,7 +194,7 @@ TA_LIB_API TA_RetCode TA_TRIX_Unguarded( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_INT_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -351,7 +351,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
       *outBegIdx= 0;
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_EMA((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_S_INT_EMA((startIdx-totalLookback),endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -361,7 +361,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
    }
    nbElementToOutput -= 1;
    nbElementToOutput -= emaLookback;
-   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_INT_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
@@ -370,7 +370,7 @@ TA_RetCode TA_S_TRIX_Unguarded( int    startIdx,
       return retCode;
    }
    nbElementToOutput -= emaLookback;
-   retCode = TA_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,&begIdx,&nbElement,tempBuffer);
+   retCode = TA_INT_EMA(0,nbElementToOutput,tempBuffer,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),&begIdx,&nbElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(nbElement==0)) )
    {
       *outNBElement= 0;
