@@ -42,7 +42,8 @@ from utilities.common import check_prerequisites, PREREQS_BUILD_SERVERS
 
 OUR_FLAGS = {
     "--no-build", "--no-generate", "--no-generate-indicators", "--no-generate-servers",
-    "--no-regtest", "--no-perftest", "--no-test", "--test-only", "--direct-bench-only",
+    "--no-regtest", "--no-perftest", "--no-test", "--no-direct-bench",
+    "--test-only", "--direct-bench-only",
 }
 
 
@@ -243,10 +244,19 @@ def main():
             rc = bench_rc
 
     # 7. direct bench (zero-overhead, no server)
-    if not no_perftest or direct_only:
+    # Runs unless --no-test; independent of --no-perftest
+    if (not no_test or direct_only) and "--no-direct-bench" not in argv:
         bench_direct = os.path.join(bin_dir, "ta_bench_direct")
         bench_cg = os.path.join(bin_dir, "ta_bench_cg")
-        if os.path.exists(bench_direct) and os.path.exists(bench_cg):
+        missing = []
+        if not os.path.exists(bench_direct):
+            missing.append("ta_bench_direct")
+        if not os.path.exists(bench_cg):
+            missing.append("ta_bench_cg")
+        if missing:
+            print(f"\n  Skipping direct bench (missing: {', '.join(missing)})")
+            print("  Run without --direct-bench-only to build them first.")
+        else:
             print("\n" + "=" * 60)
             print("DIRECT BENCH — zero-overhead (direct function calls)")
             print("=" * 60, flush=True)

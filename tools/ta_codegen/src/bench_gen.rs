@@ -144,8 +144,26 @@ fn generate_bench_func(s: &mut String, funcs: &[FuncDef]) {
         s.push_str("            }\n");
         s.push_str("            long long elapsed = get_nanotime() - t0;\n");
         s.push_str("            if( !best || elapsed < best ) best = elapsed;\n");
-        // Observe outputs after timing but inside pass scope — prevents LTO DCE
+        // Observe outputs after timing — prevents LTO from eliminating function bodies.
+        // Must read from ALL output buffers, not just outNBElement.
         s.push_str("            g_sink += outNBElement;\n");
+        // Sink first element of each output array so LTO can't DCE the writes
+        {
+            let mut sink_real = 0;
+            let mut sink_int = 0;
+            for out in &func.outputs {
+                match out.param_type {
+                    ParamType::Integer => {
+                        s.push_str(&format!("            g_sink += g_outIntBuf{sink_int}[0];\n"));
+                        sink_int += 1;
+                    }
+                    _ => {
+                        s.push_str(&format!("            g_sink += (int)g_outBuf{sink_real}[0];\n"));
+                        sink_real += 1;
+                    }
+                }
+            }
+        }
         s.push_str("        }\n");
         s.push_str(&format!("        printf(\"{name} %lld\\n\", best / iters);\n"));
         s.push_str("        fflush(stdout);\n");
