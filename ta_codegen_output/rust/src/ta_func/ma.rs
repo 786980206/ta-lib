@@ -211,7 +211,7 @@ impl Core {
             todayIdx = startIdx;
             outIdx = 0;
             while outIdx < nbElement {
-                (*outReal.get_unchecked_mut(outIdx)) = (((*inReal.get_unchecked(todayIdx))) as f64);
+                *outReal.as_mut_ptr().add(outIdx) = ((*inReal.as_ptr().add(todayIdx)) as f64);
                 outIdx += 1;
                 todayIdx += 1;
             }

@@ -204,7 +204,7 @@ impl Core {
         firstEMAIdx = secondEMABegIdx;
         outIdx = 0;
         while outIdx < secondEMANbElement {
-            (*outReal.get_unchecked_mut(outIdx)) = ((2.0 * (*firstEMA.get_unchecked({ let _v = firstEMAIdx; firstEMAIdx += 1; _v })) - (*secondEMA.get_unchecked(outIdx))) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = ((2.0 * *firstEMA.as_ptr().add({ let _v = firstEMAIdx; firstEMAIdx += 1; _v }) - *secondEMA.as_ptr().add(outIdx)) as f64);
             outIdx += 1;
         }
         if firstEMA != outReal {

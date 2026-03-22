@@ -226,13 +226,13 @@ impl Core {
         trailingIdx = today;
         i = (optInTimePeriod) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
-            tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
-            tempReal -= (*inReal.get_unchecked(today));
+            tempReal = *inReal.as_ptr().add({ let _v = today; today += 1; _v });
+            tempReal -= *inReal.as_ptr().add(today);
             sumROC1 += (tempReal).abs();
         }
-        prevKAMA = (*inReal.get_unchecked(today - 1));
-        tempReal = (*inReal.get_unchecked(today));
-        tempReal2 = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+        prevKAMA = *inReal.as_ptr().add(today - 1);
+        tempReal = *inReal.as_ptr().add(today);
+        tempReal2 = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
         periodROC = tempReal - tempReal2;
         trailingValue = tempReal2;
         if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
@@ -242,13 +242,13 @@ impl Core {
         }
         tempReal = (tempReal as f64).mul_add(constDiff, constMax);
         tempReal *= tempReal;
-        prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
+        prevKAMA = (*inReal.as_ptr().add({ let _v = today; today += 1; _v }) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         while today <= startIdx {
-            tempReal = (*inReal.get_unchecked(today));
-            tempReal2 = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add(today);
+            tempReal2 = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             periodROC = tempReal - tempReal2;
             sumROC1 -= (trailingValue - tempReal2).abs();
-            sumROC1 += (tempReal - (*inReal.get_unchecked(today - 1))).abs();
+            sumROC1 += (tempReal - *inReal.as_ptr().add(today - 1)).abs();
             trailingValue = tempReal2;
             if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
@@ -257,17 +257,17 @@ impl Core {
             }
             tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
+            prevKAMA = (*inReal.as_ptr().add({ let _v = today; today += 1; _v }) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
         }
-        (*outReal.get_unchecked_mut(0)) = prevKAMA;
+        *outReal.as_mut_ptr().add(0) = prevKAMA;
         outIdx = 1;
         (*outBegIdx) = today - 1;
         while today <= endIdx {
-            tempReal = (*inReal.get_unchecked(today));
-            tempReal2 = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add(today);
+            tempReal2 = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             periodROC = tempReal - tempReal2;
             sumROC1 -= (trailingValue - tempReal2).abs();
-            sumROC1 += (tempReal - (*inReal.get_unchecked(today - 1))).abs();
+            sumROC1 += (tempReal - *inReal.as_ptr().add(today - 1)).abs();
             trailingValue = tempReal2;
             if sumROC1 <= periodROC || (sumROC1).abs() < 1e-14 {
                 tempReal = 1.0;
@@ -276,8 +276,8 @@ impl Core {
             }
             tempReal = (tempReal as f64).mul_add(constDiff, constMax);
             tempReal *= tempReal;
-            prevKAMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
-            (*outReal.get_unchecked_mut(outIdx)) = prevKAMA;
+            prevKAMA = (*inReal.as_ptr().add({ let _v = today; today += 1; _v }) - prevKAMA as f64).mul_add(tempReal, prevKAMA);
+            *outReal.as_mut_ptr().add(outIdx) = prevKAMA;
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

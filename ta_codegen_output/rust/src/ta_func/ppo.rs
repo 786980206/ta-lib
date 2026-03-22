@@ -188,11 +188,11 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    tempReal = (*outReal.get_unchecked(i));
+                    tempReal = *outReal.as_ptr().add(i);
                     if !((tempReal).abs() < 1e-14) {
-                        (*outReal.get_unchecked_mut(i)) = ((((*tempBuffer.get_unchecked(j)) - tempReal) / tempReal * 100.0) as f64);
+                        *outReal.as_mut_ptr().add(i) = (((*tempBuffer.as_ptr().add(j) - tempReal) / tempReal * 100.0) as f64);
                     } else {
-                        (*outReal.get_unchecked_mut(i)) = 0.0;
+                        *outReal.as_mut_ptr().add(i) = 0.0;
                     }
                     i += 1;
                     j += 1;

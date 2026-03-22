@@ -401,12 +401,12 @@ impl Core {
         assert!(endIdx - startIdx < outReal.len());
         (*outBegIdx) = 0;
         (*outNBElement) = 0;
-        (*periods.get_unchecked_mut(0)) = optInTimePeriod1;
-        (*periods.get_unchecked_mut(1)) = optInTimePeriod2;
-        (*periods.get_unchecked_mut(2)) = optInTimePeriod3;
-        (*usedFlag.get_unchecked_mut(0)) = 0;
-        (*usedFlag.get_unchecked_mut(1)) = 0;
-        (*usedFlag.get_unchecked_mut(2)) = 0;
+        *periods.as_mut_ptr().add(0) = optInTimePeriod1;
+        *periods.as_mut_ptr().add(1) = optInTimePeriod2;
+        *periods.as_mut_ptr().add(2) = optInTimePeriod3;
+        *usedFlag.as_mut_ptr().add(0) = 0;
+        *usedFlag.as_mut_ptr().add(1) = 0;
+        *usedFlag.as_mut_ptr().add(2) = 0;
         // for( i = 0; i < 3; i += 1 )
         i = 0;
         while i < 3 {
@@ -415,19 +415,19 @@ impl Core {
             // for( j = 0; j < 3; j += 1 )
             j = 0;
             while j < 3 {
-                if (*usedFlag.get_unchecked(j)) == 0 && ((*periods.get_unchecked(j))) as usize > longestPeriod {
-                    longestPeriod = ((*periods.get_unchecked(j))) as usize;
+                if *usedFlag.as_ptr().add(j) == 0 && (*periods.as_ptr().add(j)) as usize > longestPeriod {
+                    longestPeriod = (*periods.as_ptr().add(j)) as usize;
                     longestIndex = j;
                 }
                 j += 1;
             }
-            (*usedFlag.get_unchecked_mut(longestIndex)) = 1;
-            (*sortedPeriods.get_unchecked_mut(i)) = (longestPeriod) as i32;
+            *usedFlag.as_mut_ptr().add(longestIndex) = 1;
+            *sortedPeriods.as_mut_ptr().add(i) = (longestPeriod) as i32;
             i += 1;
         }
-        optInTimePeriod1 = (*sortedPeriods.get_unchecked(2));
-        optInTimePeriod2 = (*sortedPeriods.get_unchecked(1));
-        optInTimePeriod3 = (*sortedPeriods.get_unchecked(0));
+        optInTimePeriod1 = *sortedPeriods.as_ptr().add(2);
+        optInTimePeriod2 = *sortedPeriods.as_ptr().add(1);
+        optInTimePeriod3 = *sortedPeriods.as_ptr().add(0);
         lookbackTotal = self.ultosc_lookback(optInTimePeriod1, optInTimePeriod2, optInTimePeriod3);
         if startIdx < lookbackTotal {
             startIdx = lookbackTotal;
@@ -440,11 +440,11 @@ impl Core {
         // for( i = startIdx - (optInTimePeriod1) as usize + 1; i < startIdx; i += 1 )
         i = startIdx - (optInTimePeriod1) as usize + 1;
         while i < startIdx {
-            tempLT = (*inLow.get_unchecked(i));
-            tempHT = (*inHigh.get_unchecked(i));
-            tempCY = (*inClose.get_unchecked(i - 1));
+            tempLT = *inLow.as_ptr().add(i);
+            tempHT = *inHigh.as_ptr().add(i);
+            tempCY = *inClose.as_ptr().add(i - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(i)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(i) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -463,11 +463,11 @@ impl Core {
         // for( i = startIdx - (optInTimePeriod2) as usize + 1; i < startIdx; i += 1 )
         i = startIdx - (optInTimePeriod2) as usize + 1;
         while i < startIdx {
-            tempLT = (*inLow.get_unchecked(i));
-            tempHT = (*inHigh.get_unchecked(i));
-            tempCY = (*inClose.get_unchecked(i - 1));
+            tempLT = *inLow.as_ptr().add(i);
+            tempHT = *inHigh.as_ptr().add(i);
+            tempCY = *inClose.as_ptr().add(i - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(i)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(i) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -486,11 +486,11 @@ impl Core {
         // for( i = startIdx - (optInTimePeriod3) as usize + 1; i < startIdx; i += 1 )
         i = startIdx - (optInTimePeriod3) as usize + 1;
         while i < startIdx {
-            tempLT = (*inLow.get_unchecked(i));
-            tempHT = (*inHigh.get_unchecked(i));
-            tempCY = (*inClose.get_unchecked(i - 1));
+            tempLT = *inLow.as_ptr().add(i);
+            tempHT = *inHigh.as_ptr().add(i);
+            tempCY = *inClose.as_ptr().add(i - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(i)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(i) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -510,11 +510,11 @@ impl Core {
         trailingIdx2 = today - (optInTimePeriod2) as usize + 1;
         trailingIdx3 = today - (optInTimePeriod3) as usize + 1;
         while today <= endIdx {
-            tempLT = (*inLow.get_unchecked(today));
-            tempHT = (*inHigh.get_unchecked(today));
-            tempCY = (*inClose.get_unchecked(today - 1));
+            tempLT = *inLow.as_ptr().add(today);
+            tempHT = *inHigh.as_ptr().add(today);
+            tempCY = *inClose.as_ptr().add(today - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(today)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(today) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -540,11 +540,11 @@ impl Core {
             if !((b3Total).abs() < 1e-14) {
                 output += a3Total / b3Total;
             }
-            tempLT = (*inLow.get_unchecked(trailingIdx1));
-            tempHT = (*inHigh.get_unchecked(trailingIdx1));
-            tempCY = (*inClose.get_unchecked(trailingIdx1 - 1));
+            tempLT = *inLow.as_ptr().add(trailingIdx1);
+            tempHT = *inHigh.as_ptr().add(trailingIdx1);
+            tempCY = *inClose.as_ptr().add(trailingIdx1 - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(trailingIdx1)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(trailingIdx1) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -556,11 +556,11 @@ impl Core {
             }
             a1Total -= closeMinusTrueLow;
             b1Total -= trueRange;
-            tempLT = (*inLow.get_unchecked(trailingIdx2));
-            tempHT = (*inHigh.get_unchecked(trailingIdx2));
-            tempCY = (*inClose.get_unchecked(trailingIdx2 - 1));
+            tempLT = *inLow.as_ptr().add(trailingIdx2);
+            tempHT = *inHigh.as_ptr().add(trailingIdx2);
+            tempCY = *inClose.as_ptr().add(trailingIdx2 - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(trailingIdx2)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(trailingIdx2) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -572,11 +572,11 @@ impl Core {
             }
             a2Total -= closeMinusTrueLow;
             b2Total -= trueRange;
-            tempLT = (*inLow.get_unchecked(trailingIdx3));
-            tempHT = (*inHigh.get_unchecked(trailingIdx3));
-            tempCY = (*inClose.get_unchecked(trailingIdx3 - 1));
+            tempLT = *inLow.as_ptr().add(trailingIdx3);
+            tempHT = *inHigh.as_ptr().add(trailingIdx3);
+            tempCY = *inClose.as_ptr().add(trailingIdx3 - 1);
             trueLow = (tempLT).min(tempCY);
-            closeMinusTrueLow = (*inClose.get_unchecked(trailingIdx3)) - trueLow;
+            closeMinusTrueLow = *inClose.as_ptr().add(trailingIdx3) - trueLow;
             trueRange = tempHT - tempLT;
             tempDouble = (tempCY - tempHT).abs();
             if tempDouble > trueRange {
@@ -588,7 +588,7 @@ impl Core {
             }
             a3Total -= closeMinusTrueLow;
             b3Total -= trueRange;
-            (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (output / 7.0);
+            *outReal.as_mut_ptr().add(outIdx) = 100.0 * (output / 7.0);
             outIdx += 1;
             today += 1;
             trailingIdx1 += 1;

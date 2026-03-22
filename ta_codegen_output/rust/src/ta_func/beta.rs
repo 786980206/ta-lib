@@ -259,20 +259,20 @@ impl Core {
             return RetCode::Success;
         }
         trailingIdx = startIdx - nbInitialElementNeeded;
-        trailing_last_price_x = (*inReal0.get_unchecked(trailingIdx));
+        trailing_last_price_x = *inReal0.as_ptr().add(trailingIdx);
         last_price_x = trailing_last_price_x;
-        trailing_last_price_y = (*inReal1.get_unchecked(trailingIdx));
+        trailing_last_price_y = *inReal1.as_ptr().add(trailingIdx);
         last_price_y = trailing_last_price_y;
         i = { trailingIdx += 1; trailingIdx };
         while i < startIdx {
-            tmp_real = (*inReal0.get_unchecked(i));
+            tmp_real = *inReal0.as_ptr().add(i);
             if !((last_price_x).abs() < 1e-14) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = 0.0;
             }
             last_price_x = tmp_real;
-            tmp_real = (*inReal1.get_unchecked({ let _v = i; i += 1; _v }));
+            tmp_real = *inReal1.as_ptr().add({ let _v = i; i += 1; _v });
             if !((last_price_y).abs() < 1e-14) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
@@ -287,14 +287,14 @@ impl Core {
         outIdx = 0;
         n = (optInTimePeriod) as f64;
         loop {
-            tmp_real = (*inReal0.get_unchecked(i));
+            tmp_real = *inReal0.as_ptr().add(i);
             if !((last_price_x).abs() < 1e-14) {
                 x = (tmp_real - last_price_x) / last_price_x;
             } else {
                 x = 0.0;
             }
             last_price_x = tmp_real;
-            tmp_real = (*inReal1.get_unchecked({ let _v = i; i += 1; _v }));
+            tmp_real = *inReal1.as_ptr().add({ let _v = i; i += 1; _v });
             if !((last_price_y).abs() < 1e-14) {
                 y = (tmp_real - last_price_y) / last_price_y;
             } else {
@@ -305,14 +305,14 @@ impl Core {
             S_xy += x * y;
             S_x += x;
             S_y += y;
-            tmp_real = (*inReal0.get_unchecked(trailingIdx));
+            tmp_real = *inReal0.as_ptr().add(trailingIdx);
             if !((trailing_last_price_x).abs() < 1e-14) {
                 x = (tmp_real - trailing_last_price_x) / trailing_last_price_x;
             } else {
                 x = 0.0;
             }
             trailing_last_price_x = tmp_real;
-            tmp_real = (*inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            tmp_real = *inReal1.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             if !((trailing_last_price_y).abs() < 1e-14) {
                 y = (tmp_real - trailing_last_price_y) / trailing_last_price_y;
             } else {
@@ -321,10 +321,10 @@ impl Core {
             trailing_last_price_y = tmp_real;
             tmp_real = n * S_xx - S_x * S_x;
             if !((tmp_real).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = (n * S_xy - S_x * S_y) / tmp_real;
+                *outReal.as_mut_ptr().add(outIdx) = (n * S_xy - S_x * S_y) / tmp_real;
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             }
             S_xx -= x * x;

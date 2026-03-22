@@ -125,17 +125,17 @@ impl Core {
         assert!(endIdx < inReal.len());
         assert!(endIdx < inVolume.len());
         assert!(endIdx - startIdx < outReal.len());
-        prevOBV = (*inVolume.get_unchecked(startIdx));
-        prevReal = (*inReal.get_unchecked(startIdx));
+        prevOBV = *inVolume.as_ptr().add(startIdx);
+        prevReal = *inReal.as_ptr().add(startIdx);
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
-            tempReal = (*inReal.get_unchecked(i));
+            tempReal = *inReal.as_ptr().add(i);
             if tempReal > prevReal {
-                prevOBV += (*inVolume.get_unchecked(i));
+                prevOBV += *inVolume.as_ptr().add(i);
             } else if tempReal < prevReal {
-                prevOBV -= (*inVolume.get_unchecked(i));
+                prevOBV -= *inVolume.as_ptr().add(i);
             }
-            (*outReal.get_unchecked_mut(outIdx)) = prevOBV;
+            *outReal.as_mut_ptr().add(outIdx) = prevOBV;
             outIdx += 1;
             prevReal = tempReal;
         }

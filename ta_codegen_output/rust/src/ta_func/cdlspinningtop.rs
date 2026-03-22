@@ -227,13 +227,13 @@ impl Core {
             let mut _candlerange_0: f64;
             match BodyShort_rangeType {
                 0 => {
-                    _candlerange_0 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
+                    _candlerange_0 = (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs();
                 }
                 1 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
+                    _candlerange_0 = *inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i);
                 }
                 2 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
+                    _candlerange_0 = *inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i) - (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs();
                 }
                 _ => {
                     _candlerange_0 = 0.0;
@@ -244,23 +244,23 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            if ((*inHigh.get_unchecked(i)) - (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inClose.get_unchecked(i)) } else { (*inOpen.get_unchecked(i)) })) > ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() && ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { (*inOpen.get_unchecked(i)) } else { (*inClose.get_unchecked(i)) }) - (*inLow.get_unchecked(i))) > ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() && ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs(), 1 => ((*inHigh.get_unchecked(i))) - ((*inLow.get_unchecked(i))), _ => ((*inHigh.get_unchecked(i))) - ((*inLow.get_unchecked(i))) - (((*inClose.get_unchecked(i))) - ((*inOpen.get_unchecked(i)))).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
-                (*outInteger.get_unchecked_mut(outIdx)) = ((if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) * 100) as i32;
+            if (*inHigh.as_ptr().add(i) - (if *inClose.as_ptr().add(i) >= *inOpen.as_ptr().add(i) { *inClose.as_ptr().add(i) } else { *inOpen.as_ptr().add(i) })) > (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs() && ((if *inClose.as_ptr().add(i) >= *inOpen.as_ptr().add(i) { *inOpen.as_ptr().add(i) } else { *inClose.as_ptr().add(i) }) - *inLow.as_ptr().add(i)) > (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs() && (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs() < ((BodyShort_factor) * (if (BodyShort_avgPeriod) != 0 { (BodyPeriodTotal) / (BodyShort_avgPeriod as f64) } else { match BodyShort_rangeType { 0 => (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs(), 1 => (*inHigh.as_ptr().add(i)) - (*inLow.as_ptr().add(i)), _ => (*inHigh.as_ptr().add(i)) - (*inLow.as_ptr().add(i)) - ((*inClose.as_ptr().add(i)) - (*inOpen.as_ptr().add(i))).abs() } }) / (if (BodyShort_rangeType) == 2 { 2.0 } else { 1.0 })) {
+                *outInteger.as_mut_ptr().add(outIdx) = ((if *inClose.as_ptr().add(i) >= *inOpen.as_ptr().add(i) { 1 } else { 0 - 1 }) * 100) as i32;
                 outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                *outInteger.as_mut_ptr().add(outIdx) = 0;
                 outIdx += 1;
             }
             let mut _candlerange_1: f64;
             match BodyShort_rangeType {
                 0 => {
-                    _candlerange_1 = ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
+                    _candlerange_1 = (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs();
                 }
                 1 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
+                    _candlerange_1 = *inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i);
                 }
                 2 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i)) - ((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))).abs();
+                    _candlerange_1 = *inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i) - (*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)).abs();
                 }
                 _ => {
                     _candlerange_1 = 0.0;
@@ -269,13 +269,13 @@ impl Core {
             let mut _candlerange_2: f64;
             match BodyShort_rangeType {
                 0 => {
-                    _candlerange_2 = ((*inClose.get_unchecked(BodyTrailingIdx)) - (*inOpen.get_unchecked(BodyTrailingIdx))).abs();
+                    _candlerange_2 = (*inClose.as_ptr().add(BodyTrailingIdx) - *inOpen.as_ptr().add(BodyTrailingIdx)).abs();
                 }
                 1 => {
-                    _candlerange_2 = (*inHigh.get_unchecked(BodyTrailingIdx)) - (*inLow.get_unchecked(BodyTrailingIdx));
+                    _candlerange_2 = *inHigh.as_ptr().add(BodyTrailingIdx) - *inLow.as_ptr().add(BodyTrailingIdx);
                 }
                 2 => {
-                    _candlerange_2 = (*inHigh.get_unchecked(BodyTrailingIdx)) - (*inLow.get_unchecked(BodyTrailingIdx)) - ((*inClose.get_unchecked(BodyTrailingIdx)) - (*inOpen.get_unchecked(BodyTrailingIdx))).abs();
+                    _candlerange_2 = *inHigh.as_ptr().add(BodyTrailingIdx) - *inLow.as_ptr().add(BodyTrailingIdx) - (*inClose.as_ptr().add(BodyTrailingIdx) - *inOpen.as_ptr().add(BodyTrailingIdx)).abs();
                 }
                 _ => {
                     _candlerange_2 = 0.0;

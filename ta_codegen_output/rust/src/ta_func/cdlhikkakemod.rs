@@ -282,13 +282,13 @@ impl Core {
             let mut _candlerange_0: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_0 = ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_0 = (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 1 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2));
+                    _candlerange_0 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2);
                 }
                 2 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_0 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2) - (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 _ => {
                     _candlerange_0 = 0.0;
@@ -301,22 +301,22 @@ impl Core {
         patternResult = 0;
         i = startIdx - 3;
         while i < startIdx {
-            if (*inHigh.get_unchecked(i - 2)) < (*inHigh.get_unchecked(i - 3)) && (*inLow.get_unchecked(i - 2)) > (*inLow.get_unchecked(i - 3)) && (*inHigh.get_unchecked(i - 1)) < (*inHigh.get_unchecked(i - 2)) && (*inLow.get_unchecked(i - 1)) > (*inLow.get_unchecked(i - 2)) && ((*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) <= (*inLow.get_unchecked(i - 2)) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) || (*inHigh.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) > (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) >= (*inHigh.get_unchecked(i - 2)) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 }))) {
-                patternResult = 100 * (if (*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) { 1 } else { 0 - 1 });
+            if *inHigh.as_ptr().add(i - 2) < *inHigh.as_ptr().add(i - 3) && *inLow.as_ptr().add(i - 2) > *inLow.as_ptr().add(i - 3) && *inHigh.as_ptr().add(i - 1) < *inHigh.as_ptr().add(i - 2) && *inLow.as_ptr().add(i - 1) > *inLow.as_ptr().add(i - 2) && (*inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) < *inLow.as_ptr().add(i - 1) && *inClose.as_ptr().add(i - 2) <= *inLow.as_ptr().add(i - 2) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) || *inHigh.as_ptr().add(i) > *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) > *inLow.as_ptr().add(i - 1) && *inClose.as_ptr().add(i - 2) >= *inHigh.as_ptr().add(i - 2) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 }))) {
+                patternResult = 100 * (if *inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) { 1 } else { 0 - 1 });
                 patternIdx = i;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked(i)) > (*inHigh.get_unchecked(patternIdx - 1)) || patternResult < 0 && (*inClose.get_unchecked(i)) < (*inLow.get_unchecked(patternIdx - 1))) {
+            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.as_ptr().add(i) > *inHigh.as_ptr().add(patternIdx - 1) || patternResult < 0 && *inClose.as_ptr().add(i) < *inLow.as_ptr().add(patternIdx - 1)) {
                 patternIdx = 0;
             }
             let mut _candlerange_1: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_1 = ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_1 = (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 1 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2));
+                    _candlerange_1 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2);
                 }
                 2 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_1 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2) - (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 _ => {
                     _candlerange_1 = 0.0;
@@ -325,13 +325,13 @@ impl Core {
             let mut _candlerange_2: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_2 = ((*inClose.get_unchecked(NearTrailingIdx - 2)) - (*inOpen.get_unchecked(NearTrailingIdx - 2))).abs();
+                    _candlerange_2 = (*inClose.as_ptr().add(NearTrailingIdx - 2) - *inOpen.as_ptr().add(NearTrailingIdx - 2)).abs();
                 }
                 1 => {
-                    _candlerange_2 = (*inHigh.get_unchecked(NearTrailingIdx - 2)) - (*inLow.get_unchecked(NearTrailingIdx - 2));
+                    _candlerange_2 = *inHigh.as_ptr().add(NearTrailingIdx - 2) - *inLow.as_ptr().add(NearTrailingIdx - 2);
                 }
                 2 => {
-                    _candlerange_2 = (*inHigh.get_unchecked(NearTrailingIdx - 2)) - (*inLow.get_unchecked(NearTrailingIdx - 2)) - ((*inClose.get_unchecked(NearTrailingIdx - 2)) - (*inOpen.get_unchecked(NearTrailingIdx - 2))).abs();
+                    _candlerange_2 = *inHigh.as_ptr().add(NearTrailingIdx - 2) - *inLow.as_ptr().add(NearTrailingIdx - 2) - (*inClose.as_ptr().add(NearTrailingIdx - 2) - *inOpen.as_ptr().add(NearTrailingIdx - 2)).abs();
                 }
                 _ => {
                     _candlerange_2 = 0.0;
@@ -344,29 +344,29 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if (*inHigh.get_unchecked(i - 2)) < (*inHigh.get_unchecked(i - 3)) && (*inLow.get_unchecked(i - 2)) > (*inLow.get_unchecked(i - 3)) && (*inHigh.get_unchecked(i - 1)) < (*inHigh.get_unchecked(i - 2)) && (*inLow.get_unchecked(i - 1)) > (*inLow.get_unchecked(i - 2)) && ((*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) <= (*inLow.get_unchecked(i - 2)) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) || (*inHigh.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) > (*inLow.get_unchecked(i - 1)) && (*inClose.get_unchecked(i - 2)) >= (*inHigh.get_unchecked(i - 2)) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 }))) {
-                patternResult = 100 * (if (*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) { 1 } else { 0 - 1 });
+            if *inHigh.as_ptr().add(i - 2) < *inHigh.as_ptr().add(i - 3) && *inLow.as_ptr().add(i - 2) > *inLow.as_ptr().add(i - 3) && *inHigh.as_ptr().add(i - 1) < *inHigh.as_ptr().add(i - 2) && *inLow.as_ptr().add(i - 1) > *inLow.as_ptr().add(i - 2) && (*inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) < *inLow.as_ptr().add(i - 1) && *inClose.as_ptr().add(i - 2) <= *inLow.as_ptr().add(i - 2) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) || *inHigh.as_ptr().add(i) > *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) > *inLow.as_ptr().add(i - 1) && *inClose.as_ptr().add(i - 2) >= *inHigh.as_ptr().add(i - 2) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (NearPeriodTotal) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 }))) {
+                patternResult = 100 * (if *inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) { 1 } else { 0 - 1 });
                 patternIdx = i;
-                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult) as i32;
+                *outInteger.as_mut_ptr().add(outIdx) = (patternResult) as i32;
                 outIdx += 1;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked(i)) > (*inHigh.get_unchecked(patternIdx - 1)) || patternResult < 0 && (*inClose.get_unchecked(i)) < (*inLow.get_unchecked(patternIdx - 1))) {
-                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.as_ptr().add(i) > *inHigh.as_ptr().add(patternIdx - 1) || patternResult < 0 && *inClose.as_ptr().add(i) < *inLow.as_ptr().add(patternIdx - 1)) {
+                *outInteger.as_mut_ptr().add(outIdx) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
                 outIdx += 1;
                 patternIdx = 0;
             } else {
-                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                *outInteger.as_mut_ptr().add(outIdx) = 0;
                 outIdx += 1;
             }
             let mut _candlerange_3: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_3 = ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_3 = (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 1 => {
-                    _candlerange_3 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2));
+                    _candlerange_3 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2);
                 }
                 2 => {
-                    _candlerange_3 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_3 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2) - (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 _ => {
                     _candlerange_3 = 0.0;
@@ -375,13 +375,13 @@ impl Core {
             let mut _candlerange_4: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_4 = ((*inClose.get_unchecked(NearTrailingIdx - 2)) - (*inOpen.get_unchecked(NearTrailingIdx - 2))).abs();
+                    _candlerange_4 = (*inClose.as_ptr().add(NearTrailingIdx - 2) - *inOpen.as_ptr().add(NearTrailingIdx - 2)).abs();
                 }
                 1 => {
-                    _candlerange_4 = (*inHigh.get_unchecked(NearTrailingIdx - 2)) - (*inLow.get_unchecked(NearTrailingIdx - 2));
+                    _candlerange_4 = *inHigh.as_ptr().add(NearTrailingIdx - 2) - *inLow.as_ptr().add(NearTrailingIdx - 2);
                 }
                 2 => {
-                    _candlerange_4 = (*inHigh.get_unchecked(NearTrailingIdx - 2)) - (*inLow.get_unchecked(NearTrailingIdx - 2)) - ((*inClose.get_unchecked(NearTrailingIdx - 2)) - (*inOpen.get_unchecked(NearTrailingIdx - 2))).abs();
+                    _candlerange_4 = *inHigh.as_ptr().add(NearTrailingIdx - 2) - *inLow.as_ptr().add(NearTrailingIdx - 2) - (*inClose.as_ptr().add(NearTrailingIdx - 2) - *inOpen.as_ptr().add(NearTrailingIdx - 2)).abs();
                 }
                 _ => {
                     _candlerange_4 = 0.0;

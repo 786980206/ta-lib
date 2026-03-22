@@ -178,13 +178,13 @@ impl Core {
         highestIdx = 0 - 1;
         highest = 0.0;
         while today <= endIdx {
-            tmp = (*inReal.get_unchecked(today));
+            tmp = *inReal.as_ptr().add(today);
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
-                highest = (*inReal.get_unchecked((highestIdx) as usize));
+                highest = *inReal.as_ptr().add((highestIdx) as usize);
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inReal.get_unchecked(i));
+                    tmp = *inReal.as_ptr().add(i);
                     if tmp > highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -194,7 +194,7 @@ impl Core {
                 highestIdx = (today) as i32;
                 highest = tmp;
             }
-            (*outInteger.get_unchecked_mut(outIdx)) = (highestIdx) as i32;
+            *outInteger.as_mut_ptr().add(outIdx) = (highestIdx) as i32;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

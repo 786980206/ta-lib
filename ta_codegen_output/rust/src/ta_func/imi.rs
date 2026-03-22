@@ -163,14 +163,14 @@ impl Core {
             let mut downsum: f64 = 0.0;
             let mut i: usize = 0_usize;
             for i in (startIdx - lookback as usize)..(startIdx as usize) + 1 {
-                let mut close: f64 = (*inClose.get_unchecked(i));
-                let mut open: f64 = (*inOpen.get_unchecked(i));
+                let mut close: f64 = *inClose.as_ptr().add(i);
+                let mut open: f64 = *inOpen.as_ptr().add(i);
                 if close > open {
                     upsum += close - open;
                 } else {
                     downsum += open - close;
                 }
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (upsum / (upsum + downsum));
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (upsum / (upsum + downsum));
             }
             i = (startIdx as usize) + 1;
             startIdx += 1;

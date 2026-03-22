@@ -181,7 +181,7 @@ impl Core {
                 i = 0;
                 j = tempInteger;
                 while i < outNbElement1 {
-                    (*outReal.get_unchecked_mut(i)) = (((*tempBuffer.get_unchecked(j)) - (*outReal.get_unchecked(i))) as f64);
+                    *outReal.as_mut_ptr().add(i) = ((*tempBuffer.as_ptr().add(j) - *outReal.as_ptr().add(i)) as f64);
                     i += 1;
                     j += 1;
                 }

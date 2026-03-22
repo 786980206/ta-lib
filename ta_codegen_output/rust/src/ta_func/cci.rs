@@ -217,7 +217,7 @@ impl Core {
         i = startIdx - lookbackTotal;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                (*circBuffer.get_unchecked_mut(circBuffer_Idx)) = ((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3_f64;
+                *circBuffer.as_mut_ptr().add(circBuffer_Idx) = (*inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i) + *inClose.as_ptr().add(i)) / 3_f64;
                 i += 1;
                 circBuffer_Idx += 1;
                 if circBuffer_Idx >= (optInTimePeriod) as usize {
@@ -227,13 +227,13 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            lastValue = ((*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i)) + (*inClose.get_unchecked(i))) / 3_f64;
-            (*circBuffer.get_unchecked_mut(circBuffer_Idx)) = lastValue;
+            lastValue = (*inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i) + *inClose.as_ptr().add(i)) / 3_f64;
+            *circBuffer.as_mut_ptr().add(circBuffer_Idx) = lastValue;
             theAverage = 0.0;
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                theAverage += (*circBuffer.get_unchecked(j));
+                theAverage += *circBuffer.as_ptr().add(j);
                 j += 1;
             }
             theAverage /= ((optInTimePeriod) as f64);
@@ -241,15 +241,15 @@ impl Core {
             // for( j = 0; j < (optInTimePeriod) as usize; j += 1 )
             j = 0;
             while j < (optInTimePeriod) as usize {
-                tempReal2 += ((*circBuffer.get_unchecked(j)) - theAverage).abs();
+                tempReal2 += (*circBuffer.as_ptr().add(j) - theAverage).abs();
                 j += 1;
             }
             tempReal = lastValue - theAverage;
             if tempReal != 0.0 && tempReal2 != 0.0 {
-                (*outReal.get_unchecked_mut(outIdx)) = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
+                *outReal.as_mut_ptr().add(outIdx) = tempReal / (0.015 * (tempReal2 / ((optInTimePeriod) as f64)));
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             }
             circBuffer_Idx += 1;

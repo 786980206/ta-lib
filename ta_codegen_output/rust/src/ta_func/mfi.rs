@@ -278,28 +278,28 @@ impl Core {
         }
         outIdx = 0;
         today = startIdx - lookbackTotal;
-        prevValue = ((*inHigh.get_unchecked(today)) + (*inLow.get_unchecked(today)) + (*inClose.get_unchecked(today))) / 3.0;
+        prevValue = (*inHigh.as_ptr().add(today) + *inLow.as_ptr().add(today) + *inClose.as_ptr().add(today)) / 3.0;
         posSumMF = 0.0;
         negSumMF = 0.0;
         today += 1;
         // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = ((*inHigh.get_unchecked(today)) + (*inLow.get_unchecked(today)) + (*inClose.get_unchecked(today))) / 3.0;
+            tempValue1 = (*inHigh.as_ptr().add(today) + *inLow.as_ptr().add(today) + *inClose.as_ptr().add(today)) / 3.0;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= (*inVolume.get_unchecked({ let _v = today; today += 1; _v }));
+            tempValue1 *= *inVolume.as_ptr().add({ let _v = today; today += 1; _v });
             if tempValue2 < 0_f64 {
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = tempValue1;
                 negSumMF += tempValue1;
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
             } else if tempValue2 > 0_f64 {
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = tempValue1;
                 posSumMF += tempValue1;
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
             } else {
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
             }
             mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             i -= 1;
@@ -307,60 +307,60 @@ impl Core {
         if today > startIdx {
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (posSumMF / tempValue1);
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (posSumMF / tempValue1);
                 outIdx += 1;
             }
         } else {
             while today < startIdx {
-                posSumMF -= (*mflow_positive.get_unchecked(mflow_Idx));
-                negSumMF -= (*mflow_negative.get_unchecked(mflow_Idx));
-                tempValue1 = ((*inHigh.get_unchecked(today)) + (*inLow.get_unchecked(today)) + (*inClose.get_unchecked(today))) / 3.0;
+                posSumMF -= *mflow_positive.as_ptr().add(mflow_Idx);
+                negSumMF -= *mflow_negative.as_ptr().add(mflow_Idx);
+                tempValue1 = (*inHigh.as_ptr().add(today) + *inLow.as_ptr().add(today) + *inClose.as_ptr().add(today)) / 3.0;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
-                tempValue1 *= (*inVolume.get_unchecked({ let _v = today; today += 1; _v }));
+                tempValue1 *= *inVolume.as_ptr().add({ let _v = today; today += 1; _v });
                 if tempValue2 < 0_f64 {
-                    (*mflow_negative.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                    *mflow_negative.as_mut_ptr().add(mflow_Idx) = tempValue1;
                     negSumMF += tempValue1;
-                    (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
+                    *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
                 } else if tempValue2 > 0_f64 {
-                    (*mflow_positive.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                    *mflow_positive.as_mut_ptr().add(mflow_Idx) = tempValue1;
                     posSumMF += tempValue1;
-                    (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                    *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
                 } else {
-                    (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
-                    (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                    *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
+                    *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
                 }
                 mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;
             }
         }
         while today <= endIdx {
-            posSumMF -= (*mflow_positive.get_unchecked(mflow_Idx));
-            negSumMF -= (*mflow_negative.get_unchecked(mflow_Idx));
-            tempValue1 = ((*inHigh.get_unchecked(today)) + (*inLow.get_unchecked(today)) + (*inClose.get_unchecked(today))) / 3.0;
+            posSumMF -= *mflow_positive.as_ptr().add(mflow_Idx);
+            negSumMF -= *mflow_negative.as_ptr().add(mflow_Idx);
+            tempValue1 = (*inHigh.as_ptr().add(today) + *inLow.as_ptr().add(today) + *inClose.as_ptr().add(today)) / 3.0;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
-            tempValue1 *= (*inVolume.get_unchecked({ let _v = today; today += 1; _v }));
+            tempValue1 *= *inVolume.as_ptr().add({ let _v = today; today += 1; _v });
             if tempValue2 < 0_f64 {
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = tempValue1;
                 negSumMF += tempValue1;
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
             } else if tempValue2 > 0_f64 {
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = tempValue1;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = tempValue1;
                 posSumMF += tempValue1;
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
             } else {
-                (*mflow_positive.get_unchecked_mut(mflow_Idx)) = 0.0;
-                (*mflow_negative.get_unchecked_mut(mflow_Idx)) = 0.0;
+                *mflow_positive.as_mut_ptr().add(mflow_Idx) = 0.0;
+                *mflow_negative.as_mut_ptr().add(mflow_Idx) = 0.0;
             }
             tempValue1 = posSumMF + negSumMF;
             if tempValue1 < 1.0 {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (posSumMF / tempValue1);
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (posSumMF / tempValue1);
                 outIdx += 1;
             }
             mflow_Idx = (mflow_Idx + 1) % (optInTimePeriod) as usize;

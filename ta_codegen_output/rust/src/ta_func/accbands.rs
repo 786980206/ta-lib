@@ -213,14 +213,14 @@ impl Core {
         j = 0;
         i = startIdx - lookbackTotal;
         while i <= endIdx {
-            tempReal = (*inHigh.get_unchecked(i)) + (*inLow.get_unchecked(i));
+            tempReal = *inHigh.as_ptr().add(i) + *inLow.as_ptr().add(i);
             if !((tempReal).abs() < 1e-14) {
-                tempReal = 4_f64 * ((*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i))) / tempReal;
-                (*tempBuffer1.get_unchecked_mut(j)) = (*inHigh.get_unchecked(i)) * (1_f64 + tempReal);
-                (*tempBuffer2.get_unchecked_mut(j)) = (*inLow.get_unchecked(i)) * (1_f64 - tempReal);
+                tempReal = 4_f64 * (*inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i)) / tempReal;
+                *tempBuffer1.as_mut_ptr().add(j) = *inHigh.as_ptr().add(i) * (1_f64 + tempReal);
+                *tempBuffer2.as_mut_ptr().add(j) = *inLow.as_ptr().add(i) * (1_f64 - tempReal);
             } else {
-                (*tempBuffer1.get_unchecked_mut(j)) = (*inHigh.get_unchecked(i));
-                (*tempBuffer2.get_unchecked_mut(j)) = (*inLow.get_unchecked(i));
+                *tempBuffer1.as_mut_ptr().add(j) = *inHigh.as_ptr().add(i);
+                *tempBuffer2.as_mut_ptr().add(j) = *inLow.as_ptr().add(i);
             }
             i += 1;
             j += 1;

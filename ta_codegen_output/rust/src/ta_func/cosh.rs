@@ -112,7 +112,7 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         while i <= endIdx {
-            (*outReal.get_unchecked_mut(outIdx)) = ((((*inReal.get_unchecked(i))).cosh()) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = (((*inReal.as_ptr().add(i)).cosh()) as f64);
             i += 1;
             outIdx += 1;
         }

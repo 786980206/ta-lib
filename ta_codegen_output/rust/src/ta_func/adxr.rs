@@ -178,7 +178,7 @@ impl Core {
         outIdx = 0;
         nbElement = endIdx - startIdx + 2;
         while { nbElement -= 1; nbElement } != 0 {
-            (*outReal.get_unchecked_mut(outIdx)) = (((((*adx.get_unchecked({ let _v = i; i += 1; _v })) + (*adx.get_unchecked({ let _v = j; j += 1; _v }))) / 2.0)) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = ((((*adx.as_ptr().add({ let _v = i; i += 1; _v }) + *adx.as_ptr().add({ let _v = j; j += 1; _v })) / 2.0)) as f64);
             outIdx += 1;
         }
         (*outBegIdx) = startIdx;

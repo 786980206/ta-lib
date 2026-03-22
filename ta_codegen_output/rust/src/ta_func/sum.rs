@@ -163,15 +163,15 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
+                periodTotal += *inReal.as_ptr().add({ let _v = i; i += 1; _v });
             }
         }
         outIdx = 0;
         loop {
-            periodTotal += (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
+            periodTotal += *inReal.as_ptr().add({ let _v = i; i += 1; _v });
             tempReal = periodTotal;
-            periodTotal -= (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut(outIdx)) = tempReal;
+            periodTotal -= *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+            *outReal.as_mut_ptr().add(outIdx) = tempReal;
             outIdx += 1;
             if !(i <= endIdx) { break; }
         }

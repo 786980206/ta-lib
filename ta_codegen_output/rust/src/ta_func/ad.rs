@@ -148,14 +148,14 @@ impl Core {
         outIdx = 0;
         ad = 0.0;
         while nbBar != 0 {
-            high = (*inHigh.get_unchecked(currentBar));
-            low = (*inLow.get_unchecked(currentBar));
+            high = *inHigh.as_ptr().add(currentBar);
+            low = *inLow.as_ptr().add(currentBar);
             tmp = high - low;
-            close = (*inClose.get_unchecked(currentBar));
+            close = *inClose.as_ptr().add(currentBar);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(currentBar))) as f64);
+                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(currentBar)) as f64);
             }
-            (*outReal.get_unchecked_mut(outIdx)) = ad;
+            *outReal.as_mut_ptr().add(outIdx) = ad;
             outIdx += 1;
             currentBar += 1;
             nbBar -= 1;

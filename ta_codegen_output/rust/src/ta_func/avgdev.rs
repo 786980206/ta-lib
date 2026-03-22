@@ -170,17 +170,17 @@ impl Core {
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todaySum += (*inReal.get_unchecked(today - i));
+                todaySum += *inReal.as_ptr().add(today - i);
                 i += 1;
             }
             todayDev = 0.0;
             // for( i = 0; i < (optInTimePeriod) as usize; i += 1 )
             i = 0;
             while i < (optInTimePeriod) as usize {
-                todayDev += ((*inReal.get_unchecked(today - i)) - todaySum / ((optInTimePeriod) as f64)).abs();
+                todayDev += (*inReal.as_ptr().add(today - i) - todaySum / ((optInTimePeriod) as f64)).abs();
                 i += 1;
             }
-            (*outReal.get_unchecked_mut(outIdx)) = todayDev / ((optInTimePeriod) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = todayDev / ((optInTimePeriod) as f64);
             outIdx += 1;
             today += 1;
         }

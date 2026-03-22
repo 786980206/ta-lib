@@ -165,18 +165,18 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                periodTotal += ((*inReal.get_unchecked(i))) as f64;
+                periodTotal += (*inReal.as_ptr().add(i)) as f64;
                 i = i + 1;
             }
         }
         outIdx = 0;
         while i <= endIdx {
-            periodTotal += ((*inReal.get_unchecked(i))) as f64;
+            periodTotal += (*inReal.as_ptr().add(i)) as f64;
             i = i + 1;
             tempReal = periodTotal;
-            periodTotal -= ((*inReal.get_unchecked(trailingIdx))) as f64;
+            periodTotal -= (*inReal.as_ptr().add(trailingIdx)) as f64;
             trailingIdx = trailingIdx + 1;
-            (*outReal.get_unchecked_mut(outIdx)) = tempReal / ((optInTimePeriod) as f64);
+            *outReal.as_mut_ptr().add(outIdx) = tempReal / ((optInTimePeriod) as f64);
             outIdx = outIdx + 1;
         }
         (*outNBElement) = outIdx;

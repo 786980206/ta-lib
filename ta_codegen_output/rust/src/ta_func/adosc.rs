@@ -251,23 +251,23 @@ impl Core {
         one_minus_fastk = 1.0 - fastk;
         slowk = 2.0 / (((optInSlowPeriod) as f64) + 1.0);
         one_minus_slowk = 1.0 - slowk;
-        high = (*inHigh.get_unchecked(today));
-        low = (*inLow.get_unchecked(today));
+        high = *inHigh.as_ptr().add(today);
+        low = *inLow.as_ptr().add(today);
         tmp = high - low;
-        close = (*inClose.get_unchecked(today));
+        close = *inClose.as_ptr().add(today);
         if tmp > 0.0 {
-            ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
+            ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
         }
         today += 1;
         fastEMA = ad;
         slowEMA = ad;
         while today < startIdx {
-            high = (*inHigh.get_unchecked(today));
-            low = (*inLow.get_unchecked(today));
+            high = *inHigh.as_ptr().add(today);
+            low = *inLow.as_ptr().add(today);
             tmp = high - low;
-            close = (*inClose.get_unchecked(today));
+            close = *inClose.as_ptr().add(today);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
+                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
@@ -275,17 +275,17 @@ impl Core {
         }
         outIdx = 0;
         while today <= endIdx {
-            high = (*inHigh.get_unchecked(today));
-            low = (*inLow.get_unchecked(today));
+            high = *inHigh.as_ptr().add(today);
+            low = *inLow.as_ptr().add(today);
             tmp = high - low;
-            close = (*inClose.get_unchecked(today));
+            close = *inClose.as_ptr().add(today);
             if tmp > 0.0 {
-                ad += (close - low - (high - close)) / tmp * (((*inVolume.get_unchecked(today))) as f64);
+                ad += (close - low - (high - close)) / tmp * ((*inVolume.as_ptr().add(today)) as f64);
             }
             today += 1;
             fastEMA = (fastk as f64).mul_add(ad, one_minus_fastk * fastEMA);
             slowEMA = (slowk as f64).mul_add(ad, one_minus_slowk * slowEMA);
-            (*outReal.get_unchecked_mut(outIdx)) = fastEMA - slowEMA;
+            *outReal.as_mut_ptr().add(outIdx) = fastEMA - slowEMA;
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

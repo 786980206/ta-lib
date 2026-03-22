@@ -236,19 +236,19 @@ impl Core {
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            tempInt = (((*inPeriods.get_unchecked(startIdx + i))) as usize) as usize;
+            tempInt = ((*inPeriods.as_ptr().add(startIdx + i)) as usize) as usize;
             if tempInt < (optInMinPeriod) as usize {
                 tempInt = (optInMinPeriod) as usize;
             } else if tempInt > (optInMaxPeriod) as usize {
                 tempInt = (optInMaxPeriod) as usize;
             }
-            (*localPeriodArray.get_unchecked_mut(i)) = (tempInt) as i32;
+            *localPeriodArray.as_mut_ptr().add(i) = (tempInt) as i32;
             i += 1;
         }
         // for( i = 0; i < outputSize; i += 1 )
         i = 0;
         while i < outputSize {
-            curPeriod = ((*localPeriodArray.get_unchecked(i))) as usize;
+            curPeriod = (*localPeriodArray.as_ptr().add(i)) as usize;
             if curPeriod != 0 {
                 retCode = self.ma_unguarded(startIdx, endIdx, inReal, (curPeriod) as i32, optInMAType, &mut localBegIdx, &mut localNbElement, &mut localOutputArray[..]);
                 if retCode != RetCode::Success {
@@ -256,13 +256,13 @@ impl Core {
                     (*outNBElement) = 0;
                     return retCode;
                 }
-                (*outReal.get_unchecked_mut(i)) = (((*localOutputArray.get_unchecked(i))) as f64);
+                *outReal.as_mut_ptr().add(i) = ((*localOutputArray.as_ptr().add(i)) as f64);
                 // for( j = i + 1; j < outputSize; j += 1 )
                 j = i + 1;
                 while j < outputSize {
-                    if ((*localPeriodArray.get_unchecked(j))) as usize == curPeriod {
-                        (*localPeriodArray.get_unchecked_mut(j)) = 0;
-                        (*outReal.get_unchecked_mut(j)) = (((*localOutputArray.get_unchecked(j))) as f64);
+                    if (*localPeriodArray.as_ptr().add(j)) as usize == curPeriod {
+                        *localPeriodArray.as_mut_ptr().add(j) = 0;
+                        *outReal.as_mut_ptr().add(j) = ((*localOutputArray.as_ptr().add(j)) as f64);
                     }
                     j += 1;
                 }

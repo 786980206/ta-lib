@@ -2438,7 +2438,7 @@ fn render_assign_target(
         Expr::ArrayAccess(name, idx) => {
             let idx_rendered = render_index_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
-                format!("(*{name}.get_unchecked_mut({idx_rendered}))")
+                format!("*{name}.as_mut_ptr().add({idx_rendered})")
             } else {
                 format!("{name}[{idx_rendered}]")
             }
@@ -2656,7 +2656,9 @@ fn render_expr(
         Expr::ArrayAccess(name, idx) => {
             let idx_rendered = render_index_expr(idx, ctx, opt_real_params, registry, helpers);
             if ctx.unchecked {
-                format!("(*{name}.get_unchecked({idx_rendered}))")
+                // Use as_ptr().add() instead of get_unchecked() to avoid
+                // llvm.assume intrinsics that poison the optimizer under LTO.
+                format!("*{name}.as_ptr().add({idx_rendered})")
             } else {
                 format!("{name}[{idx_rendered}]")
             }

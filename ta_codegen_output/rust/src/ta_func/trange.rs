@@ -158,9 +158,9 @@ impl Core {
         outIdx = 0;
         today = startIdx;
         while today <= endIdx {
-            tempLT = (*inLow.get_unchecked(today));
-            tempHT = (*inHigh.get_unchecked(today));
-            tempCY = (*inClose.get_unchecked(today - 1));
+            tempLT = *inLow.as_ptr().add(today);
+            tempHT = *inHigh.as_ptr().add(today);
+            tempCY = *inClose.as_ptr().add(today - 1);
             greatest = tempHT - tempLT;
             val2 = (tempCY - tempHT).abs();
             if val2 > greatest {
@@ -170,7 +170,7 @@ impl Core {
             if val3 > greatest {
                 greatest = val3;
             }
-            (*outReal.get_unchecked_mut(outIdx)) = greatest;
+            *outReal.as_mut_ptr().add(outIdx) = greatest;
             outIdx += 1;
             today += 1;
         }

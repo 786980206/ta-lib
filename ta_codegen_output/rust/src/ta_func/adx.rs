@@ -342,16 +342,16 @@ impl Core {
         prevPlusDM = 0.0;
         prevTR = 0.0;
         today = startIdx - lookbackTotal;
-        prevHigh = (*inHigh.get_unchecked(today));
-        prevLow = (*inLow.get_unchecked(today));
-        prevClose = (*inClose.get_unchecked(today));
+        prevHigh = *inHigh.as_ptr().add(today);
+        prevLow = *inLow.as_ptr().add(today);
+        prevClose = *inClose.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             if diffM > 0_f64 && diffP < diffM {
@@ -372,16 +372,16 @@ impl Core {
             _true_range_0 = range_0;
             tempReal = _true_range_0;
             prevTR += tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
         }
         sumDX = 0.0;
         i = (optInTimePeriod) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             prevMinusDM -= prevMinusDM / ((optInTimePeriod) as f64);
@@ -404,7 +404,7 @@ impl Core {
             _true_range_1 = range_1;
             tempReal = _true_range_1;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
             if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
@@ -418,10 +418,10 @@ impl Core {
         i = (self.unstable_period[FuncUnstId::Adx as usize]) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             prevMinusDM -= prevMinusDM / ((optInTimePeriod) as f64);
@@ -444,7 +444,7 @@ impl Core {
             _true_range_2 = range_2;
             tempReal = _true_range_2;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
             if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
@@ -455,14 +455,14 @@ impl Core {
                 }
             }
         }
-        (*outReal.get_unchecked_mut(0)) = prevADX;
+        *outReal.as_mut_ptr().add(0) = prevADX;
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             prevMinusDM -= prevMinusDM / ((optInTimePeriod) as f64);
@@ -485,7 +485,7 @@ impl Core {
             _true_range_3 = range_3;
             tempReal = _true_range_3;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
             if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
@@ -495,7 +495,7 @@ impl Core {
                     prevADX = ((prevADX * (((optInTimePeriod - 1)) as f64) + tempReal) / ((optInTimePeriod) as f64));
                 }
             }
-            (*outReal.get_unchecked_mut(outIdx)) = prevADX;
+            *outReal.as_mut_ptr().add(outIdx) = prevADX;
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

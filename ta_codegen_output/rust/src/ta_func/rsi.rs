@@ -290,7 +290,7 @@ impl Core {
             return RetCode::Success;
         }
         today = startIdx - lookbackTotal;
-        prevValue = ((*inReal.get_unchecked(today))) as f64;
+        prevValue = (*inReal.as_ptr().add(today)) as f64;
         unstablePeriod = (self.unstable_period[FuncUnstId::Rsi as usize]) as usize;
         if unstablePeriod == 0 && self.compatibility == Compatibility::Metastock {
             savePrevValue = prevValue;
@@ -299,7 +299,7 @@ impl Core {
             // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
             i = (optInTimePeriod) as usize;
             while i > 0 {
-                tempValue1 = ((*inReal.get_unchecked(today))) as f64;
+                tempValue1 = (*inReal.as_ptr().add(today)) as f64;
                 today = today + 1;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
@@ -314,10 +314,10 @@ impl Core {
             tempValue2 = prevGain / ((optInTimePeriod) as f64);
             tempValue1 = tempValue2 + tempValue1;
             if !((tempValue1).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (tempValue2 / tempValue1);
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (tempValue2 / tempValue1);
                 outIdx = outIdx + 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx = outIdx + 1;
             }
             if today > endIdx {
@@ -334,7 +334,7 @@ impl Core {
         // for( i = (optInTimePeriod) as usize; i > 0; i -= 1 )
         i = (optInTimePeriod) as usize;
         while i > 0 {
-            tempValue1 = ((*inReal.get_unchecked(today))) as f64;
+            tempValue1 = (*inReal.as_ptr().add(today)) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -350,15 +350,15 @@ impl Core {
         if today > startIdx {
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (prevGain / tempValue1);
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx = outIdx + 1;
             }
         } else {
             while today < startIdx {
-                tempValue1 = ((*inReal.get_unchecked(today))) as f64;
+                tempValue1 = (*inReal.as_ptr().add(today)) as f64;
                 tempValue2 = tempValue1 - prevValue;
                 prevValue = tempValue1;
                 prevLoss *= (optInTimePeriod - 1) as f64;
@@ -374,7 +374,7 @@ impl Core {
             }
         }
         while today <= endIdx {
-            tempValue1 = ((*inReal.get_unchecked(today))) as f64;
+            tempValue1 = (*inReal.as_ptr().add(today)) as f64;
             today = today + 1;
             tempValue2 = tempValue1 - prevValue;
             prevValue = tempValue1;
@@ -389,10 +389,10 @@ impl Core {
             prevGain /= (optInTimePeriod) as f64;
             tempValue1 = prevGain + prevLoss;
             if !((tempValue1).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = 100.0 * (prevGain / tempValue1);
+                *outReal.as_mut_ptr().add(outIdx) = 100.0 * (prevGain / tempValue1);
                 outIdx = outIdx + 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx = outIdx + 1;
             }
         }

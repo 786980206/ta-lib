@@ -168,10 +168,10 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            lowest = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             highest = lowest;
             for i in (trailingIdx as usize)..(today as usize) + 1 {
-                tmp = (*inReal.get_unchecked(i));
+                tmp = *inReal.as_ptr().add(i);
                 if tmp < lowest {
                     lowest = tmp;
                 } else if tmp > highest {
@@ -179,7 +179,7 @@ impl Core {
                 }
             }
             i = (today as usize) + 1;
-            (*outReal.get_unchecked_mut(outIdx)) = (highest + lowest) / 2.0;
+            *outReal.as_mut_ptr().add(outIdx) = (highest + lowest) / 2.0;
             outIdx += 1;
             today += 1;
         }

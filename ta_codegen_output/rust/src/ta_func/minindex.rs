@@ -178,13 +178,13 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = 0.0;
         while today <= endIdx {
-            tmp = (*inReal.get_unchecked(today));
+            tmp = *inReal.as_ptr().add(today);
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
-                lowest = (*inReal.get_unchecked((lowestIdx) as usize));
+                lowest = *inReal.as_ptr().add((lowestIdx) as usize);
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inReal.get_unchecked(i));
+                    tmp = *inReal.as_ptr().add(i);
                     if tmp < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -194,7 +194,7 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            (*outInteger.get_unchecked_mut(outIdx)) = (lowestIdx) as i32;
+            *outInteger.as_mut_ptr().add(outIdx) = (lowestIdx) as i32;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

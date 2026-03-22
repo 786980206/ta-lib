@@ -201,18 +201,18 @@ impl Core {
         outIdx = (self.unstable_period[FuncUnstId::Atr as usize]) as usize;
         while outIdx != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
-            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR += *tempBuffer.as_ptr().add({ let _v = today; today += 1; _v });
             prevATR /= ((optInTimePeriod) as f64);
             outIdx -= 1;
         }
         outIdx = 1;
-        (*outReal.get_unchecked_mut(0)) = prevATR;
+        *outReal.as_mut_ptr().add(0) = prevATR;
         nbATR = endIdx - startIdx + 1;
         while { nbATR -= 1; nbATR } != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
-            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR += *tempBuffer.as_ptr().add({ let _v = today; today += 1; _v });
             prevATR /= ((optInTimePeriod) as f64);
-            (*outReal.get_unchecked_mut(outIdx)) = prevATR;
+            *outReal.as_mut_ptr().add(outIdx) = prevATR;
             outIdx += 1;
         }
         (*outBegIdx) = startIdx;

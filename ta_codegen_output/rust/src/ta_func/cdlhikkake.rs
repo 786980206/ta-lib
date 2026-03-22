@@ -171,10 +171,10 @@ impl Core {
         patternResult = 0;
         i = startIdx - 3;
         while i < startIdx {
-            if (*inHigh.get_unchecked(i - 1)) < (*inHigh.get_unchecked(i - 2)) && (*inLow.get_unchecked(i - 1)) > (*inLow.get_unchecked(i - 2)) && ((*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) || (*inHigh.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) > (*inLow.get_unchecked(i - 1))) {
-                patternResult = 100 * (if (*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) { 1 } else { 0 - 1 });
+            if *inHigh.as_ptr().add(i - 1) < *inHigh.as_ptr().add(i - 2) && *inLow.as_ptr().add(i - 1) > *inLow.as_ptr().add(i - 2) && (*inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) < *inLow.as_ptr().add(i - 1) || *inHigh.as_ptr().add(i) > *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) > *inLow.as_ptr().add(i - 1)) {
+                patternResult = 100 * (if *inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) { 1 } else { 0 - 1 });
                 patternIdx = i;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked(i)) > (*inHigh.get_unchecked(patternIdx - 1)) || patternResult < 0 && (*inClose.get_unchecked(i)) < (*inLow.get_unchecked(patternIdx - 1))) {
+            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.as_ptr().add(i) > *inHigh.as_ptr().add(patternIdx - 1) || patternResult < 0 && *inClose.as_ptr().add(i) < *inLow.as_ptr().add(patternIdx - 1)) {
                 patternIdx = 0;
             }
             i += 1;
@@ -182,17 +182,17 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if (*inHigh.get_unchecked(i - 1)) < (*inHigh.get_unchecked(i - 2)) && (*inLow.get_unchecked(i - 1)) > (*inLow.get_unchecked(i - 2)) && ((*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) < (*inLow.get_unchecked(i - 1)) || (*inHigh.get_unchecked(i)) > (*inHigh.get_unchecked(i - 1)) && (*inLow.get_unchecked(i)) > (*inLow.get_unchecked(i - 1))) {
-                patternResult = 100 * (if (*inHigh.get_unchecked(i)) < (*inHigh.get_unchecked(i - 1)) { 1 } else { 0 - 1 });
+            if *inHigh.as_ptr().add(i - 1) < *inHigh.as_ptr().add(i - 2) && *inLow.as_ptr().add(i - 1) > *inLow.as_ptr().add(i - 2) && (*inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) < *inLow.as_ptr().add(i - 1) || *inHigh.as_ptr().add(i) > *inHigh.as_ptr().add(i - 1) && *inLow.as_ptr().add(i) > *inLow.as_ptr().add(i - 1)) {
+                patternResult = 100 * (if *inHigh.as_ptr().add(i) < *inHigh.as_ptr().add(i - 1) { 1 } else { 0 - 1 });
                 patternIdx = i;
-                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult) as i32;
+                *outInteger.as_mut_ptr().add(outIdx) = (patternResult) as i32;
                 outIdx += 1;
-            } else if i <= patternIdx + 3 && (patternResult > 0 && (*inClose.get_unchecked(i)) > (*inHigh.get_unchecked(patternIdx - 1)) || patternResult < 0 && (*inClose.get_unchecked(i)) < (*inLow.get_unchecked(patternIdx - 1))) {
-                (*outInteger.get_unchecked_mut(outIdx)) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
+            } else if i <= patternIdx + 3 && (patternResult > 0 && *inClose.as_ptr().add(i) > *inHigh.as_ptr().add(patternIdx - 1) || patternResult < 0 && *inClose.as_ptr().add(i) < *inLow.as_ptr().add(patternIdx - 1)) {
+                *outInteger.as_mut_ptr().add(outIdx) = (patternResult + (100 * (if patternResult > 0 { 1 } else { 0 - 1 })) as i32) as i32;
                 outIdx += 1;
                 patternIdx = 0;
             } else {
-                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                *outInteger.as_mut_ptr().add(outIdx) = 0;
                 outIdx += 1;
             }
             i += 1;

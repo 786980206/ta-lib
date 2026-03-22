@@ -203,19 +203,19 @@ impl Core {
         inIdx = trailingIdx;
         i = 1;
         while inIdx < startIdx {
-            tempReal = (*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = inIdx; inIdx += 1; _v });
             periodSub += tempReal;
             periodSum += tempReal * ((i) as f64);
             i += 1;
         }
         trailingValue = 0.0;
         while inIdx <= endIdx {
-            tempReal = (*inReal.get_unchecked({ let _v = inIdx; inIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = inIdx; inIdx += 1; _v });
             periodSub += tempReal;
             periodSub -= trailingValue;
             periodSum += tempReal * ((optInTimePeriod) as f64);
-            trailingValue = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut(outIdx)) = periodSum / ((divider) as f64);
+            trailingValue = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+            *outReal.as_mut_ptr().add(outIdx) = periodSum / ((divider) as f64);
             outIdx += 1;
             periodSum -= periodSub;
         }

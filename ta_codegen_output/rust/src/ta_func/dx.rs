@@ -313,16 +313,16 @@ impl Core {
         prevPlusDM = 0.0;
         prevTR = 0.0;
         today = startIdx - lookbackTotal;
-        prevHigh = (*inHigh.get_unchecked(today));
-        prevLow = (*inLow.get_unchecked(today));
-        prevClose = (*inClose.get_unchecked(today));
+        prevHigh = *inHigh.as_ptr().add(today);
+        prevLow = *inLow.as_ptr().add(today);
+        prevClose = *inClose.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             if diffM > 0_f64 && diffP < diffM {
@@ -343,15 +343,15 @@ impl Core {
             _true_range_0 = range_0;
             tempReal = _true_range_0;
             prevTR += tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
         }
         i = (self.unstable_period[FuncUnstId::Dx as usize] + 1) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             prevMinusDM -= prevMinusDM / ((optInTimePeriod) as f64);
@@ -374,27 +374,27 @@ impl Core {
             _true_range_1 = range_1;
             tempReal = _true_range_1;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
         }
         if !((prevTR).abs() < 1e-14) {
             minusDI = (100.0 * (prevMinusDM / prevTR));
             plusDI = (100.0 * (prevPlusDM / prevTR));
             tempReal = minusDI + plusDI;
             if !((tempReal).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(0)) = (100.0 * ((minusDI - plusDI).abs() / tempReal));
+                *outReal.as_mut_ptr().add(0) = (100.0 * ((minusDI - plusDI).abs() / tempReal));
             } else {
-                (*outReal.get_unchecked_mut(0)) = 0.0;
+                *outReal.as_mut_ptr().add(0) = 0.0;
             }
         } else {
-            (*outReal.get_unchecked_mut(0)) = 0.0;
+            *outReal.as_mut_ptr().add(0) = 0.0;
         }
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             prevMinusDM -= prevMinusDM / ((optInTimePeriod) as f64);
@@ -417,18 +417,18 @@ impl Core {
             _true_range_2 = range_2;
             tempReal = _true_range_2;
             prevTR = prevTR - prevTR / ((optInTimePeriod) as f64) + tempReal;
-            prevClose = (*inClose.get_unchecked(today));
+            prevClose = *inClose.as_ptr().add(today);
             if !((prevTR).abs() < 1e-14) {
                 minusDI = (100.0 * (prevMinusDM / prevTR));
                 plusDI = (100.0 * (prevPlusDM / prevTR));
                 tempReal = minusDI + plusDI;
                 if !((tempReal).abs() < 1e-14) {
-                    (*outReal.get_unchecked_mut(outIdx)) = (100.0 * ((minusDI - plusDI).abs() / tempReal));
+                    *outReal.as_mut_ptr().add(outIdx) = (100.0 * ((minusDI - plusDI).abs() / tempReal));
                 } else {
-                    (*outReal.get_unchecked_mut(outIdx)) = (((*outReal.get_unchecked(outIdx - 1))) as f64);
+                    *outReal.as_mut_ptr().add(outIdx) = ((*outReal.as_ptr().add(outIdx - 1)) as f64);
                 }
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = (((*outReal.get_unchecked(outIdx - 1))) as f64);
+                *outReal.as_mut_ptr().add(outIdx) = ((*outReal.as_ptr().add(outIdx - 1)) as f64);
             }
             outIdx += 1;
         }

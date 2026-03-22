@@ -244,21 +244,21 @@ impl Core {
         if optInTimePeriod <= 1 {
             (*outBegIdx) = startIdx;
             today = startIdx - 1;
-            prevHigh = (*inHigh.get_unchecked(today));
-            prevLow = (*inLow.get_unchecked(today));
+            prevHigh = *inHigh.as_ptr().add(today);
+            prevLow = *inLow.as_ptr().add(today);
             while today < endIdx {
                 today += 1;
-                tempReal = (*inHigh.get_unchecked(today));
+                tempReal = *inHigh.as_ptr().add(today);
                 diffP = tempReal - prevHigh;
                 prevHigh = tempReal;
-                tempReal = (*inLow.get_unchecked(today));
+                tempReal = *inLow.as_ptr().add(today);
                 diffM = prevLow - tempReal;
                 prevLow = tempReal;
                 if diffP > 0_f64 && diffP > diffM {
-                    (*outReal.get_unchecked_mut(outIdx)) = diffP;
+                    *outReal.as_mut_ptr().add(outIdx) = diffP;
                     outIdx += 1;
                 } else {
-                    (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                    *outReal.as_mut_ptr().add(outIdx) = 0.0;
                     outIdx += 1;
                 }
             }
@@ -268,15 +268,15 @@ impl Core {
         (*outBegIdx) = startIdx;
         prevPlusDM = 0.0;
         today = startIdx - lookbackTotal;
-        prevHigh = (*inHigh.get_unchecked(today));
-        prevLow = (*inLow.get_unchecked(today));
+        prevHigh = *inHigh.as_ptr().add(today);
+        prevLow = *inLow.as_ptr().add(today);
         i = (optInTimePeriod - 1) as usize;
         while { let _v = i; i -= 1; _v } > 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
@@ -286,10 +286,10 @@ impl Core {
         i = (self.unstable_period[FuncUnstId::PlusDM as usize]) as usize;
         while { let _v = i; i -= 1; _v } != 0 {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
@@ -298,14 +298,14 @@ impl Core {
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
         }
-        (*outReal.get_unchecked_mut(0)) = prevPlusDM;
+        *outReal.as_mut_ptr().add(0) = prevPlusDM;
         outIdx = 1;
         while today < endIdx {
             today += 1;
-            tempReal = (*inHigh.get_unchecked(today));
+            tempReal = *inHigh.as_ptr().add(today);
             diffP = tempReal - prevHigh;
             prevHigh = tempReal;
-            tempReal = (*inLow.get_unchecked(today));
+            tempReal = *inLow.as_ptr().add(today);
             diffM = prevLow - tempReal;
             prevLow = tempReal;
             if diffP > 0_f64 && diffP > diffM {
@@ -313,7 +313,7 @@ impl Core {
             } else {
                 prevPlusDM = prevPlusDM - prevPlusDM / ((optInTimePeriod) as f64);
             }
-            (*outReal.get_unchecked_mut(outIdx)) = prevPlusDM;
+            *outReal.as_mut_ptr().add(outIdx) = prevPlusDM;
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

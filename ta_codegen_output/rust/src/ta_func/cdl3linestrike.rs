@@ -246,53 +246,53 @@ impl Core {
             (*outNBElement) = 0;
             return RetCode::Success;
         }
-        (*NearPeriodTotal.get_unchecked_mut(3)) = 0.0;
-        (*NearPeriodTotal.get_unchecked_mut(2)) = 0.0;
+        *NearPeriodTotal.as_mut_ptr().add(3) = 0.0;
+        *NearPeriodTotal.as_mut_ptr().add(2) = 0.0;
         NearTrailingIdx = startIdx - (Near_avgPeriod) as usize;
         i = NearTrailingIdx;
         while i < startIdx {
             let mut _candlerange_0: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_0 = ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs();
+                    _candlerange_0 = (*inClose.as_ptr().add(i - 3) - *inOpen.as_ptr().add(i - 3)).abs();
                 }
                 1 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3));
+                    _candlerange_0 = *inHigh.as_ptr().add(i - 3) - *inLow.as_ptr().add(i - 3);
                 }
                 2 => {
-                    _candlerange_0 = (*inHigh.get_unchecked(i - 3)) - (*inLow.get_unchecked(i - 3)) - ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs();
+                    _candlerange_0 = *inHigh.as_ptr().add(i - 3) - *inLow.as_ptr().add(i - 3) - (*inClose.as_ptr().add(i - 3) - *inOpen.as_ptr().add(i - 3)).abs();
                 }
                 _ => {
                     _candlerange_0 = 0.0;
                 }
             }
-            (*NearPeriodTotal.get_unchecked_mut(3)) = (*NearPeriodTotal.get_unchecked(3)) + _candlerange_0;
+            *NearPeriodTotal.as_mut_ptr().add(3) = *NearPeriodTotal.as_ptr().add(3) + _candlerange_0;
             let mut _candlerange_1: f64;
             match Near_rangeType {
                 0 => {
-                    _candlerange_1 = ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_1 = (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 1 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2));
+                    _candlerange_1 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2);
                 }
                 2 => {
-                    _candlerange_1 = (*inHigh.get_unchecked(i - 2)) - (*inLow.get_unchecked(i - 2)) - ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs();
+                    _candlerange_1 = *inHigh.as_ptr().add(i - 2) - *inLow.as_ptr().add(i - 2) - (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs();
                 }
                 _ => {
                     _candlerange_1 = 0.0;
                 }
             }
-            (*NearPeriodTotal.get_unchecked_mut(2)) = (*NearPeriodTotal.get_unchecked(2)) + _candlerange_1;
+            *NearPeriodTotal.as_mut_ptr().add(2) = *NearPeriodTotal.as_ptr().add(2) + _candlerange_1;
             i += 1;
         }
         i = startIdx;
         outIdx = 0;
         loop {
-            if (if (*inClose.get_unchecked(i - 3)) >= (*inOpen.get_unchecked(i - 3)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (if (*inClose.get_unchecked(i)) >= (*inOpen.get_unchecked(i)) { 1 } else { 0 - 1 }) == 0 - (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) && (*inOpen.get_unchecked(i - 2)) >= ((*inOpen.get_unchecked(i - 3))).min((*inClose.get_unchecked(i - 3))) - ((Near_factor) * (if (Near_avgPeriod) != 0 { ((*NearPeriodTotal.get_unchecked(3))) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs(), 1 => ((*inHigh.get_unchecked(i - 3))) - ((*inLow.get_unchecked(i - 3))), _ => ((*inHigh.get_unchecked(i - 3))) - ((*inLow.get_unchecked(i - 3))) - (((*inClose.get_unchecked(i - 3))) - ((*inOpen.get_unchecked(i - 3)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && (*inOpen.get_unchecked(i - 2)) <= ((*inOpen.get_unchecked(i - 3))).max((*inClose.get_unchecked(i - 3))) + ((Near_factor) * (if (Near_avgPeriod) != 0 { ((*NearPeriodTotal.get_unchecked(3))) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 3)) - (*inOpen.get_unchecked(i - 3))).abs(), 1 => ((*inHigh.get_unchecked(i - 3))) - ((*inLow.get_unchecked(i - 3))), _ => ((*inHigh.get_unchecked(i - 3))) - ((*inLow.get_unchecked(i - 3))) - (((*inClose.get_unchecked(i - 3))) - ((*inOpen.get_unchecked(i - 3)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && (*inOpen.get_unchecked(i - 1)) >= ((*inOpen.get_unchecked(i - 2))).min((*inClose.get_unchecked(i - 2))) - ((Near_factor) * (if (Near_avgPeriod) != 0 { ((*NearPeriodTotal.get_unchecked(2))) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && (*inOpen.get_unchecked(i - 1)) <= ((*inOpen.get_unchecked(i - 2))).max((*inClose.get_unchecked(i - 2))) + ((Near_factor) * (if (Near_avgPeriod) != 0 { ((*NearPeriodTotal.get_unchecked(2))) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => ((*inClose.get_unchecked(i - 2)) - (*inOpen.get_unchecked(i - 2))).abs(), 1 => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))), _ => ((*inHigh.get_unchecked(i - 2))) - ((*inLow.get_unchecked(i - 2))) - (((*inClose.get_unchecked(i - 2))) - ((*inOpen.get_unchecked(i - 2)))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 1 && (*inClose.get_unchecked(i - 1)) > (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i - 2)) > (*inClose.get_unchecked(i - 3)) && (*inOpen.get_unchecked(i)) > (*inClose.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) < (*inOpen.get_unchecked(i - 3)) || ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (*inClose.get_unchecked(i - 1)) < (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i - 2)) < (*inClose.get_unchecked(i - 3)) && (*inOpen.get_unchecked(i)) < (*inClose.get_unchecked(i - 1)) && (*inClose.get_unchecked(i)) > (*inOpen.get_unchecked(i - 3))) {
-                (*outInteger.get_unchecked_mut(outIdx)) = ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) * 100) as i32;
+            if (if *inClose.as_ptr().add(i - 3) >= *inOpen.as_ptr().add(i - 3) { 1 } else { 0 - 1 }) == (if *inClose.as_ptr().add(i - 2) >= *inOpen.as_ptr().add(i - 2) { 1 } else { 0 - 1 }) && (if *inClose.as_ptr().add(i - 2) >= *inOpen.as_ptr().add(i - 2) { 1 } else { 0 - 1 }) == (if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) && (if *inClose.as_ptr().add(i) >= *inOpen.as_ptr().add(i) { 1 } else { 0 - 1 }) == 0 - (if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) && *inOpen.as_ptr().add(i - 2) >= (*inOpen.as_ptr().add(i - 3)).min(*inClose.as_ptr().add(i - 3)) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (*NearPeriodTotal.as_ptr().add(3)) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 3) - *inOpen.as_ptr().add(i - 3)).abs(), 1 => (*inHigh.as_ptr().add(i - 3)) - (*inLow.as_ptr().add(i - 3)), _ => (*inHigh.as_ptr().add(i - 3)) - (*inLow.as_ptr().add(i - 3)) - ((*inClose.as_ptr().add(i - 3)) - (*inOpen.as_ptr().add(i - 3))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && *inOpen.as_ptr().add(i - 2) <= (*inOpen.as_ptr().add(i - 3)).max(*inClose.as_ptr().add(i - 3)) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (*NearPeriodTotal.as_ptr().add(3)) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 3) - *inOpen.as_ptr().add(i - 3)).abs(), 1 => (*inHigh.as_ptr().add(i - 3)) - (*inLow.as_ptr().add(i - 3)), _ => (*inHigh.as_ptr().add(i - 3)) - (*inLow.as_ptr().add(i - 3)) - ((*inClose.as_ptr().add(i - 3)) - (*inOpen.as_ptr().add(i - 3))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && *inOpen.as_ptr().add(i - 1) >= (*inOpen.as_ptr().add(i - 2)).min(*inClose.as_ptr().add(i - 2)) - ((Near_factor) * (if (Near_avgPeriod) != 0 { (*NearPeriodTotal.as_ptr().add(2)) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && *inOpen.as_ptr().add(i - 1) <= (*inOpen.as_ptr().add(i - 2)).max(*inClose.as_ptr().add(i - 2)) + ((Near_factor) * (if (Near_avgPeriod) != 0 { (*NearPeriodTotal.as_ptr().add(2)) / (Near_avgPeriod as f64) } else { match Near_rangeType { 0 => (*inClose.as_ptr().add(i - 2) - *inOpen.as_ptr().add(i - 2)).abs(), 1 => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)), _ => (*inHigh.as_ptr().add(i - 2)) - (*inLow.as_ptr().add(i - 2)) - ((*inClose.as_ptr().add(i - 2)) - (*inOpen.as_ptr().add(i - 2))).abs() } }) / (if (Near_rangeType) == 2 { 2.0 } else { 1.0 })) && ((if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) == 1 && *inClose.as_ptr().add(i - 1) > *inClose.as_ptr().add(i - 2) && *inClose.as_ptr().add(i - 2) > *inClose.as_ptr().add(i - 3) && *inOpen.as_ptr().add(i) > *inClose.as_ptr().add(i - 1) && *inClose.as_ptr().add(i) < *inOpen.as_ptr().add(i - 3) || ((if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && *inClose.as_ptr().add(i - 1) < *inClose.as_ptr().add(i - 2) && *inClose.as_ptr().add(i - 2) < *inClose.as_ptr().add(i - 3) && *inOpen.as_ptr().add(i) < *inClose.as_ptr().add(i - 1) && *inClose.as_ptr().add(i) > *inOpen.as_ptr().add(i - 3)) {
+                *outInteger.as_mut_ptr().add(outIdx) = ((if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) * 100) as i32;
                 outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                *outInteger.as_mut_ptr().add(outIdx) = 0;
                 outIdx += 1;
             }
             // for( totIdx = 3; totIdx >= 2; totIdx -= 1 )
@@ -301,13 +301,13 @@ impl Core {
                 let mut _candlerange_2: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_2 = ((*inClose.get_unchecked(i - totIdx)) - (*inOpen.get_unchecked(i - totIdx))).abs();
+                        _candlerange_2 = (*inClose.as_ptr().add(i - totIdx) - *inOpen.as_ptr().add(i - totIdx)).abs();
                     }
                     1 => {
-                        _candlerange_2 = (*inHigh.get_unchecked(i - totIdx)) - (*inLow.get_unchecked(i - totIdx));
+                        _candlerange_2 = *inHigh.as_ptr().add(i - totIdx) - *inLow.as_ptr().add(i - totIdx);
                     }
                     2 => {
-                        _candlerange_2 = (*inHigh.get_unchecked(i - totIdx)) - (*inLow.get_unchecked(i - totIdx)) - ((*inClose.get_unchecked(i - totIdx)) - (*inOpen.get_unchecked(i - totIdx))).abs();
+                        _candlerange_2 = *inHigh.as_ptr().add(i - totIdx) - *inLow.as_ptr().add(i - totIdx) - (*inClose.as_ptr().add(i - totIdx) - *inOpen.as_ptr().add(i - totIdx)).abs();
                     }
                     _ => {
                         _candlerange_2 = 0.0;
@@ -316,19 +316,19 @@ impl Core {
                 let mut _candlerange_3: f64;
                 match Near_rangeType {
                     0 => {
-                        _candlerange_3 = ((*inClose.get_unchecked(NearTrailingIdx - totIdx)) - (*inOpen.get_unchecked(NearTrailingIdx - totIdx))).abs();
+                        _candlerange_3 = (*inClose.as_ptr().add(NearTrailingIdx - totIdx) - *inOpen.as_ptr().add(NearTrailingIdx - totIdx)).abs();
                     }
                     1 => {
-                        _candlerange_3 = (*inHigh.get_unchecked(NearTrailingIdx - totIdx)) - (*inLow.get_unchecked(NearTrailingIdx - totIdx));
+                        _candlerange_3 = *inHigh.as_ptr().add(NearTrailingIdx - totIdx) - *inLow.as_ptr().add(NearTrailingIdx - totIdx);
                     }
                     2 => {
-                        _candlerange_3 = (*inHigh.get_unchecked(NearTrailingIdx - totIdx)) - (*inLow.get_unchecked(NearTrailingIdx - totIdx)) - ((*inClose.get_unchecked(NearTrailingIdx - totIdx)) - (*inOpen.get_unchecked(NearTrailingIdx - totIdx))).abs();
+                        _candlerange_3 = *inHigh.as_ptr().add(NearTrailingIdx - totIdx) - *inLow.as_ptr().add(NearTrailingIdx - totIdx) - (*inClose.as_ptr().add(NearTrailingIdx - totIdx) - *inOpen.as_ptr().add(NearTrailingIdx - totIdx)).abs();
                     }
                     _ => {
                         _candlerange_3 = 0.0;
                     }
                 }
-                (*NearPeriodTotal.get_unchecked_mut(totIdx)) = (*NearPeriodTotal.get_unchecked(totIdx)) + (_candlerange_2 - _candlerange_3);
+                *NearPeriodTotal.as_mut_ptr().add(totIdx) = *NearPeriodTotal.as_ptr().add(totIdx) + (_candlerange_2 - _candlerange_3);
                 if totIdx == 2 { break; }
                 totIdx -= 1;
             }

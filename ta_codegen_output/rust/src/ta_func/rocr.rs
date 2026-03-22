@@ -153,12 +153,12 @@ impl Core {
         inIdx = startIdx;
         trailingIdx = startIdx - (optInTimePeriod) as usize;
         while inIdx <= endIdx {
-            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             if tempReal != 0.0 {
-                (*outReal.get_unchecked_mut(outIdx)) = (((*inReal.get_unchecked(inIdx)) / tempReal) as f64);
+                *outReal.as_mut_ptr().add(outIdx) = ((*inReal.as_ptr().add(inIdx) / tempReal) as f64);
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             }
             inIdx += 1;

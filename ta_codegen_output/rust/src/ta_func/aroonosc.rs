@@ -209,13 +209,13 @@ impl Core {
         highest = 0.0;
         factor = ((100.0) as f64) / ((optInTimePeriod) as f64);
         while today <= endIdx {
-            tmp = (*inLow.get_unchecked(today));
+            tmp = *inLow.as_ptr().add(today);
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
-                lowest = (*inLow.get_unchecked((lowestIdx) as usize));
+                lowest = *inLow.as_ptr().add((lowestIdx) as usize);
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inLow.get_unchecked(i));
+                    tmp = *inLow.as_ptr().add(i);
                     if tmp <= lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmp;
@@ -225,13 +225,13 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmp;
             }
-            tmp = (*inHigh.get_unchecked(today));
+            tmp = *inHigh.as_ptr().add(today);
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
-                highest = (*inHigh.get_unchecked((highestIdx) as usize));
+                highest = *inHigh.as_ptr().add((highestIdx) as usize);
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmp = (*inHigh.get_unchecked(i));
+                    tmp = *inHigh.as_ptr().add(i);
                     if tmp >= highest {
                         highestIdx = (i) as i32;
                         highest = tmp;
@@ -242,7 +242,7 @@ impl Core {
                 highest = tmp;
             }
             aroon = factor * (((highestIdx - lowestIdx)) as f64);
-            (*outReal.get_unchecked_mut(outIdx)) = aroon;
+            *outReal.as_mut_ptr().add(outIdx) = aroon;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

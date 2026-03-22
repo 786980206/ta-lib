@@ -218,22 +218,22 @@ impl Core {
         sumX = sumY;
         sumXY = sumX;
         for today in (trailingIdx as usize)..(startIdx as usize) + 1 {
-            x = (*inReal0.get_unchecked(today));
+            x = *inReal0.as_ptr().add(today);
             sumX += x;
             sumX2 += x * x;
-            y = (*inReal1.get_unchecked(today));
+            y = *inReal1.as_ptr().add(today);
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
         }
         today = (startIdx as usize) + 1;
-        trailingX = (*inReal0.get_unchecked(trailingIdx));
-        trailingY = (*inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+        trailingX = *inReal0.as_ptr().add(trailingIdx);
+        trailingY = *inReal1.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
         tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
         if !((tempReal) < 1e-14) {
-            (*outReal.get_unchecked_mut(0)) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
+            *outReal.as_mut_ptr().add(0) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
         } else {
-            (*outReal.get_unchecked_mut(0)) = 0.0;
+            *outReal.as_mut_ptr().add(0) = 0.0;
         }
         outIdx = 1;
         while today <= endIdx {
@@ -242,21 +242,21 @@ impl Core {
             sumXY -= trailingX * trailingY;
             sumY -= trailingY;
             sumY2 -= trailingY * trailingY;
-            x = (*inReal0.get_unchecked(today));
+            x = *inReal0.as_ptr().add(today);
             sumX += x;
             sumX2 += x * x;
-            y = (*inReal1.get_unchecked({ let _v = today; today += 1; _v }));
+            y = *inReal1.as_ptr().add({ let _v = today; today += 1; _v });
             sumXY += x * y;
             sumY += y;
             sumY2 += y * y;
-            trailingX = (*inReal0.get_unchecked(trailingIdx));
-            trailingY = (*inReal1.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            trailingX = *inReal0.as_ptr().add(trailingIdx);
+            trailingY = *inReal1.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             tempReal = (sumX2 - sumX * sumX / ((optInTimePeriod) as f64)) * (sumY2 - sumY * sumY / ((optInTimePeriod) as f64));
             if !((tempReal) < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
+                *outReal.as_mut_ptr().add(outIdx) = (sumXY - sumX * sumY / ((optInTimePeriod) as f64)) / (tempReal).sqrt();
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             }
         }

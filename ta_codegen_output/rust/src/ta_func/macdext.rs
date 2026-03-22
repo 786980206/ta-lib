@@ -301,7 +301,7 @@ impl Core {
         // for( i = 0; i < outNbElement1; i += 1 )
         i = 0;
         while i < outNbElement1 {
-            (*fastMABuffer.get_unchecked_mut(i)) = (*fastMABuffer.get_unchecked(i)) - (*slowMABuffer.get_unchecked(i));
+            *fastMABuffer.as_mut_ptr().add(i) = *fastMABuffer.as_ptr().add(i) - *slowMABuffer.as_ptr().add(i);
             i += 1;
         }
         {
@@ -319,7 +319,7 @@ impl Core {
         // for( i = 0; i < outNbElement2; i += 1 )
         i = 0;
         while i < outNbElement2 {
-            (*outMACDHist.get_unchecked_mut(i)) = (((*outMACD.get_unchecked(i)) - (*outMACDSignal.get_unchecked(i))) as f64);
+            *outMACDHist.as_mut_ptr().add(i) = ((*outMACD.as_ptr().add(i) - *outMACDSignal.as_ptr().add(i)) as f64);
             i += 1;
         }
         (*outBegIdx) = startIdx;

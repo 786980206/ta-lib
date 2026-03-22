@@ -128,12 +128,12 @@ impl Core {
         assert!(endIdx - startIdx < outReal.len());
         outIdx = 0;
         for i in (startIdx as usize)..(endIdx as usize) + 1 {
-            tempReal = (*inHigh.get_unchecked(i)) - (*inLow.get_unchecked(i));
+            tempReal = *inHigh.as_ptr().add(i) - *inLow.as_ptr().add(i);
             if (tempReal) < 1e-14 {
-                (*outReal.get_unchecked_mut(outIdx)) = 0.0;
+                *outReal.as_mut_ptr().add(outIdx) = 0.0;
                 outIdx += 1;
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = ((((*inClose.get_unchecked(i)) - (*inOpen.get_unchecked(i))) / tempReal) as f64);
+                *outReal.as_mut_ptr().add(outIdx) = (((*inClose.as_ptr().add(i) - *inOpen.as_ptr().add(i)) / tempReal) as f64);
                 outIdx += 1;
             }
         }

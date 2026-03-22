@@ -256,7 +256,7 @@ impl Core {
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = (*inReal.get_unchecked(i));
+                tempReal = *inReal.as_ptr().add(i);
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
@@ -265,28 +265,28 @@ impl Core {
             numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
-                tempReal = (*inReal.get_unchecked(i));
+                tempReal = *inReal.as_ptr().add(i);
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+            tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+            *outReal.as_mut_ptr().add(outIdx) = numerator * factor;
             outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = (*inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v }));
+                tempReal = *inReal.as_ptr().add({ let _v = middleIdx; middleIdx += 1; _v });
                 numeratorSub += tempReal;
                 numerator += numeratorAdd;
                 numeratorAdd -= tempReal;
-                tempReal = (*inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v }));
+                tempReal = *inReal.as_ptr().add({ let _v = todayIdx; todayIdx += 1; _v });
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-                (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+                tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+                *outReal.as_mut_ptr().add(outIdx) = numerator * factor;
                 outIdx += 1;
             }
         } else {
@@ -301,7 +301,7 @@ impl Core {
             // for( i = middleIdx; i >= trailingIdx; i -= 1 )
             i = middleIdx;
             loop {
-                tempReal = (*inReal.get_unchecked(i));
+                tempReal = *inReal.as_ptr().add(i);
                 numeratorSub += tempReal;
                 numerator += numeratorSub;
                 if i == trailingIdx { break; }
@@ -310,28 +310,28 @@ impl Core {
             numeratorAdd = 0.0;
             middleIdx += 1;
             for i in (middleIdx as usize)..(todayIdx as usize) + 1 {
-                tempReal = (*inReal.get_unchecked(i));
+                tempReal = *inReal.as_ptr().add(i);
                 numeratorAdd += tempReal;
                 numerator += numeratorAdd;
             }
             i = (todayIdx as usize) + 1;
             outIdx = 0;
-            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-            (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+            tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+            *outReal.as_mut_ptr().add(outIdx) = numerator * factor;
             outIdx += 1;
             todayIdx += 1;
             while todayIdx <= endIdx {
                 numerator -= numeratorSub;
                 numeratorSub -= tempReal;
-                tempReal = (*inReal.get_unchecked({ let _v = middleIdx; middleIdx += 1; _v }));
+                tempReal = *inReal.as_ptr().add({ let _v = middleIdx; middleIdx += 1; _v });
                 numeratorSub += tempReal;
                 numeratorAdd -= tempReal;
                 numerator += numeratorAdd;
-                tempReal = (*inReal.get_unchecked({ let _v = todayIdx; todayIdx += 1; _v }));
+                tempReal = *inReal.as_ptr().add({ let _v = todayIdx; todayIdx += 1; _v });
                 numeratorAdd += tempReal;
                 numerator += tempReal;
-                tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
-                (*outReal.get_unchecked_mut(outIdx)) = numerator * factor;
+                tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
+                *outReal.as_mut_ptr().add(outIdx) = numerator * factor;
                 outIdx += 1;
             }
         }

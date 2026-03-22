@@ -597,67 +597,67 @@ impl Core {
         (*outBegIdx) = startIdx;
         trailingWMAIdx = startIdx - lookbackTotal;
         today = trailingWMAIdx;
-        tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
+        tempReal = *inReal.as_ptr().add({ let _v = today; today += 1; _v });
         periodWMASub = tempReal;
         periodWMASum = tempReal;
-        tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
+        tempReal = *inReal.as_ptr().add({ let _v = today; today += 1; _v });
         periodWMASub += tempReal;
         periodWMASum += tempReal * 2.0;
-        tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
+        tempReal = *inReal.as_ptr().add({ let _v = today; today += 1; _v });
         periodWMASub += tempReal;
         periodWMASum += tempReal * 3.0;
         trailingWMAValue = 0.0;
         i = 34;
         loop {
-            tempReal = (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = today; today += 1; _v });
             periodWMASub += tempReal;
             periodWMASub -= trailingWMAValue;
             periodWMASum += tempReal * 4.0;
-            trailingWMAValue = (*inReal.get_unchecked({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }));
+            trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
             if !({ i -= 1; i } != 0) { break; }
         }
         hilbertIdx = 0;
-        (*detrender_Odd.get_unchecked_mut(0)) = 0.0;
-        (*detrender_Odd.get_unchecked_mut(1)) = 0.0;
-        (*detrender_Odd.get_unchecked_mut(2)) = 0.0;
-        (*detrender_Even.get_unchecked_mut(0)) = 0.0;
-        (*detrender_Even.get_unchecked_mut(1)) = 0.0;
-        (*detrender_Even.get_unchecked_mut(2)) = 0.0;
+        *detrender_Odd.as_mut_ptr().add(0) = 0.0;
+        *detrender_Odd.as_mut_ptr().add(1) = 0.0;
+        *detrender_Odd.as_mut_ptr().add(2) = 0.0;
+        *detrender_Even.as_mut_ptr().add(0) = 0.0;
+        *detrender_Even.as_mut_ptr().add(1) = 0.0;
+        *detrender_Even.as_mut_ptr().add(2) = 0.0;
         detrender = 0.0;
         prev_detrender_Odd = 0.0;
         prev_detrender_Even = 0.0;
         prev_detrender_input_Odd = 0.0;
         prev_detrender_input_Even = 0.0;
-        (*Q1_Odd.get_unchecked_mut(0)) = 0.0;
-        (*Q1_Odd.get_unchecked_mut(1)) = 0.0;
-        (*Q1_Odd.get_unchecked_mut(2)) = 0.0;
-        (*Q1_Even.get_unchecked_mut(0)) = 0.0;
-        (*Q1_Even.get_unchecked_mut(1)) = 0.0;
-        (*Q1_Even.get_unchecked_mut(2)) = 0.0;
+        *Q1_Odd.as_mut_ptr().add(0) = 0.0;
+        *Q1_Odd.as_mut_ptr().add(1) = 0.0;
+        *Q1_Odd.as_mut_ptr().add(2) = 0.0;
+        *Q1_Even.as_mut_ptr().add(0) = 0.0;
+        *Q1_Even.as_mut_ptr().add(1) = 0.0;
+        *Q1_Even.as_mut_ptr().add(2) = 0.0;
         Q1 = 0.0;
         prev_Q1_Odd = 0.0;
         prev_Q1_Even = 0.0;
         prev_Q1_input_Odd = 0.0;
         prev_Q1_input_Even = 0.0;
-        (*jI_Odd.get_unchecked_mut(0)) = 0.0;
-        (*jI_Odd.get_unchecked_mut(1)) = 0.0;
-        (*jI_Odd.get_unchecked_mut(2)) = 0.0;
-        (*jI_Even.get_unchecked_mut(0)) = 0.0;
-        (*jI_Even.get_unchecked_mut(1)) = 0.0;
-        (*jI_Even.get_unchecked_mut(2)) = 0.0;
+        *jI_Odd.as_mut_ptr().add(0) = 0.0;
+        *jI_Odd.as_mut_ptr().add(1) = 0.0;
+        *jI_Odd.as_mut_ptr().add(2) = 0.0;
+        *jI_Even.as_mut_ptr().add(0) = 0.0;
+        *jI_Even.as_mut_ptr().add(1) = 0.0;
+        *jI_Even.as_mut_ptr().add(2) = 0.0;
         jI = 0.0;
         prev_jI_Odd = 0.0;
         prev_jI_Even = 0.0;
         prev_jI_input_Odd = 0.0;
         prev_jI_input_Even = 0.0;
-        (*jQ_Odd.get_unchecked_mut(0)) = 0.0;
-        (*jQ_Odd.get_unchecked_mut(1)) = 0.0;
-        (*jQ_Odd.get_unchecked_mut(2)) = 0.0;
-        (*jQ_Even.get_unchecked_mut(0)) = 0.0;
-        (*jQ_Even.get_unchecked_mut(1)) = 0.0;
-        (*jQ_Even.get_unchecked_mut(2)) = 0.0;
+        *jQ_Odd.as_mut_ptr().add(0) = 0.0;
+        *jQ_Odd.as_mut_ptr().add(1) = 0.0;
+        *jQ_Odd.as_mut_ptr().add(2) = 0.0;
+        *jQ_Even.as_mut_ptr().add(0) = 0.0;
+        *jQ_Even.as_mut_ptr().add(1) = 0.0;
+        *jQ_Even.as_mut_ptr().add(2) = 0.0;
         jQ = 0.0;
         prev_jQ_Odd = 0.0;
         prev_jQ_Even = 0.0;
@@ -677,24 +677,24 @@ impl Core {
         // for( i = 0; i < 50; i += 1 )
         i = 0;
         while i < 50 {
-            (*smoothPrice.get_unchecked_mut(i)) = 0.0;
+            *smoothPrice.as_mut_ptr().add(i) = 0.0;
             i += 1;
         }
         DCPhase = 0.0;
         while today <= endIdx {
             adjustedPrevPeriod = (0.075 as f64).mul_add(period, 0.54);
-            todayValue = (*inReal.get_unchecked(today));
+            todayValue = *inReal.as_ptr().add(today);
             periodWMASub += todayValue;
             periodWMASub -= trailingWMAValue;
             periodWMASum += todayValue * 4.0;
-            trailingWMAValue = (*inReal.get_unchecked({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v }));
+            trailingWMAValue = *inReal.as_ptr().add({ let _v = trailingWMAIdx; trailingWMAIdx += 1; _v });
             smoothedValue = periodWMASum * 0.1;
             periodWMASum -= periodWMASub;
-            (*smoothPrice.get_unchecked_mut(smoothPrice_Idx)) = smoothedValue;
+            *smoothPrice.as_mut_ptr().add(smoothPrice_Idx) = smoothedValue;
             if today % 2 == 0 {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0_f64 - (*detrender_Even.get_unchecked(hilbertIdx));
-                (*detrender_Even.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                detrender = 0_f64 - *detrender_Even.as_ptr().add(hilbertIdx);
+                *detrender_Even.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Even;
                 prev_detrender_Even = b * prev_detrender_input_Even;
@@ -702,8 +702,8 @@ impl Core {
                 prev_detrender_input_Even = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0_f64 - (*Q1_Even.get_unchecked(hilbertIdx));
-                (*Q1_Even.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                Q1 = 0_f64 - *Q1_Even.as_ptr().add(hilbertIdx);
+                *Q1_Even.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Even;
                 prev_Q1_Even = b * prev_Q1_input_Even;
@@ -711,8 +711,8 @@ impl Core {
                 prev_Q1_input_Even = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForEvenPrev3;
-                jI = 0_f64 - (*jI_Even.get_unchecked(hilbertIdx));
-                (*jI_Even.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                jI = 0_f64 - *jI_Even.as_ptr().add(hilbertIdx);
+                *jI_Even.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Even;
                 prev_jI_Even = b * prev_jI_input_Even;
@@ -720,8 +720,8 @@ impl Core {
                 prev_jI_input_Even = I1ForEvenPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0_f64 - (*jQ_Even.get_unchecked(hilbertIdx));
-                (*jQ_Even.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                jQ = 0_f64 - *jQ_Even.as_ptr().add(hilbertIdx);
+                *jQ_Even.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Even;
                 prev_jQ_Even = b * prev_jQ_input_Even;
@@ -737,8 +737,8 @@ impl Core {
                 I1ForOddPrev2 = detrender;
             } else {
                 hilbertTempReal = a * smoothedValue;
-                detrender = 0_f64 - (*detrender_Odd.get_unchecked(hilbertIdx));
-                (*detrender_Odd.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                detrender = 0_f64 - *detrender_Odd.as_ptr().add(hilbertIdx);
+                *detrender_Odd.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 detrender += hilbertTempReal;
                 detrender -= prev_detrender_Odd;
                 prev_detrender_Odd = b * prev_detrender_input_Odd;
@@ -746,8 +746,8 @@ impl Core {
                 prev_detrender_input_Odd = smoothedValue;
                 detrender *= adjustedPrevPeriod;
                 hilbertTempReal = a * detrender;
-                Q1 = 0_f64 - (*Q1_Odd.get_unchecked(hilbertIdx));
-                (*Q1_Odd.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                Q1 = 0_f64 - *Q1_Odd.as_ptr().add(hilbertIdx);
+                *Q1_Odd.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 Q1 += hilbertTempReal;
                 Q1 -= prev_Q1_Odd;
                 prev_Q1_Odd = b * prev_Q1_input_Odd;
@@ -755,8 +755,8 @@ impl Core {
                 prev_Q1_input_Odd = detrender;
                 Q1 *= adjustedPrevPeriod;
                 hilbertTempReal = a * I1ForOddPrev3;
-                jI = 0_f64 - (*jI_Odd.get_unchecked(hilbertIdx));
-                (*jI_Odd.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                jI = 0_f64 - *jI_Odd.as_ptr().add(hilbertIdx);
+                *jI_Odd.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 jI += hilbertTempReal;
                 jI -= prev_jI_Odd;
                 prev_jI_Odd = b * prev_jI_input_Odd;
@@ -764,8 +764,8 @@ impl Core {
                 prev_jI_input_Odd = I1ForOddPrev3;
                 jI *= adjustedPrevPeriod;
                 hilbertTempReal = a * Q1;
-                jQ = 0_f64 - (*jQ_Odd.get_unchecked(hilbertIdx));
-                (*jQ_Odd.get_unchecked_mut(hilbertIdx)) = hilbertTempReal;
+                jQ = 0_f64 - *jQ_Odd.as_ptr().add(hilbertIdx);
+                *jQ_Odd.as_mut_ptr().add(hilbertIdx) = hilbertTempReal;
                 jQ += hilbertTempReal;
                 jQ -= prev_jQ_Odd;
                 prev_jQ_Odd = b * prev_jQ_input_Odd;
@@ -810,7 +810,7 @@ impl Core {
             i = 0;
             while i < DCPeriodInt {
                 tempReal = ((i) as f64) * constDeg2RadBy360 / ((DCPeriodInt) as f64);
-                tempReal2 = (*smoothPrice.get_unchecked(idx));
+                tempReal2 = *smoothPrice.as_ptr().add(idx);
                 realPart += (tempReal).sin() * tempReal2;
                 imagPart += (tempReal).cos() * tempReal2;
                 if idx == 0 {
@@ -849,7 +849,7 @@ impl Core {
             // for( i = 0; i < DCPeriodInt; i += 1 )
             i = 0;
             while i < DCPeriodInt {
-                tempReal += (*inReal.get_unchecked({ let _v = idx; idx -= 1; _v }));
+                tempReal += *inReal.as_ptr().add({ let _v = idx; idx -= 1; _v });
                 i += 1;
             }
             if DCPeriodInt > 0 {
@@ -872,12 +872,12 @@ impl Core {
             if smoothPeriod != 0.0 && (tempReal > 0.67 * 360.0 / smoothPeriod && tempReal < 1.5 * 360.0 / smoothPeriod) {
                 trend = 0;
             }
-            tempReal = (*smoothPrice.get_unchecked(smoothPrice_Idx));
+            tempReal = *smoothPrice.as_ptr().add(smoothPrice_Idx);
             if trendline != 0.0 && ((tempReal - trendline) / trendline).abs() >= 0.015 {
                 trend = 1;
             }
             if today >= startIdx {
-                (*outInteger.get_unchecked_mut(outIdx)) = (trend) as i32;
+                *outInteger.as_mut_ptr().add(outIdx) = (trend) as i32;
                 outIdx += 1;
             }
             smoothPrice_Idx = (smoothPrice_Idx + 1) % 50;

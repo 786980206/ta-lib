@@ -175,21 +175,21 @@ impl Core {
         today = startIdx;
         trailingIdx = startIdx - nbInitialElementNeeded;
         while today <= endIdx {
-            lowest = (*inLow.get_unchecked(trailingIdx));
-            highest = (*inHigh.get_unchecked(trailingIdx));
+            lowest = *inLow.as_ptr().add(trailingIdx);
+            highest = *inHigh.as_ptr().add(trailingIdx);
             trailingIdx += 1;
             for i in (trailingIdx as usize)..(today as usize) + 1 {
-                tmp = (*inLow.get_unchecked(i));
+                tmp = *inLow.as_ptr().add(i);
                 if tmp < lowest {
                     lowest = tmp;
                 }
-                tmp = (*inHigh.get_unchecked(i));
+                tmp = *inHigh.as_ptr().add(i);
                 if tmp > highest {
                     highest = tmp;
                 }
             }
             i = (today as usize) + 1;
-            (*outReal.get_unchecked_mut(outIdx)) = (highest + lowest) / 2.0;
+            *outReal.as_mut_ptr().add(outIdx) = (highest + lowest) / 2.0;
             outIdx += 1;
             today += 1;
         }

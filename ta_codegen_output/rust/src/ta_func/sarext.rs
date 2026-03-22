@@ -341,7 +341,7 @@ impl Core {
         if optInStartValue == 0_f64 {
             let mut _dup_out: usize = 0_usize;
             retCode = self.minus_dm_unguarded(startIdx, startIdx, inHigh, inLow, 1, &mut tempInt, &mut _dup_out, &mut ep_temp);
-            if (*ep_temp.get_unchecked(0)) > 0_f64 {
+            if *ep_temp.as_ptr().add(0) > 0_f64 {
                 isLong = 0;
             } else {
                 isLong = 1;
@@ -359,30 +359,30 @@ impl Core {
         (*outBegIdx) = startIdx;
         outIdx = 0;
         todayIdx = startIdx;
-        newHigh = (*inHigh.get_unchecked(todayIdx - 1));
-        newLow = (*inLow.get_unchecked(todayIdx - 1));
+        newHigh = *inHigh.as_ptr().add(todayIdx - 1);
+        newLow = *inLow.as_ptr().add(todayIdx - 1);
         if optInStartValue == 0_f64 {
             if isLong == 1 {
-                ep = (*inHigh.get_unchecked(todayIdx));
+                ep = *inHigh.as_ptr().add(todayIdx);
                 sar = newLow;
             } else {
-                ep = (*inLow.get_unchecked(todayIdx));
+                ep = *inLow.as_ptr().add(todayIdx);
                 sar = newHigh;
             }
         } else if optInStartValue > 0_f64 {
-            ep = (*inHigh.get_unchecked(todayIdx));
+            ep = *inHigh.as_ptr().add(todayIdx);
             sar = optInStartValue;
         } else {
-            ep = (*inLow.get_unchecked(todayIdx));
+            ep = *inLow.as_ptr().add(todayIdx);
             sar = (optInStartValue).abs();
         }
-        newLow = (*inLow.get_unchecked(todayIdx));
-        newHigh = (*inHigh.get_unchecked(todayIdx));
+        newLow = *inLow.as_ptr().add(todayIdx);
+        newHigh = *inHigh.as_ptr().add(todayIdx);
         while todayIdx <= endIdx {
             prevLow = newLow;
             prevHigh = newHigh;
-            newLow = (*inLow.get_unchecked(todayIdx));
-            newHigh = (*inHigh.get_unchecked(todayIdx));
+            newLow = *inLow.as_ptr().add(todayIdx);
+            newHigh = *inHigh.as_ptr().add(todayIdx);
             todayIdx += 1;
             if isLong == 1 {
                 if newLow <= sar {
@@ -397,7 +397,7 @@ impl Core {
                     if optInOffsetOnReverse != 0.0 {
                         sar += sar * optInOffsetOnReverse;
                     }
-                    (*outReal.get_unchecked_mut(outIdx)) = 0_f64 - sar;
+                    *outReal.as_mut_ptr().add(outIdx) = 0_f64 - sar;
                     outIdx += 1;
                     afShort = optInAccelerationInitShort;
                     ep = newLow;
@@ -409,7 +409,7 @@ impl Core {
                         sar = newHigh;
                     }
                 } else {
-                    (*outReal.get_unchecked_mut(outIdx)) = sar;
+                    *outReal.as_mut_ptr().add(outIdx) = sar;
                     outIdx += 1;
                     if newHigh > ep {
                         ep = newHigh;
@@ -438,7 +438,7 @@ impl Core {
                 if optInOffsetOnReverse != 0.0 {
                     sar -= sar * optInOffsetOnReverse;
                 }
-                (*outReal.get_unchecked_mut(outIdx)) = sar;
+                *outReal.as_mut_ptr().add(outIdx) = sar;
                 outIdx += 1;
                 afLong = optInAccelerationInitLong;
                 ep = newHigh;
@@ -450,7 +450,7 @@ impl Core {
                     sar = newLow;
                 }
             } else {
-                (*outReal.get_unchecked_mut(outIdx)) = 0_f64 - sar;
+                *outReal.as_mut_ptr().add(outIdx) = 0_f64 - sar;
                 outIdx += 1;
                 if newLow < ep {
                     ep = newLow;

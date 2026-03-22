@@ -302,7 +302,7 @@ impl Core {
             // for( _outIdx = _startSum; _outIdx < _endSum; _outIdx += 1 )
             _outIdx = _startSum;
             while _outIdx < _endSum {
-                _tempReal = (*inReal.get_unchecked(_outIdx));
+                _tempReal = *inReal.as_ptr().add(_outIdx);
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
                 _outIdx += 1;
@@ -310,20 +310,20 @@ impl Core {
             // for( _outIdx = 0; _outIdx < ((((*outNBElement)) as usize)) as usize; _outIdx += 1, _startSum += 1, _endSum += 1 )
             _outIdx = 0;
             while _outIdx < ((((*outNBElement)) as usize)) as usize {
-                _tempReal = (*inReal.get_unchecked(_endSum));
+                _tempReal = *inReal.as_ptr().add(_endSum);
                 _tempReal *= _tempReal;
                 _periodTotal2 += _tempReal;
                 _meanValue2 = _periodTotal2 / ((optInTimePeriod) as f64);
-                _tempReal = (*inReal.get_unchecked(_startSum));
+                _tempReal = *inReal.as_ptr().add(_startSum);
                 _tempReal *= _tempReal;
                 _periodTotal2 -= _tempReal;
-                _tempReal = (*tempBuffer1.get_unchecked(_outIdx));
+                _tempReal = *tempBuffer1.as_ptr().add(_outIdx);
                 _tempReal *= _tempReal;
                 _meanValue2 -= _tempReal;
                 if !((_meanValue2) < 1e-14) {
-                    (*tempBuffer2.get_unchecked_mut(_outIdx)) = (_meanValue2).sqrt();
+                    *tempBuffer2.as_mut_ptr().add(_outIdx) = (_meanValue2).sqrt();
                 } else {
-                    (*tempBuffer2.get_unchecked_mut(_outIdx)) = 0.0;
+                    *tempBuffer2.as_mut_ptr().add(_outIdx) = 0.0;
                 }
                 _outIdx += 1;
                 _startSum += 1;
@@ -349,20 +349,20 @@ impl Core {
                 // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
                 i = 0;
                 while i < ((((*outNBElement)) as usize)) as usize {
-                    tempReal = (*tempBuffer2.get_unchecked(i));
-                    tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                    (*outRealUpperBand.get_unchecked_mut(i)) = tempReal2 + tempReal;
-                    (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal;
+                    tempReal = *tempBuffer2.as_ptr().add(i);
+                    tempReal2 = *outRealMiddleBand.as_ptr().add(i);
+                    *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
+                    *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal;
                     i += 1;
                 }
             } else {
                 // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
                 i = 0;
                 while i < ((((*outNBElement)) as usize)) as usize {
-                    tempReal = (*tempBuffer2.get_unchecked(i)) * optInNbDevUp;
-                    tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                    (*outRealUpperBand.get_unchecked_mut(i)) = tempReal2 + tempReal;
-                    (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal;
+                    tempReal = *tempBuffer2.as_ptr().add(i) * optInNbDevUp;
+                    tempReal2 = *outRealMiddleBand.as_ptr().add(i);
+                    *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
+                    *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal;
                     i += 1;
                 }
             }
@@ -370,30 +370,30 @@ impl Core {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
-                tempReal = (*tempBuffer2.get_unchecked(i));
-                tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                (*outRealUpperBand.get_unchecked_mut(i)) = tempReal2 + tempReal;
-                (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal * optInNbDevDn;
+                tempReal = *tempBuffer2.as_ptr().add(i);
+                tempReal2 = *outRealMiddleBand.as_ptr().add(i);
+                *outRealUpperBand.as_mut_ptr().add(i) = tempReal2 + tempReal;
+                *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal * optInNbDevDn;
                 i += 1;
             }
         } else if optInNbDevDn == 1.0 {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
-                tempReal = (*tempBuffer2.get_unchecked(i));
-                tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal;
-                (*outRealUpperBand.get_unchecked_mut(i)) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
+                tempReal = *tempBuffer2.as_ptr().add(i);
+                tempReal2 = *outRealMiddleBand.as_ptr().add(i);
+                *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal;
+                *outRealUpperBand.as_mut_ptr().add(i) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
                 i += 1;
             }
         } else {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
-                tempReal = (*tempBuffer2.get_unchecked(i));
-                tempReal2 = (*outRealMiddleBand.get_unchecked(i));
-                (*outRealUpperBand.get_unchecked_mut(i)) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
-                (*outRealLowerBand.get_unchecked_mut(i)) = tempReal2 - tempReal * optInNbDevDn;
+                tempReal = *tempBuffer2.as_ptr().add(i);
+                tempReal2 = *outRealMiddleBand.as_ptr().add(i);
+                *outRealUpperBand.as_mut_ptr().add(i) = (tempReal as f64).mul_add(optInNbDevUp, tempReal2);
+                *outRealLowerBand.as_mut_ptr().add(i) = tempReal2 - tempReal * optInNbDevDn;
                 i += 1;
             }
         }

@@ -209,14 +209,14 @@ impl Core {
         lowestIdx = 0 - 1;
         lowest = 0.0;
         while today <= endIdx {
-            tmpHigh = (*inReal.get_unchecked(today));
+            tmpHigh = *inReal.as_ptr().add(today);
             tmpLow = tmpHigh;
             if highestIdx < (trailingIdx) as i32 {
                 highestIdx = (trailingIdx) as i32;
-                highest = (*inReal.get_unchecked((highestIdx) as usize));
+                highest = *inReal.as_ptr().add((highestIdx) as usize);
                 i = (highestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpHigh = (*inReal.get_unchecked(i));
+                    tmpHigh = *inReal.as_ptr().add(i);
                     if tmpHigh > highest {
                         highestIdx = (i) as i32;
                         highest = tmpHigh;
@@ -228,10 +228,10 @@ impl Core {
             }
             if lowestIdx < (trailingIdx) as i32 {
                 lowestIdx = (trailingIdx) as i32;
-                lowest = (*inReal.get_unchecked((lowestIdx) as usize));
+                lowest = *inReal.as_ptr().add((lowestIdx) as usize);
                 i = (lowestIdx) as usize;
                 while { i += 1; i } <= today {
-                    tmpLow = (*inReal.get_unchecked(i));
+                    tmpLow = *inReal.as_ptr().add(i);
                     if tmpLow < lowest {
                         lowestIdx = (i) as i32;
                         lowest = tmpLow;
@@ -241,8 +241,8 @@ impl Core {
                 lowestIdx = (today) as i32;
                 lowest = tmpLow;
             }
-            (*outMax.get_unchecked_mut(outIdx)) = highest;
-            (*outMin.get_unchecked_mut(outIdx)) = lowest;
+            *outMax.as_mut_ptr().add(outIdx) = highest;
+            *outMin.as_mut_ptr().add(outIdx) = lowest;
             outIdx += 1;
             trailingIdx += 1;
             today += 1;

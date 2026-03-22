@@ -131,21 +131,21 @@ impl Core {
             i = (optInTimePeriod) as usize;
             tempReal = 0.0;
             while { let _v = i; i -= 1; _v } > 0 {
-                tempReal += (*inReal.get_unchecked({ let _v = today; today += 1; _v }));
+                tempReal += *inReal.as_ptr().add({ let _v = today; today += 1; _v });
             }
             prevMA = tempReal / ((optInTimePeriod) as f64);
         } else {
-            prevMA = (*inReal.get_unchecked(0));
+            prevMA = *inReal.as_ptr().add(0);
             today = 1;
         }
         while today <= startIdx {
-            prevMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevMA) * ((optInK_1) as f64) + prevMA;
+            prevMA = (*inReal.as_ptr().add({ let _v = today; today += 1; _v }) - prevMA) * ((optInK_1) as f64) + prevMA;
         }
-        (*outReal.get_unchecked_mut(0)) = prevMA;
+        *outReal.as_mut_ptr().add(0) = prevMA;
         outIdx = 1;
         while today <= endIdx {
-            prevMA = ((*inReal.get_unchecked({ let _v = today; today += 1; _v })) - prevMA) * ((optInK_1) as f64) + prevMA;
-            (*outReal.get_unchecked_mut(outIdx)) = prevMA;
+            prevMA = (*inReal.as_ptr().add({ let _v = today; today += 1; _v }) - prevMA) * ((optInK_1) as f64) + prevMA;
+            *outReal.as_mut_ptr().add(outIdx) = prevMA;
             outIdx += 1;
         }
         (*outNBElement) = outIdx;

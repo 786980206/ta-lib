@@ -213,27 +213,27 @@ impl Core {
         outIdx = (self.unstable_period[FuncUnstId::Natr as usize]) as usize;
         while outIdx != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
-            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR += *tempBuffer.as_ptr().add({ let _v = today; today += 1; _v });
             prevATR /= ((optInTimePeriod) as f64);
             outIdx -= 1;
         }
         outIdx = 1;
-        tempValue = (*inClose.get_unchecked(today));
+        tempValue = *inClose.as_ptr().add(today);
         if !((tempValue).abs() < 1e-14) {
-            (*outReal.get_unchecked_mut(0)) = prevATR / tempValue * 100.0;
+            *outReal.as_mut_ptr().add(0) = prevATR / tempValue * 100.0;
         } else {
-            (*outReal.get_unchecked_mut(0)) = 0.0;
+            *outReal.as_mut_ptr().add(0) = 0.0;
         }
         nbATR = endIdx - startIdx + 1;
         while { nbATR -= 1; nbATR } != 0 {
             prevATR *= ((optInTimePeriod - 1) as f64);
-            prevATR += (*tempBuffer.get_unchecked({ let _v = today; today += 1; _v }));
+            prevATR += *tempBuffer.as_ptr().add({ let _v = today; today += 1; _v });
             prevATR /= ((optInTimePeriod) as f64);
-            tempValue = (*inClose.get_unchecked(today));
+            tempValue = *inClose.as_ptr().add(today);
             if !((tempValue).abs() < 1e-14) {
-                (*outReal.get_unchecked_mut(outIdx)) = prevATR / tempValue * 100.0;
+                *outReal.as_mut_ptr().add(outIdx) = prevATR / tempValue * 100.0;
             } else {
-                (*outReal.get_unchecked_mut(0)) = 0.0;
+                *outReal.as_mut_ptr().add(0) = 0.0;
             }
             outIdx += 1;
         }

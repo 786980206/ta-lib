@@ -179,11 +179,11 @@ impl Core {
             // for( i = (optInTimePeriod) as usize; { let _v = i; i -= 1; _v } != 0;  )
             i = (optInTimePeriod) as usize;
             while { let _v = i; i -= 1; _v } != 0 {
-                tempValue1 = (*inReal.get_unchecked(today - i));
+                tempValue1 = *inReal.as_ptr().add(today - i);
                 SumY += tempValue1;
                 SumXY += ((i) as f64) * tempValue1;
             }
-            (*outReal.get_unchecked_mut(outIdx)) = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
+            *outReal.as_mut_ptr().add(outIdx) = (((optInTimePeriod) as f64) * SumXY - SumX * SumY) / Divisor;
             outIdx += 1;
             today += 1;
         }

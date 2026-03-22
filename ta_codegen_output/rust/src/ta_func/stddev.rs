@@ -156,11 +156,11 @@ impl Core {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
-                tempReal = (*outReal.get_unchecked(i));
+                tempReal = *outReal.as_ptr().add(i);
                 if !((tempReal) < 1e-14) {
-                    (*outReal.get_unchecked_mut(i)) = (tempReal).sqrt() * optInNbDev;
+                    *outReal.as_mut_ptr().add(i) = (tempReal).sqrt() * optInNbDev;
                 } else {
-                    (*outReal.get_unchecked_mut(i)) = (0.0) as f64;
+                    *outReal.as_mut_ptr().add(i) = (0.0) as f64;
                 }
                 i += 1;
             }
@@ -168,11 +168,11 @@ impl Core {
             // for( i = 0; i < ((((*outNBElement)) as usize)) as usize; i += 1 )
             i = 0;
             while i < ((((*outNBElement)) as usize)) as usize {
-                tempReal = (*outReal.get_unchecked(i));
+                tempReal = *outReal.as_ptr().add(i);
                 if !((tempReal) < 1e-14) {
-                    (*outReal.get_unchecked_mut(i)) = (tempReal).sqrt();
+                    *outReal.as_mut_ptr().add(i) = (tempReal).sqrt();
                 } else {
-                    (*outReal.get_unchecked_mut(i)) = (0.0) as f64;
+                    *outReal.as_mut_ptr().add(i) = (0.0) as f64;
                 }
                 i += 1;
             }

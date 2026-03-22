@@ -185,7 +185,7 @@ impl Core {
         i = trailingIdx;
         if optInTimePeriod > 1 {
             while i < startIdx {
-                tempReal = (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
+                tempReal = *inReal.as_ptr().add({ let _v = i; i += 1; _v });
                 periodTotal1 += tempReal;
                 tempReal *= tempReal;
                 periodTotal2 += tempReal;
@@ -193,17 +193,17 @@ impl Core {
         }
         outIdx = 0;
         loop {
-            tempReal = (*inReal.get_unchecked({ let _v = i; i += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = i; i += 1; _v });
             periodTotal1 += tempReal;
             tempReal *= tempReal;
             periodTotal2 += tempReal;
             meanValue1 = periodTotal1 / ((optInTimePeriod) as f64);
             meanValue2 = periodTotal2 / ((optInTimePeriod) as f64);
-            tempReal = (*inReal.get_unchecked({ let _v = trailingIdx; trailingIdx += 1; _v }));
+            tempReal = *inReal.as_ptr().add({ let _v = trailingIdx; trailingIdx += 1; _v });
             periodTotal1 -= tempReal;
             tempReal *= tempReal;
             periodTotal2 -= tempReal;
-            (*outReal.get_unchecked_mut(outIdx)) = meanValue2 - meanValue1 * meanValue1;
+            *outReal.as_mut_ptr().add(outIdx) = meanValue2 - meanValue1 * meanValue1;
             outIdx += 1;
             if !(i <= endIdx) { break; }
         }

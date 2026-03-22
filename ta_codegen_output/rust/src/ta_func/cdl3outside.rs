@@ -148,11 +148,11 @@ impl Core {
         i = startIdx;
         outIdx = 0;
         loop {
-            if (if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) == 1 && ((if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (*inClose.get_unchecked(i - 1)) > (*inOpen.get_unchecked(i - 2)) && (*inOpen.get_unchecked(i - 1)) < (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i)) > (*inClose.get_unchecked(i - 1)) || ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if (*inClose.get_unchecked(i - 2)) >= (*inOpen.get_unchecked(i - 2)) { 1 } else { 0 - 1 }) == 1 && (*inOpen.get_unchecked(i - 1)) > (*inClose.get_unchecked(i - 2)) && (*inClose.get_unchecked(i - 1)) < (*inOpen.get_unchecked(i - 2)) && (*inClose.get_unchecked(i)) < (*inClose.get_unchecked(i - 1)) {
-                (*outInteger.get_unchecked_mut(outIdx)) = ((if (*inClose.get_unchecked(i - 1)) >= (*inOpen.get_unchecked(i - 1)) { 1 } else { 0 - 1 }) * 100) as i32;
+            if (if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) == 1 && ((if *inClose.as_ptr().add(i - 2) >= *inOpen.as_ptr().add(i - 2) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && *inClose.as_ptr().add(i - 1) > *inOpen.as_ptr().add(i - 2) && *inOpen.as_ptr().add(i - 1) < *inClose.as_ptr().add(i - 2) && *inClose.as_ptr().add(i) > *inClose.as_ptr().add(i - 1) || ((if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 })) as i32 == 0 - 1 && (if *inClose.as_ptr().add(i - 2) >= *inOpen.as_ptr().add(i - 2) { 1 } else { 0 - 1 }) == 1 && *inOpen.as_ptr().add(i - 1) > *inClose.as_ptr().add(i - 2) && *inClose.as_ptr().add(i - 1) < *inOpen.as_ptr().add(i - 2) && *inClose.as_ptr().add(i) < *inClose.as_ptr().add(i - 1) {
+                *outInteger.as_mut_ptr().add(outIdx) = ((if *inClose.as_ptr().add(i - 1) >= *inOpen.as_ptr().add(i - 1) { 1 } else { 0 - 1 }) * 100) as i32;
                 outIdx += 1;
             } else {
-                (*outInteger.get_unchecked_mut(outIdx)) = 0;
+                *outInteger.as_mut_ptr().add(outIdx) = 0;
                 outIdx += 1;
             }
             i += 1;
