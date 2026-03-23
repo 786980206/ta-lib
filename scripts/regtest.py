@@ -64,6 +64,10 @@ def get_filter(args, prefix):
 
 
 def main():
+    if "--help" in sys.argv or "-h" in sys.argv:
+        print(__doc__.strip())
+        sys.exit(0)
+
     check_prerequisites(PREREQS_BUILD_SERVERS)
 
     argv = sys.argv[1:]
