@@ -194,8 +194,6 @@ TA_LIB_API TA_RetCode TA_CDLHIKKAKE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHIKKAKE TA_CDLHIKKAKE_Unguarded
-
 TA_RetCode TA_S_CDLHIKKAKE( int    startIdx,
                             int    endIdx,
                             const float inOpen[],
@@ -347,6 +345,4 @@ TA_RetCode TA_S_CDLHIKKAKE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLHIKKAKE TA_S_CDLHIKKAKE_Unguarded
 

@@ -352,8 +352,6 @@ TA_LIB_API TA_RetCode TA_MFI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MFI TA_MFI_Unguarded
-
 TA_RetCode TA_S_MFI( int    startIdx,
                      int    endIdx,
                      const float inHigh[],
@@ -663,6 +661,4 @@ TA_RetCode TA_S_MFI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MFI TA_S_MFI_Unguarded
 

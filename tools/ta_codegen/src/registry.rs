@@ -59,34 +59,39 @@ impl Registry {
     ///
     /// Returns the original name unchanged if the indicator is not found.
     pub fn resolve_call(&self, func_name: &str, lang: Lang) -> String {
-        // Handle _unguarded suffix: strip it and resolve the base name
-        // (which maps to the Logic/INT variant in all backends)
-        if let Some(base) = func_name.strip_suffix("_unguarded") {
+        // Handle _private suffix: maps to the Private variant (double-only in C,
+        // generic in Rust). No double/float routing — always the same function.
+        if let Some(base) = func_name.strip_suffix("_private") {
             if self.contains(base) {
                 return match lang {
-                    Lang::Rust => format!("{base}_unguarded"),
-                    Lang::C => format!("TA_INT_{}", base.to_uppercase()),
+                    Lang::Rust => format!("{base}_private"),
+                    Lang::C => format!("TA_{}_Private", base.to_uppercase()),
                     Lang::Java => {
                         let camel = self.to_camel_case(base);
-                        format!("{camel}Logic")
+                        format!("{camel}Private")
                     }
                     Lang::DotNet => {
                         let pascal = capitalize(base);
-                        format!("{pascal}Logic")
+                        format!("{pascal}Private")
                     }
                 };
             }
         }
 
-        // First, check if this is a bare indicator name (no suffix).
-        // Bare names resolve to the GUARDED variant (TA_FOO, not TA_INT_FOO).
-        // Only _unguarded calls resolve to the Logic/INT variant.
+        // Bare indicator names resolve to the Unguarded variant.
+        // All code in ta_func_defs is internal — cross-indicator calls skip validation.
         if self.contains(func_name) {
             return match lang {
-                Lang::Rust => func_name.to_string(),
-                Lang::C => format!("TA_{}", func_name.to_uppercase()),
-                Lang::Java => self.to_camel_case(func_name),
-                Lang::DotNet => capitalize(func_name),
+                Lang::Rust => format!("{func_name}_unguarded"),
+                Lang::C => format!("TA_{}_Unguarded", func_name.to_uppercase()),
+                Lang::Java => {
+                    let camel = self.to_camel_case(func_name);
+                    format!("{camel}Logic")
+                }
+                Lang::DotNet => {
+                    let pascal = capitalize(func_name);
+                    format!("{pascal}Logic")
+                }
             };
         }
 
@@ -189,36 +194,37 @@ mod tests {
             "TA_SMA_Lookback"
         );
 
-        // C backend: bare indicator names resolve to guarded TA_<NAME>
-        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA");
-        assert_eq!(registry.resolve_call("ema", Lang::C), "TA_EMA");
+        // C backend: bare indicator names resolve to Unguarded (cross-indicator = skip validation)
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA_Unguarded");
+        assert_eq!(registry.resolve_call("ema", Lang::C), "TA_EMA_Unguarded");
 
-        // C backend: _unguarded suffix resolves to TA_INT_<NAME>
-        assert_eq!(registry.resolve_call("sma_unguarded", Lang::C), "TA_INT_SMA");
-        assert_eq!(registry.resolve_call("ema_unguarded", Lang::C), "TA_INT_EMA");
+        // C backend: _private suffix resolves to Private (double-only)
+        assert_eq!(registry.resolve_call("ema_private", Lang::C), "TA_EMA_Private");
 
-        // Rust backend (bare names stay as-is)
-        assert_eq!(registry.resolve_call("ema", Lang::Rust), "ema");
+        // Rust backend (bare names resolve to _unguarded)
+        assert_eq!(registry.resolve_call("ema", Lang::Rust), "ema_unguarded");
         assert_eq!(
             registry.resolve_call("ema_lookback", Lang::Rust),
             "ema_lookback"
         );
+        // Rust: _private stays as _private (generic, handles both f32/f64)
+        assert_eq!(registry.resolve_call("ema_private", Lang::Rust), "ema_private");
 
-        // Java backend (camelCase for lookback, guarded for bare names)
+        // Java backend (bare names resolve to Logic)
         assert_eq!(
             registry.resolve_call("ema_lookback", Lang::Java),
             "emaLookback"
         );
-        assert_eq!(registry.resolve_call("ema", Lang::Java), "ema");
-        assert_eq!(registry.resolve_call("ema_unguarded", Lang::Java), "emaLogic");
+        assert_eq!(registry.resolve_call("ema", Lang::Java), "emaLogic");
+        assert_eq!(registry.resolve_call("ema_private", Lang::Java), "emaPrivate");
 
-        // .NET backend (PascalCase for lookback, guarded for bare names)
+        // .NET backend (bare names resolve to Logic)
         assert_eq!(
             registry.resolve_call("sma_lookback", Lang::DotNet),
             "SmaLookback"
         );
-        assert_eq!(registry.resolve_call("sma", Lang::DotNet), "Sma");
-        assert_eq!(registry.resolve_call("sma_unguarded", Lang::DotNet), "SmaLogic");
+        assert_eq!(registry.resolve_call("sma", Lang::DotNet), "SmaLogic");
+        assert_eq!(registry.resolve_call("ema_private", Lang::DotNet), "EmaPrivate");
     }
 
     #[test]
@@ -242,15 +248,15 @@ mod tests {
     }
 
     #[test]
-    fn test_registry_bare_name_resolves_to_guarded() {
+    fn test_registry_bare_name_resolves_to_unguarded() {
         let base = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../ta_func_defs");
         let registry = Registry::from_dir(&base);
-        // A bare indicator name resolves to the guarded variant
-        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA");
-        // _unguarded resolves to internal variant
-        assert_eq!(registry.resolve_call("sma_unguarded", Lang::C), "TA_INT_SMA");
-        // For Rust, bare names stay as-is
-        assert_eq!(registry.resolve_call("sma", Lang::Rust), "sma");
+        // Bare indicator names resolve to unguarded (cross-indicator calls skip validation)
+        assert_eq!(registry.resolve_call("sma", Lang::C), "TA_SMA_Unguarded");
+        // _private resolves to Private
+        assert_eq!(registry.resolve_call("sma_private", Lang::C), "TA_SMA_Private");
+        // For Rust, bare names resolve to _unguarded
+        assert_eq!(registry.resolve_call("sma", Lang::Rust), "sma_unguarded");
     }
 
     #[test]

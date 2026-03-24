@@ -159,4 +159,3 @@
          #define TA_CDL3BLACKCROWS Core::Cdl3blackcrows
          #define TA_CDL3BLACKCROWS_Lookback Core::Cdl3blackcrowsLookback
          #define TA_CDL3BLACKCROWS_Logic Core::Cdl3blackcrowsLogic
-         #define TA_INT_CDL3BLACKCROWS Core::Cdl3blackcrowsLogic

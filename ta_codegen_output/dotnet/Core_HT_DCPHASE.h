@@ -111,4 +111,3 @@
          #define TA_HT_DCPHASE Core::Ht_dcphase
          #define TA_HT_DCPHASE_Lookback Core::Ht_dcphaseLookback
          #define TA_HT_DCPHASE_Logic Core::Ht_dcphaseLogic
-         #define TA_INT_HT_DCPHASE Core::Ht_dcphaseLogic

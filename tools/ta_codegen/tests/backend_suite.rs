@@ -60,23 +60,23 @@ fn load_indicator(name: &str) -> (ir::FuncDef, HashMap<String, ir::EnumDef>) {
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
 
     // Mirror main.rs: check for explicit _unguarded variant in C source.
-    // If present, use it as unguarded_body with its extra params.
-    // Otherwise, copy body to unguarded_body (same body for both variants).
+    // If present, use it as private_body with its extra params.
+    // Otherwise, copy body to private_body (same body for both variants).
     let unguarded_name = format!("{}_unguarded", name);
     if let Some(ung) = parsed.functions.iter().find(|f| f.name == unguarded_name) {
-        func_def.unguarded_body = ung.body.clone();
-        func_def.has_explicit_unguarded = true;
+        func_def.private_body = ung.body.clone();
+        func_def.has_explicit_private = true;
         // Extra params = params in unguarded but not in guarded (by name)
         let guarded_param_names: std::collections::HashSet<_> =
             parsed.functions[0].params.iter().map(|(name, _)| name.clone()).collect();
-        func_def.unguarded_extra_params = ung
+        func_def.private_extra_params = ung
             .params
             .iter()
             .filter(|(name, _)| !guarded_param_names.contains(name))
             .cloned()
             .collect();
     } else {
-        func_def.unguarded_body = func_def.body.clone();
+        func_def.private_body = func_def.body.clone();
     }
 
     (func_def, enums)
@@ -160,9 +160,10 @@ fn check_c_variants(c: &str, upper: &str, name: &str) {
         name,
         upper
     );
+    // TA_INT_* macros are no longer generated
     assert!(
-        c.contains(&format!("#define TA_INT_{}", upper)),
-        "{}: C missing #define TA_INT_{}",
+        !c.contains(&format!("#define TA_INT_{}", upper)),
+        "{}: C should NOT have #define TA_INT_{}",
         name,
         upper
     );
@@ -262,21 +263,15 @@ fn check_dotnet_variants(d: &str, pascal: &str, upper: &str, name: &str) {
         name,
         upper
     );
-    assert!(
-        d.contains(&format!("#define TA_INT_{}", upper)),
-        "{}: .NET missing #define TA_INT_{}",
-        name,
-        upper
-    );
+    // TA_INT_* macros are no longer generated for .NET
 }
 
-/// Check C #define TA_INT alias correctness for an indicator.
+/// Check C does NOT generate TA_INT_ macros (they've been removed).
 fn check_c_int_alias(c: &str, upper: &str, name: &str) {
     assert!(
-        c.contains(&format!("#define TA_INT_{} TA_{}_Unguarded", upper, upper)),
-        "{}: C missing #define TA_INT_{} TA_{}_Unguarded",
+        !c.contains(&format!("#define TA_INT_{}", upper)),
+        "{}: C should NOT have #define TA_INT_{}",
         name,
-        upper,
         upper
     );
 }
@@ -307,13 +302,7 @@ fn check_dotnet_macros(d: &str, pascal: &str, upper: &str, name: &str) {
         upper,
         pascal
     );
-    assert!(
-        d.contains(&format!("#define TA_INT_{} Core::{}Logic", upper, pascal)),
-        "{}: .NET TA_INT_{} should point to Core::{}Logic",
-        name,
-        upper,
-        pascal
-    );
+    // TA_INT_* macros are no longer generated for .NET
 }
 
 /// Try to load an indicator, returning None if parsing fails (not yet supported).
@@ -433,15 +422,14 @@ fn test_ma_c_cross_calls() {
         c.contains("TA_EMA_Lookback("),
         "C: MA should call TA_EMA_Lookback"
     );
-    // After the 2-variant refactor, bare cross-indicator calls (sma, ema)
-    // resolve to the guarded variant (TA_SMA, TA_EMA), not Logic/INT.
+    // Bare cross-indicator calls resolve to Unguarded (skip validation)
     assert!(
-        c.contains("TA_SMA("),
-        "C: MA should call TA_SMA (guarded)"
+        c.contains("TA_SMA_Unguarded("),
+        "C: MA should call TA_SMA_Unguarded"
     );
     assert!(
-        c.contains("TA_EMA("),
-        "C: MA should call TA_EMA (guarded)"
+        c.contains("TA_EMA_Unguarded("),
+        "C: MA should call TA_EMA_Unguarded"
     );
 }
 
@@ -459,10 +447,9 @@ fn test_ma_java_cross_calls() {
         j.contains("emaLookback("),
         "Java: MA should call emaLookback"
     );
-    // After the 2-variant refactor, bare cross-indicator calls (sma, ema)
-    // resolve to the guarded variant (sma, ema), not Logic.
-    assert!(j.contains("sma("), "Java: MA should call sma (guarded)");
-    assert!(j.contains("ema("), "Java: MA should call ema (guarded)");
+    // Bare cross-indicator calls resolve to Logic (skip validation)
+    assert!(j.contains("smaLogic("), "Java: MA should call smaLogic");
+    assert!(j.contains("emaLogic("), "Java: MA should call emaLogic");
 }
 
 #[test]
@@ -480,14 +467,14 @@ fn test_ma_rust_cross_calls() {
         r.contains("self.ema_lookback("),
         "Rust: MA should call self.ema_lookback"
     );
-    // Bare cross-indicator calls go to the guarded variant (handles validation + pre-compute).
+    // Bare cross-indicator calls go to unguarded (skip validation)
     assert!(
-        r.contains("self.sma("),
-        "Rust: MA should call self.sma (guarded)"
+        r.contains("self.sma_unguarded("),
+        "Rust: MA should call self.sma_unguarded"
     );
     assert!(
-        r.contains("self.ema("),
-        "Rust: MA should call self.ema (guarded)"
+        r.contains("self.ema_unguarded("),
+        "Rust: MA should call self.ema_unguarded"
     );
 }
 
@@ -529,7 +516,7 @@ fn test_c_sma_logic_omits_validation() {
     let out = generate_all(&func, &enums);
 
     // Extract logic function (between TA_SMA_Unguarded( and #define TA_INT_SMA)
-    let logic = extract_section(&out.c, "TA_SMA_Unguarded(", "#define TA_INT_SMA");
+    let logic = extract_section(&out.c, "TA_SMA_Unguarded(", "TA_S_SMA(");
     assert!(
         !logic.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C logic SMA should NOT have start index validation"
@@ -618,7 +605,7 @@ fn test_c_rsi_logic_omits_validation() {
     let (func, enums) = load_indicator("rsi");
     let out = generate_all(&func, &enums);
 
-    let logic = extract_section(&out.c, "TA_RSI_Unguarded(", "#define TA_INT_RSI");
+    let logic = extract_section(&out.c, "TA_RSI_Unguarded(", "TA_S_RSI(");
     assert!(
         !logic.contains("TA_OUT_OF_RANGE_START_INDEX"),
         "C logic RSI should NOT have start index validation"
@@ -1020,7 +1007,8 @@ fn test_all_indicators_contain_success_returns() {
             // callee without ever mentioning RetCode.Success literally.
             // Accept: literal RetCode::Success OR a return of a RetCode from a cross-indicator call.
             let rust_has_success = out.rust.contains("RetCode::Success")
-                || (out.rust.contains("return self.") && out.rust.contains("_unguarded"));
+                || (out.rust.contains("return self.") && out.rust.contains("_unguarded"))
+                || (out.rust.contains("return self.") && out.rust.contains("_private("));
             assert!(
                 rust_has_success,
                 "Rust {}: missing RetCode::Success return",
@@ -1519,10 +1507,10 @@ fn backends_render_max_min_fmax_fmin_abs() {
         }],
         lookback: Some(LookbackExpr::Literal(0)),
         body: body.clone(),
-        unguarded_body: body,
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: body,
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     };
 
     let enums = std::collections::HashMap::new();
@@ -2020,10 +2008,10 @@ fn make_func_with_helper_call(
         }],
         lookback: Some(ir::LookbackExpr::Literal(0)),
         body: body.clone(),
-        unguarded_body: body,
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: body,
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     }
 }
 
@@ -2168,10 +2156,10 @@ fn inlining_counter_avoids_name_collisions() {
                 compound: false,
             },
         ],
-        unguarded_body: vec![],
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: vec![],
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -2994,14 +2982,14 @@ fn rust_cross_indicator_call_via_generate() {
     let helpers = make_helpers();
     let rust_out = backends::rust_lang::generate(&func, &enums, &registry, &helpers);
 
-    // Should contain self.sma(, self.ema( etc. (guarded cross-indicator calls)
+    // Cross-indicator calls resolve to _unguarded (skip validation)
     assert!(
-        rust_out.contains("self.sma("),
-        "MA Rust should call self.sma(): {rust_out}"
+        rust_out.contains("self.sma_unguarded("),
+        "MA Rust should call self.sma_unguarded(): {rust_out}"
     );
     assert!(
-        rust_out.contains("self.ema("),
-        "MA Rust should call self.ema(): {rust_out}"
+        rust_out.contains("self.ema_unguarded("),
+        "MA Rust should call self.ema_unguarded(): {rust_out}"
     );
 }
 
@@ -3021,8 +3009,10 @@ fn rust_cross_indicator_lookback_with_pascal_case() {
 }
 
 #[test]
-fn rust_unguarded_cross_indicator_call() {
-    // EMA has explicit unguarded with extra params. MACD calls ema_unguarded.
+fn rust_private_cross_indicator_call() {
+    // EMA has explicit _private with extra params. MACD calls ema_private() for
+    // hardcoded-k path and ema() for normal path. Registry routes:
+    //   ema() → ema_unguarded(), ema_private() → ema_private()
     let (func, enums) = load_indicator("macd");
     let registry = make_registry();
     let helpers = make_helpers();
@@ -3030,7 +3020,11 @@ fn rust_unguarded_cross_indicator_call() {
 
     assert!(
         rust_out.contains("self.ema_unguarded("),
-        "MACD Rust should call self.ema_unguarded(): {rust_out}"
+        "MACD Rust normal path should call self.ema_unguarded(): {rust_out}"
+    );
+    assert!(
+        rust_out.contains("self.ema_private("),
+        "MACD Rust hardcoded-k path should call self.ema_private(): {rust_out}"
     );
 }
 
@@ -3834,10 +3828,10 @@ fn rust_lookback_param_minus() {
         }],
         lookback: Some(ir::LookbackExpr::ParamMinus("optInTimePeriod".to_string(), 1)),
         body: body.clone(),
-        unguarded_body: body,
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: body,
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -3879,10 +3873,10 @@ fn rust_lookback_none() {
         }],
         lookback: None,
         body: body.clone(),
-        unguarded_body: body,
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: body,
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     };
     let enums = HashMap::new();
     let registry = make_registry();
@@ -4086,10 +4080,10 @@ fn rust_lookback_code_renders_var_types_correctly() {
         }],
         lookback: Some(ir::LookbackExpr::Code(lookback_stmts)),
         body: body.clone(),
-        unguarded_body: body,
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: body,
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     };
     let enums = HashMap::new();
     let registry = make_registry();

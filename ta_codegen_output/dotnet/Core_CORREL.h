@@ -143,4 +143,3 @@
          #define TA_CORREL Core::Correl
          #define TA_CORREL_Lookback Core::CorrelLookback
          #define TA_CORREL_Logic Core::CorrelLogic
-         #define TA_INT_CORREL Core::CorrelLogic

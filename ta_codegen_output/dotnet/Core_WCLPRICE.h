@@ -143,4 +143,3 @@
          #define TA_WCLPRICE Core::Wclprice
          #define TA_WCLPRICE_Lookback Core::WclpriceLookback
          #define TA_WCLPRICE_Logic Core::WclpriceLogic
-         #define TA_INT_WCLPRICE Core::WclpriceLogic

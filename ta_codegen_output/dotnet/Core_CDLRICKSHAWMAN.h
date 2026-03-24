@@ -159,4 +159,3 @@
          #define TA_CDLRICKSHAWMAN Core::Cdlrickshawman
          #define TA_CDLRICKSHAWMAN_Lookback Core::CdlrickshawmanLookback
          #define TA_CDLRICKSHAWMAN_Logic Core::CdlrickshawmanLogic
-         #define TA_INT_CDLRICKSHAWMAN Core::CdlrickshawmanLogic

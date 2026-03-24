@@ -127,4 +127,3 @@
          #define TA_TEMA Core::Tema
          #define TA_TEMA_Lookback Core::TemaLookback
          #define TA_TEMA_Logic Core::TemaLogic
-         #define TA_INT_TEMA Core::TemaLogic

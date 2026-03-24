@@ -159,4 +159,3 @@
          #define TA_CDLLONGLINE Core::Cdllongline
          #define TA_CDLLONGLINE_Lookback Core::CdllonglineLookback
          #define TA_CDLLONGLINE_Logic Core::CdllonglineLogic
-         #define TA_INT_CDLLONGLINE Core::CdllonglineLogic

@@ -159,4 +159,3 @@
          #define TA_CDLHIKKAKEMOD Core::Cdlhikkakemod
          #define TA_CDLHIKKAKEMOD_Lookback Core::CdlhikkakemodLookback
          #define TA_CDLHIKKAKEMOD_Logic Core::CdlhikkakemodLogic
-         #define TA_INT_CDLHIKKAKEMOD Core::CdlhikkakemodLogic

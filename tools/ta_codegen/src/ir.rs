@@ -1,80 +1,3 @@
-/// Pre-compute info for cross-indicator unguarded calls.
-/// Maps function name → (extra_param_name, init_expr) pairs.
-/// When the backend calls `ema()` in unguarded context, it looks up "ema"
-/// here to find `[("optInK_1", <expr>)]`, inlines the expressions,
-/// and routes to `ema_unguarded(... optInK_1 ...)`.
-/// Pre-compute info: (insert_index, [(param_name, init_expr)]).
-/// insert_index is where extra args go in the call arg list
-/// (after startIdx, endIdx, inputs, opt_inputs — before output params).
-pub type PreComputeMap = std::collections::HashMap<String, (usize, Vec<(String, Expr)>)>;
-
-/// Rewrite cross-indicator calls in `body` to use unguarded variants with
-/// pre-computed extra params. E.g., `ema(startIdx, endIdx, inReal, period, &beg, &nb, out)`
-/// becomes `VarDecl(optInK_1, init=<pre_compute_expr>)` +
-/// `ema_unguarded(startIdx, endIdx, inReal, period, optInK_1, &beg, &nb, out)`.
-///
-/// This is backend-agnostic: all backends render the rewritten IR as-is.
-pub fn expand_pre_compute(
-    body: &mut Vec<Statement>,
-    map: &PreComputeMap,
-    registry: &crate::registry::Registry,
-) {
-    let mut i = 0;
-    while i < body.len() {
-        // Recursively process nested bodies first
-        match &mut body[i] {
-            Statement::While { body: inner, .. }
-            | Statement::DoWhile { body: inner, .. }
-            | Statement::For { body: inner, .. }
-            | Statement::Block { body: inner } => {
-                expand_pre_compute(inner, map, registry);
-            }
-            Statement::If { then_body, else_body, .. } => {
-                expand_pre_compute(then_body, map, registry);
-                expand_pre_compute(else_body, map, registry);
-            }
-            Statement::ForC { body: inner, .. } => {
-                expand_pre_compute(inner, map, registry);
-            }
-            Statement::Switch { cases, default, .. } => {
-                for (_, case_body) in cases.iter_mut() {
-                    expand_pre_compute(case_body, map, registry);
-                }
-                expand_pre_compute(default, map, registry);
-            }
-            _ => {}
-        }
-
-        // Check if this statement is an Assign with a FuncCall to a pre-compute target
-        let rewrite = if let Statement::Assign { value: Expr::FuncCall(fname, _args), .. } = &body[i] {
-            if let Some((insert_idx, pre_computes)) = map.get(&fname.to_lowercase()) {
-                if registry.contains(fname) {
-                    Some((fname.clone(), *insert_idx, pre_computes.clone()))
-                } else {
-                    None
-                }
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-
-        if let Some((fname, insert_idx, pre_computes)) = rewrite {
-            // Rewrite the FuncCall: rename to _unguarded and inline pre-compute
-            // expressions directly as args (no separate VarDecl — avoids C switch-case issues).
-            if let Statement::Assign { value: Expr::FuncCall(ref mut call_name, ref mut args), .. } = &mut body[i] {
-                *call_name = format!("{fname}_unguarded");
-                for (j, (_param_name, init_expr)) in pre_computes.iter().enumerate() {
-                    args.insert(insert_idx + j, init_expr.clone());
-                }
-            }
-        }
-
-        i += 1;
-    }
-}
-
 /// A complete function definition (metadata + logic).
 #[derive(Debug, Clone)]
 pub struct FuncDef {
@@ -89,18 +12,18 @@ pub struct FuncDef {
     pub outputs: Vec<Output>,
     pub lookback: Option<LookbackExpr>,
     pub body: Vec<Statement>,
-    /// Body for the unguarded variant (explicit from _unguarded function, or auto-derived).
-    pub unguarded_body: Vec<Statement>,
-    /// Extra parameters on the unguarded variant beyond the public API
+    /// Body for the private variant (explicit from _private function, or auto-derived from body).
+    pub private_body: Vec<Statement>,
+    /// Extra parameters on the private variant beyond the public API
     /// (e.g., EMA's k factor). Each entry is (param_name, c_type).
-    pub unguarded_extra_params: Vec<(String, String)>,
-    /// Pre-compute expressions for extra unguarded params, extracted from the
-    /// guarded body. Each entry is (param_name, init_expr). When another indicator
-    /// calls this function in unguarded context, the backend inlines these
-    /// expressions and routes to _unguarded with the extra args.
-    pub pre_compute: Vec<(String, Expr)>,
-    /// True when the C source explicitly defines foo_unguarded().
-    pub has_explicit_unguarded: bool,
+    pub private_extra_params: Vec<(String, String)>,
+    /// Init expressions for private extra params, extracted from the guarded body's
+    /// VarDecls. Used by backends to generate S_ variant bodies (which inline the
+    /// private body with extra params as local variables instead of function params).
+    /// Each entry is (param_name, init_expr).
+    pub private_param_init: Vec<(String, Expr)>,
+    /// True when the C source explicitly defines foo_private().
+    pub has_explicit_private: bool,
 }
 
 #[derive(Debug, Clone)]

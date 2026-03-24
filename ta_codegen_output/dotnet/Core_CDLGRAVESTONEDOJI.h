@@ -159,4 +159,3 @@
          #define TA_CDLGRAVESTONEDOJI Core::Cdlgravestonedoji
          #define TA_CDLGRAVESTONEDOJI_Lookback Core::CdlgravestonedojiLookback
          #define TA_CDLGRAVESTONEDOJI_Logic Core::CdlgravestonedojiLogic
-         #define TA_INT_CDLGRAVESTONEDOJI Core::CdlgravestonedojiLogic

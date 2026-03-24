@@ -143,4 +143,3 @@
          #define TA_MINUS_DM Core::Minus_dm
          #define TA_MINUS_DM_Lookback Core::Minus_dmLookback
          #define TA_MINUS_DM_Logic Core::Minus_dmLogic
-         #define TA_INT_MINUS_DM Core::Minus_dmLogic

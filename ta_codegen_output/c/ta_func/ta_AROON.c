@@ -248,8 +248,6 @@ TA_LIB_API TA_RetCode TA_AROON_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AROON TA_AROON_Unguarded
-
 TA_RetCode TA_S_AROON( int    startIdx,
                        int    endIdx,
                        const float inHigh[],
@@ -455,6 +453,4 @@ TA_RetCode TA_S_AROON_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_AROON TA_S_AROON_Unguarded
 

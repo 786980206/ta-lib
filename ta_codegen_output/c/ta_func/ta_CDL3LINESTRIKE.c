@@ -193,8 +193,6 @@ TA_LIB_API TA_RetCode TA_CDL3LINESTRIKE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3LINESTRIKE TA_CDL3LINESTRIKE_Unguarded
-
 TA_RetCode TA_S_CDL3LINESTRIKE( int    startIdx,
                                 int    endIdx,
                                 const float inOpen[],
@@ -342,6 +340,4 @@ TA_RetCode TA_S_CDL3LINESTRIKE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDL3LINESTRIKE TA_S_CDL3LINESTRIKE_Unguarded
 

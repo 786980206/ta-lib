@@ -127,4 +127,3 @@
          #define TA_SUB Core::Sub
          #define TA_SUB_Lookback Core::SubLookback
          #define TA_SUB_Logic Core::SubLogic
-         #define TA_INT_SUB Core::SubLogic

@@ -159,4 +159,3 @@
          #define TA_CDLHAMMER Core::Cdlhammer
          #define TA_CDLHAMMER_Lookback Core::CdlhammerLookback
          #define TA_CDLHAMMER_Logic Core::CdlhammerLogic
-         #define TA_INT_CDLHAMMER Core::CdlhammerLogic

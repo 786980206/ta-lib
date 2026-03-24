@@ -159,4 +159,3 @@
          #define TA_CDLTASUKIGAP Core::Cdltasukigap
          #define TA_CDLTASUKIGAP_Lookback Core::CdltasukigapLookback
          #define TA_CDLTASUKIGAP_Logic Core::CdltasukigapLogic
-         #define TA_INT_CDLTASUKIGAP Core::CdltasukigapLogic

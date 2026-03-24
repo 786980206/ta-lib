@@ -66,7 +66,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -141,7 +141,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -222,7 +222,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;
@@ -297,7 +297,7 @@
       for( i = 0; (i<outputSize); i += 1 ) {
          curPeriod = localPeriodArray[i];
          if( (curPeriod!=0) ) {
-            retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+            retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
             if( (retCode!=RetCode.Success) ) {
                outBegIdx.value = 0;
                outNBElement.value = 0;

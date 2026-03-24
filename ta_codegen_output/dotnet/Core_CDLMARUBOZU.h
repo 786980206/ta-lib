@@ -159,4 +159,3 @@
          #define TA_CDLMARUBOZU Core::Cdlmarubozu
          #define TA_CDLMARUBOZU_Lookback Core::CdlmarubozuLookback
          #define TA_CDLMARUBOZU_Logic Core::CdlmarubozuLogic
-         #define TA_INT_CDLMARUBOZU Core::CdlmarubozuLogic

@@ -143,4 +143,3 @@
          #define TA_STDDEV Core::Stddev
          #define TA_STDDEV_Lookback Core::StddevLookback
          #define TA_STDDEV_Logic Core::StddevLogic
-         #define TA_INT_STDDEV Core::StddevLogic

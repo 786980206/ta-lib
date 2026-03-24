@@ -84,39 +84,62 @@ fn main() {
     }
 }
 
-/// Wire parsed C source (guarded + optional unguarded) into a FuncDef.
+/// Strip TA_INT_* function declarations from ta_utility.h content.
+/// Removes everything between sentinel markers (inclusive).
+fn strip_ta_int_declarations(content: &str) -> String {
+    let mut result = String::new();
+    let mut skip = false;
+    for line in content.lines() {
+        if line.contains("BEGIN_TA_INT_DECLARATIONS") {
+            skip = true;
+            continue;
+        }
+        if line.contains("END_TA_INT_DECLARATIONS") {
+            skip = false;
+            continue;
+        }
+        if !skip {
+            result.push_str(line);
+            result.push('\n');
+        }
+    }
+    result
+}
+
+/// Wire parsed C source (guarded + optional private) into a FuncDef.
 fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::ParsedCSource) {
     let guarded = parsed
         .functions
         .iter()
-        .find(|f| !f.name.ends_with("_unguarded"))
+        .find(|f| !f.name.ends_with("_private"))
         .expect("C source must contain at least one function");
     func_def.body = guarded.body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body.clone()));
 
-    let unguarded = parsed
+    let private_fn = parsed
         .functions
         .iter()
-        .find(|f| f.name.ends_with("_unguarded"));
-    if let Some(ung) = unguarded {
-        func_def.unguarded_body = ung.body.clone();
-        func_def.has_explicit_unguarded = true;
+        .find(|f| f.name.ends_with("_private"));
+    if let Some(priv_fn) = private_fn {
+        func_def.private_body = priv_fn.body.clone();
+        func_def.has_explicit_private = true;
         let guarded_param_names: std::collections::HashSet<_> =
             guarded.params.iter().map(|(name, _)| name.clone()).collect();
-        func_def.unguarded_extra_params = ung
+        func_def.private_extra_params = priv_fn
             .params
             .iter()
             .filter(|(name, _)| !guarded_param_names.contains(name))
             .cloned()
             .collect();
-        // Extract pre-compute expressions from the guarded body.
-        // These are VarDecl inits for the extra param names (e.g., optInK_1 = 2.0/(period+1)).
+        // Extract init expressions for extra params from the guarded body's VarDecls.
+        // Used by backends to generate S_ variants (which inline the private body
+        // with extra params as local variables instead of function params).
         let extra_names: std::collections::HashSet<_> = func_def
-            .unguarded_extra_params
+            .private_extra_params
             .iter()
             .map(|(name, _)| name.as_str())
             .collect();
-        func_def.pre_compute = guarded
+        func_def.private_param_init = guarded
             .body
             .iter()
             .filter_map(|stmt| {
@@ -129,7 +152,7 @@ fn wire_parsed_source(func_def: &mut ir::FuncDef, parsed: &parser::c_source::Par
             })
             .collect();
     } else {
-        func_def.unguarded_body = func_def.body.clone();
+        func_def.private_body = func_def.body.clone();
     }
 }
 
@@ -219,28 +242,7 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         generated_funcs.push(func_def);
     }
 
-    // Phase 2: Build PreComputeMap from all loaded FuncDefs.
-    // Maps function name → (insert_index, pre-compute expressions).
-    // insert_index = 2 (start/end) + num_inputs + num_optional_inputs.
-    let pre_compute_map: ir::PreComputeMap = generated_funcs
-        .iter()
-        .filter(|f| !f.pre_compute.is_empty())
-        .map(|f| {
-            let insert_idx = 2 + f.inputs.len() + f.optional_inputs.len();
-            (f.name.to_lowercase(), (insert_idx, f.pre_compute.clone()))
-        })
-        .collect();
-
-    // Phase 3: Expand pre-compute in unguarded bodies, then generate output.
-    // When DEMA's unguarded body calls ema(), rewrite to:
-    //   let optInK_1 = <pre_compute_expr>;
-    //   ema_unguarded(... optInK_1 ...)
-    // This is an IR transformation — backends render the rewritten body as-is.
-    for func_def in &mut generated_funcs {
-        ir::expand_pre_compute(&mut func_def.unguarded_body, &pre_compute_map, &registry);
-    }
-
-    // Phase 4: Generate output for each backend
+    // Phase 2: Generate output for each backend
     for func_def in &generated_funcs {
         for backend in &backends_to_run {
             generate_backend(func_def, backend, &enums, &registry, &helper_registry, &out_base);
@@ -292,20 +294,35 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
                 std::fs::copy(&src, ta_common_dst.join(filename)).unwrap();
             }
         }
-        // Also copy ta_utility.h and ta_utility.c (from src/ta_func/)
-        for filename in &["ta_utility.h", "ta_utility.c"] {
-            let src = root.join("src/ta_func").join(filename);
-            if src.exists() {
-                std::fs::copy(&src, ta_common_dst.join(filename)).unwrap();
-            }
+        // Copy ta_utility.c from src/ta_func/
+        let utility_c_src = root.join("src/ta_func/ta_utility.c");
+        if utility_c_src.exists() {
+            std::fs::copy(&utility_c_src, ta_common_dst.join("ta_utility.c")).unwrap();
+        }
+        // Generate stripped ta_utility.h (remove TA_INT_* declarations, keep macros)
+        let utility_h_src = root.join("src/ta_func/ta_utility.h");
+        if utility_h_src.exists() {
+            let content = std::fs::read_to_string(&utility_h_src).unwrap();
+            let stripped = strip_ta_int_declarations(&content);
+            std::fs::write(ta_common_dst.join("ta_utility.h"), &stripped).unwrap();
         }
         println!("  Copied ta_common/ -> {}", ta_common_dst.display());
 
-        // Generate ta_func_unguarded.h into include/
+        // Generate ta_func_unguarded.h into ta_codegen_output/c/
         let unguarded_h = server_gen::generate_c_header_stub(all_funcs);
-        let unguarded_path = root.join("include").join("ta_func_unguarded.h");
+        let unguarded_path = out_base.join("c").join("ta_func_unguarded.h");
         std::fs::write(&unguarded_path, &unguarded_h).unwrap();
         println!("  ta_func_unguarded.h -> {}", unguarded_path.display());
+
+        // Also write to include/ for backward compatibility
+        let include_path = root.join("include").join("ta_func_unguarded.h");
+        std::fs::write(&include_path, &unguarded_h).unwrap();
+
+        // Generate ta_func_private.h into ta_codegen_output/c/ta_func/
+        let private_h = server_gen::generate_c_private_header(all_funcs);
+        let private_path = out_base.join("c").join("ta_func").join("ta_func_private.h");
+        std::fs::write(&private_path, &private_h).unwrap();
+        println!("  ta_func_private.h -> {}", private_path.display());
 
         // Generate ta_abstract layer from YAML definitions
         backends::ta_abstract_c::generate(all_funcs, &enums, &out_base);
@@ -668,6 +685,7 @@ fn build_shared_lib(out_base: &Path, bin_dir: &Path) {
     let mut unity_src = String::new();
     unity_src.push_str("/* Unity build for shared library */\n");
     unity_src.push_str("#include \"ta_func_unguarded.h\"\n");
+    unity_src.push_str("#include \"ta_func_private.h\"\n");
     unity_src.push_str("#include \"ta_common/ta_global.c\"\n");
     unity_src.push_str("#include \"ta_common/ta_utility.c\"\n");
     unity_src.push_str("#include \"ta_common/ta_version.c\"\n");

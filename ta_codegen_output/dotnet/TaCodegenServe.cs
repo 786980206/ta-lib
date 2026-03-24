@@ -1768,7 +1768,6 @@ public class TaCodegenServe {
         int startIdx, int endIdx,
         double[] inReal,
         int optInTimePeriod,
-        double optInK_1,
         out int outBegIdx, out int outNBElement,
         double[] outArr0);
 
@@ -6506,10 +6505,9 @@ public class TaCodegenServe {
                 rc = TA_EMA(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNs = (GetNanoTime() - _t0) / bench_iters;
-                double optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
                 long _t0u = GetNanoTime();
                 for (int _biu = 0; _biu < bench_iters; _biu++) {
-                rc = TA_EMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, out outBegIdx, out outNBElement, outArr0);
+                rc = TA_EMA_Unguarded(startIdx, endIdx, inReal, optInTimePeriod, out outBegIdx, out outNBElement, outArr0);
                 }
                 long elapsedNsUng = (GetNanoTime() - _t0u) / bench_iters;
                 var sb = new System.Text.StringBuilder();

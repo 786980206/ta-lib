@@ -127,4 +127,3 @@
          #define TA_KAMA Core::Kama
          #define TA_KAMA_Lookback Core::KamaLookback
          #define TA_KAMA_Logic Core::KamaLogic
-         #define TA_INT_KAMA Core::KamaLogic

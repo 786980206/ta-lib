@@ -159,4 +159,3 @@
          #define TA_CDLHARAMI Core::Cdlharami
          #define TA_CDLHARAMI_Lookback Core::CdlharamiLookback
          #define TA_CDLHARAMI_Logic Core::CdlharamiLogic
-         #define TA_INT_CDLHARAMI Core::CdlharamiLogic

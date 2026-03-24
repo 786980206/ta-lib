@@ -125,25 +125,25 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
    switch( optInMAType )
    {
    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
-      retCode = TA_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_SMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_EMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
-      retCode = TA_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_WMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
-      retCode = TA_DEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_DEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema):
-      retCode = TA_TEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_TEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima):
-      retCode = TA_TRIMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_TRIMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama):
-      retCode = TA_KAMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
       dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
@@ -151,11 +151,11 @@ TA_LIB_API TA_RetCode TA_MA( int    startIdx,
       {
          return TA_ALLOC_ERR;
       }
-      retCode = TA_MAMA(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
+      retCode = TA_MAMA_Unguarded(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
       free(dummyBuffer);
       break;
    case ENUM_CASE(MAType, TA_MAType_T3, T3):
-      retCode = TA_T3(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
+      retCode = TA_T3_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
       break;
    default:
       retCode = TA_BAD_PARAM;
@@ -195,25 +195,25 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
    switch( optInMAType )
    {
    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
-      retCode = TA_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_SMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),outBegIdx,outNBElement,outReal);
+      retCode = TA_EMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
-      retCode = TA_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_WMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
-      retCode = TA_DEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_DEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema):
-      retCode = TA_TEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_TEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima):
-      retCode = TA_TRIMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_TRIMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama):
-      retCode = TA_KAMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
       dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
@@ -221,11 +221,11 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
       {
          return TA_ALLOC_ERR;
       }
-      retCode = TA_MAMA(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
+      retCode = TA_MAMA_Unguarded(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
       free(dummyBuffer);
       break;
    case ENUM_CASE(MAType, TA_MAType_T3, T3):
-      retCode = TA_T3(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
+      retCode = TA_T3_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
       break;
    default:
       retCode = TA_BAD_PARAM;
@@ -235,8 +235,6 @@ TA_LIB_API TA_RetCode TA_MA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_MA TA_MA_Unguarded
 
 TA_RetCode TA_S_MA( int    startIdx,
                     int    endIdx,
@@ -283,25 +281,25 @@ TA_RetCode TA_S_MA( int    startIdx,
    switch( optInMAType )
    {
    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
-      retCode = TA_S_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_SMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_S_EMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_EMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
-      retCode = TA_S_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_WMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
-      retCode = TA_S_DEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_DEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema):
-      retCode = TA_S_TEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_TEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima):
-      retCode = TA_S_TRIMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_TRIMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama):
-      retCode = TA_S_KAMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
       dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
@@ -309,11 +307,11 @@ TA_RetCode TA_S_MA( int    startIdx,
       {
          return TA_ALLOC_ERR;
       }
-      retCode = TA_S_MAMA(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
+      retCode = TA_S_MAMA_Unguarded(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
       free(dummyBuffer);
       break;
    case ENUM_CASE(MAType, TA_MAType_T3, T3):
-      retCode = TA_S_T3(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_T3_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
       break;
    default:
       retCode = TA_BAD_PARAM;
@@ -353,25 +351,25 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
    switch( optInMAType )
    {
    case ENUM_CASE(MAType, TA_MAType_SMA, Sma):
-      retCode = TA_S_SMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_SMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_EMA, Ema):
-      retCode = TA_S_INT_EMA(startIdx,endIdx,inReal,optInTimePeriod,(2.0/((double)(optInTimePeriod+1))),outBegIdx,outNBElement,outReal);
+      retCode = TA_S_EMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_WMA, Wma):
-      retCode = TA_S_WMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_WMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_DEMA, Dema):
-      retCode = TA_S_DEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_DEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TEMA, Tema):
-      retCode = TA_S_TEMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_TEMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_TRIMA, Trima):
-      retCode = TA_S_TRIMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_TRIMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_KAMA, Kama):
-      retCode = TA_S_KAMA(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_KAMA_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,outBegIdx,outNBElement,outReal);
       break;
    case ENUM_CASE(MAType, TA_MAType_MAMA, Mama):
       dummyBuffer = malloc((((endIdx-startIdx)+1)*sizeof(double)));
@@ -379,11 +377,11 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
       {
          return TA_ALLOC_ERR;
       }
-      retCode = TA_S_MAMA(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
+      retCode = TA_S_MAMA_Unguarded(startIdx,endIdx,inReal,0.5,0.05,outBegIdx,outNBElement,outReal,dummyBuffer);
       free(dummyBuffer);
       break;
    case ENUM_CASE(MAType, TA_MAType_T3, T3):
-      retCode = TA_S_T3(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
+      retCode = TA_S_T3_Unguarded(startIdx,endIdx,inReal,optInTimePeriod,0.7,outBegIdx,outNBElement,outReal);
       break;
    default:
       retCode = TA_BAD_PARAM;
@@ -393,6 +391,4 @@ TA_RetCode TA_S_MA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MA TA_S_MA_Unguarded
 

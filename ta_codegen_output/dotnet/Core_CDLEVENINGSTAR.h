@@ -175,4 +175,3 @@
          #define TA_CDLEVENINGSTAR Core::Cdleveningstar
          #define TA_CDLEVENINGSTAR_Lookback Core::CdleveningstarLookback
          #define TA_CDLEVENINGSTAR_Logic Core::CdleveningstarLogic
-         #define TA_INT_CDLEVENINGSTAR Core::CdleveningstarLogic

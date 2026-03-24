@@ -159,4 +159,3 @@
          #define TA_CDL2CROWS Core::Cdl2crows
          #define TA_CDL2CROWS_Lookback Core::Cdl2crowsLookback
          #define TA_CDL2CROWS_Logic Core::Cdl2crowsLogic
-         #define TA_INT_CDL2CROWS Core::Cdl2crowsLogic

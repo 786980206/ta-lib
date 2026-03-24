@@ -127,4 +127,3 @@
          #define TA_HT_PHASOR Core::Ht_phasor
          #define TA_HT_PHASOR_Lookback Core::Ht_phasorLookback
          #define TA_HT_PHASOR_Logic Core::Ht_phasorLogic
-         #define TA_INT_HT_PHASOR Core::Ht_phasorLogic

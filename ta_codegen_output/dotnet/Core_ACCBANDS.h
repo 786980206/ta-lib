@@ -191,4 +191,3 @@
          #define TA_ACCBANDS Core::Accbands
          #define TA_ACCBANDS_Lookback Core::AccbandsLookback
          #define TA_ACCBANDS_Logic Core::AccbandsLogic
-         #define TA_INT_ACCBANDS Core::AccbandsLogic

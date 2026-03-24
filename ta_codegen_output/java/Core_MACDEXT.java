@@ -72,13 +72,13 @@
       fastMABuffer = new double[(int)((tempInteger*1))];
       slowMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -93,7 +93,7 @@
          fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
       }
       System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -161,13 +161,13 @@
       fastMABuffer = new double[(int)((tempInteger*1))];
       slowMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -182,7 +182,7 @@
          fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
       }
       System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -256,13 +256,13 @@
       fastMABuffer = new double[(int)((tempInteger*1))];
       slowMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -277,7 +277,7 @@
          fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
       }
       System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -345,13 +345,13 @@
       fastMABuffer = new double[(int)((tempInteger*1))];
       slowMABuffer = new double[(int)((tempInteger*1))];
       tempInteger = (startIdx-lookbackSignal);
-      retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
          return retCode ;
       }
-      retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+      retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;
@@ -366,7 +366,7 @@
          fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
       }
       System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-      retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+      retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
       if( (retCode!=RetCode.Success) ) {
          outBegIdx.value = 0;
          outNBElement.value = 0;

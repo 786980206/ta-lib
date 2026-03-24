@@ -159,4 +159,3 @@
          #define TA_CDLBREAKAWAY Core::Cdlbreakaway
          #define TA_CDLBREAKAWAY_Lookback Core::CdlbreakawayLookback
          #define TA_CDLBREAKAWAY_Logic Core::CdlbreakawayLogic
-         #define TA_INT_CDLBREAKAWAY Core::CdlbreakawayLogic

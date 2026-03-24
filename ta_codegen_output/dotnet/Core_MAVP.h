@@ -175,4 +175,3 @@
          #define TA_MAVP Core::Mavp
          #define TA_MAVP_Lookback Core::MavpLookback
          #define TA_MAVP_Logic Core::MavpLogic
-         #define TA_INT_MAVP Core::MavpLogic

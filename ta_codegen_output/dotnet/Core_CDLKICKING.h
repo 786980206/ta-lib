@@ -159,4 +159,3 @@
          #define TA_CDLKICKING Core::Cdlkicking
          #define TA_CDLKICKING_Lookback Core::CdlkickingLookback
          #define TA_CDLKICKING_Logic Core::CdlkickingLogic
-         #define TA_INT_CDLKICKING Core::CdlkickingLogic

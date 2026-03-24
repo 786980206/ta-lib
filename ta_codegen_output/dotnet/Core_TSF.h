@@ -127,4 +127,3 @@
          #define TA_TSF Core::Tsf
          #define TA_TSF_Lookback Core::TsfLookback
          #define TA_TSF_Logic Core::TsfLogic
-         #define TA_INT_TSF Core::TsfLogic

@@ -127,4 +127,3 @@
          #define TA_RSI Core::Rsi
          #define TA_RSI_Lookback Core::RsiLookback
          #define TA_RSI_Logic Core::RsiLogic
-         #define TA_INT_RSI Core::RsiLogic

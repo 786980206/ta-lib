@@ -8,12 +8,12 @@ TA_RetCode ema(int startIdx, int endIdx, const double *inReal,
                int *outBegIdx, int *outNBElement, double *outReal)
 {
     double optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
-    return ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1,
-                         outBegIdx, outNBElement, outReal);
+    return ema_private(startIdx, endIdx, inReal, optInTimePeriod, optInK_1,
+                       outBegIdx, outNBElement, outReal);
 }
 
-TA_RetCode ema_unguarded(int startIdx, int endIdx, const double *inReal,
-                         int optInTimePeriod, double optInK_1,
+TA_RetCode ema_private(int startIdx, int endIdx, const double *inReal,
+                       int optInTimePeriod, double optInK_1,
                          int *outBegIdx, int *outNBElement, double *outReal)
 {
     double tempReal, prevMA;

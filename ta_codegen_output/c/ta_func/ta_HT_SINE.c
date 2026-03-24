@@ -784,8 +784,6 @@ TA_LIB_API TA_RetCode TA_HT_SINE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_SINE TA_HT_SINE_Unguarded
-
 TA_RetCode TA_S_HT_SINE( int    startIdx,
                          int    endIdx,
                          const float inReal[],
@@ -1527,6 +1525,4 @@ TA_RetCode TA_S_HT_SINE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_HT_SINE TA_S_HT_SINE_Unguarded
 

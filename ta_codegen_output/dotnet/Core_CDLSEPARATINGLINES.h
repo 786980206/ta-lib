@@ -159,4 +159,3 @@
          #define TA_CDLSEPARATINGLINES Core::Cdlseparatinglines
          #define TA_CDLSEPARATINGLINES_Lookback Core::CdlseparatinglinesLookback
          #define TA_CDLSEPARATINGLINES_Logic Core::CdlseparatinglinesLogic
-         #define TA_INT_CDLSEPARATINGLINES Core::CdlseparatinglinesLogic

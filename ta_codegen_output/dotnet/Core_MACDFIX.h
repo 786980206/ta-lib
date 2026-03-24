@@ -159,4 +159,3 @@
          #define TA_MACDFIX Core::Macdfix
          #define TA_MACDFIX_Lookback Core::MacdfixLookback
          #define TA_MACDFIX_Logic Core::MacdfixLogic
-         #define TA_INT_MACDFIX Core::MacdfixLogic

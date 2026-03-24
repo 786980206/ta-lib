@@ -159,4 +159,3 @@
          #define TA_CDLENGULFING Core::Cdlengulfing
          #define TA_CDLENGULFING_Lookback Core::CdlengulfingLookback
          #define TA_CDLENGULFING_Logic Core::CdlengulfingLogic
-         #define TA_INT_CDLENGULFING Core::CdlengulfingLogic

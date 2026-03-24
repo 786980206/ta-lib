@@ -93,10 +93,10 @@ impl Core {
             return RetCode::BadParam;
         }
         let mut optInK_1: f64 = 2.0 / ((optInTimePeriod + 1) as f64);
-        return self.ema_unguarded(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
+        return self.ema_private(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
     }
     #[inline]
-    pub fn ema_unguarded(
+    pub fn ema_private(
         &self,
         mut startIdx: usize,
         endIdx: usize,
@@ -150,6 +150,25 @@ impl Core {
         }
         (*outNBElement) = outIdx;
         return RetCode::Success;
+        } // unsafe
+    }
+    #[inline]
+    pub fn ema_unguarded(
+        &self,
+        mut startIdx: usize,
+        endIdx: usize,
+        inReal: &[f64],
+        mut optInTimePeriod: i32,
+        outBegIdx: &mut usize,
+        outNBElement: &mut usize,
+        outReal: &mut [f64],
+    ) -> RetCode {
+        let mut optInK_1: f64 = 0.0_f64;
+        unsafe {
+        assert!(endIdx < inReal.len());
+        assert!(endIdx - startIdx < outReal.len());
+        optInK_1 = 2.0 / ((optInTimePeriod + 1) as f64);
+        return self.ema_private(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal);
         } // unsafe
     }
 }

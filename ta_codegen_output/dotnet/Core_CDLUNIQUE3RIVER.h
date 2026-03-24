@@ -159,4 +159,3 @@
          #define TA_CDLUNIQUE3RIVER Core::Cdlunique3river
          #define TA_CDLUNIQUE3RIVER_Lookback Core::Cdlunique3riverLookback
          #define TA_CDLUNIQUE3RIVER_Logic Core::Cdlunique3riverLogic
-         #define TA_INT_CDLUNIQUE3RIVER Core::Cdlunique3riverLogic

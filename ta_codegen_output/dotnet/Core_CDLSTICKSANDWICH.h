@@ -159,4 +159,3 @@
          #define TA_CDLSTICKSANDWICH Core::Cdlsticksandwich
          #define TA_CDLSTICKSANDWICH_Lookback Core::CdlsticksandwichLookback
          #define TA_CDLSTICKSANDWICH_Logic Core::CdlsticksandwichLogic
-         #define TA_INT_CDLSTICKSANDWICH Core::CdlsticksandwichLogic

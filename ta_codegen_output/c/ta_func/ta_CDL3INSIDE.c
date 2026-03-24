@@ -214,8 +214,6 @@ TA_LIB_API TA_RetCode TA_CDL3INSIDE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3INSIDE TA_CDL3INSIDE_Unguarded
-
 TA_RetCode TA_S_CDL3INSIDE( int    startIdx,
                             int    endIdx,
                             const float inOpen[],
@@ -381,6 +379,4 @@ TA_RetCode TA_S_CDL3INSIDE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDL3INSIDE TA_S_CDL3INSIDE_Unguarded
 

@@ -201,7 +201,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -212,7 +212,7 @@ TA_LIB_API TA_RetCode TA_STOCH( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA_Unguarded(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -353,7 +353,7 @@ TA_LIB_API TA_RetCode TA_STOCH_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -364,7 +364,7 @@ TA_LIB_API TA_RetCode TA_STOCH_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA_Unguarded(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -381,8 +381,6 @@ TA_LIB_API TA_RetCode TA_STOCH_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_STOCH TA_STOCH_Unguarded
 
 TA_RetCode TA_S_STOCH( int    startIdx,
                        int    endIdx,
@@ -539,7 +537,7 @@ TA_RetCode TA_S_STOCH( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -550,7 +548,7 @@ TA_RetCode TA_S_STOCH( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA_Unguarded(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -691,7 +689,7 @@ TA_RetCode TA_S_STOCH_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInSlowK_Period,optInSlowK_MAType,outBegIdx,outNBElement,tempBuffer);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -702,7 +700,7 @@ TA_RetCode TA_S_STOCH_Unguarded( int    startIdx,
       *outNBElement= 0;
       return retCode;
    }
-   retCode = TA_MA(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
+   retCode = TA_MA_Unguarded(0,(((int)*outNBElement)-1),tempBuffer,optInSlowD_Period,optInSlowD_MAType,outBegIdx,outNBElement,outSlowD);
    memcpy(outSlowK,&tempBuffer[lookbackDSlow],(((int)*outNBElement)*sizeof(double)));
    if( bufferIsAllocated )
    {
@@ -719,6 +717,4 @@ TA_RetCode TA_S_STOCH_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_STOCH TA_S_STOCH_Unguarded
 

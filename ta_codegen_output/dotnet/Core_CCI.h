@@ -159,4 +159,3 @@
          #define TA_CCI Core::Cci
          #define TA_CCI_Lookback Core::CciLookback
          #define TA_CCI_Logic Core::CciLogic
-         #define TA_INT_CCI Core::CciLogic

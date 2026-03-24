@@ -181,8 +181,6 @@ TA_LIB_API TA_RetCode TA_CDLMATCHINGLOW_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLMATCHINGLOW TA_CDLMATCHINGLOW_Unguarded
-
 TA_RetCode TA_S_CDLMATCHINGLOW( int    startIdx,
                                 int    endIdx,
                                 const float inOpen[],
@@ -318,6 +316,4 @@ TA_RetCode TA_S_CDLMATCHINGLOW_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLMATCHINGLOW TA_S_CDLMATCHINGLOW_Unguarded
 

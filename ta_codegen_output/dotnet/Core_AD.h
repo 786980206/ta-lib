@@ -159,4 +159,3 @@
          #define TA_AD Core::Ad
          #define TA_AD_Lookback Core::AdLookback
          #define TA_AD_Logic Core::AdLogic
-         #define TA_INT_AD Core::AdLogic

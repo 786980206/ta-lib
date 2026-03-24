@@ -127,4 +127,3 @@
          #define TA_ROCP Core::Rocp
          #define TA_ROCP_Lookback Core::RocpLookback
          #define TA_ROCP_Logic Core::RocpLogic
-         #define TA_INT_ROCP Core::RocpLogic

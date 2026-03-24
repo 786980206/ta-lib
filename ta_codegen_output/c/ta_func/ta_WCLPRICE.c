@@ -104,8 +104,6 @@ TA_LIB_API TA_RetCode TA_WCLPRICE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_WCLPRICE TA_WCLPRICE_Unguarded
-
 TA_RetCode TA_S_WCLPRICE( int    startIdx,
                           int    endIdx,
                           const float inHigh[],
@@ -167,6 +165,4 @@ TA_RetCode TA_S_WCLPRICE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_WCLPRICE TA_S_WCLPRICE_Unguarded
 

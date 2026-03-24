@@ -127,4 +127,3 @@
          #define TA_SUM Core::Sum
          #define TA_SUM_Lookback Core::SumLookback
          #define TA_SUM_Logic Core::SumLogic
-         #define TA_INT_SUM Core::SumLogic

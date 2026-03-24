@@ -187,8 +187,6 @@ TA_LIB_API TA_RetCode TA_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLDARKCLOUDCOVER TA_CDLDARKCLOUDCOVER_Unguarded
-
 TA_RetCode TA_S_CDLDARKCLOUDCOVER( int    startIdx,
                                    int    endIdx,
                                    const float inOpen[],
@@ -330,6 +328,4 @@ TA_RetCode TA_S_CDLDARKCLOUDCOVER_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLDARKCLOUDCOVER TA_S_CDLDARKCLOUDCOVER_Unguarded
 

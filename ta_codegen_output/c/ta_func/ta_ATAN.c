@@ -94,8 +94,6 @@ TA_LIB_API TA_RetCode TA_ATAN_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ATAN TA_ATAN_Unguarded
-
 TA_RetCode TA_S_ATAN( int    startIdx,
                       int    endIdx,
                       const float inReal[],
@@ -147,6 +145,4 @@ TA_RetCode TA_S_ATAN_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ATAN TA_S_ATAN_Unguarded
 

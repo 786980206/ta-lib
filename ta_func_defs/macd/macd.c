@@ -37,6 +37,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     int outNbElement2;
     double slowK, fastK, signalK;
     int lookbackTotal, lookbackSignal;
+    int useFixedK;
     int i;
 
     /* !!! A lot of speed optimization could be done
@@ -77,10 +78,12 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
 
     /* Catch special case for fix 26/12 MACD.
      * Use hardcoded k values matching the original algorithm. */
+    useFixedK = 0;
     if( optInSlowPeriod == 0 )
     {
     optInSlowPeriod = 26;
     slowK = 0.075;
+    useFixedK = 1;
     }
     else
     {
@@ -91,6 +94,7 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     {
     optInFastPeriod = 12;
     fastK = 0.15;
+    useFixedK = 1;
     }
     else
     {
@@ -144,8 +148,17 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     * will start at the requested 'startIdx'.
     */
     tempInteger = startIdx-lookbackSignal;
-    retCode = ema_unguarded( tempInteger, endIdx,
+
+    /* Use ema_private when hardcoded k is needed (MACDFIX path).
+     * Use ema() for the normal path — codegen handles double/float routing.
+     */
+    if( useFixedK )
+    retCode = ema_private( tempInteger, endIdx,
     inReal, optInSlowPeriod, slowK,
+    &outBegIdx1, &outNbElement1, slowEMABuffer );
+    else
+    retCode = ema( tempInteger, endIdx,
+    inReal, optInSlowPeriod,
     &outBegIdx1, &outNbElement1, slowEMABuffer );
 
     if( retCode != TA_SUCCESS )
@@ -158,8 +171,13 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     }
 
     /* Calculate the fast EMA. */
-    retCode = ema_unguarded( tempInteger, endIdx,
+    if( useFixedK )
+    retCode = ema_private( tempInteger, endIdx,
     inReal, optInFastPeriod, fastK,
+    &outBegIdx2, &outNbElement2, fastEMABuffer );
+    else
+    retCode = ema( tempInteger, endIdx,
+    inReal, optInFastPeriod,
     &outBegIdx2, &outNbElement2, fastEMABuffer );
 
     if( retCode != TA_SUCCESS )
@@ -192,8 +210,8 @@ TA_RetCode macd(int startIdx, int endIdx, const double inReal[], int optInFastPe
     /* Copy the result into the output for the caller. */
     memcpy(outMACD, &fastEMABuffer[lookbackSignal], ((endIdx-startIdx)+1) * sizeof(double));
 
-    /* Calculate the signal/trigger line. */
-    retCode = ema_unguarded( 0, outNbElement1-1,
+    /* Calculate the signal/trigger line (on double buffer, use ema_private). */
+    retCode = ema_private( 0, outNbElement1-1,
     fastEMABuffer, optInSignalPeriod, signalK,
     &outBegIdx2, &outNbElement2, outMACDSignal );
 

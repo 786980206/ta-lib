@@ -143,4 +143,3 @@
          #define TA_T3 Core::T3
          #define TA_T3_Lookback Core::T3Lookback
          #define TA_T3_Logic Core::T3Logic
-         #define TA_INT_T3 Core::T3Logic

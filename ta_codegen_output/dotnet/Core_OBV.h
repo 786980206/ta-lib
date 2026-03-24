@@ -127,4 +127,3 @@
          #define TA_OBV Core::Obv
          #define TA_OBV_Lookback Core::ObvLookback
          #define TA_OBV_Logic Core::ObvLogic
-         #define TA_INT_OBV Core::ObvLogic

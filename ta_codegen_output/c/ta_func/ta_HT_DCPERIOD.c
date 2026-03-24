@@ -650,8 +650,6 @@ TA_LIB_API TA_RetCode TA_HT_DCPERIOD_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_DCPERIOD TA_HT_DCPERIOD_Unguarded
-
 TA_RetCode TA_S_HT_DCPERIOD( int    startIdx,
                              int    endIdx,
                              const float inReal[],
@@ -1259,6 +1257,4 @@ TA_RetCode TA_S_HT_DCPERIOD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_HT_DCPERIOD TA_S_HT_DCPERIOD_Unguarded
 

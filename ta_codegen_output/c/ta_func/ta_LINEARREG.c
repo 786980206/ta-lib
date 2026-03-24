@@ -174,8 +174,6 @@ TA_LIB_API TA_RetCode TA_LINEARREG_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_LINEARREG TA_LINEARREG_Unguarded
-
 TA_RetCode TA_S_LINEARREG( int    startIdx,
                            int    endIdx,
                            const float inReal[],
@@ -307,6 +305,4 @@ TA_RetCode TA_S_LINEARREG_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_LINEARREG TA_S_LINEARREG_Unguarded
 

@@ -127,4 +127,3 @@
          #define TA_MULT Core::Mult
          #define TA_MULT_Lookback Core::MultLookback
          #define TA_MULT_Logic Core::MultLogic
-         #define TA_INT_MULT Core::MultLogic

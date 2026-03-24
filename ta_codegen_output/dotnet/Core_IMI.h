@@ -143,4 +143,3 @@
          #define TA_IMI Core::Imi
          #define TA_IMI_Lookback Core::ImiLookback
          #define TA_IMI_Logic Core::ImiLogic
-         #define TA_INT_IMI Core::ImiLogic

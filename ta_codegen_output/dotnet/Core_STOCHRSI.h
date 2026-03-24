@@ -191,4 +191,3 @@
          #define TA_STOCHRSI Core::Stochrsi
          #define TA_STOCHRSI_Lookback Core::StochrsiLookback
          #define TA_STOCHRSI_Logic Core::StochrsiLogic
-         #define TA_INT_STOCHRSI Core::StochrsiLogic

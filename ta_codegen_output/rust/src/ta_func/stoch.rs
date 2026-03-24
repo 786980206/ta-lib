@@ -224,7 +224,7 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
+        retCode = self.ma_unguarded(0, outIdx - 1, unsafe { std::slice::from_raw_parts(tempBuffer.as_ptr(), tempBuffer.len()) }, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, &mut tempBuffer[..]);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }
@@ -232,7 +232,7 @@ impl Core {
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ma(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+        retCode = self.ma_unguarded(0, ((((*outNBElement)) as usize) - 1) as usize, &tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
         {
             let _n = (((((*outNBElement)) as usize)) as usize * 1) as usize;
             let _di = (0) as usize;

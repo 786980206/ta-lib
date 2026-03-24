@@ -518,7 +518,7 @@ fn extract_functions(tokens: &[Token]) -> ParsedCSource {
                 if is_old_func || is_new_func {
                     let func_name = name.clone();
                     let is_internal = func_name.starts_with("TA_INT_")
-                        || func_name.ends_with("_unguarded");
+                        || func_name.ends_with("_private");
                     // Parse parameter list
                     let params = extract_func_params(tokens, ret_pos + 2);
                     if let Some(brace_start) = find_open_brace(tokens, ret_pos + 2) {
@@ -4604,9 +4604,9 @@ TA_RetCode test_func(int startIdx, int *outBegIdx)
     // ===== Unguarded function detection =====
 
     #[test]
-    fn test_unguarded_function_detection() {
+    fn test_private_function_detection() {
         let source = r"
-TA_RetCode sma_unguarded(int startIdx, int endIdx, int *outBegIdx)
+TA_RetCode sma_private(int startIdx, int endIdx, int *outBegIdx)
 {
     *outBegIdx = startIdx;
     return TA_SUCCESS;

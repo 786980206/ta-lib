@@ -197,8 +197,6 @@ TA_LIB_API TA_RetCode TA_CDLCONCEALBABYSWALL_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLCONCEALBABYSWALL TA_CDLCONCEALBABYSWALL_Unguarded
-
 TA_RetCode TA_S_CDLCONCEALBABYSWALL( int    startIdx,
                                      int    endIdx,
                                      const float inOpen[],
@@ -350,6 +348,4 @@ TA_RetCode TA_S_CDLCONCEALBABYSWALL_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLCONCEALBABYSWALL TA_S_CDLCONCEALBABYSWALL_Unguarded
 

@@ -304,8 +304,6 @@ TA_LIB_API TA_RetCode TA_TRIMA_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_TRIMA TA_TRIMA_Unguarded
-
 TA_RetCode TA_S_TRIMA( int    startIdx,
                        int    endIdx,
                        const float inReal[],
@@ -567,6 +565,4 @@ TA_RetCode TA_S_TRIMA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_TRIMA TA_S_TRIMA_Unguarded
 

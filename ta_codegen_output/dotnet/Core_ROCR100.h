@@ -127,4 +127,3 @@
          #define TA_ROCR100 Core::Rocr100
          #define TA_ROCR100_Lookback Core::Rocr100Lookback
          #define TA_ROCR100_Logic Core::Rocr100Logic
-         #define TA_INT_ROCR100 Core::Rocr100Logic

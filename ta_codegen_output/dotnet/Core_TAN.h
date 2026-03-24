@@ -111,4 +111,3 @@
          #define TA_TAN Core::Tan
          #define TA_TAN_Lookback Core::TanLookback
          #define TA_TAN_Logic Core::TanLogic
-         #define TA_INT_TAN Core::TanLogic

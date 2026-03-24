@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLSHORTLINE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLSHORTLINE TA_CDLSHORTLINE_Unguarded
-
 TA_RetCode TA_S_CDLSHORTLINE( int    startIdx,
                               int    endIdx,
                               const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLSHORTLINE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLSHORTLINE TA_S_CDLSHORTLINE_Unguarded
 

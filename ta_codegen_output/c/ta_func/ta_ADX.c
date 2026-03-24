@@ -528,8 +528,6 @@ TA_LIB_API TA_RetCode TA_ADX_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ADX TA_ADX_Unguarded
-
 TA_RetCode TA_S_ADX( int    startIdx,
                      int    endIdx,
                      const float inHigh[],
@@ -1015,6 +1013,4 @@ TA_RetCode TA_S_ADX_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ADX TA_S_ADX_Unguarded
 

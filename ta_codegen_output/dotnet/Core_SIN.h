@@ -111,4 +111,3 @@
          #define TA_SIN Core::Sin
          #define TA_SIN_Lookback Core::SinLookback
          #define TA_SIN_Logic Core::SinLogic
-         #define TA_INT_SIN Core::SinLogic

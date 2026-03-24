@@ -175,4 +175,3 @@
          #define TA_CDLABANDONEDBABY Core::Cdlabandonedbaby
          #define TA_CDLABANDONEDBABY_Lookback Core::CdlabandonedbabyLookback
          #define TA_CDLABANDONEDBABY_Logic Core::CdlabandonedbabyLogic
-         #define TA_INT_CDLABANDONEDBABY Core::CdlabandonedbabyLogic

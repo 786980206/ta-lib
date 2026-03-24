@@ -111,4 +111,3 @@
          #define TA_ASIN Core::Asin
          #define TA_ASIN_Lookback Core::AsinLookback
          #define TA_ASIN_Logic Core::AsinLogic
-         #define TA_INT_ASIN Core::AsinLogic

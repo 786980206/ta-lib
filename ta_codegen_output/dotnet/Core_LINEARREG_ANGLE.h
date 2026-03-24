@@ -127,4 +127,3 @@
          #define TA_LINEARREG_ANGLE Core::Linearreg_angle
          #define TA_LINEARREG_ANGLE_Lookback Core::Linearreg_angleLookback
          #define TA_LINEARREG_ANGLE_Logic Core::Linearreg_angleLogic
-         #define TA_INT_LINEARREG_ANGLE Core::Linearreg_angleLogic

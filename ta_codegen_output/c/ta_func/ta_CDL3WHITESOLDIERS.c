@@ -314,8 +314,6 @@ TA_LIB_API TA_RetCode TA_CDL3WHITESOLDIERS_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3WHITESOLDIERS TA_CDL3WHITESOLDIERS_Unguarded
-
 TA_RetCode TA_S_CDL3WHITESOLDIERS( int    startIdx,
                                    int    endIdx,
                                    const float inOpen[],
@@ -575,6 +573,4 @@ TA_RetCode TA_S_CDL3WHITESOLDIERS_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDL3WHITESOLDIERS TA_S_CDL3WHITESOLDIERS_Unguarded
 

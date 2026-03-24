@@ -246,8 +246,6 @@ TA_LIB_API TA_RetCode TA_AROONOSC_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AROONOSC TA_AROONOSC_Unguarded
-
 TA_RetCode TA_S_AROONOSC( int    startIdx,
                           int    endIdx,
                           const float inHigh[],
@@ -451,6 +449,4 @@ TA_RetCode TA_S_AROONOSC_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_AROONOSC TA_S_AROONOSC_Unguarded
 

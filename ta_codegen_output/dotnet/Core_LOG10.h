@@ -111,4 +111,3 @@
          #define TA_LOG10 Core::Log10
          #define TA_LOG10_Lookback Core::Log10Lookback
          #define TA_LOG10_Logic Core::Log10Logic
-         #define TA_INT_LOG10 Core::Log10Logic

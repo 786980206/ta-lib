@@ -12,6 +12,7 @@
 #endif
 
 #include "ta_func_unguarded.h"
+#include "ta_func/ta_func_private.h"
 
 #include "ta_common/ta_global.c"
 #include "ta_common/ta_utility.c"
@@ -4890,14 +4891,12 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         }
         long elapsed_ns = (get_nanotime() - _t0) / bench_iters;
 #ifndef TA_REF_SERVE
-        double optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
         long _t0_ung = get_nanotime();
         for( int _biu = 0; _biu < bench_iters; _biu++ ) {
         rc = TA_EMA_Unguarded(
             startIdx, endIdx,
             g_inBuf0,
             optInTimePeriod,
-            optInK_1,
             &outBegIdx, &outNBElement, g_outBuf0);
         }
         long elapsed_ns_ung = (get_nanotime() - _t0_ung) / bench_iters;

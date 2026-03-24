@@ -159,4 +159,3 @@
          #define TA_CDLUPSIDEGAP2CROWS Core::Cdlupsidegap2crows
          #define TA_CDLUPSIDEGAP2CROWS_Lookback Core::Cdlupsidegap2crowsLookback
          #define TA_CDLUPSIDEGAP2CROWS_Logic Core::Cdlupsidegap2crowsLogic
-         #define TA_INT_CDLUPSIDEGAP2CROWS Core::Cdlupsidegap2crowsLogic

@@ -108,8 +108,6 @@ TA_LIB_API TA_RetCode TA_AVGPRICE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AVGPRICE TA_AVGPRICE_Unguarded
-
 TA_RetCode TA_S_AVGPRICE( int    startIdx,
                           int    endIdx,
                           const float inOpen[],
@@ -175,6 +173,4 @@ TA_RetCode TA_S_AVGPRICE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_AVGPRICE TA_S_AVGPRICE_Unguarded
 

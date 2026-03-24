@@ -181,8 +181,6 @@ TA_LIB_API TA_RetCode TA_CDLTASUKIGAP_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLTASUKIGAP TA_CDLTASUKIGAP_Unguarded
-
 TA_RetCode TA_S_CDLTASUKIGAP( int    startIdx,
                               int    endIdx,
                               const float inOpen[],
@@ -318,6 +316,4 @@ TA_RetCode TA_S_CDLTASUKIGAP_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLTASUKIGAP TA_S_CDLTASUKIGAP_Unguarded
 

@@ -148,8 +148,6 @@ TA_LIB_API TA_RetCode TA_CDLXSIDEGAP3METHODS_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLXSIDEGAP3METHODS TA_CDLXSIDEGAP3METHODS_Unguarded
-
 TA_RetCode TA_S_CDLXSIDEGAP3METHODS( int    startIdx,
                                      int    endIdx,
                                      const float inOpen[],
@@ -255,6 +253,4 @@ TA_RetCode TA_S_CDLXSIDEGAP3METHODS_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLXSIDEGAP3METHODS TA_S_CDLXSIDEGAP3METHODS_Unguarded
 

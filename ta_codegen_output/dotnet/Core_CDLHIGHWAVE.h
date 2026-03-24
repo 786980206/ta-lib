@@ -159,4 +159,3 @@
          #define TA_CDLHIGHWAVE Core::Cdlhighwave
          #define TA_CDLHIGHWAVE_Lookback Core::CdlhighwaveLookback
          #define TA_CDLHIGHWAVE_Logic Core::CdlhighwaveLogic
-         #define TA_INT_CDLHIGHWAVE Core::CdlhighwaveLogic

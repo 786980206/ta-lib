@@ -191,4 +191,3 @@
          #define TA_ADOSC Core::Adosc
          #define TA_ADOSC_Lookback Core::AdoscLookback
          #define TA_ADOSC_Logic Core::AdoscLogic
-         #define TA_INT_ADOSC Core::AdoscLogic

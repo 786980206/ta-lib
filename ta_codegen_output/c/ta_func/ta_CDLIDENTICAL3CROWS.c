@@ -242,8 +242,6 @@ TA_LIB_API TA_RetCode TA_CDLIDENTICAL3CROWS_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLIDENTICAL3CROWS TA_CDLIDENTICAL3CROWS_Unguarded
-
 TA_RetCode TA_S_CDLIDENTICAL3CROWS( int    startIdx,
                                     int    endIdx,
                                     const float inOpen[],
@@ -437,6 +435,4 @@ TA_RetCode TA_S_CDLIDENTICAL3CROWS_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLIDENTICAL3CROWS TA_S_CDLIDENTICAL3CROWS_Unguarded
 

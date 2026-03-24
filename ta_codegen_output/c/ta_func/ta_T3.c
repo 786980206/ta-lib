@@ -310,8 +310,6 @@ TA_LIB_API TA_RetCode TA_T3_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_T3 TA_T3_Unguarded
-
 TA_RetCode TA_S_T3( int    startIdx,
                     int    endIdx,
                     const float inReal[],
@@ -579,6 +577,4 @@ TA_RetCode TA_S_T3_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_T3 TA_S_T3_Unguarded
 

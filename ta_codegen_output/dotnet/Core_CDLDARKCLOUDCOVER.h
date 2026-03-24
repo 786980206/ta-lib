@@ -175,4 +175,3 @@
          #define TA_CDLDARKCLOUDCOVER Core::Cdldarkcloudcover
          #define TA_CDLDARKCLOUDCOVER_Lookback Core::CdldarkcloudcoverLookback
          #define TA_CDLDARKCLOUDCOVER_Logic Core::CdldarkcloudcoverLogic
-         #define TA_INT_CDLDARKCLOUDCOVER Core::CdldarkcloudcoverLogic

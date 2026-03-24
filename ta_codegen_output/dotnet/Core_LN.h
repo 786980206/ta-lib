@@ -111,4 +111,3 @@
          #define TA_LN Core::Ln
          #define TA_LN_Lookback Core::LnLookback
          #define TA_LN_Logic Core::LnLogic
-         #define TA_INT_LN Core::LnLogic

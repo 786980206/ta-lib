@@ -191,4 +191,3 @@
          #define TA_MACD Core::Macd
          #define TA_MACD_Lookback Core::MacdLookback
          #define TA_MACD_Logic Core::MacdLogic
-         #define TA_INT_MACD Core::MacdLogic

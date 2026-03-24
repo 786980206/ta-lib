@@ -175,4 +175,3 @@
          #define TA_CDLEVENINGDOJISTAR Core::Cdleveningdojistar
          #define TA_CDLEVENINGDOJISTAR_Lookback Core::CdleveningdojistarLookback
          #define TA_CDLEVENINGDOJISTAR_Logic Core::CdleveningdojistarLogic
-         #define TA_INT_CDLEVENINGDOJISTAR Core::CdleveningdojistarLogic

@@ -159,4 +159,3 @@
          #define TA_ATR Core::Atr
          #define TA_ATR_Lookback Core::AtrLookback
          #define TA_ATR_Logic Core::AtrLogic
-         #define TA_INT_ATR Core::AtrLogic

@@ -170,8 +170,6 @@ TA_LIB_API TA_RetCode TA_LINEARREG_INTERCEPT_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_LINEARREG_INTERCEPT TA_LINEARREG_INTERCEPT_Unguarded
-
 TA_RetCode TA_S_LINEARREG_INTERCEPT( int    startIdx,
                                      int    endIdx,
                                      const float inReal[],
@@ -299,6 +297,4 @@ TA_RetCode TA_S_LINEARREG_INTERCEPT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_LINEARREG_INTERCEPT TA_S_LINEARREG_INTERCEPT_Unguarded
 

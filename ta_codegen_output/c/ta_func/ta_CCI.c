@@ -234,8 +234,6 @@ TA_LIB_API TA_RetCode TA_CCI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CCI TA_CCI_Unguarded
-
 TA_RetCode TA_S_CCI( int    startIdx,
                      int    endIdx,
                      const float inHigh[],
@@ -427,6 +425,4 @@ TA_RetCode TA_S_CCI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CCI TA_S_CCI_Unguarded
 

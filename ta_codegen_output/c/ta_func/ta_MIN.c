@@ -188,8 +188,6 @@ TA_LIB_API TA_RetCode TA_MIN_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MIN TA_MIN_Unguarded
-
 TA_RetCode TA_S_MIN( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -335,6 +333,4 @@ TA_RetCode TA_S_MIN_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MIN TA_S_MIN_Unguarded
 

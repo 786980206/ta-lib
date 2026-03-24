@@ -127,4 +127,3 @@
          #define TA_LINEARREG_SLOPE Core::Linearreg_slope
          #define TA_LINEARREG_SLOPE_Lookback Core::Linearreg_slopeLookback
          #define TA_LINEARREG_SLOPE_Logic Core::Linearreg_slopeLogic
-         #define TA_INT_LINEARREG_SLOPE Core::Linearreg_slopeLogic

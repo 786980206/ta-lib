@@ -143,4 +143,3 @@
          #define TA_MINMAX Core::Minmax
          #define TA_MINMAX_Lookback Core::MinmaxLookback
          #define TA_MINMAX_Logic Core::MinmaxLogic
-         #define TA_INT_MINMAX Core::MinmaxLogic

@@ -199,8 +199,6 @@ TA_LIB_API TA_RetCode TA_CDLTRISTAR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLTRISTAR TA_CDLTRISTAR_Unguarded
-
 TA_RetCode TA_S_CDLTRISTAR( int    startIdx,
                             int    endIdx,
                             const float inOpen[],
@@ -354,6 +352,4 @@ TA_RetCode TA_S_CDLTRISTAR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLTRISTAR TA_S_CDLTRISTAR_Unguarded
 

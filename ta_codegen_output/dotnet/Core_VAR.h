@@ -143,4 +143,3 @@
          #define TA_VAR Core::Var
          #define TA_VAR_Lookback Core::VarLookback
          #define TA_VAR_Logic Core::VarLogic
-         #define TA_INT_VAR Core::VarLogic

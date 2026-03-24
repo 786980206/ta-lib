@@ -159,4 +159,3 @@
          #define TA_CDLGAPSIDESIDEWHITE Core::Cdlgapsidesidewhite
          #define TA_CDLGAPSIDESIDEWHITE_Lookback Core::CdlgapsidesidewhiteLookback
          #define TA_CDLGAPSIDESIDEWHITE_Logic Core::CdlgapsidesidewhiteLogic
-         #define TA_INT_CDLGAPSIDESIDEWHITE Core::CdlgapsidesidewhiteLogic

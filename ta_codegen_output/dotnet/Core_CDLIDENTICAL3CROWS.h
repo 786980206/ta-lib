@@ -159,4 +159,3 @@
          #define TA_CDLIDENTICAL3CROWS Core::Cdlidentical3crows
          #define TA_CDLIDENTICAL3CROWS_Lookback Core::Cdlidentical3crowsLookback
          #define TA_CDLIDENTICAL3CROWS_Logic Core::Cdlidentical3crowsLogic
-         #define TA_INT_CDLIDENTICAL3CROWS Core::Cdlidentical3crowsLogic

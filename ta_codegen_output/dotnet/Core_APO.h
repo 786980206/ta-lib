@@ -159,4 +159,3 @@
          #define TA_APO Core::Apo
          #define TA_APO_Lookback Core::ApoLookback
          #define TA_APO_Logic Core::ApoLogic
-         #define TA_INT_APO Core::ApoLogic

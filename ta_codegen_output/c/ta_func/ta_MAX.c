@@ -188,8 +188,6 @@ TA_LIB_API TA_RetCode TA_MAX_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MAX TA_MAX_Unguarded
-
 TA_RetCode TA_S_MAX( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -335,6 +333,4 @@ TA_RetCode TA_S_MAX_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MAX TA_S_MAX_Unguarded
 

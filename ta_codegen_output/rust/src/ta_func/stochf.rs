@@ -207,7 +207,7 @@ impl Core {
             trailingIdx += 1;
             today += 1;
         }
-        retCode = self.ma(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+        retCode = self.ma_unguarded(0, outIdx - 1, &tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
         if retCode != RetCode::Success || (((*outNBElement)) as usize) == 0 {
             if bufferIsAllocated != 0 {
             }

@@ -159,4 +159,3 @@
          #define TA_CDLLONGLEGGEDDOJI Core::Cdllongleggeddoji
          #define TA_CDLLONGLEGGEDDOJI_Lookback Core::CdllongleggeddojiLookback
          #define TA_CDLLONGLEGGEDDOJI_Logic Core::CdllongleggeddojiLogic
-         #define TA_INT_CDLLONGLEGGEDDOJI Core::CdllongleggeddojiLogic

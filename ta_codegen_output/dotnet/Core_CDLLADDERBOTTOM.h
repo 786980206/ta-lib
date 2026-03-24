@@ -159,4 +159,3 @@
          #define TA_CDLLADDERBOTTOM Core::Cdlladderbottom
          #define TA_CDLLADDERBOTTOM_Lookback Core::CdlladderbottomLookback
          #define TA_CDLLADDERBOTTOM_Logic Core::CdlladderbottomLogic
-         #define TA_INT_CDLLADDERBOTTOM Core::CdlladderbottomLogic

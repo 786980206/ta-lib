@@ -292,8 +292,6 @@ TA_LIB_API TA_RetCode TA_CDL3STARSINSOUTH_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDL3STARSINSOUTH TA_CDL3STARSINSOUTH_Unguarded
-
 TA_RetCode TA_S_CDL3STARSINSOUTH( int    startIdx,
                                   int    endIdx,
                                   const float inOpen[],
@@ -531,6 +529,4 @@ TA_RetCode TA_S_CDL3STARSINSOUTH_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDL3STARSINSOUTH TA_S_CDL3STARSINSOUTH_Unguarded
 

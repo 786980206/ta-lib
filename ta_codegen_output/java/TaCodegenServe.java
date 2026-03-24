@@ -120,19 +120,19 @@ class Core {
                 tempBuffer2[j] = inLow[i];
              }
           }
-          retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+          retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -189,19 +189,19 @@ class Core {
                 tempBuffer2[j] = inLow[i];
              }
           }
-          retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+          retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -264,19 +264,19 @@ class Core {
                 tempBuffer2[j] = inLow[i];
              }
           }
-          retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+          retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -333,19 +333,19 @@ class Core {
                 tempBuffer2[j] = inLow[i];
              }
           }
-          retCode = sma(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
+          retCode = smaLogic(startIdx, endIdx, inClose, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealMiddleBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer1, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealUpperBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = sma(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
+          retCode = smaLogic(0, (bufferSize-1), tempBuffer2, optInTimePeriod, outBegIdxDummy, outNbElementDummy, outRealLowerBand);
           if( ((retCode!=RetCode.Success)||(((int)outNbElementDummy.value)!=outputSize)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -1934,7 +1934,7 @@ class Core {
              return RetCode.Success ;
           }
           adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-          retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+          retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -1976,7 +1976,7 @@ class Core {
              return RetCode.Success ;
           }
           adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-          retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+          retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -2024,7 +2024,7 @@ class Core {
              return RetCode.Success ;
           }
           adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-          retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+          retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -2066,7 +2066,7 @@ class Core {
              return RetCode.Success ;
           }
           adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-          retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+          retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -2118,9 +2118,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -2157,9 +2157,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -2202,9 +2202,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -2241,9 +2241,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -3128,14 +3128,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -3189,14 +3189,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -3256,14 +3256,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -3317,14 +3317,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -3680,7 +3680,7 @@ class Core {
           if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
              return RetCode.BadParam ;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+          retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              return retCode ;
@@ -3718,7 +3718,7 @@ class Core {
                 }
              }
           } else {
-             retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+             retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
              if( (retCode!=RetCode.Success) ) {
                 outNBElement.value = 0;
                 return retCode ;
@@ -3802,7 +3802,7 @@ class Core {
           if( ((tempBuffer1==inReal)||(tempBuffer2==inReal)) ) {
              return RetCode.BadParam ;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+          retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              return retCode ;
@@ -3840,7 +3840,7 @@ class Core {
                 }
              }
           } else {
-             retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+             retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
              if( (retCode!=RetCode.Success) ) {
                 outNBElement.value = 0;
                 return retCode ;
@@ -3930,7 +3930,7 @@ class Core {
           if( (false||false) ) {
              return RetCode.BadParam ;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+          retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              return retCode ;
@@ -3968,7 +3968,7 @@ class Core {
                 }
              }
           } else {
-             retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+             retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
              if( (retCode!=RetCode.Success) ) {
                 outNBElement.value = 0;
                 return retCode ;
@@ -4052,7 +4052,7 @@ class Core {
           if( (false||false) ) {
              return RetCode.BadParam ;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
+          retCode = maLogic(startIdx, endIdx, inReal, optInTimePeriod, optInMAType, outBegIdx, outNBElement, tempBuffer1);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              return retCode ;
@@ -4090,7 +4090,7 @@ class Core {
                 }
              }
           } else {
-             retCode = stddev(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
+             retCode = stddevLogic(((int)outBegIdx.value), endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, tempBuffer2);
              if( (retCode!=RetCode.Success) ) {
                 outNBElement.value = 0;
                 return retCode ;
@@ -23986,14 +23986,14 @@ class Core {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
              firstEMA = new double[(int)((tempInt*1))];
           }
-          retCode = ema((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
@@ -24047,14 +24047,14 @@ class Core {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
              firstEMA = new double[(int)((tempInt*1))];
           }
-          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
@@ -24114,14 +24114,14 @@ class Core {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
              firstEMA = new double[(int)((tempInt*1))];
           }
-          retCode = ema((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
@@ -24175,14 +24175,14 @@ class Core {
              tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
              firstEMA = new double[(int)((tempInt*1))];
           }
-          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-lookbackEMA), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              if( (firstEMA!=outReal) ) {
              }
@@ -24986,32 +24986,63 @@ class Core {
           return ((optInTimePeriod-1)+this.unstablePeriod[FuncUnstId.Ema.ordinal()]) ;
 
        }
-       public RetCode ema( int startIdx,
-                           int endIdx,
-                           double inReal[],
-                           int optInTimePeriod,
-                           MInteger outBegIdx,
-                           MInteger outNBElement,
-                           double outReal[] )
+       public RetCode emaPrivate( int startIdx,
+                                  int endIdx,
+                                  double inReal[],
+                                  int optInTimePeriod,
+                                  double optInK_1,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
        {
-          double optInK_1 = 0;
-          if( startIdx < 0 ) {
-             return RetCode.OutOfRangeStartIndex ;
+          double tempReal = 0;
+          double prevMA = 0;
+          int i = 0;
+          int today = 0;
+          int outIdx = 0;
+          int lookbackTotal = 0;
+          lookbackTotal = emaLookback(optInTimePeriod);
+          if( (startIdx<lookbackTotal) ) {
+             startIdx = lookbackTotal;
           }
-          if( (endIdx < 0) || (endIdx < startIdx)) {
-             return RetCode.OutOfRangeEndIndex ;
+          if( (startIdx>endIdx) ) {
+             outBegIdx.value = 0;
+             outNBElement.value = 0;
+             return RetCode.Success ;
           }
-          optInK_1 = (2.0/((double)(optInTimePeriod+1)));
-          return emaLogic(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
+          outBegIdx.value = startIdx;
+          if( (this.compatibility==Compatibility.Default) ) {
+             today = (startIdx-lookbackTotal);
+             i = optInTimePeriod;
+             tempReal = 0.0;
+             while( (i-->0) ) {
+                tempReal += inReal[today++];
+             }
+             prevMA = (tempReal/optInTimePeriod);
+          } else {
+             prevMA = inReal[0];
+             today = 1;
+          }
+          while( (today<=startIdx) ) {
+             prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+          }
+          outReal[0] = prevMA;
+          outIdx = 1;
+          while( (today<=endIdx) ) {
+             prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+             outReal[outIdx++] = prevMA;
+          }
+          outNBElement.value = outIdx;
+          return RetCode.Success ;
        }
-       public RetCode emaLogic( int startIdx,
-                                int endIdx,
-                                double inReal[],
-                                int optInTimePeriod,
-                                double optInK_1,
-                                MInteger outBegIdx,
-                                MInteger outNBElement,
-                                double outReal[] )
+       public RetCode emaPrivate( int startIdx,
+                                  int endIdx,
+                                  float inReal[],
+                                  int optInTimePeriod,
+                                  double optInK_1,
+                                  MInteger outBegIdx,
+                                  MInteger outNBElement,
+                                  double outReal[] )
        {
           double tempReal = 0;
           double prevMA = 0;
@@ -25055,7 +25086,7 @@ class Core {
        }
        public RetCode ema( int startIdx,
                            int endIdx,
-                           float inReal[],
+                           double inReal[],
                            int optInTimePeriod,
                            MInteger outBegIdx,
                            MInteger outNBElement,
@@ -25069,13 +25100,79 @@ class Core {
              return RetCode.OutOfRangeEndIndex ;
           }
           optInK_1 = (2.0/((double)(optInTimePeriod+1)));
-          return emaLogic(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
+          return emaPrivate(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
+       }
+       public RetCode emaLogic( int startIdx,
+                                int endIdx,
+                                double inReal[],
+                                int optInTimePeriod,
+                                MInteger outBegIdx,
+                                MInteger outNBElement,
+                                double outReal[] )
+       {
+          double optInK_1 = 0;
+          optInK_1 = (2.0/((double)(optInTimePeriod+1)));
+          return emaPrivate(startIdx, endIdx, inReal, optInTimePeriod, optInK_1, outBegIdx, outNBElement, outReal) ;
+       }
+       public RetCode ema( int startIdx,
+                           int endIdx,
+                           float inReal[],
+                           int optInTimePeriod,
+                           MInteger outBegIdx,
+                           MInteger outNBElement,
+                           double outReal[] )
+       {
+          double tempReal = 0;
+          double prevMA = 0;
+          int i = 0;
+          int today = 0;
+          int outIdx = 0;
+          int lookbackTotal = 0;
+          double optInK_1 = (2.0/(double)((optInTimePeriod+1)));
+          if( startIdx < 0 ) {
+             return RetCode.OutOfRangeStartIndex ;
+          }
+          if( (endIdx < 0) || (endIdx < startIdx)) {
+             return RetCode.OutOfRangeEndIndex ;
+          }
+          lookbackTotal = emaLookback(optInTimePeriod);
+          if( (startIdx<lookbackTotal) ) {
+             startIdx = lookbackTotal;
+          }
+          if( (startIdx>endIdx) ) {
+             outBegIdx.value = 0;
+             outNBElement.value = 0;
+             return RetCode.Success ;
+          }
+          outBegIdx.value = startIdx;
+          if( (this.compatibility==Compatibility.Default) ) {
+             today = (startIdx-lookbackTotal);
+             i = optInTimePeriod;
+             tempReal = 0.0;
+             while( (i-->0) ) {
+                tempReal += inReal[today++];
+             }
+             prevMA = (tempReal/optInTimePeriod);
+          } else {
+             prevMA = inReal[0];
+             today = 1;
+          }
+          while( (today<=startIdx) ) {
+             prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+          }
+          outReal[0] = prevMA;
+          outIdx = 1;
+          while( (today<=endIdx) ) {
+             prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+             outReal[outIdx++] = prevMA;
+          }
+          outNBElement.value = outIdx;
+          return RetCode.Success ;
        }
        public RetCode emaLogic( int startIdx,
                                 int endIdx,
                                 float inReal[],
                                 int optInTimePeriod,
-                                double optInK_1,
                                 MInteger outBegIdx,
                                 MInteger outNBElement,
                                 double outReal[] )
@@ -25086,6 +25183,7 @@ class Core {
           int today = 0;
           int outIdx = 0;
           int lookbackTotal = 0;
+          double optInK_1 = (2.0/(double)((optInTimePeriod+1)));
           lookbackTotal = emaLookback(optInTimePeriod);
           if( (startIdx<lookbackTotal) ) {
              startIdx = lookbackTotal;
@@ -34855,32 +34953,32 @@ class Core {
           switch( optInMAType )
           {
           case MAType.Sma:
-             retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Ema:
-             retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Wma:
-             retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Dema:
-             retCode = dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Tema:
-             retCode = tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Trima:
-             retCode = trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Kama:
-             retCode = kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Mama:
              dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-             retCode = mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+             retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
           case MAType.T3:
-             retCode = t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+             retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
              retCode = RetCode.BadParam;
@@ -34914,32 +35012,32 @@ class Core {
           switch( optInMAType )
           {
           case MAType.Sma:
-             retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Ema:
-             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), outBegIdx, outNBElement, outReal);
+             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Wma:
-             retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Dema:
-             retCode = dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Tema:
-             retCode = tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Trima:
-             retCode = trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Kama:
-             retCode = kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Mama:
              dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-             retCode = mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+             retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
           case MAType.T3:
-             retCode = t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+             retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
              retCode = RetCode.BadParam;
@@ -34979,32 +35077,32 @@ class Core {
           switch( optInMAType )
           {
           case MAType.Sma:
-             retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Ema:
-             retCode = ema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Wma:
-             retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Dema:
-             retCode = dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Tema:
-             retCode = tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Trima:
-             retCode = trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Kama:
-             retCode = kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Mama:
              dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-             retCode = mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+             retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
           case MAType.T3:
-             retCode = t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+             retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
              retCode = RetCode.BadParam;
@@ -35038,32 +35136,32 @@ class Core {
           switch( optInMAType )
           {
           case MAType.Sma:
-             retCode = sma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = smaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Ema:
-             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), outBegIdx, outNBElement, outReal);
+             retCode = emaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Wma:
-             retCode = wma(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = wmaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Dema:
-             retCode = dema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = demaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Tema:
-             retCode = tema(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = temaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Trima:
-             retCode = trima(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = trimaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Kama:
-             retCode = kama(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
+             retCode = kamaLogic(startIdx, endIdx, inReal, optInTimePeriod, outBegIdx, outNBElement, outReal);
              break;
           case MAType.Mama:
              dummyBuffer = new double[(int)((((endIdx-startIdx)+1)*1))];
-             retCode = mama(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
+             retCode = mamaLogic(startIdx, endIdx, inReal, 0.5, 0.05, outBegIdx, outNBElement, outReal, dummyBuffer);
              break;
           case MAType.T3:
-             retCode = t3(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
+             retCode = t3Logic(startIdx, endIdx, inReal, optInTimePeriod, 0.7, outBegIdx, outNBElement, outReal);
              break;
           default:
              retCode = RetCode.BadParam;
@@ -35108,6 +35206,7 @@ class Core {
           double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
+          int useFixedK = 0;
           int i = 0;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
@@ -35120,15 +35219,18 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
+          useFixedK = 0;
           if( (optInSlowPeriod==0) ) {
              optInSlowPeriod = 26;
              slowK = 0.075;
+             useFixedK = 1;
           } else {
              slowK = (2.0/((double)(optInSlowPeriod+1)));
           }
           if( (optInFastPeriod==0) ) {
              optInFastPeriod = 12;
              fastK = 0.15;
+             useFixedK = 1;
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
@@ -35148,13 +35250,21 @@ class Core {
           fastEMABuffer = new double[(int)((tempInteger*1))];
           slowEMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35169,7 +35279,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaPrivate(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35207,21 +35317,25 @@ class Core {
           double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
+          int useFixedK = 0;
           int i = 0;
           if( (optInSlowPeriod<optInFastPeriod) ) {
              tempInteger = optInSlowPeriod;
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
+          useFixedK = 0;
           if( (optInSlowPeriod==0) ) {
              optInSlowPeriod = 26;
              slowK = 0.075;
+             useFixedK = 1;
           } else {
              slowK = (2.0/((double)(optInSlowPeriod+1)));
           }
           if( (optInFastPeriod==0) ) {
              optInFastPeriod = 12;
              fastK = 0.15;
+             useFixedK = 1;
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
@@ -35241,13 +35355,21 @@ class Core {
           fastEMABuffer = new double[(int)((tempInteger*1))];
           slowEMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35262,7 +35384,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaPrivate(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35300,6 +35422,7 @@ class Core {
           double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
+          int useFixedK = 0;
           int i = 0;
           if( startIdx < 0 ) {
              return RetCode.OutOfRangeStartIndex ;
@@ -35312,15 +35435,18 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
+          useFixedK = 0;
           if( (optInSlowPeriod==0) ) {
              optInSlowPeriod = 26;
              slowK = 0.075;
+             useFixedK = 1;
           } else {
              slowK = (2.0/((double)(optInSlowPeriod+1)));
           }
           if( (optInFastPeriod==0) ) {
              optInFastPeriod = 12;
              fastK = 0.15;
+             useFixedK = 1;
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
@@ -35340,13 +35466,21 @@ class Core {
           fastEMABuffer = new double[(int)((tempInteger*1))];
           slowEMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35361,7 +35495,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaPrivate(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35399,21 +35533,25 @@ class Core {
           double signalK = 0;
           int lookbackTotal = 0;
           int lookbackSignal = 0;
+          int useFixedK = 0;
           int i = 0;
           if( (optInSlowPeriod<optInFastPeriod) ) {
              tempInteger = optInSlowPeriod;
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
+          useFixedK = 0;
           if( (optInSlowPeriod==0) ) {
              optInSlowPeriod = 26;
              slowK = 0.075;
+             useFixedK = 1;
           } else {
              slowK = (2.0/((double)(optInSlowPeriod+1)));
           }
           if( (optInFastPeriod==0) ) {
              optInFastPeriod = 12;
              fastK = 0.15;
+             useFixedK = 1;
           } else {
              fastK = (2.0/((double)(optInFastPeriod+1)));
           }
@@ -35433,13 +35571,21 @@ class Core {
           fastEMABuffer = new double[(int)((tempInteger*1))];
           slowEMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, outBegIdx1, outNbElement1, slowEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInSlowPeriod, outBegIdx1, outNbElement1, slowEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          if( (useFixedK) != 0 ) {
+             retCode = emaPrivate(tempInteger, endIdx, inReal, optInFastPeriod, fastK, outBegIdx2, outNbElement2, fastEMABuffer);
+          } else {
+             retCode = emaLogic(tempInteger, endIdx, inReal, optInFastPeriod, outBegIdx2, outNbElement2, fastEMABuffer);
+          }
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35454,7 +35600,7 @@ class Core {
              fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
           }
           System.arraycopy(fastEMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = emaLogic(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = emaPrivate(0, (outNbElement1.value-1), fastEMABuffer, optInSignalPeriod, signalK, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35541,13 +35687,13 @@ class Core {
           fastMABuffer = new double[(int)((tempInteger*1))];
           slowMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35562,7 +35708,7 @@ class Core {
              fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
           }
           System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35630,13 +35776,13 @@ class Core {
           fastMABuffer = new double[(int)((tempInteger*1))];
           slowMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35651,7 +35797,7 @@ class Core {
              fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
           }
           System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35725,13 +35871,13 @@ class Core {
           fastMABuffer = new double[(int)((tempInteger*1))];
           slowMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35746,7 +35892,7 @@ class Core {
              fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
           }
           System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35814,13 +35960,13 @@ class Core {
           fastMABuffer = new double[(int)((tempInteger*1))];
           slowMABuffer = new double[(int)((tempInteger*1))];
           tempInteger = (startIdx-lookbackSignal);
-          retCode = ma(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInSlowPeriod, optInSlowMAType, outBegIdx1, outNbElement1, slowMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
+          retCode = maLogic(tempInteger, endIdx, inReal, optInFastPeriod, optInFastMAType, outBegIdx2, outNbElement2, fastMABuffer);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -35835,7 +35981,7 @@ class Core {
              fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
           }
           System.arraycopy(fastMABuffer, lookbackSignal, outMACD, 0, (((endIdx-startIdx)+1)*1));
-          retCode = ma(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
+          retCode = maLogic(0, (outNbElement1.value-1), fastMABuffer, optInSignalPeriod, optInSignalMAType, outBegIdx2, outNbElement2, outMACDSignal);
           if( (retCode!=RetCode.Success) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -37260,7 +37406,7 @@ class Core {
           for( i = 0; (i<outputSize); i += 1 ) {
              curPeriod = localPeriodArray[i];
              if( (curPeriod!=0) ) {
-                retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+                retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
                 if( (retCode!=RetCode.Success) ) {
                    outBegIdx.value = 0;
                    outNBElement.value = 0;
@@ -37335,7 +37481,7 @@ class Core {
           for( i = 0; (i<outputSize); i += 1 ) {
              curPeriod = localPeriodArray[i];
              if( (curPeriod!=0) ) {
-                retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+                retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
                 if( (retCode!=RetCode.Success) ) {
                    outBegIdx.value = 0;
                    outNBElement.value = 0;
@@ -37416,7 +37562,7 @@ class Core {
           for( i = 0; (i<outputSize); i += 1 ) {
              curPeriod = localPeriodArray[i];
              if( (curPeriod!=0) ) {
-                retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+                retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
                 if( (retCode!=RetCode.Success) ) {
                    outBegIdx.value = 0;
                    outNBElement.value = 0;
@@ -37491,7 +37637,7 @@ class Core {
           for( i = 0; (i<outputSize); i += 1 ) {
              curPeriod = localPeriodArray[i];
              if( (curPeriod!=0) ) {
-                retCode = ma(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
+                retCode = maLogic(startIdx, endIdx, inReal, curPeriod, optInMAType, localBegIdx, localNbElement, localOutputArray);
                 if( (retCode!=RetCode.Success) ) {
                    outBegIdx.value = 0;
                    outNBElement.value = 0;
@@ -41628,14 +41774,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -41701,14 +41847,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -41780,14 +41926,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -41853,14 +41999,14 @@ class Core {
              return RetCode.Success ;
           }
           if( (optInTimePeriod<=1) ) {
-             return trange(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
+             return trangeLogic(startIdx, endIdx, inHigh, inLow, inClose, outBegIdx, outNBElement, outReal) ;
           }
           tempBuffer = new double[(int)((((lookbackTotal+(endIdx-startIdx))+1)*1))];
-          retCode = trange(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
+          retCode = trangeLogic(((startIdx-lookbackTotal)+1), endIdx, inHigh, inLow, inClose, outBegIdx1, outNbElement1, tempBuffer);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
-          retCode = sma((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
+          retCode = smaLogic((optInTimePeriod-1), (optInTimePeriod-1), tempBuffer, optInTimePeriod, outBegIdx1, outNbElement1, prevATR);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -43280,9 +43426,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -43325,9 +43471,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -43376,9 +43522,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -43421,9 +43567,9 @@ class Core {
              optInSlowPeriod = optInFastPeriod;
              optInFastPeriod = tempInteger;
           }
-          retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+          retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
           if( (retCode==RetCode.Success) ) {
-             retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+             retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
              if( (retCode==RetCode.Success) ) {
                 tempInteger = (outBegIdx1.value-outBegIdx2.value);
                 for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -44723,7 +44869,7 @@ class Core {
              optInAcceleration = optInMaximum;
              af = optInAcceleration;
           }
-          retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+          retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
           if( (ep_temp[0]>0) ) {
              isLong = 0;
           } else {
@@ -44867,7 +45013,7 @@ class Core {
              optInAcceleration = optInMaximum;
              af = optInAcceleration;
           }
-          retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+          retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
           if( (ep_temp[0]>0) ) {
              isLong = 0;
           } else {
@@ -45017,7 +45163,7 @@ class Core {
              optInAcceleration = optInMaximum;
              af = optInAcceleration;
           }
-          retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+          retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
           if( (ep_temp[0]>0) ) {
              isLong = 0;
           } else {
@@ -45161,7 +45307,7 @@ class Core {
              optInAcceleration = optInMaximum;
              af = optInAcceleration;
           }
-          retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+          retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
           if( (ep_temp[0]>0) ) {
              isLong = 0;
           } else {
@@ -45336,7 +45482,7 @@ class Core {
              optInAccelerationShort = optInAccelerationMaxShort;
           }
           if( (optInStartValue==0) ) {
-             retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+             retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
              if( (ep_temp[0]>0) ) {
                 isLong = 0;
              } else {
@@ -45518,7 +45664,7 @@ class Core {
              optInAccelerationShort = optInAccelerationMaxShort;
           }
           if( (optInStartValue==0) ) {
-             retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+             retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
              if( (ep_temp[0]>0) ) {
                 isLong = 0;
              } else {
@@ -45706,7 +45852,7 @@ class Core {
              optInAccelerationShort = optInAccelerationMaxShort;
           }
           if( (optInStartValue==0) ) {
-             retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+             retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
              if( (ep_temp[0]>0) ) {
                 isLong = 0;
              } else {
@@ -45888,7 +46034,7 @@ class Core {
              optInAccelerationShort = optInAccelerationMaxShort;
           }
           if( (optInStartValue==0) ) {
-             retCode = minusDm(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
+             retCode = minusDmLogic(startIdx, startIdx, inHigh, inLow, 1, tempInt, tempInt, ep_temp);
              if( (ep_temp[0]>0) ) {
                 isLong = 0;
              } else {
@@ -46487,7 +46633,7 @@ class Core {
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+          retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -46524,7 +46670,7 @@ class Core {
           int i = 0;
           RetCode retCode;
           double tempReal = 0;
-          retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+          retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -46567,7 +46713,7 @@ class Core {
           if( (endIdx < 0) || (endIdx < startIdx)) {
              return RetCode.OutOfRangeEndIndex ;
           }
-          retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+          retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -46604,7 +46750,7 @@ class Core {
           int i = 0;
           RetCode retCode;
           double tempReal = 0;
-          retCode = var(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
+          retCode = varLogic(startIdx, endIdx, inReal, optInTimePeriod, 1.0, outBegIdx, outNBElement, outReal);
           if( (retCode!=RetCode.Success) ) {
              return retCode ;
           }
@@ -46751,7 +46897,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -46759,7 +46905,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+          retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
           if( (bufferIsAllocated) != 0 ) {
           }
@@ -46877,7 +47023,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -46885,7 +47031,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+          retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
           if( (bufferIsAllocated) != 0 ) {
           }
@@ -47009,7 +47155,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47017,7 +47163,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+          retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
           if( (bufferIsAllocated) != 0 ) {
           }
@@ -47135,7 +47281,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInSlowK_Period, optInSlowK_MAType, outBegIdx, outNBElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47143,7 +47289,7 @@ class Core {
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = ma(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
+          retCode = maLogic(0, (((int)outNBElement.value)-1), tempBuffer, optInSlowD_Period, optInSlowD_MAType, outBegIdx, outNBElement, outSlowD);
           System.arraycopy(tempBuffer, lookbackDSlow, outSlowK, 0, (((int)outNBElement.value)*1));
           if( (bufferIsAllocated) != 0 ) {
           }
@@ -47272,7 +47418,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47393,7 +47539,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47520,7 +47666,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47641,7 +47787,7 @@ class Core {
              trailingIdx += 1;
              today += 1;
           }
-          retCode = ma(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
+          retCode = maLogic(0, (outIdx-1), tempBuffer, optInFastD_Period, optInFastD_MAType, outBegIdx, outNBElement, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              if( (bufferIsAllocated) != 0 ) {
              }
@@ -47709,13 +47855,13 @@ class Core {
           outBegIdx.value = startIdx;
           tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
           tempRSIBuffer = new double[(int)((tempArraySize*1))];
-          retCode = rsi((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+          retCode = rsiLogic((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
           if( ((retCode!=RetCode.Success)||(outNbElement1.value==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = stochf(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
+          retCode = stochfLogic(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -47758,13 +47904,13 @@ class Core {
           outBegIdx.value = startIdx;
           tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
           tempRSIBuffer = new double[(int)((tempArraySize*1))];
-          retCode = rsi((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+          retCode = rsiLogic((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
           if( ((retCode!=RetCode.Success)||(outNbElement1.value==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = stochf(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
+          retCode = stochfLogic(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -47813,13 +47959,13 @@ class Core {
           outBegIdx.value = startIdx;
           tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
           tempRSIBuffer = new double[(int)((tempArraySize*1))];
-          retCode = rsi((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+          retCode = rsiLogic((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
           if( ((retCode!=RetCode.Success)||(outNbElement1.value==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = stochf(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
+          retCode = stochfLogic(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -47862,13 +48008,13 @@ class Core {
           outBegIdx.value = startIdx;
           tempArraySize = (((endIdx-startIdx)+1)+lookbackSTOCHF);
           tempRSIBuffer = new double[(int)((tempArraySize*1))];
-          retCode = rsi((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
+          retCode = rsiLogic((startIdx-lookbackSTOCHF), endIdx, inReal, optInTimePeriod, outBegIdx1, outNbElement1, tempRSIBuffer);
           if( ((retCode!=RetCode.Success)||(outNbElement1.value==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
              return retCode ;
           }
-          retCode = stochf(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
+          retCode = stochfLogic(0, (tempArraySize-1), tempRSIBuffer, tempRSIBuffer, tempRSIBuffer, optInFastK_Period, optInFastD_Period, optInFastD_MAType, outBegIdx2, outNBElement, outFastK, outFastD);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outBegIdx.value = 0;
              outNBElement.value = 0;
@@ -48823,16 +48969,16 @@ class Core {
           }
           tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
           firstEMA = new double[(int)((tempInt*1))];
-          retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              return retCode ;
           }
-          retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
           if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
              return retCode ;
           }
@@ -48882,16 +49028,16 @@ class Core {
           }
           tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
           firstEMA = new double[(int)((tempInt*1))];
-          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              return retCode ;
           }
-          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), thirdEMABegIdx, thirdEMANbElement, outReal);
+          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
           if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
              return retCode ;
           }
@@ -48947,16 +49093,16 @@ class Core {
           }
           tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
           firstEMA = new double[(int)((tempInt*1))];
-          retCode = ema((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = ema(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              return retCode ;
           }
-          retCode = ema(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
+          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
           if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
              return retCode ;
           }
@@ -49006,16 +49152,16 @@ class Core {
           }
           tempInt = ((lookbackTotal+(endIdx-startIdx))+1);
           firstEMA = new double[(int)((tempInt*1))];
-          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), firstEMABegIdx, firstEMANbElement, firstEMA);
+          retCode = emaLogic((startIdx-(lookbackEMA*2)), endIdx, inReal, optInTimePeriod, firstEMABegIdx, firstEMANbElement, firstEMA);
           if( ((retCode!=RetCode.Success)||(firstEMANbElement.value==0)) ) {
              return retCode ;
           }
           secondEMA = new double[(int)((firstEMANbElement.value*1))];
-          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), secondEMABegIdx, secondEMANbElement, secondEMA);
+          retCode = emaLogic(0, (firstEMANbElement.value-1), firstEMA, optInTimePeriod, secondEMABegIdx, secondEMANbElement, secondEMA);
           if( ((retCode!=RetCode.Success)||(secondEMANbElement.value==0)) ) {
              return retCode ;
           }
-          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), thirdEMABegIdx, thirdEMANbElement, outReal);
+          retCode = emaLogic(0, (secondEMANbElement.value-1), secondEMA, optInTimePeriod, thirdEMABegIdx, thirdEMANbElement, outReal);
           if( ((retCode!=RetCode.Success)||(thirdEMANbElement.value==0)) ) {
              return retCode ;
           }
@@ -49738,7 +49884,7 @@ class Core {
           outBegIdx.value = startIdx;
           nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
           tempBuffer = new double[(int)((nbElementToOutput*1))];
-          retCode = ema((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49746,21 +49892,21 @@ class Core {
           }
           nbElementToOutput -= 1;
           nbElementToOutput -= emaLookback;
-          retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = roc(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
+          retCode = rocLogic(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49798,7 +49944,7 @@ class Core {
           outBegIdx.value = startIdx;
           nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
           tempBuffer = new double[(int)((nbElementToOutput*1))];
-          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49806,21 +49952,21 @@ class Core {
           }
           nbElementToOutput -= 1;
           nbElementToOutput -= emaLookback;
-          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = roc(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
+          retCode = rocLogic(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49864,7 +50010,7 @@ class Core {
           outBegIdx.value = startIdx;
           nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
           tempBuffer = new double[(int)((nbElementToOutput*1))];
-          retCode = ema((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49872,21 +50018,21 @@ class Core {
           }
           nbElementToOutput -= 1;
           nbElementToOutput -= emaLookback;
-          retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = ema(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = roc(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
+          retCode = rocLogic(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49924,7 +50070,7 @@ class Core {
           outBegIdx.value = startIdx;
           nbElementToOutput = (((endIdx-startIdx)+1)+totalLookback);
           tempBuffer = new double[(int)((nbElementToOutput*1))];
-          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic((startIdx-totalLookback), endIdx, inReal, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -49932,21 +50078,21 @@ class Core {
           }
           nbElementToOutput -= 1;
           nbElementToOutput -= emaLookback;
-          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, (2.0/((double)(optInTimePeriod+1))), begIdx, nbElement, tempBuffer);
+          retCode = emaLogic(0, nbElementToOutput, tempBuffer, optInTimePeriod, begIdx, nbElement, tempBuffer);
           if( ((retCode!=RetCode.Success)||(nbElement.value==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
              return retCode ;
           }
           nbElementToOutput -= emaLookback;
-          retCode = roc(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
+          retCode = rocLogic(0, nbElementToOutput, tempBuffer, 1, begIdx, outNBElement, outReal);
           if( ((retCode!=RetCode.Success)||(((int)outNBElement.value)==0)) ) {
              outNBElement.value = 0;
              outBegIdx.value = 0;
@@ -58019,14 +58165,12 @@ public class TaCodegenServe {
             outBegIdx, outNBElement, outArr0);
         }
         long elapsedNs = (System.nanoTime() - startNs) / bench_iters;
-        double optInK_1 = 2.0 / ((double)(optInTimePeriod + 1));
         long startNsUng = System.nanoTime();
         for (int _biu = 0; _biu < bench_iters; _biu++) {
         rc = core.emaLogic(
             startIdx, endIdx,
             inReal,
             optInTimePeriod,
-            optInK_1,
             outBegIdx, outNBElement, outArr0);
         }
         long elapsedNsUng = (System.nanoTime() - startNsUng) / bench_iters;

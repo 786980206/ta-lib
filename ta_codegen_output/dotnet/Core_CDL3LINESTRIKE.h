@@ -159,4 +159,3 @@
          #define TA_CDL3LINESTRIKE Core::Cdl3linestrike
          #define TA_CDL3LINESTRIKE_Lookback Core::Cdl3linestrikeLookback
          #define TA_CDL3LINESTRIKE_Logic Core::Cdl3linestrikeLogic
-         #define TA_INT_CDL3LINESTRIKE Core::Cdl3linestrikeLogic

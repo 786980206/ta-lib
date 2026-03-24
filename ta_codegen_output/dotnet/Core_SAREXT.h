@@ -255,4 +255,3 @@
          #define TA_SAREXT Core::Sarext
          #define TA_SAREXT_Lookback Core::SarextLookback
          #define TA_SAREXT_Logic Core::SarextLogic
-         #define TA_INT_SAREXT Core::SarextLogic

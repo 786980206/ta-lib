@@ -175,4 +175,3 @@
          #define TA_MFI Core::Mfi
          #define TA_MFI_Lookback Core::MfiLookback
          #define TA_MFI_Logic Core::MfiLogic
-         #define TA_INT_MFI Core::MfiLogic

@@ -111,4 +111,3 @@
          #define TA_FLOOR Core::Floor
          #define TA_FLOOR_Lookback Core::FloorLookback
          #define TA_FLOOR_Logic Core::FloorLogic
-         #define TA_INT_FLOOR Core::FloorLogic

@@ -159,4 +159,3 @@
          #define TA_DX Core::Dx
          #define TA_DX_Lookback Core::DxLookback
          #define TA_DX_Logic Core::DxLogic
-         #define TA_INT_DX Core::DxLogic

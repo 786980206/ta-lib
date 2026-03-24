@@ -276,8 +276,6 @@ TA_LIB_API TA_RetCode TA_KAMA_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_KAMA TA_KAMA_Unguarded
-
 TA_RetCode TA_S_KAMA( int    startIdx,
                       int    endIdx,
                       const float inReal[],
@@ -511,6 +509,4 @@ TA_RetCode TA_S_KAMA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_KAMA TA_S_KAMA_Unguarded
 

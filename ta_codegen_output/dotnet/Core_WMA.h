@@ -127,4 +127,3 @@
          #define TA_WMA Core::Wma
          #define TA_WMA_Lookback Core::WmaLookback
          #define TA_WMA_Logic Core::WmaLogic
-         #define TA_INT_WMA Core::WmaLogic

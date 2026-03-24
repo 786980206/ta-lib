@@ -166,8 +166,6 @@ TA_LIB_API TA_RetCode TA_LINEARREG_SLOPE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_LINEARREG_SLOPE TA_LINEARREG_SLOPE_Unguarded
-
 TA_RetCode TA_S_LINEARREG_SLOPE( int    startIdx,
                                  int    endIdx,
                                  const float inReal[],
@@ -291,6 +289,4 @@ TA_RetCode TA_S_LINEARREG_SLOPE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_LINEARREG_SLOPE TA_S_LINEARREG_SLOPE_Unguarded
 

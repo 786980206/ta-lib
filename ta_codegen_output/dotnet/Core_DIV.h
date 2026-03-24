@@ -127,4 +127,3 @@
          #define TA_DIV Core::Div
          #define TA_DIV_Lookback Core::DivLookback
          #define TA_DIV_Logic Core::DivLogic
-         #define TA_INT_DIV Core::DivLogic

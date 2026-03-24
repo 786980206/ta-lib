@@ -174,8 +174,6 @@ TA_LIB_API TA_RetCode TA_TSF_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_TSF TA_TSF_Unguarded
-
 TA_RetCode TA_S_TSF( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -307,6 +305,4 @@ TA_RetCode TA_S_TSF_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_TSF TA_S_TSF_Unguarded
 

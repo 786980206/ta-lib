@@ -128,8 +128,6 @@ TA_LIB_API TA_RetCode TA_MOM_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MOM TA_MOM_Unguarded
-
 TA_RetCode TA_S_MOM( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -215,6 +213,4 @@ TA_RetCode TA_S_MOM_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MOM TA_S_MOM_Unguarded
 

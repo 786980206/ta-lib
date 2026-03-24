@@ -159,4 +159,3 @@
          #define TA_CDLHANGINGMAN Core::Cdlhangingman
          #define TA_CDLHANGINGMAN_Lookback Core::CdlhangingmanLookback
          #define TA_CDLHANGINGMAN_Logic Core::CdlhangingmanLogic
-         #define TA_INT_CDLHANGINGMAN Core::CdlhangingmanLogic

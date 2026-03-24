@@ -214,8 +214,6 @@ TA_LIB_API TA_RetCode TA_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLGAPSIDESIDEWHITE TA_CDLGAPSIDESIDEWHITE_Unguarded
-
 TA_RetCode TA_S_CDLGAPSIDESIDEWHITE( int    startIdx,
                                      int    endIdx,
                                      const float inOpen[],
@@ -381,6 +379,4 @@ TA_RetCode TA_S_CDLGAPSIDESIDEWHITE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLGAPSIDESIDEWHITE TA_S_CDLGAPSIDESIDEWHITE_Unguarded
 

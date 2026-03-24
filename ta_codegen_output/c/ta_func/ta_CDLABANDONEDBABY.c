@@ -253,8 +253,6 @@ TA_LIB_API TA_RetCode TA_CDLABANDONEDBABY_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLABANDONEDBABY TA_CDLABANDONEDBABY_Unguarded
-
 TA_RetCode TA_S_CDLABANDONEDBABY( int    startIdx,
                                   int    endIdx,
                                   const float inOpen[],
@@ -456,6 +454,4 @@ TA_RetCode TA_S_CDLABANDONEDBABY_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLABANDONEDBABY TA_S_CDLABANDONEDBABY_Unguarded
 

@@ -23,6 +23,8 @@
    #endif
 #endif
 
+/* BEGIN_TA_INT_DECLARATIONS — codegen strips everything between these markers */
+
 /* Calculate a Simple Moving Average.
  * This is an internal version, parameter are assumed validated.
  * (startIdx and endIdx cannot be -1).
@@ -173,6 +175,8 @@ void TA_S_INT_stddev_using_precalc_ma( const float  *inReal,
                                        int           timePeriod,
                                        double       *output );
 #endif
+
+/* END_TA_INT_DECLARATIONS */
 
    /* Provides an equivalent to standard "math.h" functions. */
 #if defined( _MANAGED )

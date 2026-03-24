@@ -159,4 +159,3 @@
          #define TA_NATR Core::Natr
          #define TA_NATR_Lookback Core::NatrLookback
          #define TA_NATR_Logic Core::NatrLogic
-         #define TA_INT_NATR Core::NatrLogic

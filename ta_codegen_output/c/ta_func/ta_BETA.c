@@ -342,8 +342,6 @@ TA_LIB_API TA_RetCode TA_BETA_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_BETA TA_BETA_Unguarded
-
 TA_RetCode TA_S_BETA( int    startIdx,
                       int    endIdx,
                       const float inReal0[],
@@ -643,6 +641,4 @@ TA_RetCode TA_S_BETA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_BETA TA_S_BETA_Unguarded
 

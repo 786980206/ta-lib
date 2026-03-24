@@ -100,8 +100,6 @@ TA_LIB_API TA_RetCode TA_MEDPRICE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MEDPRICE TA_MEDPRICE_Unguarded
-
 TA_RetCode TA_S_MEDPRICE( int    startIdx,
                           int    endIdx,
                           const float inHigh[],
@@ -159,6 +157,4 @@ TA_RetCode TA_S_MEDPRICE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MEDPRICE TA_S_MEDPRICE_Unguarded
 

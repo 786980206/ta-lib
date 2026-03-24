@@ -159,4 +159,3 @@
          #define TA_BOP Core::Bop
          #define TA_BOP_Lookback Core::BopLookback
          #define TA_BOP_Logic Core::BopLogic
-         #define TA_INT_BOP Core::BopLogic

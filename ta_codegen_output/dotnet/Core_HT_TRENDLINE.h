@@ -111,4 +111,3 @@
          #define TA_HT_TRENDLINE Core::Ht_trendline
          #define TA_HT_TRENDLINE_Lookback Core::Ht_trendlineLookback
          #define TA_HT_TRENDLINE_Logic Core::Ht_trendlineLogic
-         #define TA_INT_HT_TRENDLINE Core::Ht_trendlineLogic

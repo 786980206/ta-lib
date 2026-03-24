@@ -127,4 +127,3 @@
          #define TA_CMO Core::Cmo
          #define TA_CMO_Lookback Core::CmoLookback
          #define TA_CMO_Logic Core::CmoLogic
-         #define TA_INT_CMO Core::CmoLogic

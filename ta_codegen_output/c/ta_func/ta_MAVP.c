@@ -131,7 +131,7 @@ TA_LIB_API TA_RetCode TA_MAVP( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -227,7 +227,7 @@ TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -255,8 +255,6 @@ TA_LIB_API TA_RetCode TA_MAVP_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_MAVP TA_MAVP_Unguarded
 
 TA_RetCode TA_S_MAVP( int    startIdx,
                       int    endIdx,
@@ -347,7 +345,7 @@ TA_RetCode TA_S_MAVP( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_S_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -443,7 +441,7 @@ TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
       curPeriod = localPeriodArray[i];
       if( (curPeriod!=0) )
       {
-         retCode = TA_S_MA(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
+         retCode = TA_S_MA_Unguarded(startIdx,endIdx,inReal,curPeriod,optInMAType,&localBegIdx,&localNbElement,localOutputArray);
          if( (retCode!=TA_SUCCESS) )
          {
             free(localOutputArray);
@@ -471,6 +469,4 @@ TA_RetCode TA_S_MAVP_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MAVP TA_S_MAVP_Unguarded
 

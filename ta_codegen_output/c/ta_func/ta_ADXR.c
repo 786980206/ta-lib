@@ -100,7 +100,7 @@ TA_LIB_API TA_RetCode TA_ADXR( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);
@@ -156,7 +156,7 @@ TA_LIB_API TA_RetCode TA_ADXR_Unguarded( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);
@@ -177,8 +177,6 @@ TA_LIB_API TA_RetCode TA_ADXR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_ADXR TA_ADXR_Unguarded
 
 TA_RetCode TA_S_ADXR( int    startIdx,
                       int    endIdx,
@@ -232,7 +230,7 @@ TA_RetCode TA_S_ADXR( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_S_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);
@@ -288,7 +286,7 @@ TA_RetCode TA_S_ADXR_Unguarded( int    startIdx,
    {
       return TA_ALLOC_ERR;
    }
-   retCode = TA_S_ADX((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
+   retCode = TA_S_ADX_Unguarded((startIdx-(optInTimePeriod-1)),endIdx,inHigh,inLow,inClose,optInTimePeriod,outBegIdx,outNBElement,adx);
    if( (retCode!=TA_SUCCESS) )
    {
       free(adx);
@@ -309,6 +307,4 @@ TA_RetCode TA_S_ADXR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ADXR TA_S_ADXR_Unguarded
 

@@ -143,4 +143,3 @@
          #define TA_BETA Core::Beta
          #define TA_BETA_Lookback Core::BetaLookback
          #define TA_BETA_Logic Core::BetaLogic
-         #define TA_INT_BETA Core::BetaLogic

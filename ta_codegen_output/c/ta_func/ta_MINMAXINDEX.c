@@ -246,8 +246,6 @@ TA_LIB_API TA_RetCode TA_MINMAXINDEX_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINMAXINDEX TA_MINMAXINDEX_Unguarded
-
 TA_RetCode TA_S_MINMAXINDEX( int    startIdx,
                              int    endIdx,
                              const float inReal[],
@@ -451,6 +449,4 @@ TA_RetCode TA_S_MINMAXINDEX_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MINMAXINDEX TA_S_MINMAXINDEX_Unguarded
 

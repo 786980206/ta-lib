@@ -111,4 +111,3 @@
          #define TA_ATAN Core::Atan
          #define TA_ATAN_Lookback Core::AtanLookback
          #define TA_ATAN_Logic Core::AtanLogic
-         #define TA_INT_ATAN Core::AtanLogic

@@ -146,8 +146,6 @@ TA_LIB_API TA_RetCode TA_ROC_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ROC TA_ROC_Unguarded
-
 TA_RetCode TA_S_ROC( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -251,6 +249,4 @@ TA_RetCode TA_S_ROC_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ROC TA_S_ROC_Unguarded
 

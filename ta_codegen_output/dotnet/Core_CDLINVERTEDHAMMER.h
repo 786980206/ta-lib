@@ -159,4 +159,3 @@
          #define TA_CDLINVERTEDHAMMER Core::Cdlinvertedhammer
          #define TA_CDLINVERTEDHAMMER_Lookback Core::CdlinvertedhammerLookback
          #define TA_CDLINVERTEDHAMMER_Logic Core::CdlinvertedhammerLogic
-         #define TA_INT_CDLINVERTEDHAMMER Core::CdlinvertedhammerLogic

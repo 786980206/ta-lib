@@ -159,4 +159,3 @@
          #define TA_CDLSPINNINGTOP Core::Cdlspinningtop
          #define TA_CDLSPINNINGTOP_Lookback Core::CdlspinningtopLookback
          #define TA_CDLSPINNINGTOP_Logic Core::CdlspinningtopLogic
-         #define TA_INT_CDLSPINNINGTOP Core::CdlspinningtopLogic

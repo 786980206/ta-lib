@@ -280,8 +280,6 @@ TA_LIB_API TA_RetCode TA_CDLHAMMER_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHAMMER TA_CDLHAMMER_Unguarded
-
 TA_RetCode TA_S_CDLHAMMER( int    startIdx,
                            int    endIdx,
                            const float inOpen[],
@@ -507,6 +505,4 @@ TA_RetCode TA_S_CDLHAMMER_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLHAMMER TA_S_CDLHAMMER_Unguarded
 

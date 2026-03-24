@@ -152,17 +152,17 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
     // Guarded: validates params, delegates to unguarded
     out.push_str(&gen_guarded_func(func, &snake, enums, registry, helpers));
 
-    // Build a temporary FuncDef with unguarded_body as its body for the unguarded variant
-    let mut unguarded_func = func.clone();
-    unguarded_func.body.clone_from(&func.unguarded_body);
+    // Build a temporary FuncDef with private_body for the unguarded/private variants
+    let mut body_func = func.clone();
+    body_func.body.clone_from(&func.private_body);
 
-    // Collect variable type info from unguarded body for type inference
+    // Collect variable type info from private body for type inference
     let mut index_vars = std::collections::HashSet::new();
     let mut real_vars = std::collections::HashSet::new();
     let mut vec_vars = std::collections::HashSet::new();
     let mut real_array_vars = std::collections::HashSet::new();
     let mut int_vec_vars = std::collections::HashSet::new();
-    collect_var_types(&unguarded_func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars, &mut int_vec_vars);
+    collect_var_types(&body_func.body, &mut index_vars, &mut real_vars, &mut vec_vars, &mut real_array_vars, &mut int_vec_vars);
     // Also add parameter names
     index_vars.insert("startIdx".to_string());
     index_vars.insert("endIdx".to_string());
@@ -171,9 +171,9 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
 
     // Pre-scan for sentinel variables (assigned -1) — these must be i32, not usize
     let mut sentinel_vars = std::collections::HashSet::new();
-    collect_sentinel_vars(&unguarded_func.body, &mut sentinel_vars);
+    collect_sentinel_vars(&body_func.body, &mut sentinel_vars);
     // Also detect integer variables that participate in signed arithmetic (< 0, 0 - N)
-    collect_signed_int_vars(&unguarded_func.body, &index_vars, &mut sentinel_vars);
+    collect_signed_int_vars(&body_func.body, &index_vars, &mut sentinel_vars);
     // Remove sentinel/signed vars from index_vars — they're i32, not usize
     for sv in &sentinel_vars {
         index_vars.remove(sv);
@@ -185,7 +185,6 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         .map(|o| o.name.clone())
         .collect();
 
-    // Unguarded: real algorithm, get_unchecked array access, extra params
     let ctx = RustRenderCtx {
         unchecked: true,
         index_vars,
@@ -197,14 +196,25 @@ fn gen_impl_block(func: &FuncDef, enums: &HashMap<String, EnumDef>, registry: &R
         is_lookback: false,
         sentinel_vars,
     };
-    out.push_str(&gen_unguarded_func(
-        &unguarded_func,
-        &snake,
-        &ctx,
-        enums,
-        registry,
-        helpers,
-    ));
+
+    // For functions with explicit _private:
+    // 1. Generate _private (extra params, private_body) — generic, handles f32/f64
+    // 2. Generate _unguarded (same signature as guarded, delegates to _private via body)
+    // For functions without _private:
+    // 1. Generate _unguarded (private_body = copy of body, same as before)
+    if func.has_explicit_private {
+        out.push_str(&gen_private_func(
+            &body_func, &snake, &ctx, enums, registry, helpers,
+        ));
+        // Unguarded uses the guarded body (delegates to _private)
+        out.push_str(&gen_unguarded_func(
+            func, &snake, &ctx, enums, registry, helpers,
+        ));
+    } else {
+        out.push_str(&gen_unguarded_func(
+            &body_func, &snake, &ctx, enums, registry, helpers,
+        ));
+    }
 
     out.push_str("}\n");
     out
@@ -369,7 +379,7 @@ fn gen_guarded_func(
         out.push_str(&gen_opt_param_validation(opt, "        ", false));
     }
 
-    if func.has_explicit_unguarded {
+    if func.has_explicit_private {
         // The guarded body already contains delegation to _unguarded with extra params.
         // Render it directly (it includes pre-computation + delegation call).
         let mut g_index_vars = std::collections::HashSet::new();
@@ -611,8 +621,23 @@ fn gen_guarded_func(
     out
 }
 
-/// Generate the unguarded function: real algorithm with `get_unchecked` array access.
-/// Produces `pub fn {snake}_unguarded(...)` with body wrapped in a single `unsafe {}` block.
+/// Generate the _private function (generic, with extra params).
+/// Only generated for functions with `has_explicit_private`.
+#[allow(clippy::too_many_lines)]
+fn gen_private_func(
+    func: &FuncDef,
+    snake: &str,
+    ctx: &RustRenderCtx,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    gen_unguarded_or_private_func(func, snake, ctx, enums, registry, helpers, true)
+}
+
+/// Generate the unguarded function: same signature as guarded, no validation.
+/// For functions without _private: real algorithm with `get_unchecked` array access.
+/// For functions with _private: delegates to _private (uses guarded body).
 #[allow(clippy::too_many_lines)]
 fn gen_unguarded_func(
     func: &FuncDef,
@@ -622,8 +647,25 @@ fn gen_unguarded_func(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
+    gen_unguarded_or_private_func(func, snake, ctx, enums, registry, helpers, false)
+}
+
+#[allow(clippy::too_many_lines)]
+fn gen_unguarded_or_private_func(
+    func: &FuncDef,
+    snake: &str,
+    ctx: &RustRenderCtx,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+    is_private: bool,
+) -> String {
     let mut out = String::new();
-    let func_name = format!("{snake}_unguarded");
+    let func_name = if is_private {
+        format!("{snake}_private")
+    } else {
+        format!("{snake}_unguarded")
+    };
 
     // Function signature — always pub fn (unsafe is contained internally)
     // #[inline] enables cross-module inlining for cross-indicator calls
@@ -633,14 +675,16 @@ fn gen_unguarded_func(
     out.push_str("        mut startIdx: usize,\n");
     out.push_str("        endIdx: usize,\n");
     out.push_str(&gen_generic_params(func));
-    // Extra unguarded params (e.g., EMA's k factor)
-    for (param_name, c_type) in &func.unguarded_extra_params {
-        let rust_type = match c_type.as_str() {
-            "double" => "f64",
-            "int" => "i32",
-            other => panic!("Unknown C type '{other}' for extra param '{param_name}'"),
-        };
-        out.push_str(&format!("        {param_name}: {rust_type},\n"));
+    // Extra params only on _private variant (e.g., EMA's k factor)
+    if is_private {
+        for (param_name, c_type) in &func.private_extra_params {
+            let rust_type = match c_type.as_str() {
+                "double" => "f64",
+                "int" => "i32",
+                other => panic!("Unknown C type '{other}' for extra param '{param_name}'"),
+            };
+            out.push_str(&format!("        {param_name}: {rust_type},\n"));
+        }
     }
     out.push_str("        outBegIdx: &mut usize,\n");
     out.push_str("        outNBElement: &mut usize,\n");
@@ -3687,19 +3731,13 @@ fn render_func_call(
              match {rt} {{ 0 => ({close} - {open}).abs(), 1 => ({high}) - ({low}), _ => ({high}) - ({low}) - (({close}) - ({open})).abs() }} \
              }}) / (if ({rt}) == 2 {{ 2.0 }} else {{ 1.0 }}))"
         )
-    } else if registry.contains(fname) {
-        // In unguarded context, route to _unguarded to avoid re-validation + use get_unchecked.
-        // In guarded context, call the guarded variant (safe [] indexing).
-        // Exception: EMA has an extra k param in its _unguarded signature.
-        // Can't blindly route — signature mismatch unless caller passes k.
-        let has_extra_params = fname == "ema" && args.len() <= 7;
-        let suffix = if ctx.unchecked && !has_extra_params { "_unguarded" } else { "" };
+    } else if registry.contains(fname) || fname.ends_with("_private") {
+        // Cross-indicator call: use registry to resolve the function name.
+        // Bare names (ema) → ema_unguarded (skip validation).
+        // Private names (ema_private) → ema_private (generic, handles both f32/f64).
+        let resolved = registry.resolve_call(fname, crate::registry::Lang::Rust);
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}{}({})", fname.to_lowercase(), suffix, rendered_args.join(", "))
-    } else if fname.ends_with("_unguarded") {
-        // Explicit _unguarded cross-indicator call (e.g., ema_unguarded with extra params)
-        let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);
-        format!("self.{}({})", fname.to_lowercase(), rendered_args.join(", "))
+        format!("self.{}({})", resolved, rendered_args.join(", "))
     } else if is_ta_function(fname) {
         let rust_name = fname.to_lowercase();
         let rendered_args = render_cross_indicator_args(args, ctx, opt_real_params, registry, helpers);

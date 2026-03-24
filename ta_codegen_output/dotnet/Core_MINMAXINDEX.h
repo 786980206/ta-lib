@@ -143,4 +143,3 @@
          #define TA_MINMAXINDEX Core::Minmaxindex
          #define TA_MINMAXINDEX_Lookback Core::MinmaxindexLookback
          #define TA_MINMAXINDEX_Logic Core::MinmaxindexLogic
-         #define TA_INT_MINMAXINDEX Core::MinmaxindexLogic

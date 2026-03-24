@@ -111,4 +111,3 @@
          #define TA_COS Core::Cos
          #define TA_COS_Lookback Core::CosLookback
          #define TA_COS_Logic Core::CosLogic
-         #define TA_INT_COS Core::CosLogic

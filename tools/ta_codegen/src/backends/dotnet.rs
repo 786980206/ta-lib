@@ -12,34 +12,42 @@ pub fn generate(
 ) -> String {
     let mut out = String::new();
     let pascal = to_pascal_case(&func.name);
+    let extra_params: &[(String, String)] = &[];
 
     out.push_str(&gen_lookback(func, &pascal));
     out.push('\n');
+
+    // Private variant declarations (double-only, with extra params)
+    if func.has_explicit_private {
+        out.push_str(&gen_private(func, &pascal));
+        out.push('\n');
+    }
+
     out.push_str("#if defined( _MANAGED ) && defined( USE_SUBARRAY )\n");
-    out.push_str(&gen_subarray_decl(func, &pascal, false));
+    out.push_str(&gen_subarray_decl(func, &pascal, false, extra_params));
     out.push('\n');
-    out.push_str(&gen_subarray_decl(func, &pascal, true));
+    out.push_str(&gen_subarray_decl(func, &pascal, true, extra_params));
     out.push('\n');
-    out.push_str(&gen_cli_array_dispatch(func, &pascal, false));
-    out.push_str(&gen_cli_array_dispatch(func, &pascal, true));
+    out.push_str(&gen_cli_array_dispatch(func, &pascal, false, extra_params));
+    out.push_str(&gen_cli_array_dispatch(func, &pascal, true, extra_params));
     out.push_str("#elif defined( _MANAGED )\n");
-    out.push_str(&gen_cli_array_decl(func, &pascal, false));
-    out.push_str(&gen_cli_array_decl(func, &pascal, true));
+    out.push_str(&gen_cli_array_decl(func, &pascal, false, extra_params));
+    out.push_str(&gen_cli_array_decl(func, &pascal, true, extra_params));
     out.push_str("#endif\n");
     out.push('\n');
 
-    // Logic variant declarations (same signatures, different name)
+    // Logic variant declarations (same signatures as guarded, different name)
     out.push_str("#if defined( _MANAGED ) && defined( USE_SUBARRAY )\n");
     let logic_pascal = format!("{pascal}Logic");
-    out.push_str(&gen_subarray_decl(func, &logic_pascal, false));
+    out.push_str(&gen_subarray_decl(func, &logic_pascal, false, extra_params));
     out.push('\n');
-    out.push_str(&gen_subarray_decl(func, &logic_pascal, true));
+    out.push_str(&gen_subarray_decl(func, &logic_pascal, true, extra_params));
     out.push('\n');
-    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, false));
-    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, true));
+    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, false, extra_params));
+    out.push_str(&gen_cli_array_dispatch(func, &logic_pascal, true, extra_params));
     out.push_str("#elif defined( _MANAGED )\n");
-    out.push_str(&gen_cli_array_decl(func, &logic_pascal, false));
-    out.push_str(&gen_cli_array_decl(func, &logic_pascal, true));
+    out.push_str(&gen_cli_array_decl(func, &logic_pascal, false, extra_params));
+    out.push_str(&gen_cli_array_decl(func, &logic_pascal, true, extra_params));
     out.push_str("#endif\n");
     out.push('\n');
 
@@ -132,7 +140,27 @@ fn gen_lookback(func: &FuncDef, pascal: &str) -> String {
     format!("         static int {pascal}Lookback( {params} );\n")
 }
 
-fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> String {
+/// Generate Private variant declarations (double-only, with extra params).
+fn gen_private(func: &FuncDef, pascal: &str) -> String {
+    let private_pascal = format!("{pascal}Private");
+    let extra = &func.private_extra_params;
+    let mut out = String::new();
+    out.push_str("#if defined( _MANAGED ) && defined( USE_SUBARRAY )\n");
+    out.push_str(&gen_subarray_decl(func, &private_pascal, false, extra));
+    out.push('\n');
+    out.push_str(&gen_cli_array_dispatch(func, &private_pascal, false, extra));
+    out.push_str("#elif defined( _MANAGED )\n");
+    out.push_str(&gen_cli_array_decl(func, &private_pascal, false, extra));
+    out.push_str("#endif\n");
+    out
+}
+
+fn gen_subarray_decl(
+    func: &FuncDef,
+    pascal: &str,
+    single_precision: bool,
+    extra_params: &[(String, String)],
+) -> String {
     let mut params: Vec<String> = Vec::new();
     params.push("int    startIdx".to_string());
     params.push("int    endIdx".to_string());
@@ -147,6 +175,10 @@ fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> St
         params.push(format!("{} {}", typ, opt.name));
     }
 
+    for (param_name, c_type) in extra_params {
+        params.push(format!("{c_type} {param_name}"));
+    }
+
     params.push("[Out]int%    outBegIdx".to_string());
     params.push("[Out]int%    outNBElement".to_string());
 
@@ -158,7 +190,12 @@ fn gen_subarray_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> St
     format_decl(pascal, &params)
 }
 
-fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) -> String {
+fn gen_cli_array_dispatch(
+    func: &FuncDef,
+    pascal: &str,
+    single_precision: bool,
+    extra_params: &[(String, String)],
+) -> String {
     let mut params: Vec<String> = Vec::new();
     params.push("int    startIdx".to_string());
     params.push("int    endIdx".to_string());
@@ -171,6 +208,10 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
     for opt in &func.optional_inputs {
         let typ = opt_input_type(&opt.param_type);
         params.push(format!("{} {}", typ, opt.name));
+    }
+
+    for (param_name, c_type) in extra_params {
+        params.push(format!("{c_type} {param_name}"));
     }
 
     params.push("[Out]int%    outBegIdx".to_string());
@@ -200,6 +241,11 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
         out.push_str(&format!("                         {},\n", opt.name));
     }
 
+    // Pass through extra params
+    for (param_name, _) in extra_params {
+        out.push_str(&format!("                         {param_name},\n"));
+    }
+
     // Pass through output scalars
     out.push_str("             outBegIdx,\n");
     out.push_str("             outNBElement,\n");
@@ -225,7 +271,12 @@ fn gen_cli_array_dispatch(func: &FuncDef, pascal: &str, single_precision: bool) 
     out
 }
 
-fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> String {
+fn gen_cli_array_decl(
+    func: &FuncDef,
+    pascal: &str,
+    single_precision: bool,
+    extra_params: &[(String, String)],
+) -> String {
     let mut params: Vec<String> = Vec::new();
     params.push("int    startIdx".to_string());
     params.push("int    endIdx".to_string());
@@ -240,6 +291,10 @@ fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> S
         params.push(format!("{} {}", typ, opt.name));
     }
 
+    for (param_name, c_type) in extra_params {
+        params.push(format!("{c_type} {param_name}"));
+    }
+
     params.push("[Out]int%    outBegIdx".to_string());
     params.push("[Out]int%    outNBElement".to_string());
 
@@ -251,14 +306,19 @@ fn gen_cli_array_decl(func: &FuncDef, pascal: &str, single_precision: bool) -> S
     format_decl(pascal, &params)
 }
 
-fn gen_macros(_func: &FuncDef, pascal: &str) -> String {
+fn gen_macros(func: &FuncDef, pascal: &str) -> String {
     let upper = pascal.to_uppercase();
-    format!(
+    let mut out = format!(
         "         #define TA_{upper} Core::{pascal}\n\
          \x20        #define TA_{upper}_Lookback Core::{pascal}Lookback\n\
-         \x20        #define TA_{upper}_Logic Core::{pascal}Logic\n\
-         \x20        #define TA_INT_{upper} Core::{pascal}Logic\n"
-    )
+         \x20        #define TA_{upper}_Logic Core::{pascal}Logic\n"
+    );
+    if func.has_explicit_private {
+        out.push_str(&format!(
+            "         #define TA_{upper}_Private Core::{pascal}Private\n"
+        ));
+    }
+    out
 }
 
 /// Format a declaration-only signature (semicolon terminated).
@@ -324,10 +384,10 @@ mod tests {
         // Should contain logic variant declaration
         assert!(output.contains("SmaLogic("), "Missing SmaLogic declaration");
 
-        // Should contain the TA_INT_SMA macro
+        // TA_INT_* macros are no longer generated
         assert!(
-            output.contains("#define TA_INT_SMA"),
-            "Missing #define TA_INT_SMA"
+            !output.contains("#define TA_INT_SMA"),
+            "Should NOT have #define TA_INT_SMA"
         );
 
         // Should contain the TA_SMA_Logic macro
@@ -336,10 +396,97 @@ mod tests {
             "Missing #define TA_SMA_Logic"
         );
 
-        // Should contain the TA_INT_SMA macro pointing to Core::SmaLogic
+        // SMA has no explicit private, so no Private variant or macro
         assert!(
-            output.contains("#define TA_INT_SMA Core::SmaLogic"),
-            "Missing #define TA_INT_SMA Core::SmaLogic"
+            !output.contains("SmaPrivate("),
+            "SMA should NOT have Private variant"
+        );
+        assert!(
+            !output.contains("#define TA_SMA_Private"),
+            "SMA should NOT have TA_SMA_Private macro"
+        );
+    }
+
+    fn load_ema() -> FuncDef {
+        let base = Path::new(env!("CARGO_MANIFEST_DIR"));
+        let yaml_path = base.join("../../ta_func_defs/ema/ema.yaml");
+        let c_path = base.join("../../ta_func_defs/ema/ema.c");
+        let mut func_def = parser::yaml::parse_yaml(&yaml_path);
+        let parsed = parser::c_source::parse_c_source(&c_path);
+
+        // Mirror main.rs wire_parsed_source: find guarded (non-_private) function
+        let guarded = parsed
+            .functions
+            .iter()
+            .find(|f| !f.name.ends_with("_private"))
+            .expect("must have guarded function");
+        func_def.body = guarded.body.clone();
+        func_def.lookback = Some(crate::ir::LookbackExpr::Code(parsed.lookback_body));
+
+        // Detect explicit _private variant (mirrors main.rs)
+        if let Some(priv_fn) =
+            parsed.functions.iter().find(|f| f.name.ends_with("_private"))
+        {
+            func_def.private_body = priv_fn.body.clone();
+            func_def.has_explicit_private = true;
+            let guarded_param_names: std::collections::HashSet<_> =
+                guarded.params.iter().map(|(name, _)| name.clone()).collect();
+            func_def.private_extra_params = priv_fn
+                .params
+                .iter()
+                .filter(|(name, _)| !guarded_param_names.contains(name))
+                .cloned()
+                .collect();
+        } else {
+            func_def.private_body = func_def.body.clone();
+        }
+
+        func_def
+    }
+
+    #[test]
+    fn test_dotnet_generates_private_declarations() {
+        let func = load_ema();
+        let enums = HashMap::new();
+        let registry = make_registry();
+        let output = generate(&func, &enums, &registry, &HelperRegistry::empty());
+
+        // Should contain Private variant declaration with extra params
+        assert!(
+            output.contains("EmaPrivate("),
+            "Missing EmaPrivate declaration"
+        );
+        // Extra param (optInK_1) should appear in Private declaration
+        assert!(
+            output.contains("optInK_1"),
+            "EmaPrivate should include optInK_1 extra param"
+        );
+
+        // Should contain TA_EMA_Private macro
+        assert!(
+            output.contains("#define TA_EMA_Private Core::EmaPrivate"),
+            "Missing #define TA_EMA_Private"
+        );
+
+        // Logic and guarded variants should NOT contain extra params
+        // Find the EmaLogic and Ema declarations and verify they don't have optInK_1
+        // Split output at EmaPrivate to isolate the non-private sections
+        let after_private = output
+            .split("EmaPrivate")
+            .last()
+            .unwrap_or("");
+        // The Ema( and EmaLogic( declarations come after EmaPrivate
+        // Check that optInK_1 does NOT appear in those sections' signatures
+        // (it should only appear in the #define TA_EMA_Private line)
+        let lines_with_k1: Vec<&str> = after_private
+            .lines()
+            .filter(|l| l.contains("optInK_1") && !l.contains("#define"))
+            .collect();
+        assert!(
+            lines_with_k1.is_empty(),
+            "optInK_1 should only appear in Private declarations and macros, \
+             but found in: {:?}",
+            lines_with_k1
         );
     }
 }

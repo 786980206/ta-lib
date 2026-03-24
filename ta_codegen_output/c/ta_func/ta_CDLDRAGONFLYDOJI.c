@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLDRAGONFLYDOJI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLDRAGONFLYDOJI TA_CDLDRAGONFLYDOJI_Unguarded
-
 TA_RetCode TA_S_CDLDRAGONFLYDOJI( int    startIdx,
                                   int    endIdx,
                                   const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLDRAGONFLYDOJI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLDRAGONFLYDOJI TA_S_CDLDRAGONFLYDOJI_Unguarded
 

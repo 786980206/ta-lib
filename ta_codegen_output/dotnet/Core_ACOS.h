@@ -111,4 +111,3 @@
          #define TA_ACOS Core::Acos
          #define TA_ACOS_Lookback Core::AcosLookback
          #define TA_ACOS_Logic Core::AcosLogic
-         #define TA_INT_ACOS Core::AcosLogic

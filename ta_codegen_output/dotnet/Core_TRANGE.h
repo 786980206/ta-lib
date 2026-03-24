@@ -143,4 +143,3 @@
          #define TA_TRANGE Core::Trange
          #define TA_TRANGE_Lookback Core::TrangeLookback
          #define TA_TRANGE_Logic Core::TrangeLogic
-         #define TA_INT_TRANGE Core::TrangeLogic

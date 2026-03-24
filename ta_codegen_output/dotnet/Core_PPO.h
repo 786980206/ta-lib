@@ -159,4 +159,3 @@
          #define TA_PPO Core::Ppo
          #define TA_PPO_Lookback Core::PpoLookback
          #define TA_PPO_Logic Core::PpoLogic
-         #define TA_INT_PPO Core::PpoLogic

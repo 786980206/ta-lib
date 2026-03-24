@@ -159,4 +159,3 @@
          #define TA_CDL3WHITESOLDIERS Core::Cdl3whitesoldiers
          #define TA_CDL3WHITESOLDIERS_Lookback Core::Cdl3whitesoldiersLookback
          #define TA_CDL3WHITESOLDIERS_Logic Core::Cdl3whitesoldiersLogic
-         #define TA_INT_CDL3WHITESOLDIERS Core::Cdl3whitesoldiersLogic

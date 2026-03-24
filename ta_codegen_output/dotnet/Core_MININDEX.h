@@ -127,4 +127,3 @@
          #define TA_MININDEX Core::Minindex
          #define TA_MININDEX_Lookback Core::MinindexLookback
          #define TA_MININDEX_Logic Core::MinindexLogic
-         #define TA_INT_MININDEX Core::MinindexLogic

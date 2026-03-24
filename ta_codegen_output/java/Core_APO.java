@@ -35,9 +35,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -74,9 +74,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -119,9 +119,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {
@@ -158,9 +158,9 @@
          optInSlowPeriod = optInFastPeriod;
          optInFastPeriod = tempInteger;
       }
-      retCode = ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
+      retCode = maLogic(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, outBegIdx2, outNbElement2, tempBuffer);
       if( (retCode==RetCode.Success) ) {
-         retCode = ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
+         retCode = maLogic(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, outBegIdx1, outNbElement1, outReal);
          if( (retCode==RetCode.Success) ) {
             tempInteger = (outBegIdx1.value-outBegIdx2.value);
             for( i = 0, j = tempInteger; (i<outNbElement1.value); i += 1, j += 1 ) {

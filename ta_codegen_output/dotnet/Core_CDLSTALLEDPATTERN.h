@@ -159,4 +159,3 @@
          #define TA_CDLSTALLEDPATTERN Core::Cdlstalledpattern
          #define TA_CDLSTALLEDPATTERN_Lookback Core::CdlstalledpatternLookback
          #define TA_CDLSTALLEDPATTERN_Logic Core::CdlstalledpatternLogic
-         #define TA_INT_CDLSTALLEDPATTERN Core::CdlstalledpatternLogic

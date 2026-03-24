@@ -159,4 +159,3 @@
          #define TA_CDLHARAMICROSS Core::Cdlharamicross
          #define TA_CDLHARAMICROSS_Lookback Core::CdlharamicrossLookback
          #define TA_CDLHARAMICROSS_Logic Core::CdlharamicrossLogic
-         #define TA_INT_CDLHARAMICROSS Core::CdlharamicrossLogic

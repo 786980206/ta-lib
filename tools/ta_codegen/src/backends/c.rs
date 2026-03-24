@@ -23,34 +23,19 @@ pub fn generate(
     out.push_str(&gen_header(func));
     out.push_str(&gen_lookback(func, enums, registry, helpers));
 
-    // For functions with explicit unguarded (extra params), emit Logic BEFORE guarded
-    // so the C compiler knows the Logic signature when guarded body calls TA_INT_*.
-    if func.has_explicit_unguarded {
+    // For functions with explicit _private, emit Private and Logic BEFORE guarded
+    // so the C compiler knows the signatures when the guarded body calls them.
+    if func.has_explicit_private {
+        out.push_str(&gen_private(func, enums, registry, helpers)); // double-only private
         out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
-        out.push_str(&format!(
-            "#define TA_INT_{} TA_{}_Unguarded\n\n",
-            func.name, func.name
-        ));
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
         out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
-        out.push_str(&format!(
-            "#define TA_S_INT_{} TA_S_{}_Unguarded\n\n",
-            func.name, func.name
-        ));
         out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
     } else {
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
         out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
-        out.push_str(&format!(
-            "#define TA_INT_{} TA_{}_Unguarded\n\n",
-            func.name, func.name
-        ));
         out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
         out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
-        out.push_str(&format!(
-            "#define TA_S_INT_{} TA_S_{}_Unguarded\n\n",
-            func.name, func.name
-        ));
     }
     out
 }
@@ -151,6 +136,18 @@ fn gen_lookback(
     )
 }
 
+/// Generate the double-only `TA_{NAME}_Private` function variant.
+/// Same body and params as `gen_func(logic=true)` but with `_Private` naming.
+fn gen_private(
+    func: &FuncDef,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    let name_override = format!("TA_{}_Private", func.name);
+    gen_func_inner(func, false, true, Some(&name_override), enums, registry, helpers)
+}
+
 #[allow(clippy::too_many_lines)]
 fn gen_func(
     func: &FuncDef,
@@ -160,13 +157,30 @@ fn gen_func(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
+    gen_func_inner(func, single_precision, logic, None, enums, registry, helpers)
+}
+
+#[allow(clippy::too_many_lines)]
+fn gen_func_inner(
+    func: &FuncDef,
+    single_precision: bool,
+    logic: bool,
+    name_override: Option<&str>,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
     let mut out = String::new();
 
-    let prefix = match (single_precision, logic) {
-        (false, false) => format!("TA_{}", func.name),
-        (false, true) => format!("TA_{}_Unguarded", func.name),
-        (true, false) => format!("TA_S_{}", func.name),
-        (true, true) => format!("TA_S_{}_Unguarded", func.name),
+    let prefix = if let Some(name) = name_override {
+        name.to_string()
+    } else {
+        match (single_precision, logic) {
+            (false, false) => format!("TA_{}", func.name),
+            (false, true) => format!("TA_{}_Unguarded", func.name),
+            (true, false) => format!("TA_S_{}", func.name),
+            (true, true) => format!("TA_S_{}_Unguarded", func.name),
+        }
     };
 
     let ret_type = if single_precision {
@@ -205,9 +219,9 @@ fn gen_func(
         params.push(format!("{} {}", c_type, opt.name));
     }
 
-    // Extra unguarded params (e.g., EMA's k factor) — only on Logic variant
-    if logic {
-        for (param_name, c_type) in &func.unguarded_extra_params {
+    // Extra params only on _Private variant (via name_override)
+    if name_override.is_some() {
+        for (param_name, c_type) in &func.private_extra_params {
             params.push(format!("{c_type} {param_name}"));
         }
     }
@@ -238,15 +252,45 @@ fn gen_func(
     // Function body
     out.push_str("{\n");
 
-    // Use unguarded_body for Logic variant, body for guarded
-    let body = if logic { &func.unguarded_body } else { &func.body };
+    // Body selection:
+    // - Private variant (name_override set): always private_body
+    // - S_ variants with explicit _private: inline private_body (can't call double-only Private)
+    // - Double variants with explicit _private (guarded OR logic): body delegates to TA_*_Private
+    // - Logic without _private: private_body (auto-copied from body, same content)
+    // - Guarded without _private: body
+    let body = if name_override.is_some() {
+        &func.private_body  // Private variant: actual computation body
+    } else if single_precision && func.has_explicit_private {
+        &func.private_body  // S_ variants: inline private body
+    } else if func.has_explicit_private {
+        &func.body          // double guarded/logic: body delegates to _Private
+    } else if logic {
+        &func.private_body  // logic variant without _private
+    } else {
+        &func.body          // guarded without _private
+    };
 
     // Declare local variables from body (deduplicated)
     let mut declared_vars: Vec<String> = Vec::new();
     for stmt in body {
         emit_c_var_decls(stmt, &mut out, &mut declared_vars);
     }
-    // Return statements are handled by body rendering; skip has no standalone decls.
+
+    // For S_ variants with explicit _private: emit private_param_init as local VarDecls.
+    // These provide the extra params (e.g., k factor) that the inlined private body needs.
+    // Both guarded and logic S_ variants need this (both use private_body).
+    if single_precision && func.has_explicit_private && name_override.is_none() {
+        for (param_name, init_expr) in &func.private_param_init {
+            let c_type = func
+                .private_extra_params
+                .iter()
+                .find(|(n, _)| n == param_name)
+                .map_or("double", |(_, t)| t.as_str());
+            let init_c = render_expr(init_expr, single_precision, registry, helpers);
+            out.push_str(&format!("   {c_type} {param_name} = {init_c};\n"));
+            declared_vars.push(param_name.clone());
+        }
+    }
 
     // Emit candle settings unpacking (only for referenced settings)
     let candle_used = detect_candle_settings(body);
@@ -1687,7 +1731,8 @@ mod tests {
         assert!(output.contains("TA_SMA_Lookback"), "Missing lookback");
         assert!(output.contains("TA_SMA("), "Missing guarded function");
         assert!(output.contains("TA_SMA_Unguarded("), "Missing logic function");
-        assert!(output.contains("TA_INT_SMA"), "Missing INT alias");
+        // TA_INT_* macros are no longer generated
+        assert!(!output.contains("TA_INT_SMA"), "Should not have TA_INT_ alias");
         assert!(output.contains("TA_S_SMA("), "Missing single-precision");
         assert!(
             output.contains("TA_S_SMA_Unguarded("),
@@ -1723,9 +1768,11 @@ mod tests {
             "Guarded should have end index check"
         );
 
-        // Logic function should NOT have range checks (check just the first part before the next function)
+        // Logic function should NOT have range checks
+        // Find end of the logic function body (before the next function)
         let logic_end = logic_body
-            .find("#define TA_INT_SMA")
+            .find("TA_LIB_API")
+            .or_else(|| logic_body.find("TA_RetCode TA_S_"))
             .unwrap_or(logic_body.len());
         let logic_section = &logic_body[..logic_end];
         assert!(
@@ -1739,14 +1786,19 @@ mod tests {
     }
 
     #[test]
-    fn test_c_int_alias() {
+    fn test_c_no_int_alias() {
+        // Verify TA_INT_* macros are no longer generated
         let (func, enums) = load_func("sma");
         let registry = make_registry();
         let output = generate(&func, &enums, &registry, &HelperRegistry::empty());
 
         assert!(
-            output.contains("#define TA_INT_SMA TA_SMA_Unguarded"),
-            "Missing INT alias define"
+            !output.contains("#define TA_INT_"),
+            "Should not generate TA_INT_ macros"
+        );
+        assert!(
+            !output.contains("#define TA_S_INT_"),
+            "Should not generate TA_S_INT_ macros"
         );
     }
 
@@ -1767,14 +1819,14 @@ mod tests {
             "ema_lookback should resolve to TA_EMA_Lookback"
         );
 
-        // bare sma and ema calls should resolve to guarded TA_SMA and TA_EMA
+        // bare sma and ema calls resolve to Unguarded (cross-indicator = skip validation)
         assert!(
-            output.contains("TA_SMA("),
-            "sma should resolve to TA_SMA"
+            output.contains("TA_SMA_Unguarded("),
+            "sma should resolve to TA_SMA_Unguarded"
         );
         assert!(
-            output.contains("TA_EMA("),
-            "ema should resolve to TA_EMA"
+            output.contains("TA_EMA_Unguarded("),
+            "ema should resolve to TA_EMA_Unguarded"
         );
     }
 }

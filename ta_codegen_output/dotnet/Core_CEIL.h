@@ -111,4 +111,3 @@
          #define TA_CEIL Core::Ceil
          #define TA_CEIL_Lookback Core::CeilLookback
          #define TA_CEIL_Logic Core::CeilLogic
-         #define TA_INT_CEIL Core::CeilLogic

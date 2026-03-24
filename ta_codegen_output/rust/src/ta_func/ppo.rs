@@ -123,9 +123,9 @@ impl Core {
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
-        retCode = self.ma(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
+        retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInFastPeriod, optInMAType, &mut outBegIdx2, &mut outNbElement2, &mut tempBuffer[..]);
         if retCode == RetCode::Success {
-            retCode = self.ma(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
+            retCode = self.ma_unguarded(startIdx, endIdx, inReal, optInSlowPeriod, optInMAType, &mut outBegIdx1, &mut outNbElement1, outReal);
             if retCode == RetCode::Success {
                 tempInteger = outBegIdx1 - outBegIdx2;
                 // for( i = 0, j = tempInteger; i < outNbElement1; i += 1, j += 1 )

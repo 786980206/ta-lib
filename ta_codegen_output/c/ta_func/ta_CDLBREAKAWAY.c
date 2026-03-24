@@ -181,8 +181,6 @@ TA_LIB_API TA_RetCode TA_CDLBREAKAWAY_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLBREAKAWAY TA_CDLBREAKAWAY_Unguarded
-
 TA_RetCode TA_S_CDLBREAKAWAY( int    startIdx,
                               int    endIdx,
                               const float inOpen[],
@@ -318,6 +316,4 @@ TA_RetCode TA_S_CDLBREAKAWAY_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLBREAKAWAY TA_S_CDLBREAKAWAY_Unguarded
 

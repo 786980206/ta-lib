@@ -236,8 +236,6 @@ TA_LIB_API TA_RetCode TA_CDLMATHOLD_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLMATHOLD TA_CDLMATHOLD_Unguarded
-
 TA_RetCode TA_S_CDLMATHOLD( int    startIdx,
                             int    endIdx,
                             const float inOpen[],
@@ -425,6 +423,4 @@ TA_RetCode TA_S_CDLMATHOLD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLMATHOLD TA_S_CDLMATHOLD_Unguarded
 

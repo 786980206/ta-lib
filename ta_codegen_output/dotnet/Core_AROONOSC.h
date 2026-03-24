@@ -143,4 +143,3 @@
          #define TA_AROONOSC Core::Aroonosc
          #define TA_AROONOSC_Lookback Core::AroonoscLookback
          #define TA_AROONOSC_Logic Core::AroonoscLogic
-         #define TA_INT_AROONOSC Core::AroonoscLogic

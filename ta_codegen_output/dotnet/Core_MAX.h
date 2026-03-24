@@ -127,4 +127,3 @@
          #define TA_MAX Core::Max
          #define TA_MAX_Lookback Core::MaxLookback
          #define TA_MAX_Logic Core::MaxLogic
-         #define TA_INT_MAX Core::MaxLogic

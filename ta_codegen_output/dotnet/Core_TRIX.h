@@ -127,4 +127,3 @@
          #define TA_TRIX Core::Trix
          #define TA_TRIX_Lookback Core::TrixLookback
          #define TA_TRIX_Logic Core::TrixLogic
-         #define TA_INT_TRIX Core::TrixLogic

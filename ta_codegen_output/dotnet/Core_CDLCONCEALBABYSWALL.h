@@ -159,4 +159,3 @@
          #define TA_CDLCONCEALBABYSWALL Core::Cdlconcealbabyswall
          #define TA_CDLCONCEALBABYSWALL_Lookback Core::CdlconcealbabyswallLookback
          #define TA_CDLCONCEALBABYSWALL_Logic Core::CdlconcealbabyswallLogic
-         #define TA_INT_CDLCONCEALBABYSWALL Core::CdlconcealbabyswallLogic

@@ -158,8 +158,6 @@ TA_LIB_API TA_RetCode TA_AVGDEV_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_AVGDEV TA_AVGDEV_Unguarded
-
 TA_RetCode TA_S_AVGDEV( int    startIdx,
                         int    endIdx,
                         const float inReal[],
@@ -275,6 +273,4 @@ TA_RetCode TA_S_AVGDEV_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_AVGDEV TA_S_AVGDEV_Unguarded
 

@@ -159,4 +159,3 @@
          #define TA_CDLSHOOTINGSTAR Core::Cdlshootingstar
          #define TA_CDLSHOOTINGSTAR_Lookback Core::CdlshootingstarLookback
          #define TA_CDLSHOOTINGSTAR_Logic Core::CdlshootingstarLogic
-         #define TA_INT_CDLSHOOTINGSTAR Core::CdlshootingstarLogic

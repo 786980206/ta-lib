@@ -253,8 +253,6 @@ TA_LIB_API TA_RetCode TA_CDLEVENINGDOJISTAR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLEVENINGDOJISTAR TA_CDLEVENINGDOJISTAR_Unguarded
-
 TA_RetCode TA_S_CDLEVENINGDOJISTAR( int    startIdx,
                                     int    endIdx,
                                     const float inOpen[],
@@ -456,6 +454,4 @@ TA_RetCode TA_S_CDLEVENINGDOJISTAR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLEVENINGDOJISTAR TA_S_CDLEVENINGDOJISTAR_Unguarded
 

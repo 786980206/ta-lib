@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLMARUBOZU_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLMARUBOZU TA_CDLMARUBOZU_Unguarded
-
 TA_RetCode TA_S_CDLMARUBOZU( int    startIdx,
                              int    endIdx,
                              const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLMARUBOZU_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLMARUBOZU TA_S_CDLMARUBOZU_Unguarded
 

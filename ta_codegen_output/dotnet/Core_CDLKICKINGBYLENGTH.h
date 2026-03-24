@@ -159,4 +159,3 @@
          #define TA_CDLKICKINGBYLENGTH Core::Cdlkickingbylength
          #define TA_CDLKICKINGBYLENGTH_Lookback Core::CdlkickingbylengthLookback
          #define TA_CDLKICKINGBYLENGTH_Logic Core::CdlkickingbylengthLogic
-         #define TA_INT_CDLKICKINGBYLENGTH Core::CdlkickingbylengthLogic

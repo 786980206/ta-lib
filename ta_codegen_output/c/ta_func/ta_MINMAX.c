@@ -246,8 +246,6 @@ TA_LIB_API TA_RetCode TA_MINMAX_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINMAX TA_MINMAX_Unguarded
-
 TA_RetCode TA_S_MINMAX( int    startIdx,
                         int    endIdx,
                         const float inReal[],
@@ -451,6 +449,4 @@ TA_RetCode TA_S_MINMAX_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MINMAX TA_S_MINMAX_Unguarded
 

@@ -143,4 +143,3 @@
          #define TA_MIDPRICE Core::Midprice
          #define TA_MIDPRICE_Lookback Core::MidpriceLookback
          #define TA_MIDPRICE_Logic Core::MidpriceLogic
-         #define TA_INT_MIDPRICE Core::MidpriceLogic

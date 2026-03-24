@@ -146,8 +146,6 @@ TA_LIB_API TA_RetCode TA_ROCR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ROCR TA_ROCR_Unguarded
-
 TA_RetCode TA_S_ROCR( int    startIdx,
                       int    endIdx,
                       const float inReal[],
@@ -251,6 +249,4 @@ TA_RetCode TA_S_ROCR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ROCR TA_S_ROCR_Unguarded
 

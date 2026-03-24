@@ -19,8 +19,9 @@ pub fn generate_c_bench(funcs: &[FuncDef]) -> String {
     s.push_str("#include <math.h>\n#include <time.h>\n");
     s.push_str("#ifdef __APPLE__\n#include <mach/mach_time.h>\n#endif\n\n");
 
-    // Include ta_func_unguarded.h first for TA_INT_* macros
-    s.push_str("#include \"ta_func_unguarded.h\"\n\n");
+    // Include headers for unguarded and private function declarations
+    s.push_str("#include \"ta_func_unguarded.h\"\n");
+    s.push_str("#include \"ta_func/ta_func_private.h\"\n\n");
     // Globals + indicator includes (same single-TU pattern as server)
     s.push_str("#include \"ta_common/ta_global.c\"\n");
     s.push_str("#include \"ta_common/ta_utility.c\"\n");

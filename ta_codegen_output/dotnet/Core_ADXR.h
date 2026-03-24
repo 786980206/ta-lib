@@ -159,4 +159,3 @@
          #define TA_ADXR Core::Adxr
          #define TA_ADXR_Lookback Core::AdxrLookback
          #define TA_ADXR_Logic Core::AdxrLogic
-         #define TA_INT_ADXR Core::AdxrLogic

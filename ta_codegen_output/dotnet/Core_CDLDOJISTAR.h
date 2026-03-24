@@ -159,4 +159,3 @@
          #define TA_CDLDOJISTAR Core::Cdldojistar
          #define TA_CDLDOJISTAR_Lookback Core::CdldojistarLookback
          #define TA_CDLDOJISTAR_Logic Core::CdldojistarLogic
-         #define TA_INT_CDLDOJISTAR Core::CdldojistarLogic

@@ -191,4 +191,3 @@
          #define TA_ULTOSC Core::Ultosc
          #define TA_ULTOSC_Lookback Core::UltoscLookback
          #define TA_ULTOSC_Logic Core::UltoscLogic
-         #define TA_INT_ULTOSC Core::UltoscLogic

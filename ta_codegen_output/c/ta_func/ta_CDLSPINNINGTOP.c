@@ -179,8 +179,6 @@ TA_LIB_API TA_RetCode TA_CDLSPINNINGTOP_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLSPINNINGTOP TA_CDLSPINNINGTOP_Unguarded
-
 TA_RetCode TA_S_CDLSPINNINGTOP( int    startIdx,
                                 int    endIdx,
                                 const float inOpen[],
@@ -314,6 +312,4 @@ TA_RetCode TA_S_CDLSPINNINGTOP_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLSPINNINGTOP TA_S_CDLSPINNINGTOP_Unguarded
 

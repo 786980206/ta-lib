@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLCLOSINGMARUBOZU_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLCLOSINGMARUBOZU TA_CDLCLOSINGMARUBOZU_Unguarded
-
 TA_RetCode TA_S_CDLCLOSINGMARUBOZU( int    startIdx,
                                     int    endIdx,
                                     const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLCLOSINGMARUBOZU_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLCLOSINGMARUBOZU TA_S_CDLCLOSINGMARUBOZU_Unguarded
 

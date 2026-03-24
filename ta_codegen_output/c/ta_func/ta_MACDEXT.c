@@ -155,7 +155,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_MA(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
+   retCode = TA_MA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -164,7 +164,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
       free(slowMABuffer);
       return retCode;
    }
-   retCode = TA_MA(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
+   retCode = TA_MA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -186,7 +186,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT( int    startIdx,
       fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
    }
    memcpy(outMACD,&fastMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_MA(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_MA_Unguarded(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastMABuffer);
    free(slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -279,7 +279,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_MA(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
+   retCode = TA_MA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -288,7 +288,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
       free(slowMABuffer);
       return retCode;
    }
-   retCode = TA_MA(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
+   retCode = TA_MA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -310,7 +310,7 @@ TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
       fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
    }
    memcpy(outMACD,&fastMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_MA(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_MA_Unguarded(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastMABuffer);
    free(slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -329,8 +329,6 @@ TA_LIB_API TA_RetCode TA_MACDEXT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_MACDEXT TA_MACDEXT_Unguarded
 
 TA_RetCode TA_S_MACDEXT( int    startIdx,
                          int    endIdx,
@@ -437,7 +435,7 @@ TA_RetCode TA_S_MACDEXT( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_S_MA(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
+   retCode = TA_S_MA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -446,7 +444,7 @@ TA_RetCode TA_S_MACDEXT( int    startIdx,
       free(slowMABuffer);
       return retCode;
    }
-   retCode = TA_S_MA(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
+   retCode = TA_S_MA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -468,7 +466,7 @@ TA_RetCode TA_S_MACDEXT( int    startIdx,
       fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
    }
    memcpy(outMACD,&fastMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_MA(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_MA_Unguarded(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastMABuffer);
    free(slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -561,7 +559,7 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_S_MA(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
+   retCode = TA_S_MA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,optInSlowMAType,&outBegIdx1,&outNbElement1,slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -570,7 +568,7 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
       free(slowMABuffer);
       return retCode;
    }
-   retCode = TA_S_MA(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
+   retCode = TA_S_MA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,optInFastMAType,&outBegIdx2,&outNbElement2,fastMABuffer);
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -592,7 +590,7 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
       fastMABuffer[i] = (fastMABuffer[i]-slowMABuffer[i]);
    }
    memcpy(outMACD,&fastMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_MA(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_MA_Unguarded(0,(outNbElement1-1),fastMABuffer,optInSignalPeriod,optInSignalMAType,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastMABuffer);
    free(slowMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -611,6 +609,4 @@ TA_RetCode TA_S_MACDEXT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MACDEXT TA_S_MACDEXT_Unguarded
 

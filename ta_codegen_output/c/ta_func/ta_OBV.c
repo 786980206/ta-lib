@@ -128,8 +128,6 @@ TA_LIB_API TA_RetCode TA_OBV_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_OBV TA_OBV_Unguarded
-
 TA_RetCode TA_S_OBV( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -215,6 +213,4 @@ TA_RetCode TA_S_OBV_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_OBV TA_S_OBV_Unguarded
 

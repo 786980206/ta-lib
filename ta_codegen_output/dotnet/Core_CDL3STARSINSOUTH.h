@@ -159,4 +159,3 @@
          #define TA_CDL3STARSINSOUTH Core::Cdl3starsinsouth
          #define TA_CDL3STARSINSOUTH_Lookback Core::Cdl3starsinsouthLookback
          #define TA_CDL3STARSINSOUTH_Logic Core::Cdl3starsinsouthLogic
-         #define TA_INT_CDL3STARSINSOUTH Core::Cdl3starsinsouthLogic

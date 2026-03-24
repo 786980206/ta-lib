@@ -111,4 +111,3 @@
          #define TA_COSH Core::Cosh
          #define TA_COSH_Lookback Core::CoshLookback
          #define TA_COSH_Logic Core::CoshLogic
-         #define TA_INT_COSH Core::CoshLogic

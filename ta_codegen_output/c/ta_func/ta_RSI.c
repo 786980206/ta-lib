@@ -402,8 +402,6 @@ TA_LIB_API TA_RetCode TA_RSI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_RSI TA_RSI_Unguarded
-
 TA_RetCode TA_S_RSI( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -757,6 +755,4 @@ TA_RetCode TA_S_RSI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_RSI TA_S_RSI_Unguarded
 

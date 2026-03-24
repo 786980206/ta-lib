@@ -270,8 +270,6 @@ TA_LIB_API TA_RetCode TA_WILLR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_WILLR TA_WILLR_Unguarded
-
 TA_RetCode TA_S_WILLR( int    startIdx,
                        int    endIdx,
                        const float inHigh[],
@@ -499,6 +497,4 @@ TA_RetCode TA_S_WILLR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_WILLR TA_S_WILLR_Unguarded
 

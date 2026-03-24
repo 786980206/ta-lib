@@ -159,4 +159,3 @@
          #define TA_CDLTRISTAR Core::Cdltristar
          #define TA_CDLTRISTAR_Lookback Core::CdltristarLookback
          #define TA_CDLTRISTAR_Logic Core::CdltristarLogic
-         #define TA_INT_CDLTRISTAR Core::CdltristarLogic

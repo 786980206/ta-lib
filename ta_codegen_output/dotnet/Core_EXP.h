@@ -111,4 +111,3 @@
          #define TA_EXP Core::Exp
          #define TA_EXP_Lookback Core::ExpLookback
          #define TA_EXP_Logic Core::ExpLogic
-         #define TA_INT_EXP Core::ExpLogic

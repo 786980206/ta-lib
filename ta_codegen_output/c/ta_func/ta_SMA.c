@@ -166,8 +166,6 @@ TA_LIB_API TA_RetCode TA_SMA_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_SMA TA_SMA_Unguarded
-
 TA_RetCode TA_S_SMA( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -291,6 +289,4 @@ TA_RetCode TA_S_SMA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_SMA TA_S_SMA_Unguarded
 

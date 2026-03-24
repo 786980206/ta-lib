@@ -159,4 +159,3 @@
          #define TA_CDL3OUTSIDE Core::Cdl3outside
          #define TA_CDL3OUTSIDE_Lookback Core::Cdl3outsideLookback
          #define TA_CDL3OUTSIDE_Logic Core::Cdl3outsideLogic
-         #define TA_INT_CDL3OUTSIDE Core::Cdl3outsideLogic

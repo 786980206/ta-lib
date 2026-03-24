@@ -904,8 +904,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDMODE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_TRENDMODE TA_HT_TRENDMODE_Unguarded
-
 TA_RetCode TA_S_HT_TRENDMODE( int    startIdx,
                               int    endIdx,
                               const float inReal[],
@@ -1767,6 +1765,4 @@ TA_RetCode TA_S_HT_TRENDMODE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_HT_TRENDMODE TA_S_HT_TRENDMODE_Unguarded
 

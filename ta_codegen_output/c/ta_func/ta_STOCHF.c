@@ -190,7 +190,7 @@ TA_LIB_API TA_RetCode TA_STOCHF( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -337,7 +337,7 @@ TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -364,8 +364,6 @@ TA_LIB_API TA_RetCode TA_STOCHF_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_STOCHF TA_STOCHF_Unguarded
 
 TA_RetCode TA_S_STOCHF( int    startIdx,
                         int    endIdx,
@@ -512,7 +510,7 @@ TA_RetCode TA_S_STOCHF( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -659,7 +657,7 @@ TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
       trailingIdx += 1;
       today += 1;
    }
-   retCode = TA_MA(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
+   retCode = TA_MA_Unguarded(0,(outIdx-1),tempBuffer,optInFastD_Period,optInFastD_MAType,outBegIdx,outNBElement,outFastD);
    if( ((retCode!=TA_SUCCESS)||(((int)*outNBElement)==0)) )
    {
       if( bufferIsAllocated )
@@ -686,6 +684,4 @@ TA_RetCode TA_S_STOCHF_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_STOCHF TA_S_STOCHF_Unguarded
 

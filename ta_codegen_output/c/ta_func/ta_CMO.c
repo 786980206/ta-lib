@@ -390,8 +390,6 @@ TA_LIB_API TA_RetCode TA_CMO_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CMO TA_CMO_Unguarded
-
 TA_RetCode TA_S_CMO( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -733,6 +731,4 @@ TA_RetCode TA_S_CMO_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CMO TA_S_CMO_Unguarded
 

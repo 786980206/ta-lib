@@ -244,8 +244,6 @@ TA_LIB_API TA_RetCode TA_CDLHARAMI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHARAMI TA_CDLHARAMI_Unguarded
-
 TA_RetCode TA_S_CDLHARAMI( int    startIdx,
                            int    endIdx,
                            const float inOpen[],
@@ -441,6 +439,4 @@ TA_RetCode TA_S_CDLHARAMI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLHARAMI TA_S_CDLHARAMI_Unguarded
 

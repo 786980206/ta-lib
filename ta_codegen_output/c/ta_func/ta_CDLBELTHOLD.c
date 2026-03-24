@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLBELTHOLD_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLBELTHOLD TA_CDLBELTHOLD_Unguarded
-
 TA_RetCode TA_S_CDLBELTHOLD( int    startIdx,
                              int    endIdx,
                              const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLBELTHOLD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLBELTHOLD TA_S_CDLBELTHOLD_Unguarded
 

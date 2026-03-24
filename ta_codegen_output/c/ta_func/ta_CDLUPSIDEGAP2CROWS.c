@@ -214,8 +214,6 @@ TA_LIB_API TA_RetCode TA_CDLUPSIDEGAP2CROWS_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLUPSIDEGAP2CROWS TA_CDLUPSIDEGAP2CROWS_Unguarded
-
 TA_RetCode TA_S_CDLUPSIDEGAP2CROWS( int    startIdx,
                                     int    endIdx,
                                     const float inOpen[],
@@ -381,6 +379,4 @@ TA_RetCode TA_S_CDLUPSIDEGAP2CROWS_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLUPSIDEGAP2CROWS TA_S_CDLUPSIDEGAP2CROWS_Unguarded
 

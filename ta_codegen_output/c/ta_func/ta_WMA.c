@@ -194,8 +194,6 @@ TA_LIB_API TA_RetCode TA_WMA_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_WMA TA_WMA_Unguarded
-
 TA_RetCode TA_S_WMA( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -347,6 +345,4 @@ TA_RetCode TA_S_WMA_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_WMA TA_S_WMA_Unguarded
 

@@ -207,4 +207,3 @@
          #define TA_STOCHF Core::Stochf
          #define TA_STOCHF_Lookback Core::StochfLookback
          #define TA_STOCHF_Logic Core::StochfLogic
-         #define TA_INT_STOCHF Core::StochfLogic

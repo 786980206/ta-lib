@@ -159,4 +159,3 @@
          #define TA_CDLBELTHOLD Core::Cdlbelthold
          #define TA_CDLBELTHOLD_Lookback Core::CdlbeltholdLookback
          #define TA_CDLBELTHOLD_Logic Core::CdlbeltholdLogic
-         #define TA_INT_CDLBELTHOLD Core::CdlbeltholdLogic

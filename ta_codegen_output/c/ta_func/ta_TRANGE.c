@@ -168,8 +168,6 @@ TA_LIB_API TA_RetCode TA_TRANGE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_TRANGE TA_TRANGE_Unguarded
-
 TA_RetCode TA_S_TRANGE( int    startIdx,
                         int    endIdx,
                         const float inHigh[],
@@ -295,6 +293,4 @@ TA_RetCode TA_S_TRANGE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_TRANGE TA_S_TRANGE_Unguarded
 

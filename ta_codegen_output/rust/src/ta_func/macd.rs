@@ -142,21 +142,25 @@ impl Core {
         let mut signalK: f64 = 0.0_f64;
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSignal: usize = 0_usize;
+        let mut useFixedK: usize = 0_usize;
         let mut i: usize = 0_usize;
         if optInSlowPeriod < optInFastPeriod {
             tempInteger = (optInSlowPeriod) as usize;
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
+        useFixedK = 0;
         if optInSlowPeriod == 0 {
             optInSlowPeriod = 26;
             slowK = 0.075;
+            useFixedK = 1;
         } else {
             slowK = 2.0 / ((optInSlowPeriod + 1) as f64);
         }
         if optInFastPeriod == 0 {
             optInFastPeriod = 12;
             fastK = 0.15;
+            useFixedK = 1;
         } else {
             fastK = 2.0 / ((optInFastPeriod + 1) as f64);
         }
@@ -176,13 +180,21 @@ impl Core {
         fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
-        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        if useFixedK != 0 {
+            retCode = self.ema_private(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        } else {
+            retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        if useFixedK != 0 {
+            retCode = self.ema_private(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        } else {
+            retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -205,7 +217,7 @@ impl Core {
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
-        retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
+        retCode = self.ema_private(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -249,6 +261,7 @@ impl Core {
         let mut signalK: f64 = 0.0_f64;
         let mut lookbackTotal: usize = 0_usize;
         let mut lookbackSignal: usize = 0_usize;
+        let mut useFixedK: usize = 0_usize;
         let mut i: usize = 0_usize;
         unsafe {
         assert!(endIdx < inReal.len());
@@ -260,15 +273,18 @@ impl Core {
             optInSlowPeriod = optInFastPeriod;
             optInFastPeriod = (tempInteger) as i32;
         }
+        useFixedK = 0;
         if optInSlowPeriod == 0 {
             optInSlowPeriod = 26;
             slowK = 0.075;
+            useFixedK = 1;
         } else {
             slowK = 2.0 / ((optInSlowPeriod + 1) as f64);
         }
         if optInFastPeriod == 0 {
             optInFastPeriod = 12;
             fastK = 0.15;
+            useFixedK = 1;
         } else {
             fastK = 2.0 / ((optInFastPeriod + 1) as f64);
         }
@@ -288,13 +304,21 @@ impl Core {
         fastEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         slowEMABuffer = vec![0.0_f64; (tempInteger * 1) as usize];
         tempInteger = startIdx - lookbackSignal;
-        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        if useFixedK != 0 {
+            retCode = self.ema_private(tempInteger, endIdx, inReal, optInSlowPeriod, slowK, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        } else {
+            retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInSlowPeriod, &mut outBegIdx1, &mut outNbElement1, &mut slowEMABuffer[..]);
+        }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
             return retCode;
         }
-        retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        if useFixedK != 0 {
+            retCode = self.ema_private(tempInteger, endIdx, inReal, optInFastPeriod, fastK, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        } else {
+            retCode = self.ema_unguarded(tempInteger, endIdx, inReal, optInFastPeriod, &mut outBegIdx2, &mut outNbElement2, &mut fastEMABuffer[..]);
+        }
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;
@@ -317,7 +341,7 @@ impl Core {
             let _si = (lookbackSignal) as usize;
             outMACD[_di.._di + _n].copy_from_slice(&fastEMABuffer[_si.._si + _n]);
         };
-        retCode = self.ema_unguarded(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
+        retCode = self.ema_private(0, outNbElement1 - 1, &fastEMABuffer, optInSignalPeriod, signalK, &mut outBegIdx2, &mut outNbElement2, outMACDSignal);
         if retCode != RetCode::Success {
             (*outBegIdx) = 0;
             (*outNBElement) = 0;

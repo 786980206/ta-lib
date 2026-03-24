@@ -159,4 +159,3 @@
          #define TA_CDLHOMINGPIGEON Core::Cdlhomingpigeon
          #define TA_CDLHOMINGPIGEON_Lookback Core::CdlhomingpigeonLookback
          #define TA_CDLHOMINGPIGEON_Logic Core::CdlhomingpigeonLogic
-         #define TA_INT_CDLHOMINGPIGEON Core::CdlhomingpigeonLogic

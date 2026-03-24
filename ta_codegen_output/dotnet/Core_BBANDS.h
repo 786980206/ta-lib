@@ -207,4 +207,3 @@
          #define TA_BBANDS Core::Bbands
          #define TA_BBANDS_Lookback Core::BbandsLookback
          #define TA_BBANDS_Logic Core::BbandsLogic
-         #define TA_INT_BBANDS Core::BbandsLogic

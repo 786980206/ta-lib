@@ -127,4 +127,3 @@
          #define TA_ROC Core::Roc
          #define TA_ROC_Lookback Core::RocLookback
          #define TA_ROC_Logic Core::RocLogic
-         #define TA_INT_ROC Core::RocLogic

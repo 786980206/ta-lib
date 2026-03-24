@@ -159,4 +159,3 @@
          #define TA_PLUS_DI Core::Plus_di
          #define TA_PLUS_DI_Lookback Core::Plus_diLookback
          #define TA_PLUS_DI_Logic Core::Plus_diLogic
-         #define TA_INT_PLUS_DI Core::Plus_diLogic

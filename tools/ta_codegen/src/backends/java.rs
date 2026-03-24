@@ -292,6 +292,10 @@ pub fn generate(
     let mut out = String::new();
     out.push_str("/* Generated */\n");
     out.push_str(&gen_lookback(func, enums, registry, helpers));
+    if func.has_explicit_private {
+        out.push_str(&gen_private(func, enums, registry, helpers)); // Private method (double)
+        out.push_str(&gen_private_sp(func, enums, registry, helpers)); // Private method (float overload)
+    }
     out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
     out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic (unguarded)
     out.push_str(&gen_func(func, true, false, enums, registry, helpers)); // single-precision guarded
@@ -344,6 +348,59 @@ fn gen_lookback(
     )
 }
 
+/// Render a simple init expression for private_param_init VarDecls.
+/// Only needs to handle arithmetic on optIn params (e.g., 2.0 / (period + 1)).
+fn render_init_expr(expr: &Expr) -> String {
+    match expr {
+        Expr::Literal(f) => {
+            let s = format!("{f}");
+            if f.fract() == 0.0 && !s.contains('.') { format!("{s}.0") } else { s }
+        }
+        Expr::IntLiteral(i) => format!("{i}"),
+        Expr::Var(name) => name.clone(),
+        Expr::BinOp(lhs, op, rhs) => {
+            let op_str = match op {
+                BinOp::Add => "+",
+                BinOp::Sub => "-",
+                BinOp::Mul => "*",
+                BinOp::Div => "/",
+                _ => panic!("Unsupported op in private_param_init"),
+            };
+            format!("({}{}{})", render_init_expr(lhs), op_str, render_init_expr(rhs))
+        }
+        Expr::Cast(_ty, inner) => {
+            format!("(double)({})", render_init_expr(inner))
+        }
+        _ => panic!("Unsupported expr in private_param_init: {expr:?}"),
+    }
+}
+
+/// Generate the Private method (double, extra params).
+fn gen_private(
+    func: &FuncDef,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    let base_name = to_java_method_name(&func.name);
+    let name_override = format!("{base_name}Private");
+    gen_func_inner(func, false, true, Some(&name_override), enums, registry, helpers)
+}
+
+/// Generate the Private method float overload (for Java method overloading).
+/// Java needs this because float[] is not assignable to double[] — S_ callers
+/// of emaPrivate(float_input, k) need a float overload.
+fn gen_private_sp(
+    func: &FuncDef,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
+    let base_name = to_java_method_name(&func.name);
+    let name_override = format!("{base_name}Private");
+    gen_func_inner(func, true, true, Some(&name_override), enums, registry, helpers)
+}
+
 #[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
 fn gen_func(
     func: &FuncDef,
@@ -353,9 +410,24 @@ fn gen_func(
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
+    gen_func_inner(func, single_precision, logic, None, enums, registry, helpers)
+}
+
+#[allow(clippy::too_many_lines, clippy::cognitive_complexity)]
+fn gen_func_inner(
+    func: &FuncDef,
+    single_precision: bool,
+    logic: bool,
+    name_override: Option<&str>,
+    enums: &HashMap<String, EnumDef>,
+    registry: &Registry,
+    helpers: &HelperRegistry,
+) -> String {
     let mut out = String::new();
     let base_name = to_java_method_name(&func.name);
-    let name = if logic {
+    let name = if let Some(n) = name_override {
+        n.to_string()
+    } else if logic {
         format!("{base_name}Logic")
     } else {
         base_name
@@ -391,12 +463,11 @@ fn gen_func(
         params.push(format!("{} {}", java_type, opt.name));
     }
 
-    // Extra unguarded params (e.g., EMA's k factor) — only on Logic variant
-    if logic {
-        for (param_name, c_type) in &func.unguarded_extra_params {
+    // Extra params only on Private variant (via name_override)
+    if name_override.is_some() {
+        for (param_name, c_type) in &func.private_extra_params {
             let java_type = match c_type.as_str() {
                 "int" => "int",
-                // "double" and any other C type map to Java double
                 _ => "double",
             };
             params.push(format!("{java_type} {param_name}"));
@@ -429,8 +500,23 @@ fn gen_func(
     // Body
     out.push_str("   {\n");
 
-    // Use unguarded_body for Logic variant, body for guarded
-    let body = if logic { &func.unguarded_body } else { &func.body };
+    // Body selection (same pattern as C backend):
+    // - Private variant (name_override): always private_body
+    // - S_ variants with _private: inline private_body
+    // - Double variants with _private: body (delegates to Private)
+    // - Logic without _private: private_body (same content as body)
+    // - Guarded without _private: body
+    let body = if name_override.is_some() {
+        &func.private_body
+    } else if single_precision && func.has_explicit_private {
+        &func.private_body
+    } else if func.has_explicit_private {
+        &func.body
+    } else if logic {
+        &func.private_body
+    } else {
+        &func.body
+    };
 
     // Pre-scan for variables used in AddressOf contexts (need MInteger wrapping)
     let mut address_of_vars = collect_address_of_vars(body);
@@ -489,6 +575,15 @@ fn gen_func(
                 }
             };
             out.push_str(&format!("      {java_decl};\n"));
+        }
+    }
+
+    // For S_ variants with _private: emit private_param_init as local VarDecls
+    // Both guarded and logic S_ variants need this (both use private_body).
+    if single_precision && func.has_explicit_private && name_override.is_none() {
+        for (param_name, init_expr) in &func.private_param_init {
+            let init_java = render_init_expr(init_expr);
+            out.push_str(&format!("      double {param_name} = {init_java};\n"));
         }
     }
 

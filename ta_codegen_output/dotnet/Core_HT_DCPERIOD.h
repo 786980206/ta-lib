@@ -111,4 +111,3 @@
          #define TA_HT_DCPERIOD Core::Ht_dcperiod
          #define TA_HT_DCPERIOD_Lookback Core::Ht_dcperiodLookback
          #define TA_HT_DCPERIOD_Logic Core::Ht_dcperiodLogic
-         #define TA_INT_HT_DCPERIOD Core::Ht_dcperiodLogic

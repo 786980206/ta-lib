@@ -159,4 +159,3 @@
          #define TA_AVGPRICE Core::Avgprice
          #define TA_AVGPRICE_Lookback Core::AvgpriceLookback
          #define TA_AVGPRICE_Logic Core::AvgpriceLogic
-         #define TA_INT_AVGPRICE Core::AvgpriceLogic

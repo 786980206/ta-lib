@@ -127,4 +127,3 @@
          #define TA_MIN Core::Min
          #define TA_MIN_Lookback Core::MinLookback
          #define TA_MIN_Logic Core::MinLogic
-         #define TA_INT_MIN Core::MinLogic

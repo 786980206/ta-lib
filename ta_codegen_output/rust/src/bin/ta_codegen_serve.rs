@@ -5790,14 +5790,12 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
             );
             }
             let elapsed_ns = start_time.elapsed().as_nanos() as u64 / bench_iters as u64;
-            let optInK_1: f64 = 2.0 / (optInTimePeriod as f64 + 1.0);
             let start_time_ung = Instant::now();
             for _biu in 0..bench_iters {
             rc = core.ema_unguarded(
                 startIdx, endIdx,
                 &inReal,
                 optInTimePeriod,
-                optInK_1,
                 &mut outBegIdx, &mut outNBElement, &mut outBuf0,
             );
             }

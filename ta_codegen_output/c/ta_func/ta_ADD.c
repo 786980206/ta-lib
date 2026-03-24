@@ -98,8 +98,6 @@ TA_LIB_API TA_RetCode TA_ADD_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ADD TA_ADD_Unguarded
-
 TA_RetCode TA_S_ADD( int    startIdx,
                      int    endIdx,
                      const float inReal0[],
@@ -155,6 +153,4 @@ TA_RetCode TA_S_ADD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ADD TA_S_ADD_Unguarded
 

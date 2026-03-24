@@ -159,4 +159,3 @@
          #define TA_CDL3INSIDE Core::Cdl3inside
          #define TA_CDL3INSIDE_Lookback Core::Cdl3insideLookback
          #define TA_CDL3INSIDE_Logic Core::Cdl3insideLogic
-         #define TA_INT_CDL3INSIDE Core::Cdl3insideLogic

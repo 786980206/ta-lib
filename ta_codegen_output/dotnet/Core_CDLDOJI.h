@@ -159,4 +159,3 @@
          #define TA_CDLDOJI Core::Cdldoji
          #define TA_CDLDOJI_Lookback Core::CdldojiLookback
          #define TA_CDLDOJI_Logic Core::CdldojiLogic
-         #define TA_INT_CDLDOJI Core::CdldojiLogic

@@ -94,8 +94,6 @@ TA_LIB_API TA_RetCode TA_TANH_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_TANH TA_TANH_Unguarded
-
 TA_RetCode TA_S_TANH( int    startIdx,
                       int    endIdx,
                       const float inReal[],
@@ -147,6 +145,4 @@ TA_RetCode TA_S_TANH_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_TANH TA_S_TANH_Unguarded
 

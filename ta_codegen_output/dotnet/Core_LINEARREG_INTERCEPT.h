@@ -127,4 +127,3 @@
          #define TA_LINEARREG_INTERCEPT Core::Linearreg_intercept
          #define TA_LINEARREG_INTERCEPT_Lookback Core::Linearreg_interceptLookback
          #define TA_LINEARREG_INTERCEPT_Logic Core::Linearreg_interceptLogic
-         #define TA_INT_LINEARREG_INTERCEPT Core::Linearreg_interceptLogic

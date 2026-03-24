@@ -122,16 +122,16 @@ impl Core {
         }
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
-        retCode = self.ema(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             return retCode;
         }
         secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
-        retCode = self.ema(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             return retCode;
         }
-        retCode = self.ema(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
+        retCode = self.ema_unguarded(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
         if retCode != RetCode::Success || thirdEMANbElement == 0 {
             return retCode;
         }
@@ -187,16 +187,16 @@ impl Core {
         }
         tempInt = lookbackTotal + (endIdx - startIdx) + 1;
         firstEMA = vec![0.0_f64; (tempInt * 1) as usize];
-        retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
+        retCode = self.ema_unguarded(startIdx - lookbackEMA * 2, endIdx, inReal, optInTimePeriod, &mut firstEMABegIdx, &mut firstEMANbElement, &mut firstEMA[..]);
         if retCode != RetCode::Success || firstEMANbElement == 0 {
             return retCode;
         }
         secondEMA = vec![0.0_f64; (firstEMANbElement * 1) as usize];
-        retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
+        retCode = self.ema_unguarded(0, firstEMANbElement - 1, &firstEMA, optInTimePeriod, &mut secondEMABegIdx, &mut secondEMANbElement, &mut secondEMA[..]);
         if retCode != RetCode::Success || secondEMANbElement == 0 {
             return retCode;
         }
-        retCode = self.ema_unguarded(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, 2.0 / ((optInTimePeriod + 1) as f64), &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
+        retCode = self.ema_unguarded(0, secondEMANbElement - 1, &secondEMA, optInTimePeriod, &mut thirdEMABegIdx, &mut thirdEMANbElement, outReal);
         if retCode != RetCode::Success || thirdEMANbElement == 0 {
             return retCode;
         }

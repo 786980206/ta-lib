@@ -212,8 +212,6 @@ TA_LIB_API TA_RetCode TA_CDLHIGHWAVE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHIGHWAVE TA_CDLHIGHWAVE_Unguarded
-
 TA_RetCode TA_S_CDLHIGHWAVE( int    startIdx,
                              int    endIdx,
                              const float inOpen[],
@@ -377,6 +375,4 @@ TA_RetCode TA_S_CDLHIGHWAVE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLHIGHWAVE TA_S_CDLHIGHWAVE_Unguarded
 

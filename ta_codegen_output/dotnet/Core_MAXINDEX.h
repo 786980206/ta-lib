@@ -127,4 +127,3 @@
          #define TA_MAXINDEX Core::Maxindex
          #define TA_MAXINDEX_Lookback Core::MaxindexLookback
          #define TA_MAXINDEX_Logic Core::MaxindexLogic
-         #define TA_INT_MAXINDEX Core::MaxindexLogic

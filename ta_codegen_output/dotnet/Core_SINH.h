@@ -111,4 +111,3 @@
          #define TA_SINH Core::Sinh
          #define TA_SINH_Lookback Core::SinhLookback
          #define TA_SINH_Logic Core::SinhLogic
-         #define TA_INT_SINH Core::SinhLogic

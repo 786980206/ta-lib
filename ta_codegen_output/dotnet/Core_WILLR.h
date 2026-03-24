@@ -159,4 +159,3 @@
          #define TA_WILLR Core::Willr
          #define TA_WILLR_Lookback Core::WillrLookback
          #define TA_WILLR_Logic Core::WillrLogic
-         #define TA_INT_WILLR Core::WillrLogic

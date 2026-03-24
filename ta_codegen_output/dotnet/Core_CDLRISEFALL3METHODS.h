@@ -159,4 +159,3 @@
          #define TA_CDLRISEFALL3METHODS Core::Cdlrisefall3methods
          #define TA_CDLRISEFALL3METHODS_Lookback Core::Cdlrisefall3methodsLookback
          #define TA_CDLRISEFALL3METHODS_Logic Core::Cdlrisefall3methodsLogic
-         #define TA_INT_CDLRISEFALL3METHODS Core::Cdlrisefall3methodsLogic

@@ -127,4 +127,3 @@
          #define TA_MEDPRICE Core::Medprice
          #define TA_MEDPRICE_Lookback Core::MedpriceLookback
          #define TA_MEDPRICE_Logic Core::MedpriceLogic
-         #define TA_INT_MEDPRICE Core::MedpriceLogic

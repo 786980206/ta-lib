@@ -127,4 +127,3 @@
          #define TA_TRIMA Core::Trima
          #define TA_TRIMA_Lookback Core::TrimaLookback
          #define TA_TRIMA_Logic Core::TrimaLogic
-         #define TA_INT_TRIMA Core::TrimaLogic

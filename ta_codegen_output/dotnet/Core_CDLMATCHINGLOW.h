@@ -159,4 +159,3 @@
          #define TA_CDLMATCHINGLOW Core::Cdlmatchinglow
          #define TA_CDLMATCHINGLOW_Lookback Core::CdlmatchinglowLookback
          #define TA_CDLMATCHINGLOW_Logic Core::CdlmatchinglowLogic
-         #define TA_INT_CDLMATCHINGLOW Core::CdlmatchinglowLogic

@@ -34,7 +34,7 @@ fn load_mult() -> ir::FuncDef {
     let parsed = parser::c_source::parse_c_source(&c_path);
     func_def.body = parsed.functions[0].body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
-    func_def.unguarded_body = func_def.body.clone();
+    func_def.private_body = func_def.body.clone();
     func_def
 }
 
@@ -51,7 +51,7 @@ fn load_sma() -> ir::FuncDef {
     func_def.body = guarded.body.clone();
     func_def.lookback = Some(ir::LookbackExpr::Code(parsed.lookback_body));
     // Auto-generate unguarded (copy guarded body — SMA has no extra params)
-    func_def.unguarded_body = func_def.body.clone();
+    func_def.private_body = func_def.body.clone();
     func_def
 }
 

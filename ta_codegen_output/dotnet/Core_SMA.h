@@ -127,4 +127,3 @@
          #define TA_SMA Core::Sma
          #define TA_SMA_Lookback Core::SmaLookback
          #define TA_SMA_Logic Core::SmaLogic
-         #define TA_INT_SMA Core::SmaLogic

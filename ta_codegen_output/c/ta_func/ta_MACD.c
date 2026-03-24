@@ -74,6 +74,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    double signalK;
    int lookbackTotal;
    int lookbackSignal;
+   int useFixedK;
    int i;
 
    if( startIdx < 0 )
@@ -108,10 +109,12 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   useFixedK = 0;
    if( (optInSlowPeriod==0) )
    {
       optInSlowPeriod = 26;
       slowK = 0.075;
+      useFixedK = 1;
    } else 
    {
       slowK = (2.0/((double)(optInSlowPeriod+1)));
@@ -120,6 +123,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
    {
       optInFastPeriod = 12;
       fastK = 0.15;
+      useFixedK = 1;
    } else 
    {
       fastK = (2.0/((double)(optInFastPeriod+1)));
@@ -155,7 +159,13 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_INT_EMA(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   } else 
+   {
+      retCode = TA_EMA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -164,7 +174,13 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
-   retCode = TA_INT_EMA(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   } else 
+   {
+      retCode = TA_EMA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -186,7 +202,7 @@ TA_LIB_API TA_RetCode TA_MACD( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_EMA_Private(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -231,6 +247,7 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
    double signalK;
    int lookbackTotal;
    int lookbackSignal;
+   int useFixedK;
    int i;
 
    if( (optInSlowPeriod<optInFastPeriod) )
@@ -239,10 +256,12 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   useFixedK = 0;
    if( (optInSlowPeriod==0) )
    {
       optInSlowPeriod = 26;
       slowK = 0.075;
+      useFixedK = 1;
    } else 
    {
       slowK = (2.0/((double)(optInSlowPeriod+1)));
@@ -251,6 +270,7 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
    {
       optInFastPeriod = 12;
       fastK = 0.15;
+      useFixedK = 1;
    } else 
    {
       fastK = (2.0/((double)(optInFastPeriod+1)));
@@ -286,7 +306,13 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_INT_EMA(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   } else 
+   {
+      retCode = TA_EMA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -295,7 +321,13 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
-   retCode = TA_INT_EMA(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_EMA_Private(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   } else 
+   {
+      retCode = TA_EMA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -317,7 +349,7 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_EMA_Private(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -336,8 +368,6 @@ TA_LIB_API TA_RetCode TA_MACD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_INT_MACD TA_MACD_Unguarded
 
 TA_RetCode TA_S_MACD( int    startIdx,
                       int    endIdx,
@@ -364,6 +394,7 @@ TA_RetCode TA_S_MACD( int    startIdx,
    double signalK;
    int lookbackTotal;
    int lookbackSignal;
+   int useFixedK;
    int i;
 
    if( startIdx < 0 )
@@ -398,10 +429,12 @@ TA_RetCode TA_S_MACD( int    startIdx,
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   useFixedK = 0;
    if( (optInSlowPeriod==0) )
    {
       optInSlowPeriod = 26;
       slowK = 0.075;
+      useFixedK = 1;
    } else 
    {
       slowK = (2.0/((double)(optInSlowPeriod+1)));
@@ -410,6 +443,7 @@ TA_RetCode TA_S_MACD( int    startIdx,
    {
       optInFastPeriod = 12;
       fastK = 0.15;
+      useFixedK = 1;
    } else 
    {
       fastK = (2.0/((double)(optInFastPeriod+1)));
@@ -445,7 +479,13 @@ TA_RetCode TA_S_MACD( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_S_INT_EMA(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_S_EMA_Private(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   } else 
+   {
+      retCode = TA_S_EMA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -454,7 +494,13 @@ TA_RetCode TA_S_MACD( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
-   retCode = TA_S_INT_EMA(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_S_EMA_Private(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   } else 
+   {
+      retCode = TA_S_EMA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -476,7 +522,7 @@ TA_RetCode TA_S_MACD( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_EMA_Private(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -521,6 +567,7 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
    double signalK;
    int lookbackTotal;
    int lookbackSignal;
+   int useFixedK;
    int i;
 
    if( (optInSlowPeriod<optInFastPeriod) )
@@ -529,10 +576,12 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
       optInSlowPeriod = optInFastPeriod;
       optInFastPeriod = tempInteger;
    }
+   useFixedK = 0;
    if( (optInSlowPeriod==0) )
    {
       optInSlowPeriod = 26;
       slowK = 0.075;
+      useFixedK = 1;
    } else 
    {
       slowK = (2.0/((double)(optInSlowPeriod+1)));
@@ -541,6 +590,7 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
    {
       optInFastPeriod = 12;
       fastK = 0.15;
+      useFixedK = 1;
    } else 
    {
       fastK = (2.0/((double)(optInFastPeriod+1)));
@@ -576,7 +626,13 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
       return TA_ALLOC_ERR;
    }
    tempInteger = (startIdx-lookbackSignal);
-   retCode = TA_S_INT_EMA(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_S_EMA_Private(tempInteger,endIdx,inReal,optInSlowPeriod,slowK,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   } else 
+   {
+      retCode = TA_S_EMA_Unguarded(tempInteger,endIdx,inReal,optInSlowPeriod,&outBegIdx1,&outNbElement1,slowEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -585,7 +641,13 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
       free(slowEMABuffer);
       return retCode;
    }
-   retCode = TA_S_INT_EMA(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   if( useFixedK )
+   {
+      retCode = TA_S_EMA_Private(tempInteger,endIdx,inReal,optInFastPeriod,fastK,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   } else 
+   {
+      retCode = TA_S_EMA_Unguarded(tempInteger,endIdx,inReal,optInFastPeriod,&outBegIdx2,&outNbElement2,fastEMABuffer);
+   }
    if( (retCode!=TA_SUCCESS) )
    {
       *outBegIdx= 0;
@@ -607,7 +669,7 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
       fastEMABuffer[i] = (fastEMABuffer[i]-slowEMABuffer[i]);
    }
    memcpy(outMACD,&fastEMABuffer[lookbackSignal],(((endIdx-startIdx)+1)*sizeof(double)));
-   retCode = TA_INT_EMA(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
+   retCode = TA_EMA_Private(0,(outNbElement1-1),fastEMABuffer,optInSignalPeriod,signalK,&outBegIdx2,&outNbElement2,outMACDSignal);
    free(fastEMABuffer);
    free(slowEMABuffer);
    if( (retCode!=TA_SUCCESS) )
@@ -626,6 +688,4 @@ TA_RetCode TA_S_MACD_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MACD TA_S_MACD_Unguarded
 

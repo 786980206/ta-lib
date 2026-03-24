@@ -159,4 +159,3 @@
          #define TA_MAMA Core::Mama
          #define TA_MAMA_Lookback Core::MamaLookback
          #define TA_MAMA_Logic Core::MamaLogic
-         #define TA_INT_MAMA Core::MamaLogic

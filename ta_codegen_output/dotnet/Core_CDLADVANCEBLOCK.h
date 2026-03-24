@@ -159,4 +159,3 @@
          #define TA_CDLADVANCEBLOCK Core::Cdladvanceblock
          #define TA_CDLADVANCEBLOCK_Lookback Core::CdladvanceblockLookback
          #define TA_CDLADVANCEBLOCK_Logic Core::CdladvanceblockLogic
-         #define TA_INT_CDLADVANCEBLOCK Core::CdladvanceblockLogic

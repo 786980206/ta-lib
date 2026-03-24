@@ -500,8 +500,6 @@ TA_LIB_API TA_RetCode TA_PLUS_DI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_PLUS_DI TA_PLUS_DI_Unguarded
-
 TA_RetCode TA_S_PLUS_DI( int    startIdx,
                          int    endIdx,
                          const float inHigh[],
@@ -953,6 +951,4 @@ TA_RetCode TA_S_PLUS_DI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_PLUS_DI TA_S_PLUS_DI_Unguarded
 

@@ -94,8 +94,6 @@ TA_LIB_API TA_RetCode TA_COS_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_COS TA_COS_Unguarded
-
 TA_RetCode TA_S_COS( int    startIdx,
                      int    endIdx,
                      const float inReal[],
@@ -147,6 +145,4 @@ TA_RetCode TA_S_COS_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_COS TA_S_COS_Unguarded
 

@@ -111,4 +111,3 @@
          #define TA_HT_TRENDMODE Core::Ht_trendmode
          #define TA_HT_TRENDMODE_Lookback Core::Ht_trendmodeLookback
          #define TA_HT_TRENDMODE_Logic Core::Ht_trendmodeLogic
-         #define TA_INT_HT_TRENDMODE Core::Ht_trendmodeLogic

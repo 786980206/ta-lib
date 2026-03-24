@@ -127,4 +127,3 @@
          #define TA_LINEARREG Core::Linearreg
          #define TA_LINEARREG_Lookback Core::LinearregLookback
          #define TA_LINEARREG_Logic Core::LinearregLogic
-         #define TA_INT_LINEARREG Core::LinearregLogic

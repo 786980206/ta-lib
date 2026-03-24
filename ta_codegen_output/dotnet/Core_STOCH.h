@@ -239,4 +239,3 @@
          #define TA_STOCH Core::Stoch
          #define TA_STOCH_Lookback Core::StochLookback
          #define TA_STOCH_Logic Core::StochLogic
-         #define TA_INT_STOCH Core::StochLogic

@@ -175,4 +175,3 @@
          #define TA_CDLMORNINGSTAR Core::Cdlmorningstar
          #define TA_CDLMORNINGSTAR_Lookback Core::CdlmorningstarLookback
          #define TA_CDLMORNINGSTAR_Logic Core::CdlmorningstarLogic
-         #define TA_INT_CDLMORNINGSTAR Core::CdlmorningstarLogic

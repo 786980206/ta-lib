@@ -127,4 +127,3 @@
          #define TA_ADD Core::Add
          #define TA_ADD_Lookback Core::AddLookback
          #define TA_ADD_Logic Core::AddLogic
-         #define TA_INT_ADD Core::AddLogic

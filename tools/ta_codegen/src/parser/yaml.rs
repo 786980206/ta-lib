@@ -177,9 +177,9 @@ pub fn parse_yaml(path: &Path) -> FuncDef {
         outputs,
         lookback: None,
         body: vec![],
-        unguarded_body: vec![],
-        unguarded_extra_params: vec![],
-        pre_compute: vec![],
-        has_explicit_unguarded: false,
+        private_body: vec![],
+        private_extra_params: vec![],
+        private_param_init: vec![],
+        has_explicit_private: false,
     }
 }

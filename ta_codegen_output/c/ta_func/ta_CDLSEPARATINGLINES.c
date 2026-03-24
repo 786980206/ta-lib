@@ -247,8 +247,6 @@ TA_LIB_API TA_RetCode TA_CDLSEPARATINGLINES_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLSEPARATINGLINES TA_CDLSEPARATINGLINES_Unguarded
-
 TA_RetCode TA_S_CDLSEPARATINGLINES( int    startIdx,
                                     int    endIdx,
                                     const float inOpen[],
@@ -444,6 +442,4 @@ TA_RetCode TA_S_CDLSEPARATINGLINES_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLSEPARATINGLINES TA_S_CDLSEPARATINGLINES_Unguarded
 

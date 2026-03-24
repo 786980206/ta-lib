@@ -226,8 +226,6 @@ TA_LIB_API TA_RetCode TA_CDLCOUNTERATTACK_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLCOUNTERATTACK TA_CDLCOUNTERATTACK_Unguarded
-
 TA_RetCode TA_S_CDLCOUNTERATTACK( int    startIdx,
                                   int    endIdx,
                                   const float inOpen[],
@@ -405,6 +403,4 @@ TA_RetCode TA_S_CDLCOUNTERATTACK_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLCOUNTERATTACK TA_S_CDLCOUNTERATTACK_Unguarded
 

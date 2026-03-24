@@ -239,4 +239,3 @@
          #define TA_MACDEXT Core::Macdext
          #define TA_MACDEXT_Lookback Core::MacdextLookback
          #define TA_MACDEXT_Logic Core::MacdextLogic
-         #define TA_INT_MACDEXT Core::MacdextLogic

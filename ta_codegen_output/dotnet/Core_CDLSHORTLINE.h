@@ -159,4 +159,3 @@
          #define TA_CDLSHORTLINE Core::Cdlshortline
          #define TA_CDLSHORTLINE_Lookback Core::CdlshortlineLookback
          #define TA_CDLSHORTLINE_Logic Core::CdlshortlineLogic
-         #define TA_INT_CDLSHORTLINE Core::CdlshortlineLogic

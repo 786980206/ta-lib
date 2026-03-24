@@ -175,4 +175,3 @@
          #define TA_CDLMORNINGDOJISTAR Core::Cdlmorningdojistar
          #define TA_CDLMORNINGDOJISTAR_Lookback Core::CdlmorningdojistarLookback
          #define TA_CDLMORNINGDOJISTAR_Logic Core::CdlmorningdojistarLogic
-         #define TA_INT_CDLMORNINGDOJISTAR Core::CdlmorningdojistarLogic

@@ -143,4 +143,3 @@
          #define TA_TYPPRICE Core::Typprice
          #define TA_TYPPRICE_Lookback Core::TyppriceLookback
          #define TA_TYPPRICE_Logic Core::TyppriceLogic
-         #define TA_INT_TYPPRICE Core::TyppriceLogic

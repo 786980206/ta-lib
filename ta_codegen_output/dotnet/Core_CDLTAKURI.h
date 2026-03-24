@@ -159,4 +159,3 @@
          #define TA_CDLTAKURI Core::Cdltakuri
          #define TA_CDLTAKURI_Lookback Core::CdltakuriLookback
          #define TA_CDLTAKURI_Logic Core::CdltakuriLogic
-         #define TA_INT_CDLTAKURI Core::CdltakuriLogic

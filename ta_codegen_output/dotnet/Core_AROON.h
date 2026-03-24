@@ -159,4 +159,3 @@
          #define TA_AROON Core::Aroon
          #define TA_AROON_Lookback Core::AroonLookback
          #define TA_AROON_Logic Core::AroonLogic
-         #define TA_INT_AROON Core::AroonLogic

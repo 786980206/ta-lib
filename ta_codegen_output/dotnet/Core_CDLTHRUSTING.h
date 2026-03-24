@@ -159,4 +159,3 @@
          #define TA_CDLTHRUSTING Core::Cdlthrusting
          #define TA_CDLTHRUSTING_Lookback Core::CdlthrustingLookback
          #define TA_CDLTHRUSTING_Logic Core::CdlthrustingLogic
-         #define TA_INT_CDLTHRUSTING Core::CdlthrustingLogic

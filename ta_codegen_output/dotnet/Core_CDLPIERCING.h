@@ -159,4 +159,3 @@
          #define TA_CDLPIERCING Core::Cdlpiercing
          #define TA_CDLPIERCING_Lookback Core::CdlpiercingLookback
          #define TA_CDLPIERCING_Logic Core::CdlpiercingLogic
-         #define TA_INT_CDLPIERCING Core::CdlpiercingLogic

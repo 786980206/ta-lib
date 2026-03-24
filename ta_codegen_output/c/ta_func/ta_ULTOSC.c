@@ -578,8 +578,6 @@ TA_LIB_API TA_RetCode TA_ULTOSC_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_ULTOSC TA_ULTOSC_Unguarded
-
 TA_RetCode TA_S_ULTOSC( int    startIdx,
                         int    endIdx,
                         const float inHigh[],
@@ -1113,6 +1111,4 @@ TA_RetCode TA_S_ULTOSC_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_ULTOSC TA_S_ULTOSC_Unguarded
 

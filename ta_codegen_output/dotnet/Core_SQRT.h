@@ -111,4 +111,3 @@
          #define TA_SQRT Core::Sqrt
          #define TA_SQRT_Lookback Core::SqrtLookback
          #define TA_SQRT_Logic Core::SqrtLogic
-         #define TA_INT_SQRT Core::SqrtLogic

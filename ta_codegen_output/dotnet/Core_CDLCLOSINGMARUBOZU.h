@@ -159,4 +159,3 @@
          #define TA_CDLCLOSINGMARUBOZU Core::Cdlclosingmarubozu
          #define TA_CDLCLOSINGMARUBOZU_Lookback Core::CdlclosingmarubozuLookback
          #define TA_CDLCLOSINGMARUBOZU_Logic Core::CdlclosingmarubozuLogic
-         #define TA_INT_CDLCLOSINGMARUBOZU Core::CdlclosingmarubozuLogic

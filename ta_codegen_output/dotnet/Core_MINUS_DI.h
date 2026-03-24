@@ -159,4 +159,3 @@
          #define TA_MINUS_DI Core::Minus_di
          #define TA_MINUS_DI_Lookback Core::Minus_diLookback
          #define TA_MINUS_DI_Logic Core::Minus_diLogic
-         #define TA_INT_MINUS_DI Core::Minus_diLogic

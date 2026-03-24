@@ -168,8 +168,6 @@ TA_LIB_API TA_RetCode TA_MIDPOINT_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MIDPOINT TA_MIDPOINT_Unguarded
-
 TA_RetCode TA_S_MIDPOINT( int    startIdx,
                           int    endIdx,
                           const float inReal[],
@@ -295,6 +293,4 @@ TA_RetCode TA_S_MIDPOINT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MIDPOINT TA_S_MIDPOINT_Unguarded
 

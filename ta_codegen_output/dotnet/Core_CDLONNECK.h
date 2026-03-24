@@ -159,4 +159,3 @@
          #define TA_CDLONNECK Core::Cdlonneck
          #define TA_CDLONNECK_Lookback Core::CdlonneckLookback
          #define TA_CDLONNECK_Logic Core::CdlonneckLogic
-         #define TA_INT_CDLONNECK Core::CdlonneckLogic

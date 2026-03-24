@@ -300,8 +300,6 @@ TA_LIB_API TA_RetCode TA_CDLSTALLEDPATTERN_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLSTALLEDPATTERN TA_CDLSTALLEDPATTERN_Unguarded
-
 TA_RetCode TA_S_CDLSTALLEDPATTERN( int    startIdx,
                                    int    endIdx,
                                    const float inOpen[],
@@ -547,6 +545,4 @@ TA_RetCode TA_S_CDLSTALLEDPATTERN_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLSTALLEDPATTERN TA_S_CDLSTALLEDPATTERN_Unguarded
 

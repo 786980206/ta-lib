@@ -500,8 +500,6 @@ TA_LIB_API TA_RetCode TA_MINUS_DI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MINUS_DI TA_MINUS_DI_Unguarded
-
 TA_RetCode TA_S_MINUS_DI( int    startIdx,
                           int    endIdx,
                           const float inHigh[],
@@ -953,6 +951,4 @@ TA_RetCode TA_S_MINUS_DI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MINUS_DI TA_S_MINUS_DI_Unguarded
 

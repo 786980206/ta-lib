@@ -127,4 +127,3 @@
          #define TA_HT_SINE Core::Ht_sine
          #define TA_HT_SINE_Lookback Core::Ht_sineLookback
          #define TA_HT_SINE_Logic Core::Ht_sineLogic
-         #define TA_INT_HT_SINE Core::Ht_sineLogic

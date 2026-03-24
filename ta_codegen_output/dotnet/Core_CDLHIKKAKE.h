@@ -159,4 +159,3 @@
          #define TA_CDLHIKKAKE Core::Cdlhikkake
          #define TA_CDLHIKKAKE_Lookback Core::CdlhikkakeLookback
          #define TA_CDLHIKKAKE_Logic Core::CdlhikkakeLogic
-         #define TA_INT_CDLHIKKAKE Core::CdlhikkakeLogic

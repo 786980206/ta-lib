@@ -111,4 +111,3 @@
          #define TA_TANH Core::Tanh
          #define TA_TANH_Lookback Core::TanhLookback
          #define TA_TANH_Logic Core::TanhLogic
-         #define TA_INT_TANH Core::TanhLogic

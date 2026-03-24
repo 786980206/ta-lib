@@ -127,4 +127,3 @@
          #define TA_MIDPOINT Core::Midpoint
          #define TA_MIDPOINT_Lookback Core::MidpointLookback
          #define TA_MIDPOINT_Logic Core::MidpointLogic
-         #define TA_INT_MIDPOINT Core::MidpointLogic

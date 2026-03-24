@@ -127,4 +127,3 @@
          #define TA_MOM Core::Mom
          #define TA_MOM_Lookback Core::MomLookback
          #define TA_MOM_Logic Core::MomLogic
-         #define TA_INT_MOM Core::MomLogic

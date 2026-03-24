@@ -159,4 +159,3 @@
          #define TA_SAR Core::Sar
          #define TA_SAR_Lookback Core::SarLookback
          #define TA_SAR_Logic Core::SarLogic
-         #define TA_INT_SAR Core::SarLogic

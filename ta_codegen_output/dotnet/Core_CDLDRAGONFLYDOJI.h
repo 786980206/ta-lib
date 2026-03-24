@@ -159,4 +159,3 @@
          #define TA_CDLDRAGONFLYDOJI Core::Cdldragonflydoji
          #define TA_CDLDRAGONFLYDOJI_Lookback Core::CdldragonflydojiLookback
          #define TA_CDLDRAGONFLYDOJI_Logic Core::CdldragonflydojiLogic
-         #define TA_INT_CDLDRAGONFLYDOJI Core::CdldragonflydojiLogic

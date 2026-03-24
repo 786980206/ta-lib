@@ -143,4 +143,3 @@
          #define TA_PLUS_DM Core::Plus_dm
          #define TA_PLUS_DM_Lookback Core::Plus_dmLookback
          #define TA_PLUS_DM_Logic Core::Plus_dmLogic
-         #define TA_INT_PLUS_DM Core::Plus_dmLogic

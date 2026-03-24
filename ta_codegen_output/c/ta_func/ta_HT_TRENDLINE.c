@@ -720,8 +720,6 @@ TA_LIB_API TA_RetCode TA_HT_TRENDLINE_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_HT_TRENDLINE TA_HT_TRENDLINE_Unguarded
-
 TA_RetCode TA_S_HT_TRENDLINE( int    startIdx,
                               int    endIdx,
                               const float inReal[],
@@ -1399,6 +1397,4 @@ TA_RetCode TA_S_HT_TRENDLINE_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_HT_TRENDLINE TA_S_HT_TRENDLINE_Unguarded
 

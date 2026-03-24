@@ -162,8 +162,6 @@ TA_LIB_API TA_RetCode TA_IMI_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_IMI TA_IMI_Unguarded
-
 TA_RetCode TA_S_IMI( int    startIdx,
                      int    endIdx,
                      const float inOpen[],
@@ -283,6 +281,4 @@ TA_RetCode TA_S_IMI_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_IMI TA_S_IMI_Unguarded
 

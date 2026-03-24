@@ -127,4 +127,3 @@
          #define TA_AVGDEV Core::Avgdev
          #define TA_AVGDEV_Lookback Core::AvgdevLookback
          #define TA_AVGDEV_Logic Core::AvgdevLogic
-         #define TA_INT_AVGDEV Core::AvgdevLogic

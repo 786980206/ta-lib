@@ -159,4 +159,3 @@
          #define TA_CDLINNECK Core::Cdlinneck
          #define TA_CDLINNECK_Lookback Core::CdlinneckLookback
          #define TA_CDLINNECK_Logic Core::CdlinneckLogic
-         #define TA_INT_CDLINNECK Core::CdlinneckLogic

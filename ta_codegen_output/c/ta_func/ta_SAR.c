@@ -102,7 +102,7 @@ TA_LIB_API TA_RetCode TA_SAR( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM_Unguarded(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -280,7 +280,7 @@ TA_LIB_API TA_RetCode TA_SAR_Unguarded( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_MINUS_DM_Unguarded(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -418,8 +418,6 @@ TA_LIB_API TA_RetCode TA_SAR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_SAR TA_SAR_Unguarded
-
 TA_RetCode TA_S_SAR( int    startIdx,
                      int    endIdx,
                      const float inHigh[],
@@ -480,7 +478,7 @@ TA_RetCode TA_S_SAR( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_S_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_S_MINUS_DM_Unguarded(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -658,7 +656,7 @@ TA_RetCode TA_S_SAR_Unguarded( int    startIdx,
       optInAcceleration = optInMaximum;
       af = optInAcceleration;
    }
-   retCode = TA_S_MINUS_DM(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
+   retCode = TA_S_MINUS_DM_Unguarded(startIdx,startIdx,inHigh,inLow,1,&tempInt,&tempInt,ep_temp);
    if( (ep_temp[0]>0) )
    {
       isLong = 0;
@@ -795,6 +793,4 @@ TA_RetCode TA_S_SAR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_SAR TA_S_SAR_Unguarded
 

@@ -143,4 +143,3 @@
          #define TA_MA Core::Ma
          #define TA_MA_Lookback Core::MaLookback
          #define TA_MA_Logic Core::MaLogic
-         #define TA_INT_MA Core::MaLogic

@@ -228,8 +228,6 @@ TA_LIB_API TA_RetCode TA_CDLMORNINGSTAR_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLMORNINGSTAR TA_CDLMORNINGSTAR_Unguarded
-
 TA_RetCode TA_S_CDLMORNINGSTAR( int    startIdx,
                                 int    endIdx,
                                 const float inOpen[],
@@ -409,6 +407,4 @@ TA_RetCode TA_S_CDLMORNINGSTAR_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLMORNINGSTAR TA_S_CDLMORNINGSTAR_Unguarded
 

@@ -175,4 +175,3 @@
          #define TA_CDLMATHOLD Core::Cdlmathold
          #define TA_CDLMATHOLD_Lookback Core::CdlmatholdLookback
          #define TA_CDLMATHOLD_Logic Core::CdlmatholdLogic
-         #define TA_INT_CDLMATHOLD Core::CdlmatholdLogic

@@ -159,4 +159,3 @@
          #define TA_CDLXSIDEGAP3METHODS Core::Cdlxsidegap3methods
          #define TA_CDLXSIDEGAP3METHODS_Lookback Core::Cdlxsidegap3methodsLookback
          #define TA_CDLXSIDEGAP3METHODS_Logic Core::Cdlxsidegap3methodsLogic
-         #define TA_INT_CDLXSIDEGAP3METHODS Core::Cdlxsidegap3methodsLogic

@@ -280,8 +280,6 @@ TA_LIB_API TA_RetCode TA_CDLHANGINGMAN_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_CDLHANGINGMAN TA_CDLHANGINGMAN_Unguarded
-
 TA_RetCode TA_S_CDLHANGINGMAN( int    startIdx,
                                int    endIdx,
                                const float inOpen[],
@@ -507,6 +505,4 @@ TA_RetCode TA_S_CDLHANGINGMAN_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_CDLHANGINGMAN TA_S_CDLHANGINGMAN_Unguarded
 

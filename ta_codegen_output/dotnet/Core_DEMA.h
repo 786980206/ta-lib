@@ -127,4 +127,3 @@
          #define TA_DEMA Core::Dema
          #define TA_DEMA_Lookback Core::DemaLookback
          #define TA_DEMA_Logic Core::DemaLogic
-         #define TA_INT_DEMA Core::DemaLogic

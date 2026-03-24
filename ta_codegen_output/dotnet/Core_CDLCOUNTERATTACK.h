@@ -159,4 +159,3 @@
          #define TA_CDLCOUNTERATTACK Core::Cdlcounterattack
          #define TA_CDLCOUNTERATTACK_Lookback Core::CdlcounterattackLookback
          #define TA_CDLCOUNTERATTACK_Logic Core::CdlcounterattackLogic
-         #define TA_INT_CDLCOUNTERATTACK Core::CdlcounterattackLogic

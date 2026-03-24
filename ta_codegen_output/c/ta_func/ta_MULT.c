@@ -106,8 +106,6 @@ TA_LIB_API TA_RetCode TA_MULT_Unguarded( int    startIdx,
    return TA_SUCCESS;
 }
 
-#define TA_INT_MULT TA_MULT_Unguarded
-
 TA_RetCode TA_S_MULT( int    startIdx,
                       int    endIdx,
                       const float inReal0[],
@@ -171,6 +169,4 @@ TA_RetCode TA_S_MULT_Unguarded( int    startIdx,
 
    return TA_SUCCESS;
 }
-
-#define TA_S_INT_MULT TA_S_MULT_Unguarded
 

@@ -41,7 +41,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -83,7 +83,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -131,7 +131,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
@@ -173,7 +173,7 @@
          return RetCode.Success ;
       }
       adx = new double[(int)((((endIdx-startIdx)+optInTimePeriod)*1))];
-      retCode = adx((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
+      retCode = adxLogic((startIdx-(optInTimePeriod-1)), endIdx, inHigh, inLow, inClose, optInTimePeriod, outBegIdx, outNBElement, adx);
       if( (retCode!=RetCode.Success) ) {
          return retCode ;
       }
