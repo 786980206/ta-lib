@@ -308,15 +308,11 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
         }
         println!("  Copied ta_common/ -> {}", ta_common_dst.display());
 
-        // Generate ta_func_unguarded.h into ta_codegen_output/c/
+        // Generate ta_func_unguarded.h into include/ (public header)
         let unguarded_h = server_gen::generate_c_header_stub(all_funcs);
-        let unguarded_path = out_base.join("c").join("ta_func_unguarded.h");
-        std::fs::write(&unguarded_path, &unguarded_h).unwrap();
-        println!("  ta_func_unguarded.h -> {}", unguarded_path.display());
-
-        // Also write to include/ for backward compatibility
         let include_path = root.join("include").join("ta_func_unguarded.h");
         std::fs::write(&include_path, &unguarded_h).unwrap();
+        println!("  ta_func_unguarded.h -> {}", include_path.display());
 
         // Generate ta_func_private.h into ta_codegen_output/c/ta_func/
         let private_h = server_gen::generate_c_private_header(all_funcs);
