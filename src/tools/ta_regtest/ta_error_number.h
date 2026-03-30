@@ -305,6 +305,12 @@ typedef enum
   TA_CODEGEN_JSON_PARSE_FAILED       = 1109,
   TA_CODEGEN_ALLOC_FAILED            = 1110,
 
+  /* Abstract codegen test errors */
+  TA_ABSTRACT_LOOKBACK_MISMATCH      = 1200,
+  TA_ABSTRACT_FOR_EACH_MISMATCH      = 1201,
+  TA_ABSTRACT_CALL_MISMATCH          = 1202,
+  TA_ABSTRACT_SERVER_ERROR           = 1203,
+
   TA_LAST_VALID_ERROR = 0xFFFF
 } ErrorNumber;
 #endif

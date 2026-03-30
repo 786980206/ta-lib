@@ -423,8 +423,18 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
     }
     s.push('\n');
 
+    // Include ta_abstract layer (tables, frames, abstract dispatch)
+    s.push_str("#include \"ta_abstract_all.c\"\n");
+    s.push_str("#include \"ta_abstract/ta_func_api.c\"\n\n");
+
     // JSON helpers
     s.push_str(&generate_c_json_helpers());
+
+    // Shared static buffers (used by both abstract handlers and per-function dispatch)
+    s.push_str(&generate_c_global_buffers());
+
+    // Generic ta_abstract handlers (abstract_call, abstract_get_lookback, abstract_for_each_func)
+    s.push_str(&generate_c_abstract_handlers());
 
     // Dispatch function
     s.push_str(&generate_c_dispatch(funcs));
@@ -551,10 +561,10 @@ static long get_nanotime(void) {
     .to_string()
 }
 
-#[allow(clippy::too_many_lines)]
-fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
+/// Emit shared static buffer declarations used by both abstract handlers and
+/// per-function dispatch.
+fn generate_c_global_buffers() -> String {
     let mut s = String::new();
-
     // Static buffers for input arrays — up to 6 for full OHLCV + openInterest.
     s.push_str("static double g_inBuf0[MAX_ARRAY_SIZE];\n");
     s.push_str("static double g_inBuf1[MAX_ARRAY_SIZE];\n");
@@ -597,6 +607,20 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str("        if( nInputs > 1 ) memcpy(g_inBuf1, g_refHigh, g_refN * sizeof(double));\n");
     s.push_str("    }\n");
     s.push_str("}\n\n");
+    s
+}
+
+/// The abstract handler C code lives in ta_func_defs/lib/c/ta_abstract_serve.c
+/// (native C, not generated). The server just #includes it.
+fn generate_c_abstract_handlers() -> String {
+    "#include \"ta_abstract_serve.c\"\n\n".to_string()
+}
+
+#[allow(clippy::too_many_lines)]
+fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
+    let mut s = String::new();
+
+    // Global buffers and preload helper now emitted by generate_c_global_buffers()
 
     s.push_str("static void handle_request(const char *json, char *resp, int resp_size) {\n");
 
@@ -882,6 +906,46 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str("        int period = json_find_int(json, \"period\");\n");
     s.push_str("        TA_SetUnstablePeriod((TA_FuncUnstId)id, (unsigned int)period);\n");
     s.push_str("        snprintf(resp, resp_size, \"{\\\"status\\\":\\\"ok\\\"}\");\n");
+    s.push_str("    }\n");
+
+    // abstract_call — generic function call via ta_abstract
+    s.push_str("    else if ( methodLen == 13 && strncmp(method, \"abstract_call\", 13) == 0 ) {\n");
+    s.push_str("        handle_abstract_call(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // abstract_get_lookback — lookback query via ta_abstract
+    s.push_str("    else if ( methodLen == 21 && strncmp(method, \"abstract_get_lookback\", 21) == 0 ) {\n");
+    s.push_str("        handle_abstract_get_lookback(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // abstract_for_each_func — enumerate functions via ta_abstract
+    s.push_str("    else if ( methodLen == 22 && strncmp(method, \"abstract_for_each_func\", 22) == 0 ) {\n");
+    s.push_str("        handle_abstract_for_each_func(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // TA_GetFuncInfo — function metadata via ta_abstract
+    s.push_str("    else if ( methodLen == 14 && strncmp(method, \"TA_GetFuncInfo\", 14) == 0 ) {\n");
+    s.push_str("        handle_TA_GetFuncInfo(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // TA_GetInputParameterInfo
+    s.push_str("    else if ( methodLen == 24 && strncmp(method, \"TA_GetInputParameterInfo\", 24) == 0 ) {\n");
+    s.push_str("        handle_TA_GetInputParameterInfo(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // TA_GetOptInputParameterInfo
+    s.push_str("    else if ( methodLen == 27 && strncmp(method, \"TA_GetOptInputParameterInfo\", 27) == 0 ) {\n");
+    s.push_str("        handle_TA_GetOptInputParameterInfo(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // TA_GetOutputParameterInfo
+    s.push_str("    else if ( methodLen == 25 && strncmp(method, \"TA_GetOutputParameterInfo\", 25) == 0 ) {\n");
+    s.push_str("        handle_TA_GetOutputParameterInfo(json, resp, resp_size);\n");
+    s.push_str("    }\n");
+
+    // TA_FunctionDescriptionXML
+    s.push_str("    else if ( methodLen == 25 && strncmp(method, \"TA_FunctionDescriptionXML\", 25) == 0 ) {\n");
+    s.push_str("        handle_TA_FunctionDescriptionXML(json, resp, resp_size);\n");
     s.push_str("    }\n");
 
     // Unknown method

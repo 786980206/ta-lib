@@ -13,6 +13,10 @@ ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *const argv[])
     int parent_to_child[2]; /* parent writes, child reads (child's stdin) */
     int child_to_parent[2]; /* child writes, parent reads (child's stdout) */
 
+    /* Suppress SIGPIPE so a crashed server returns EPIPE from write()
+     * instead of killing the entire ta_regtest process. */
+    signal(SIGPIPE, SIG_IGN);
+
     cp->to_child_fd = -1;
     cp->from_child_fd = -1;
     cp->child_pid = -1;

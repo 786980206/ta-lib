@@ -181,6 +181,9 @@
 #include "ta_func/ta_WMA.c"
 #include "ta_func/ta_MA.c"
 
+#include "ta_abstract_all.c"
+#include "ta_abstract/ta_func_api.c"
+
 /* ---- Minimal JSON helpers ---- */
 
 #define MAX_ARRAY_SIZE 200000
@@ -318,6 +321,8 @@ static void preload_to_working(int nInputs, int isPriceInput) {
         if( nInputs > 1 ) memcpy(g_inBuf1, g_refHigh, g_refN * sizeof(double));
     }
 }
+
+#include "ta_abstract_serve.c"
 
 static void handle_request(const char *json, char *resp, int resp_size) {
     int methodLen = 0;
@@ -9499,6 +9504,30 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         int period = json_find_int(json, "period");
         TA_SetUnstablePeriod((TA_FuncUnstId)id, (unsigned int)period);
         snprintf(resp, resp_size, "{\"status\":\"ok\"}");
+    }
+    else if ( methodLen == 13 && strncmp(method, "abstract_call", 13) == 0 ) {
+        handle_abstract_call(json, resp, resp_size);
+    }
+    else if ( methodLen == 21 && strncmp(method, "abstract_get_lookback", 21) == 0 ) {
+        handle_abstract_get_lookback(json, resp, resp_size);
+    }
+    else if ( methodLen == 22 && strncmp(method, "abstract_for_each_func", 22) == 0 ) {
+        handle_abstract_for_each_func(json, resp, resp_size);
+    }
+    else if ( methodLen == 14 && strncmp(method, "TA_GetFuncInfo", 14) == 0 ) {
+        handle_TA_GetFuncInfo(json, resp, resp_size);
+    }
+    else if ( methodLen == 24 && strncmp(method, "TA_GetInputParameterInfo", 24) == 0 ) {
+        handle_TA_GetInputParameterInfo(json, resp, resp_size);
+    }
+    else if ( methodLen == 27 && strncmp(method, "TA_GetOptInputParameterInfo", 27) == 0 ) {
+        handle_TA_GetOptInputParameterInfo(json, resp, resp_size);
+    }
+    else if ( methodLen == 25 && strncmp(method, "TA_GetOutputParameterInfo", 25) == 0 ) {
+        handle_TA_GetOutputParameterInfo(json, resp, resp_size);
+    }
+    else if ( methodLen == 25 && strncmp(method, "TA_FunctionDescriptionXML", 25) == 0 ) {
+        handle_TA_FunctionDescriptionXML(json, resp, resp_size);
     }
     else {
         snprintf(resp, resp_size,

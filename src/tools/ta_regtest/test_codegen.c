@@ -1559,3 +1559,7 @@ ErrorNumber test_codegen(const TA_History *history,
 
     return TA_TEST_PASS;
 }
+
+/* Abstract codegen tests are integrated into test_abstract.c via
+ * test_abstract_set_server(). */
+

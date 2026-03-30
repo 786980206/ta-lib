@@ -503,6 +503,9 @@ fn build_servers(backend_filter: Option<&str>) {
                 let c_dir = out_base.join("c");
                 let include_dir = root.join("include");
                 let ta_common_dir = c_dir.join("ta_common");
+                let ta_abstract_dir = c_dir.join("ta_abstract");
+                let ta_frames_dir = ta_abstract_dir.join("frames");
+                let ta_abstract_serve_dir = root.join("ta_func_defs/lib/c");
                 let src = c_dir.join("ta_codegen_serve.c");
                 let dst = bin_dir.join("ta_codegen_serve_c");
                 match std::process::Command::new("gcc")
@@ -513,6 +516,9 @@ fn build_servers(backend_filter: Option<&str>) {
                         &format!("-I{}", c_dir.to_str().unwrap()),
                         &format!("-I{}", include_dir.to_str().unwrap()),
                         &format!("-I{}", ta_common_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_abstract_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_frames_dir.to_str().unwrap()),
+                        &format!("-I{}", ta_abstract_serve_dir.to_str().unwrap()),
                         "-lm",
                         "-O3",
                         "-flto",

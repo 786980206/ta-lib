@@ -69,6 +69,7 @@
 #include "ta_test_priv.h"
 #include "ta_test_func.h"
 #include "test_codegen.h"
+#include "codegen_pipe.h"
 #include "ta_utility.h"
 
 /**** External functions declarations. ****/
@@ -181,8 +182,45 @@ int main( int argc, char **argv )
       return retValue;
    }
 
-   /* Test abstract interface. */
-   retValue = test_abstract();
+   /* Test abstract interface.
+    * When codegen mode is active, also verify each call against the server.
+    */
+   {
+      CodegenPipe abstractPipe;
+      int abstractPipeOpen = 0;
+      if( doCodegenTest )
+      {
+         /* Build server path relative to the ta_regtest executable,
+          * so it works regardless of the current working directory. */
+         char serverPath[1024];
+         {
+            const char *self = argv[0];
+            const char *lastSlash = strrchr(self, '/');
+            if( lastSlash ) {
+               int dirLen = (int)(lastSlash - self + 1);
+               snprintf(serverPath, sizeof(serverPath), "%.*sta_codegen_serve_c",
+                        dirLen, self);
+            } else {
+               snprintf(serverPath, sizeof(serverPath), "./ta_codegen_serve_c");
+            }
+         }
+         const char *const serverArgv[] = {serverPath, NULL};
+         if( codegen_pipe_open(&abstractPipe, serverArgv) == TA_TEST_PASS )
+         {
+            test_abstract_set_server(&abstractPipe);
+            abstractPipeOpen = 1;
+            printf( "  (with server verification)\n" );
+         }
+         else
+         {
+            printf( "  (server not available, c-ref only)\n" );
+         }
+      }
+      retValue = test_abstract();
+      test_abstract_set_server(NULL);
+      if( abstractPipeOpen )
+         codegen_pipe_close(&abstractPipe);
+   }
    if( retValue != TA_TEST_PASS )
    {
       printf( "Failed: Abstract interface Tests (error number = %d)\n", retValue );
