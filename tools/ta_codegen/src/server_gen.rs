@@ -213,21 +213,6 @@ pub fn inline_java_core_methods(template: &str, java_dir: &Path, funcs: &[FuncDe
     result
 }
 
-/// Build the C parameter string for a lookback function.
-///
-/// Lookback functions only take optional inputs (those affect the lookback period).
-/// Returns an empty string if the function has no optional inputs.
-fn build_lookback_param_str(func: &FuncDef) -> String {
-    if func.optional_inputs.is_empty() {
-        return "void".to_string();
-    }
-    func.optional_inputs
-        .iter()
-        .map(opt_input_to_c_param)
-        .collect::<Vec<_>>()
-        .join(", ")
-}
-
 /// Build the C parameter string for the full indicator function (and _Unguarded variant).
 ///
 /// Order: startIdx, endIdx, inputs, optional inputs, outBegIdx, outNBElement, outputs.
