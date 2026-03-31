@@ -20,6 +20,7 @@ optional_inputs:
     hint: Volume Factor
     range: [0, 1]
     default: 0.7
+    precision: 2
     suggested: [0.01, 1, 0.05]
 outputs:
   - name: outReal

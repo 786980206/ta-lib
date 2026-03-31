@@ -52880,6 +52880,11 @@ public class TaCodegenServe {
             }
             return "{\"error\":\"Invalid id\"}"; 
         }
+        else if (json.contains("\"set_compatibility\"")) {
+            int mode = jsonInt(json, "mode");
+            core.compatibility = mode;
+            return "{\"status\":\"ok\"}";
+        }
         else {
             return "{\"error\":\"Unknown method\"}";
         }

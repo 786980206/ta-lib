@@ -311,6 +311,12 @@ typedef enum
   TA_ABSTRACT_CALL_MISMATCH          = 1202,
   TA_ABSTRACT_SERVER_ERROR           = 1203,
 
+  /* Server verify errors (server_verify.c) */
+  TA_SV_RETCODE_MISMATCH             = 1300,
+  TA_SV_BEGIDX_MISMATCH              = 1301,
+  TA_SV_NBELEMENT_MISMATCH           = 1302,
+  TA_SV_OUTPUT_MISMATCH              = 1303,
+
   TA_LAST_VALID_ERROR = 0xFFFF
 } ErrorNumber;
 #endif

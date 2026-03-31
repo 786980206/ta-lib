@@ -70,6 +70,7 @@
 #include "ta_test_func.h"
 #include "test_codegen.h"
 #include "codegen_pipe.h"
+#include "server_verify.h"
 #include "ta_utility.h"
 
 /**** External functions declarations. ****/
@@ -232,7 +233,40 @@ int main( int argc, char **argv )
    {
       if( !codegenOnly )
       {
+         /* When codegen mode is active, also verify hand-written tests against server. */
+         CodegenPipe svPipe;
+         int svPipeOpen = 0;
+         if( doCodegenTest )
+         {
+            char svPath[1024];
+            {
+               const char *self = argv[0];
+               const char *lastSlash = strrchr(self, '/');
+               if( lastSlash ) {
+                  int dirLen = (int)(lastSlash - self + 1);
+                  snprintf(svPath, sizeof(svPath), "%.*sta_codegen_serve_c",
+                           dirLen, self);
+               } else {
+                  snprintf(svPath, sizeof(svPath), "./ta_codegen_serve_c");
+               }
+            }
+            const char *const svArgv[] = {svPath, NULL};
+            if( codegen_pipe_open(&svPipe, svArgv) == TA_TEST_PASS )
+            {
+               CodegenPipe *pipes[] = { &svPipe };
+               server_verify_init(pipes, 1);
+               svPipeOpen = 1;
+            }
+         }
+
          retValue = test_with_simulator();
+
+         if( svPipeOpen )
+         {
+            server_verify_shutdown();
+            codegen_pipe_close(&svPipe);
+         }
+
          if( retValue != TA_TEST_PASS )
             return retValue;
       }

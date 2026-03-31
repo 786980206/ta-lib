@@ -167,6 +167,17 @@ static int abstract_json_get_int(const char *json, const char *field)
     return atoi(p);
 }
 
+static unsigned long long abstract_json_get_ull(const char *json, const char *field)
+{
+    char pattern[256];
+    snprintf(pattern, sizeof(pattern), "\"%s\":", field);
+    const char *p = strstr(json, pattern);
+    if( !p ) return 0;
+    p += strlen(pattern);
+    while( *p == ' ' ) p++;
+    return strtoull(p, NULL, 10);
+}
+
 static int abstract_json_write_double_array(char *buf, int buf_size,
                                             const double *data, int count)
 {
@@ -796,46 +807,60 @@ ErrorNumber test_abstract( void )
     * and as at least 500 characters (less is guaranteed bad...)
     */
    xmlArray = TA_FunctionDescriptionXML();
-   for( i=0; i < 1000000; i++ )
    {
-      if( xmlArray[i] == 0x0 )
-         break;
-   }
-
-   if( i < 500)
-   {
-      printf( "TA_FunctionDescriptionXML failed. Size too small.\n" );
-      return TA_ABS_TST_FAIL_FUNCTION_DESC_SMALL;
-   }
-
-   if( i == 1000000 )
-   {
-      printf( "TA_FunctionDescriptionXML failed. Size too large (missing null?).\n" );
-      return TA_ABS_TST_FAIL_FUNCTION_DESC_LARGE;
-   }
-
-   /* If server is connected, verify TA_FunctionDescriptionXML length matches. */
-   if( g_abstractPipe )
-   {
-      snprintf(g_abstractReqBuf, ABSTRACT_JSON_BUF_SIZE,
-          "{\"method\":\"TA_FunctionDescriptionXML\"}");
-      ErrorNumber srvErr = codegen_pipe_call(g_abstractPipe, g_abstractReqBuf,
-                                              g_abstractRespBuf, ABSTRACT_JSON_BUF_SIZE);
-      if( srvErr != TA_TEST_PASS || abstract_json_is_error(g_abstractRespBuf) )
+      unsigned long long crefChecksum = 0;
+      for( i=0; i < 1000000; i++ )
       {
-         printf("  ABSTRACT ERROR: TA_FunctionDescriptionXML server error\n");
-         return TA_ABSTRACT_SERVER_ERROR;
+         if( xmlArray[i] == 0x0 )
+            break;
+         crefChecksum += (unsigned char)xmlArray[i];
       }
+
+      if( i < 500)
       {
-         int srvLen = abstract_json_get_int(g_abstractRespBuf, "length");
-         if( srvLen != i )
+         printf( "TA_FunctionDescriptionXML failed. Size too small.\n" );
+         return TA_ABS_TST_FAIL_FUNCTION_DESC_SMALL;
+      }
+
+      if( i == 1000000 )
+      {
+         printf( "TA_FunctionDescriptionXML failed. Size too large (missing null?).\n" );
+         return TA_ABS_TST_FAIL_FUNCTION_DESC_LARGE;
+      }
+
+      /* If server is connected, verify TA_FunctionDescriptionXML length and
+       * order-independent checksum (byte sum) match. Using a byte-sum checksum
+       * allows the XML to have functions in different sort order while still
+       * verifying the same content is present. */
+      if( g_abstractPipe )
+      {
+         snprintf(g_abstractReqBuf, ABSTRACT_JSON_BUF_SIZE,
+             "{\"method\":\"TA_FunctionDescriptionXML\"}");
+         ErrorNumber srvErr = codegen_pipe_call(g_abstractPipe, g_abstractReqBuf,
+                                                 g_abstractRespBuf, ABSTRACT_JSON_BUF_SIZE);
+         if( srvErr != TA_TEST_PASS || abstract_json_is_error(g_abstractRespBuf) )
          {
-            printf("  ABSTRACT ERROR: TA_FunctionDescriptionXML length c-ref=%d server=%d\n",
-                   i, srvLen);
-            return TA_ABSTRACT_CALL_MISMATCH;
+            printf("  ABSTRACT ERROR: TA_FunctionDescriptionXML server error\n");
+            return TA_ABSTRACT_SERVER_ERROR;
          }
+         {
+            int srvLen = abstract_json_get_int(g_abstractRespBuf, "length");
+            unsigned long long srvChecksum = abstract_json_get_ull(g_abstractRespBuf, "checksum");
+            if( srvLen != i )
+            {
+               printf("  ABSTRACT ERROR: TA_FunctionDescriptionXML length c-ref=%d server=%d\n",
+                      i, srvLen);
+               return TA_ABSTRACT_CALL_MISMATCH;
+            }
+            if( srvChecksum != crefChecksum )
+            {
+               printf("  ABSTRACT ERROR: TA_FunctionDescriptionXML checksum c-ref=%llu server=%llu\n",
+                      crefChecksum, srvChecksum);
+               return TA_ABSTRACT_CALL_MISMATCH;
+            }
       }
    }
+   } /* end crefChecksum scope */
 
    if( g_abstractPipe )
    {

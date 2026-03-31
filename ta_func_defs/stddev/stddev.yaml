@@ -20,6 +20,7 @@ optional_inputs:
     hint: Nb of deviations
     range: [TA_REAL_MIN, TA_REAL_MAX]
     default: 1
+    precision: 2
     suggested: [-2, 2, 0.2]
 outputs:
   - name: outReal

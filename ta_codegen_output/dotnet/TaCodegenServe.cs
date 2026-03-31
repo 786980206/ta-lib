@@ -9333,6 +9333,11 @@ public class TaCodegenServe {
                 TA_SetUnstablePeriod(id, period);
                 return "{\"status\":\"ok\"}";
             }
+            else if (method == "set_compatibility") {
+                int mode = p.GetProperty("mode").GetInt32();
+                TA_SetCompatibility(mode);
+                return "{\"status\":\"ok\"}";
+            }
             else {
                 return $"{{\"error\":\"Unknown method: {method}\"}}";
             }

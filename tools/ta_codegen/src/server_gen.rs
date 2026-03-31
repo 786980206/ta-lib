@@ -422,7 +422,6 @@ pub fn generate_c_server(funcs: &[FuncDef]) -> String {
         s.push_str(&format!("#include \"ta_func/ta_{name}.c\"\n"));
     }
     s.push('\n');
-
     // Include ta_abstract layer (tables, frames, abstract dispatch)
     s.push_str("#include \"ta_abstract_all.c\"\n");
     s.push_str("#include \"ta_abstract/ta_func_api.c\"\n\n");
@@ -908,6 +907,13 @@ fn generate_c_dispatch(funcs: &[FuncDef]) -> String {
     s.push_str("        snprintf(resp, resp_size, \"{\\\"status\\\":\\\"ok\\\"}\");\n");
     s.push_str("    }\n");
 
+    // set_compatibility method — {"method":"set_compatibility","params":{"mode":1}}
+    s.push_str("    else if ( methodLen == 17 && strncmp(method, \"set_compatibility\", 17) == 0 ) {\n");
+    s.push_str("        int mode = json_find_int(json, \"mode\");\n");
+    s.push_str("        TA_SetCompatibility((TA_Compatibility)mode);\n");
+    s.push_str("        snprintf(resp, resp_size, \"{\\\"status\\\":\\\"ok\\\"}\");\n");
+    s.push_str("    }\n");
+
     // abstract_call — generic function call via ta_abstract
     s.push_str("    else if ( methodLen == 13 && strncmp(method, \"abstract_call\", 13) == 0 ) {\n");
     s.push_str("        handle_abstract_call(json, resp, resp_size);\n");
@@ -1165,6 +1171,13 @@ pub fn generate_java_server(funcs: &[FuncDef]) -> String {
     s.push_str("                return \"{\\\"status\\\":\\\"ok\\\"}\"; \n");
     s.push_str("            }\n");
     s.push_str("            return \"{\\\"error\\\":\\\"Invalid id\\\"}\"; \n");
+    s.push_str("        }\n");
+
+    // set_compatibility method
+    s.push_str("        else if (json.contains(\"\\\"set_compatibility\\\"\")) {\n");
+    s.push_str("            int mode = jsonInt(json, \"mode\");\n");
+    s.push_str("            core.compatibility = mode;\n");
+    s.push_str("            return \"{\\\"status\\\":\\\"ok\\\"}\";\n");
     s.push_str("        }\n");
 
     s.push_str("        else {\n");
@@ -1662,6 +1675,13 @@ pub fn generate_dotnet_server(funcs: &[FuncDef]) -> String {
     s.push_str("                int id = p.GetProperty(\"id\").GetInt32();\n");
     s.push_str("                int period = p.GetProperty(\"period\").GetInt32();\n");
     s.push_str("                TA_SetUnstablePeriod(id, period);\n");
+    s.push_str("                return \"{\\\"status\\\":\\\"ok\\\"}\";\n");
+    s.push_str("            }\n");
+
+    // set_compatibility method
+    s.push_str("            else if (method == \"set_compatibility\") {\n");
+    s.push_str("                int mode = p.GetProperty(\"mode\").GetInt32();\n");
+    s.push_str("                TA_SetCompatibility(mode);\n");
     s.push_str("                return \"{\\\"status\\\":\\\"ok\\\"}\";\n");
     s.push_str("            }\n");
 

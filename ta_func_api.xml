@@ -682,10 +682,10 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
-					<Precision>2</Precision>
 				</Range>
 				<DefaultValue>2.000000e+0</DefaultValue>
 			</OptionalInputArgument>
@@ -696,10 +696,10 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
-					<Precision>2</Precision>
 				</Range>
 				<DefaultValue>2.000000e+0</DefaultValue>
 			</OptionalInputArgument>
@@ -1170,6 +1170,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1458,6 +1459,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1668,6 +1670,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -1722,6 +1725,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2556,6 +2560,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2610,6 +2615,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -2664,6 +2670,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>0</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
@@ -4491,6 +4498,7 @@
 				<Range>
 					<Minimum>1.000000e-2</Minimum>
 					<Maximum>9.900000e-1</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>2.100000e-1</SuggestedStart>
 					<SuggestedEnd>8.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -4504,6 +4512,7 @@
 				<Range>
 					<Minimum>1.000000e-2</Minimum>
 					<Maximum>9.900000e-1</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>6.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
@@ -5645,10 +5654,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-2</DefaultValue>
 			</OptionalInputArgument>
@@ -5659,10 +5668,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-1</DefaultValue>
 			</OptionalInputArgument>
@@ -5706,10 +5715,10 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>0.000000e+0</SuggestedStart>
 					<SuggestedEnd>0.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>0.000000e+0</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>0.000000e+0</DefaultValue>
 			</OptionalInputArgument>
@@ -5720,10 +5729,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.500000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>0.000000e+0</DefaultValue>
 			</OptionalInputArgument>
@@ -5734,10 +5743,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.900000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-2</DefaultValue>
 			</OptionalInputArgument>
@@ -5748,10 +5757,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-2</DefaultValue>
 			</OptionalInputArgument>
@@ -5762,10 +5771,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-1</DefaultValue>
 			</OptionalInputArgument>
@@ -5776,10 +5785,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.900000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-2</DefaultValue>
 			</OptionalInputArgument>
@@ -5790,10 +5799,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>2.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-2</DefaultValue>
 			</OptionalInputArgument>
@@ -5804,10 +5813,10 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>4</Precision>
 					<SuggestedStart>2.000000e-1</SuggestedStart>
 					<SuggestedEnd>4.000000e-1</SuggestedEnd>
 					<SuggestedIncrement>1.000000e-2</SuggestedIncrement>
-					<Precision>4</Precision>
 				</Range>
 				<DefaultValue>2.000000e-1</DefaultValue>
 			</OptionalInputArgument>
@@ -5971,6 +5980,7 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>
@@ -6340,6 +6350,7 @@
 				<Range>
 					<Minimum>0.000000e+0</Minimum>
 					<Maximum>1.000000e+0</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>1.000000e-2</SuggestedStart>
 					<SuggestedEnd>1.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>5.000000e-2</SuggestedIncrement>
@@ -6745,6 +6756,7 @@
 				<Range>
 					<Minimum>-3.000000e+37</Minimum>
 					<Maximum>3.000000e+37</Maximum>
+					<Precision>2</Precision>
 					<SuggestedStart>-2.000000e+0</SuggestedStart>
 					<SuggestedEnd>2.000000e+0</SuggestedEnd>
 					<SuggestedIncrement>2.000000e-1</SuggestedIncrement>

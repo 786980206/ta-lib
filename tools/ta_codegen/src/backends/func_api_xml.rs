@@ -1,7 +1,7 @@
 //! Generate `ta_func_api.xml` — an XML description of all TA-Lib functions.
 //!
 //! Produces output matching the legacy `gen_code` XML format.
-//! `<Precision>` is emitted when the YAML provides an explicit `precision` value.
+//! `<Precision>` is always emitted (defaults to 0 when not specified in YAML).
 
 use crate::ir::{FuncDef, ParamType};
 use std::fmt::Write as _;
@@ -247,6 +247,8 @@ fn write_real_opt(
             "\t\t\t\t\t<Maximum>{}</Maximum>",
             double_to_str(max_v)
         );
+        let p = opt.precision.unwrap_or(0);
+        let _ = writeln!(out, "\t\t\t\t\t<Precision>{p}</Precision>");
         let (start, end, inc) = opt.suggested.unwrap_or((0.0, 0.0, 0.0));
         let _ = writeln!(
             out,
@@ -263,9 +265,6 @@ fn write_real_opt(
             "\t\t\t\t\t<SuggestedIncrement>{}</SuggestedIncrement>",
             double_to_str(sentinel_to_ta_real(inc))
         );
-        if let Some(p) = opt.precision {
-            let _ = writeln!(out, "\t\t\t\t\t<Precision>{p}</Precision>");
-        }
         out.push_str("\t\t\t\t</Range>\n");
     }
     let default = opt.default.unwrap_or(0.0);

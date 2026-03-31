@@ -9505,6 +9505,11 @@ static void handle_request(const char *json, char *resp, int resp_size) {
         TA_SetUnstablePeriod((TA_FuncUnstId)id, (unsigned int)period);
         snprintf(resp, resp_size, "{\"status\":\"ok\"}");
     }
+    else if ( methodLen == 17 && strncmp(method, "set_compatibility", 17) == 0 ) {
+        int mode = json_find_int(json, "mode");
+        TA_SetCompatibility((TA_Compatibility)mode);
+        snprintf(resp, resp_size, "{\"status\":\"ok\"}");
+    }
     else if ( methodLen == 13 && strncmp(method, "abstract_call", 13) == 0 ) {
         handle_abstract_call(json, resp, resp_size);
     }

@@ -433,7 +433,7 @@ static void handle_TA_GetOutputParameterInfo(const char *json, char *resp, int r
 
 /* ---- TA_FunctionDescriptionXML ----
  * Mirrors: TA_FunctionDescriptionXML
- * Returns: length of the XML string (too large to send as JSON)
+ * Returns: length and order-independent checksum (byte sum) of the XML string
  */
 
 static void handle_TA_FunctionDescriptionXML(const char *json, char *resp, int resp_size) {
@@ -444,6 +444,10 @@ static void handle_TA_FunctionDescriptionXML(const char *json, char *resp, int r
         return;
     }
     int len = 0;
-    while( xml[len] != '\0' && len < 1000000 ) len++;
-    snprintf(resp, resp_size, "{\"length\":%d}", len);
+    unsigned long long checksum = 0;
+    while( xml[len] != '\0' && len < 1000000 ) {
+        checksum += (unsigned char)xml[len];
+        len++;
+    }
+    snprintf(resp, resp_size, "{\"length\":%d,\"checksum\":%llu}", len, checksum);
 }
