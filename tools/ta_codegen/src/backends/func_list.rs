@@ -14,17 +14,8 @@ pub fn generate(funcs: &[FuncDef], out_path: &Path) {
 
     let mut content = String::new();
     for (name, hint) in &entries {
-        content.push_str(&format!("{:<20}{}\n", name, hint));
+        content.push_str(&format!("{name:<20}{hint}\n"));
     }
 
-    let existing = std::fs::read_to_string(out_path).unwrap_or_default();
-    if existing == content {
-        println!(
-            "  ta_func_list.txt is up to date ({} functions)",
-            entries.len()
-        );
-    } else {
-        std::fs::write(out_path, &content).unwrap();
-        println!("  ta_func_list.txt updated ({} functions)", entries.len());
-    }
+    super::write_if_changed(out_path, &content, "ta_func_list.txt", entries.len());
 }

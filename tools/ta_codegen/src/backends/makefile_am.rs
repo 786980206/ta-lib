@@ -6,7 +6,7 @@ use std::path::Path;
 /// Sorts alphabetically by name, writes only if content has changed.
 pub fn generate(funcs: &[FuncDef], out_path: &Path) {
     let mut names: Vec<&str> = funcs.iter().map(|f| f.name.as_str()).collect();
-    names.sort();
+    names.sort_unstable();
 
     let mut content = String::new();
 
@@ -21,9 +21,9 @@ pub fn generate(funcs: &[FuncDef], out_path: &Path) {
     // Function source entries
     for (i, name) in names.iter().enumerate() {
         if i + 1 < names.len() {
-            content.push_str(&format!("\tta_{}.c \\\n", name));
+            content.push_str(&format!("\tta_{name}.c \\\n"));
         } else {
-            content.push_str(&format!("\tta_{}.c\n", name));
+            content.push_str(&format!("\tta_{name}.c\n"));
         }
     }
 
@@ -35,14 +35,5 @@ pub fn generate(funcs: &[FuncDef], out_path: &Path) {
          \t../../include/ta_func.h\n",
     );
 
-    let existing = std::fs::read_to_string(out_path).unwrap_or_default();
-    if existing == content {
-        println!(
-            "  Makefile.am is up to date ({} functions)",
-            names.len()
-        );
-    } else {
-        std::fs::write(out_path, &content).unwrap();
-        println!("  Makefile.am updated ({} functions)", names.len());
-    }
+    super::write_if_changed(out_path, &content, "Makefile.am", names.len());
 }

@@ -29,16 +29,7 @@ pub fn generate(funcs: &[FuncDef], out_path: &Path) {
 
     out.push_str("</FinancialFunctions>\n");
 
-    let existing = std::fs::read_to_string(out_path).unwrap_or_default();
-    if existing == out {
-        println!(
-            "  ta_func_api.xml is up to date ({} functions)",
-            sorted.len()
-        );
-    } else {
-        std::fs::write(out_path, &out).unwrap();
-        println!("  ta_func_api.xml updated ({} functions)", sorted.len());
-    }
+    super::write_if_changed(out_path, &out, "ta_func_api.xml", sorted.len());
 }
 
 fn write_function(out: &mut String, func: &FuncDef) {
