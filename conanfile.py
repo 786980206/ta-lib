@@ -1,11 +1,12 @@
 from conan import ConanFile
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import copy, load
+from conan.tools.files import copy
 import os
 
 
 class TaLibConan(ConanFile):
     name = "ta-lib"
+    version = "0.6.4"
 
     license = "BSD-3-Clause"
     url = "https://github.com/ta-lib/ta-lib"
@@ -23,10 +24,7 @@ class TaLibConan(ConanFile):
         "fPIC": True,
     }
 
-    exports_sources = "CMakeLists.txt", "cmake/*", "include/*", "src/*", "LICENSE", "README.md", "VERSION"
-
-    def set_version(self):
-        self.version = load(self, os.path.join(self.recipe_folder, "VERSION")).strip()
+    exports_sources = "CMakeLists.txt", "cmake/*", "include/*", "src/*", "LICENSE", "README.md"
 
     def config_options(self):
         if self.settings.os == "Windows":
