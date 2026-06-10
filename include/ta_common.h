@@ -151,7 +151,7 @@ TA_LIB_API TA_RetCode TA_Shutdown( void );
  * This value is updated whenever a make, cmake or any source files
  * modification should trig a repackaging of TA-Lib.
  */
-#define TA_LIB_SOURCES_DIGEST bd773d2ff20cc288bb0f4a176655fb3f
+#define TA_LIB_SOURCES_DIGEST e2dde58b58993e7d14f6972455637637
 
 #ifdef __cplusplus
 }
