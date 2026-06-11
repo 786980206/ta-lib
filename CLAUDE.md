@@ -1,158 +1,106 @@
-# CLAUDE.md - TA-Lib Rust Integration Guide
+# CLAUDE.md - TA-Lib Code Generation Guide
 
-## CRITICAL: Generated Code Philosophy
+## Architecture Overview
 
-**DO NOT hand-write language-specific code in source files.** The entire system is designed around code generation:
+All indicator code is **generated**. Two generators exist:
 
-1. **Function signatures are GENERATED** by `ta_codegen` (the Rust codegen tool) for indicator functions. The `gen_rust.c` functions (`printRustDoublePrecisionFunctionSignature`, `printRustSinglePrecisionFunctionSignature`, `printRustLookbackFunctionSignature`) are now only used for FFI wrapper generation.
-2. **GENCODE sections are GENERATED** - never manually edit lines prefixed with `/* Generated */`
-3. **Macros enable cross-language code** - use macros from `ta_defs.h` rather than writing language-specific syntax
-4. **If you need new Rust functionality**, the correct approach is:
-   - Add a new macro to `ta_defs.h` with proper `#if defined( _RUST )` / `#else` handling
-   - OR add a new print function to `gen_rust.c` and call it from `gen_code.c`
-   - NEVER write raw Rust syntax in `.c` source files
+| Tool | Language | Role |
+|------|----------|------|
+| `ta_codegen` (`tools/ta_codegen/`, Rust) | The current generator. Parses `ta_func_defs/` → IR → renders per-backend (C, Java, .NET, Rust) into `ta_codegen_output/`. Also generates the JSON-RPC test servers, the bench binary, `include/ta_func_unguarded.h`, and owns build-system source lists (CMake `LIB_SOURCES`, `Makefile.am`, `ta_func_list.txt`). |
+| `gen_code` (`src/tools/gen_code/`, C) | The legacy generator, restored to its v0.6.4 role: regenerates the reference C library's GENCODE sections, Java bindings, and .NET wrappers (`ENABLE_JAVA`, `ENABLE_DOTNET`). It does **no** Rust generation. |
 
-### PREFER MACROS OVER CONDITIONALS
+The reference C library (`src/ta_func/`) is the correctness baseline that all
+`ta_codegen` backends are verified against by `ta_regtest`.
 
-When modifying source `.c` files (in the logic sections between GENCODE 3-5), **use macros directly** rather than adding `#if defined(_RUST)` conditionals:
+See `tools/ta_codegen/CLAUDE.md` for ta_codegen internals and
+`src/tools/ta_regtest/CLAUDE.md` for the test-runner spec.
 
-**WRONG** - Adding conditionals in source:
-```c
-#if defined( _RUST )
-   DECLARE_DOUBLE_VAR(periodTotal)
-#else
-   double periodTotal;
-#endif
-```
+### Source of Truth: ta_func_defs/
 
-**RIGHT** - Using macros directly (let macro handle the switch):
-```c
-   DECLARE_DOUBLE_VAR(periodTotal)
-```
+`ta_func_defs/` is the single source of truth for ALL generated code
+(~164 indicator definitions).
 
-The macro in `ta_defs.h` already handles language switching:
-- Rust: `DECLARE_DOUBLE_VAR(x)` → `let mut x: T;` (generic over `TaFloat`)
-- C/Java: `DECLARE_DOUBLE_VAR(x)` → `double x;`
+- **YAML** = data, config, enums, IDL. Pure definitions with no logic.
+  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum (in `ta_func_defs/types/`)
+  - Function metadata (inputs, outputs, optional params, groups)
+- **C source files** = logic. Anything with computation.
+  - Indicator implementations (`ta_func_defs/<name>/<name>.c`)
+  - Helper functions (`ta_func_defs/helpers/`)
+  - **No logic in YAML, ever.**
 
-This keeps the source clean and maintainable. If a macro doesn't exist for what you need, **add the macro to ta_defs.h** rather than adding conditionals to source files.
-
-### Cross-Language Development Workflow
-
-When converting an indicator to Rust, the process is:
-
-1. **Compare** the generated Rust output (`rust/src/ta_func/xxx.rs`) against the Java reference in `Core.java` — the Java is the known-working target
-2. **Find syntax mismatches** — anything that doesn't compile or behaves differently
-3. **Trace the origin** — is the bad syntax in:
-   - The hand-written logic (between GENCODE 3-5 in `ta_XXX.c`)?
-   - The generated scaffolding (`printFunc`, `printOptInputValidation`, etc. in `gen_code.c`)?
-4. **Fix at the right level**, in this priority order:
-   - **Light C refactoring** (preferred) — remove unnecessary syntax that's invalid in Rust but a no-op in C/Java (e.g., adding curly braces to bare if/else). BUT: verify the syntax is truly unnecessary across ALL parameter types and languages first.
-   - **New macro in `ta_defs.h`** — when syntax genuinely differs or has semantic meaning in some code paths. Every macro MUST have a healthy default for C/Java/.NET (the `#else` branch).
-   - **Generator changes in `gen_code.c`/`gen_rust.c`** — when the scaffolding itself needs different output per language
-   - **ALWAYS verify C/Java/.NET output is unchanged** after any fix (`git diff` the generated files)
-5. **Rebuild and verify**: build gen_code → run gen_code from `bin/` → `cargo check` → `cargo test`
-
-**Precedent**: Commits `a6702544`/`c2aacd15` added curly braces to all generated if/else in `gen_code.c` because Rust requires them — a light refactoring that's valid in all languages, cleaner than a macro.
-
-### Code Generation Flow
-```
-ta_SMA.c (source)     →  gen_code processes  →  ta_SMA.c (output with Generated prefix)
-                                              →  sma.rs (Rust file via mcpp)
-```
-
-The generator:
-1. Reads source `.c` files
-2. Creates templates by emptying GENCODE sections
-3. RE-GENERATES those sections using `printFunc`, `printRustXxxSignature`, etc.
-4. Extracts "logic" between sections 3-5 and re-inserts with `/* Generated */` prefix
-5. Runs mcpp to produce Rust output
+No hand-coded string literals for type definitions or scaffolding in the codegen.
+Do not hand-edit anything under `ta_codegen_output/` — it is overwritten on the
+next `generate`.
 
 ## Quick Reference Commands
 
 ```bash
-# Build gen_code (from any directory in the repo)
-scripts/build.py gen_code
+# Build (from any directory in the repo; binaries land in bin/)
+scripts/build.py                # Library + all tools
+scripts/build.py ta_regtest     # Just the test runner
+scripts/build.py gen_code       # Legacy C generator
+scripts/build.py ta_codegen     # Rust codegen tool
+scripts/build.py servers        # Generate + compile JSON-RPC language servers
+
+# Test
+scripts/build.py test           # C reference tests only (quick)
+scripts/build.py regtest        # Full pipeline: servers + C tests + cross-language verification
+scripts/build.py regtest-only   # Codegen verification only (skip C reference tests)
 
 # Run gen_code (must run from bin directory)
 cd bin && ../cmake-build/bin/gen_code
 
-# Verify Rust compilation
-cd rust && cargo check
+# ta_codegen (run from tools/ta_codegen/)
+cargo run -- generate                            # Generate indicator code for all backends
+cargo run -- generate --func=SMA --backend=rust  # Specific function + backend
+cargo run -- generate-servers                    # Generate JSON-RPC servers
+cargo run -- build                               # Compile servers into bin/
+cargo run -- extract                             # Extract indicators from C source → YAML
+cargo test                                       # ta_codegen's own test suite
 
-# Run Rust tests
-cd rust && cargo test
-
-# Format and lint Rust code (done automatically by gen_code)
-cd rust && cargo fix --lib -p ta-lib --allow-dirty && cargo fmt
-
-# Build ta_regtest (universal test runner)
-scripts/build.py ta_regtest
-
-# Run C reference tests (standard)
-cd bin && ./ta_regtest
-
-# Run codegen verification against all languages (all 161 indicators)
-./ta_regtest --codegen
-
-# Run codegen verification, skip C reference tests
-./ta_regtest --codegen-only
-
-# Filter by language and function
+# ta_regtest directly (from bin/)
+./ta_regtest                                     # C reference tests only
+./ta_regtest --codegen                           # C tests + all-language codegen verification
+./ta_regtest --codegen-only                      # Codegen verification only
 ./ta_regtest --codegen --language=c,rust --function=RSI,SMA
-
-# Run ta_regtest with multiple function filters
-./ta_regtest --function=MATH,RSI,"Moving Averages"
 ```
 
 ## Cross-Language Regression Testing
 
-### Target Architecture: Server-Based Testing
-
-`ta_regtest` is the **universal test runner** for all languages. Instead of linking directly against each language's compiled code, ta_regtest drives **JSON-RPC servers** generated by `ta_codegen`:
+`ta_regtest` is the **universal test runner** for all languages. Instead of
+linking against each language's compiled code, it drives **JSON-RPC servers**
+generated by `ta_codegen`:
 
 ```
 ta_regtest (C)
     ↓ JSON-RPC over stdin/stdout
     ├── ta_codegen_serve_c      (C server)
+    ├── ta_codegen_serve_rust   (Rust server)
     ├── TaCodegenServe.class    (Java server)
-    ├── TaCodegenServe          (.NET server)
-    └── (future: Rust server)
+    └── TaCodegenServe          (.NET server)
 ```
 
-Each server:
-- Exposes compiled, generated indicator code for its language
-- Reports available functions via `list_functions`
-- Returns timing data (`timing_ns`) with each call
-- Supports `set_unstable_period` and `set_compatibility` for global state
+Each server exposes its language's generated indicator code, reports available
+functions via `list_functions`, returns `timing_ns` with each call, and supports
+`set_unstable_period` / `set_compatibility` for global state.
 
-All of ta_regtest's existing test logic, test data, range testing, and expected values run unchanged — the only difference is the transport layer.
+`codegen_pipe.c/h` handles subprocess management and JSON-RPC communication.
+`test_codegen.c` has a generic callback driven by `TA_ForEachFunc` enumeration —
+it covers all 161 indicators automatically using ta_abstract function metadata,
+including price inputs (OHLCV), multi-output functions (BBANDS=3, MACD=3,
+STOCH=2), integer outputs (CDL* patterns), real optional params, and all 24
+unstable-period functions. It produces a timing summary, cross-language
+comparison table, and JSONL report.
 
-### Current State
-
-The system is fully implemented. `codegen_pipe.c/h` handles subprocess management and JSON-RPC communication. `test_codegen.c` has a generic callback driven by `TA_ForEachFunc` enumeration — it covers all 161 indicators automatically using ta_abstract function metadata. The callback handles:
-- Price inputs (STOCH, BBANDS, ADX) via `TA_InputParameterInfo.flags` → OHLCV arrays
-- Multi-output functions (BBANDS=3, MACD=3, STOCH=2) via per-`outputNb` `doRangeTest` calls
-- Integer outputs (CDL* candlestick patterns, MINMAXINDEX) with exact match comparison
-- Real optional params (BBANDS `optInNbDevUp`, SAR `optInAcceleration`) via `json_find_double`
-- All 24 unstable-period functions with `unstablePeriod` propagation to servers
-- Timing summary, cross-language comparison table, and JSONL report output
-
-See `src/tools/ta_regtest/CLAUDE.md` and `tools/ta_codegen/CLAUDE.md` for detailed specs.
-
-### Server Generation
-
-```bash
-cd tools/ta_codegen
-cargo run -- generate-servers              # Generate server source for all languages
-cargo run -- generate-servers --backend=c  # Generate for specific language
-cargo run -- build                         # Compile servers into bin/
-```
-
-Output: `ta_codegen_output/{c,java,dotnet}/`
+`server_verify.c` additionally lets the hand-written ta_regtest test functions
+verify each call against the language servers. Note: it must be registered in
+BOTH `CMakeLists.txt` and the autotools `Makefile.am` (the dist-verification CI
+path builds with autotools — a missing entry there breaks the nightly).
 
 ### `--function=CSV` Filter
 
-The `--function` flag accepts a comma-separated list of names. Each name is substring-matched against test group descriptions:
+The `--function` flag accepts a comma-separated list of names, substring-matched
+against test group descriptions:
 
 | Filter Value | Test Group(s) Matched |
 |-------------|----------------------|
@@ -162,236 +110,49 @@ The `--function` flag accepts a comma-separated list of names. Each name is subs
 | `BBANDS` | BBANDS |
 | `ADX` | ADX,ADXR,DI,DM,DX |
 
-Without `--function`, all test groups run (existing behavior).
+Without `--function`, all test groups run.
 
-### Key Files
+## Rust Backend
 
-| File | Purpose |
-|------|---------|
-| `tools/ta_codegen/src/server_gen.rs` | Generates JSON-RPC servers for all languages |
-| `tools/ta_codegen/src/main.rs` | `generate-servers` and `build` commands |
-| `ta_codegen_output/` | Generated server source per language |
-| `src/tools/ta_regtest/` | Universal test runner (C) |
+Generated Rust lives in `ta_codegen_output/rust/` (a standalone crate).
 
-## High-Level Architecture
+- TA-Lib exports a `Core` struct (`src/ta_func/types.rs`, with `RetCode`);
+  indicators are methods on `Core`, one file per indicator extending it via
+  `impl Core` blocks.
+- The public API uses `f64` slices (`&[f64]` / `&mut [f64]`), `usize` indices,
+  and `i32` optional params.
+- Each indicator generates a `xxx_lookback`, a guarded `xxx` (validates params,
+  pre-computes optimization values), and an `xxx_unguarded` variant (no range
+  checks, `get_unchecked` indexing inside an `unsafe` block).
+- **Cross-indicator calls always use `_unguarded`** to avoid double-validation.
+- Functions with extra internal params (e.g., EMA's k factor) expose them on the
+  unguarded variant only; the guarded variant pre-computes them and delegates.
+  If the C source defines only the guarded function, the codegen auto-generates
+  the unguarded variant by stripping range checks.
 
-### Design Philosophy
-- **TA-Lib** is a module that exports a `Core` struct
-- Functions are implemented as methods on `Core`: `impl Core { pub fn mult(...) }`
-- Multiple files can extend `Core` via separate `impl Core` blocks
-- User instantiates core, then calls: `Core::mult(...)` (static) or `core.mult(...)` (instance)
+## Adding or Modifying an Indicator
 
-## Rust Generic Type System
+1. Edit the definition in `ta_func_defs/<name>/` (C logic) and/or its YAML metadata
+2. `cd tools/ta_codegen && cargo run -- generate` (optionally `--func=<NAME>`)
+3. `scripts/build.py servers` to rebuild the language servers
+4. `cd bin && ./ta_regtest --codegen --function=<NAME>` to verify all backends
+   against the C reference
+5. **Verify other languages' output is unchanged** when fixing one backend
+   (`git diff` the generated files)
 
-### TaFloat Trait
-All indicator functions are generic over `T: TaFloat`, a sealed trait implemented for `f32` and `f64`. The type is inferred from the input/output slice types:
-
-```rust
-// f64 usage (default)
-let input: &[f64] = &[1.0, 2.0, 3.0];
-let mut output = [0.0f64; 3];
-core.sma(0, 2, input, 3, &mut beg, &mut nb, &mut output);
-
-// f32 usage (same function name)
-let input: &[f32] = &[1.0, 2.0, 3.0];
-let mut output = [0.0f32; 3];
-core.sma(0, 2, input, 3, &mut beg, &mut nb, &mut output);
-```
-
-### Function Variants
-Each indicator generates 2 variants:
-
-| Variant | Validation | Safety (Rust) | Extra Params | Use Case |
-|---------|-----------|---------------|-------------|----------|
-| `sma` | Range checks | Bounds-checked | Public API only | Public API |
-| `sma_unguarded` | None | `get_unchecked` | Can accept extra optimization params | Cross-indicator calls, internal |
-
-- **Guarded (`sma`)**: Validates parameters, pre-computes any optimization values, then calls `_unguarded`
-- **Unguarded (`sma_unguarded`)**: No range checks, `get_unchecked` in Rust, expects pre-computed params
-- **Cross-indicator calls always use `_unguarded`** to avoid double-validation
-- Functions with **extra internal params** (e.g., EMA's k factor) expose them on the unguarded variant:
-  - `ema(start, end, data, period)` → validates, computes `k = 2/(period+1)`, calls `ema_unguarded`
-  - `ema_unguarded(start, end, data, period, k)` → no validation, uses provided k directly
-  - MACD fix case calls `ema_unguarded(period=26, k=0.075)` with hardcoded k
-- Functions with **no extra params**: unguarded is just the body without range checks (auto-generated from the same C source)
-
-### Code Generation Pipeline
-1. **Source of Truth**: C files in `src/ta_func/ta_*.c` contain cross-language code
-2. **Generator**: `gen_code` binary (built from `gen_code.c` + `gen_rust.c`)
-3. **Preprocessor**: `mcpp` processes C files with `_RUST` defined
-4. **Output**: Rust files in `rust/src/ta_func/*.rs`
-
-### Key Files
-- `src/tools/gen_code/gen_code.c` - Main generator (168KB, "heart of madness")
-- `src/tools/gen_code/gen_rust.c` - Rust-specific signature generation
-- `include/ta_defs.h` - Cross-language macros (Rust definitions lines 159-184, 225-273)
-- `src/ta_abstract/templates/ta_x.rs.template` - Rust file template
-- `rust/src/ta_func/mod.rs` - Generated module file
-
-## Macro System
-
-### Variable Declaration Macros (ta_defs.h)
-```c
-// Rust:
-DECLARE_INDEX_VAR(name)   → let mut name: usize;
-DECLARE_LOOP_VAR(name)    → /* no-op: FOR_EACH_OUTPUT creates binding */
-DECLARE_INT_VAR(name)     → let mut name: i32;
-DECLARE_DOUBLE_VAR(name)  → let mut name: f64;
-```
-
-### Loop Macros
-```c
-// FOR_EACH_OUTPUT: C → Rust conversion
-FOR_EACH_OUTPUT(startIdx, endIdx, i, outIdx)
-   outReal[outIdx] = CAST_TO_F64(inReal0[i] * inReal1[i]);
-FOR_EACH_OUTPUT_END(outIdx)
-
-// Rust expands to:
-outIdx = 0;
-for i in (startIdx as usize)..=(endIdx as usize) {
-    outReal[outIdx] = (inReal0[i] * inReal1[i]) as f64;
-    outIdx += 1;
-}
-```
-
-### Value Handle Macros (for output params)
-```c
-VALUE_HANDLE_DEREF(name)         → (*name)           // dereference
-VALUE_HANDLE_DEREF_INDEX(n, v)   → (*n) = (v)        // assign to deref
-VALUE_HANDLE_DEREF_TO_ZERO(name) → (*name) = 0       // initialize to zero
-```
-
-### Type Conversion
-```c
-CAST_TO_F64(v)    → (v) as f64     // Cast to f64 (important for f32 inputs)
-CAST_TO_INDEX(v)  → (v) as usize   // Cast to index type (usize in Rust, int in C/Java)
-CAST_TO_I32(v)    → (v) as i32
-```
-
-### Control Flow Macros
-```c
-IF_CONDITION(expr)      → if expr {
-IF_CONDITION_END        → }
-FOR_COUNTDOWN(i, n)     → for i in (0..n).rev() {
-FOR_COUNTDOWN_END       → }
-```
-
-### Array/Function Macros
-```c
-ARRAY_ACCESS(arr, i)                     → arr[i]
-ENUM_VALUE(RetCode, TA_SUCCESS, Success) → RetCode::Success
-FUNCTION_CALL(SMA)                       → TA_PREFIX(SMA) → depends on context
-FUNCTION_CALL_DOUBLE(SMA)                → explicit f64 variant (used in cross-indicator calls)
-LOOKBACK_CALL(RSI)                       → TA_RSI_Lookback → self.rsi_lookback
-```
-
-**Note**: `LOOKBACK_CALL` uses two-level expansion for Rust. `LOOKBACK_CALL(RSI)` → `TA_RSI_Lookback` → `self.rsi_lookback`. Add one `#define TA_XXX_Lookback self.xxx_lookback` per function in `ta_defs.h`.
-
-**Note**: `TA_FUNC_NO_RANGE_CHECK` was removed — it disabled ALL validation including basic range checks, causing test regressions. Use targeted macros (`CAST_TO_I32`, exclusion guards) instead.
-
-## Architecture Decisions (ta_codegen)
-
-### Data vs Logic Separation
-- **YAML** = data, config, enums, IDL. Pure definitions with no logic.
-  - RetCode values, FuncUnstId mappings, MAType enum, CandleSetting defaults, Compatibility enum
-  - Function metadata (inputs, outputs, optional params, groups)
-  - Lives in `ta_func_defs/types/` (YAML files)
-- **C source files** = logic. Anything with computation.
-  - Indicator implementations (`ta_func_defs/<name>/<name>.c`)
-  - Helper functions (`ta_func_defs/helpers/`)
-  - **No logic in YAML, ever.**
-
-### Source of Truth
-- `ta_func_defs/` is the single source of truth for ALL generated code
-- The codegen parses C + YAML → IR → renders per-backend (C, Java, .NET, Rust)
-- No hand-coded string literals for type definitions or scaffolding in the codegen
-
-### Generate vs Generate-Servers
-- `generate` produces **standalone libraries** (Java Core class, Rust crate, C lib with header)
-- `generate-servers` wraps those libraries with JSON-RPC server layer for testing
-- Servers import the generated library — they don't contain indicator code themselves
-
-### Extra Internal Parameters (Unguarded Variants)
-- Defined in the C source: if `ema.c` defines both `ema()` and `ema_unguarded()`, the parser picks up both
-- The unguarded signature can have extra params (like k) beyond the public API
-- The guarded variant pre-computes these and delegates to unguarded
-- If only `ema()` is defined (no explicit unguarded), the codegen auto-generates unguarded by stripping range checks
-
-## Known Gotchas
-
-- **Loop variables**: Use `DECLARE_LOOP_VAR(i)` (no-op for Rust) instead of `DECLARE_INDEX_VAR(i)` when the variable is rebound by `FOR_EACH_OUTPUT`
-- **Index validation**: Rust skips `startIdx < 0` checks (meaningless for `usize`); see `gen_code.c:3464-3476`
-- **Type conversion**: With generics, f32 inputs produce f32 outputs and f64 inputs produce f64 outputs. `CAST_TO_F64` is used internally where needed but the public API is generic over `T: TaFloat`.
-
-## Next Functions to Implement
-
-### MA (Moving Average - dispatcher)
-**Uses `FUNCTION_CALL` extensively** to dispatch to SMA, EMA, WMA, etc. Needs Rust equivalent for method dispatch.
-
-### EMA (Exponential Moving Average)
-Uses unstable period like RSI. Should be straightforward given RSI infrastructure.
-
-## Macros Completed for RSI
-
-All macros needed for RSI are now implemented:
-- `TA_IS_ZERO(x)` — already worked as-is (C epsilon comparison compiles in Rust)
-- `TA_GLOBALS_UNSTABLE_PERIOD(x,y)` — `self.unstable_period[FuncUnstId::y as usize]` (ta_memory.h)
-- `TA_GLOBALS_COMPATIBILITY` — `self.compatibility` (ta_memory.h)
-- `LOOKBACK_CALL(x)` — two-level expansion via `TA_RSI_Lookback` → `self.rsi_lookback` (ta_defs.h)
-- `ARRAY_MEMMOVE` / `ARRAY_MEMMOVEMIX` — `copy_from_slice` / element-wise `as f64` (ta_memory.h)
-
-## Current Status
-
-- **MULT** - Complete, all 6 tests pass + 1 doctest
-- **SMA** - Complete, all 7 tests pass + 1 doctest (rich hand-written example)
-- **RSI** - Complete, all 13 tests pass + 1 doctest. First "unstable" indicator — uses Core state, unstable periods, compatibility modes.
-- **Doc generation** - `printRustFuncDoc` in gen_rust.c generates `///` doc comments from ta_abstract metadata. Zero `missing_docs` warnings. Uses `@RUSTDOC@` markers to survive mcpp. Rich examples override via `src/ta_abstract/rust_examples/<name>.txt`.
-- **RUST_SUPPORTED_FUNCS** - Currently `"SMA,MULT,RSI"` in gen_code.c line 111
-- **Generic type system** — `TaFloat` sealed trait replaces `_s` suffix convention. f32 inputs produce f32 outputs.
-- **Price Inputs** - Complex candlestick inputs (OHLCV combinations) not fully supported yet
+The `/convert-indicator` skill automates picking up and resuming this work.
 
 ## Build Configuration
-
-### gen_code.c Configuration (lines 105-111)
-```c
-#define ENABLE_JAVA
-#define ENABLE_C
-#define ENABLE_DOTNET
-#define ENABLE_RUST
-
-// CSV list of supported Rust functions (comment out to generate all):
-#define RUST_SUPPORTED_FUNCS "SMA,MULT,RSI"
-```
 
 ### Dependencies
 - CMake 3.18+
 - C compiler (clang/gcc)
 - Rust toolchain (`rustup`)
 - `mcpp` preprocessor (`brew install mcpp` or `apt install mcpp`)
+- For server testing: JDK (`javac` + `java`) and .NET SDK (`dotnet`)
 
-## Type Mappings
-
-| C Type | Rust Type | Notes |
-|--------|-----------|-------|
-| `int startIdx` | `usize` | Index into arrays |
-| `int *outBegIdx` | `&mut usize` | Output param |
-| `const double inReal[]` | `&[T]` where `T: TaFloat` | Generic over f32/f64 |
-| `double outReal[]` | `&mut [T]` | Generic output slice |
-| `int optInTimePeriod` | `i32` | Optional params stay i32 |
-
-## Rust Ownership Considerations
-
-**Future Challenge**: In C, input and output can be the same buffer. In Rust:
-- Cannot pass same slice as both `&[f64]` and `&mut [f64]`
-- Will need to handle in-place operations differently
-- Cross that bridge when tests reveal the issue
-
-## Java Reference
-
-The Rust implementation is largely based on the Java implementation patterns. Key similarities:
-- Both use method dispatch within class/impl
-- Both have MInteger-style output parameter handling
-- Both share the same GENCODE sections in source files
+`scripts/build.py` checks the prerequisites per target and configures CMake
+automatically on first run.
 
 ## Changelog Format (RUST_CHANGELOG.md)
 
@@ -405,7 +166,7 @@ One entry per day. If multiple commits happen on the same day, consolidate into 
 * [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Description of change from this commit
 * [abc1234](https://github.com/TA-Lib/ta-lib/commit/abc1234) Another change from the same commit
 * [fed9876](https://github.com/TA-Lib/ta-lib/commit/fed9876) Change from a different commit
-* All 13 Rust tests passing (6 MULT + 7 SMA)
+* All tests passing (summary bullet)
 ```
 
 **Range inclusivity — critical:**
@@ -420,35 +181,6 @@ Rules:
 - **Summary bullet at the end** — total test count to show nothing regressed
 - **Amend the changelog commit** when updating the same day's entry
 
-## Project Structure
-
-```
-ta-lib/
-├── bin/                    # Built executables (gen_code, ta_regtest)
-├── cmake-build/           # CMake build directory
-├── include/
-│   └── ta_defs.h          # Cross-language macros
-├── rust/
-│   ├── Cargo.toml
-│   ├── src/
-│   │   ├── lib.rs
-│   │   └── ta_func/
-│   │       ├── mod.rs     # Generated module declarations
-│   │       ├── mult.rs    # Generated MULT function
-│   │       └── sma.rs     # Generated SMA function
-│   └── tests/
-│       ├── mult_test.rs
-│       └── sma_test.rs
-└── src/
-    ├── ta_func/
-    │   ├── ta_MULT.c      # Source with GENCODE sections
-    │   ├── ta_RSI.c
-    │   └── ta_SMA.c
-    └── tools/gen_code/
-        ├── gen_code.c     # Main generator
-        └── gen_rust.c     # Rust signature generation
-```
-
 ## Performance Testing
 
 ```bash
@@ -462,4 +194,28 @@ cd bin && ./ta_bench --language=cref,c --function=RSI,SMA --points=100000 --iter
 cd bin && ./ta_bench --language=cref,c --points=100000 --iters=200
 ```
 
-**Gotcha:** `ta_ref_serve` is statically linked — rebuild when `libta-lib.a` changes or benchmarks are invalid. `regtest.py` handles this automatically.
+**Gotcha:** `ta_ref_serve` is statically linked — rebuild when `libta-lib.a`
+changes or benchmarks are invalid. `regtest.py` handles this automatically.
+Full 161-indicator benchmark runs have 10–20% variance from icache pressure;
+use `--function=NAME --iters=500` for ground truth.
+
+## Project Structure
+
+```
+ta-lib/
+├── bin/                      # Built executables (gen_code, ta_regtest, ta_bench, servers)
+├── cmake-build/              # CMake build directory
+├── ta_func_defs/             # SOURCE OF TRUTH: per-indicator C logic + YAML metadata
+│   ├── <name>/<name>.c       # Indicator logic
+│   ├── helpers/              # Shared helper functions
+│   └── types/                # Enums, RetCode, CandleSettings, etc. (YAML)
+├── ta_codegen_output/        # Generated code per language (c, java, dotnet, rust)
+│   └── rust/                 # Standalone Rust crate
+├── tools/ta_codegen/         # The Rust code generator (see its CLAUDE.md)
+├── src/
+│   ├── ta_func/              # Reference C library (GENCODE sections via gen_code)
+│   └── tools/
+│       ├── gen_code/         # Legacy generator (Java/.NET/reference C)
+│       └── ta_regtest/       # Universal test runner (see its CLAUDE.md)
+└── scripts/                  # build.py, regtest.py, sync.py, package.py, ...
+```
