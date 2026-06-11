@@ -200,7 +200,7 @@ def _check_no_existing_vcpkg_pr(version: str) -> None:
         raise RuntimeError(
             f"Could not verify existing vcpkg PRs: {e}\n"
             "Cannot proceed without confirming no duplicate PR exists. Please retry later."
-        )
+        ) from e
     for item in data.get("items", []):
         title = item.get("title", "")
         if version_re.search(title):
