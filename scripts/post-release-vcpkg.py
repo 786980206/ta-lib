@@ -97,7 +97,7 @@ def version_key(v: str) -> tuple[int, int, int]:
 def read_latest_release_src_tarball() -> tuple[str, str, str]:
     """Return (version, tarball_name, download_url) for the latest published release."""
     data = fetch_json(API_RELEASE_LATEST)
-    if data.get("draft"):
+    if data.get("draft", False):
         raise RuntimeError("Latest GitHub release is still a draft (not yet published).")
     assets = data.get("assets", [])
     for a in assets:
@@ -148,8 +148,9 @@ def _check_no_existing_vcpkg_pr(version: str) -> None:
     """
     query = "repo:microsoft/vcpkg is:pr is:open [ta-lib] in:title"
     url = "https://api.github.com/search/issues?" + urlencode({"q": query, "per_page": "10"})
-    # Match the version as a whole token to avoid e.g. 0.6.1 matching 0.6.10.
-    version_re = re.compile(r"(?<![.\d])" + re.escape(version) + r"(?![.\d])")
+    # Match the version as a whole token (word boundaries) to avoid false positives
+    # such as 0.6.1 matching 0.6.10 or 10.6.1.
+    version_re = re.compile(r"\b" + re.escape(version) + r"\b")
     try:
         data = fetch_json(url)
         for item in data.get("items", []):

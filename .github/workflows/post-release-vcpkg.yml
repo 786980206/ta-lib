@@ -72,4 +72,3 @@ jobs:
           echo '```bash' >> "$GITHUB_STEP_SUMMARY"
           echo "cd scripts && python post-release-vcpkg.py" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-
