@@ -134,11 +134,13 @@ def _check_no_existing_vcpkg_pr(version: str) -> None:
     """
     query = f"repo:microsoft/vcpkg is:pr is:open [ta-lib] in:title"
     url = "https://api.github.com/search/issues?" + urlencode({"q": query, "per_page": "10"})
+    # Match the version as a whole token to avoid e.g. 0.6.1 matching 0.6.10.
+    version_re = re.compile(r"(?<![.\d])" + re.escape(version) + r"(?![.\d])")
     try:
         data = fetch_json(url)
         for item in data.get("items", []):
             title = item.get("title", "")
-            if version in title:
+            if version_re.search(title):
                 pr_url = item.get("html_url", "")
                 raise RuntimeError(
                     f"An open PR for ta-lib {version} already exists in microsoft/vcpkg:\n"
