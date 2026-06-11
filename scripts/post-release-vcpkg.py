@@ -36,8 +36,9 @@ Safe to run multiple times for the same release:
 Version source
 --------------
 The authoritative version is the LATEST PUBLISHED RELEASE from the GitHub API.
-The local VERSION file is used as a cross-check; a mismatch produces a warning
-(not an error), since 'main' is often bumped ahead of the most recent release.
+The local git tag is checked as a sanity test; a mismatch prints an [info]
+message with instructions on how to align your checkout (not an error), since
+the tarball — not local source — is what vcpkg uses.
 """
 
 from __future__ import annotations
@@ -55,7 +56,6 @@ from urllib.request import Request, urlopen
 
 from utilities.common import run_command, verify_git_repo_original
 from utilities.files import path_join
-from utilities.versions import get_version_string
 
 API_RELEASE_LATEST = "https://api.github.com/repos/TA-Lib/ta-lib/releases/latest"
 ASSET_PATTERN = re.compile(r"ta-lib-(\d+\.\d+\.\d+)-src\.tar\.gz$")
@@ -94,18 +94,19 @@ def version_key(v: str) -> tuple[int, int, int]:
     return int(m.group(1)), int(m.group(2)), int(m.group(3))
 
 
-def read_latest_release_src_tarball() -> tuple[str, str, str]:
-    """Return (version, tarball_name, download_url) for the latest published release."""
+def read_latest_release_src_tarball() -> tuple[str, str, str, str]:
+    """Return (version, tarball_name, download_url, tag_name) for the latest published release."""
     data = fetch_json(API_RELEASE_LATEST)
     if data.get("draft", False):
         raise RuntimeError("Latest GitHub release is still a draft (not yet published).")
+    tag_name = data.get("tag_name", "")
     assets = data.get("assets", [])
     for a in assets:
         name = a.get("name", "")
         m = ASSET_PATTERN.search(name)
         if m:
             version = m.group(1)
-            return version, name, a.get("browser_download_url", "")
+            return version, name, a.get("browser_download_url", ""), tag_name
     raise RuntimeError("Could not find ta-lib-<version>-src.tar.gz asset in latest release")
 
 
@@ -123,9 +124,51 @@ def read_cached_latest_release_src_tarball(out_dir: Path) -> tuple[str, str, Pat
     return version, path.name, path
 
 
-def read_local_version() -> str:
-    root_dir = Path(path_join(Path(__file__).resolve().parent, "..")).resolve()
-    return get_version_string(str(root_dir))
+def _check_local_at_release_tag(tag_name: str, version: str) -> None:
+    """
+    Sanity-check that the local checkout is at the release tag.
+    This is informational only — the script builds from the downloaded tarball,
+    not from local source.  A mismatch means the user may be confused about
+    which version they are updating vcpkg for.
+
+    Prints an info message (not an error) because the tarball is the authority.
+    """
+    # Resolve the commit the release tag points to.
+    tag_result = subprocess.run(
+        ["git", "rev-parse", f"refs/tags/{tag_name}^{{}}"],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parent,
+    )
+    if tag_result.returncode != 0:
+        # Tag not found locally — common if the repo was cloned without tags.
+        print(
+            f"[info] Release tag '{tag_name}' not found in the local repository.\n"
+            f"[info] To align with the release, run:\n"
+            f"[info]   git fetch --tags\n"
+            f"[info]   git checkout {tag_name}\n"
+            f"[info] (To return to the latest main afterwards: git checkout main)"
+        )
+        return
+
+    tag_commit = tag_result.stdout.strip()
+
+    head_result = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        capture_output=True,
+        text=True,
+        cwd=Path(__file__).resolve().parent,
+    )
+    head_commit = head_result.stdout.strip() if head_result.returncode == 0 else ""
+
+    if head_commit != tag_commit:
+        print(
+            f"[info] Local HEAD ({head_commit[:12]}) does not match release tag '{tag_name}' ({tag_commit[:12]}).\n"
+            f"[info] The vcpkg update will still use the downloaded tarball for version {version},\n"
+            f"[info] but if you want your local checkout to match the release:\n"
+            f"[info]   git checkout {tag_name}\n"
+            f"[info] (To return to the latest main afterwards: git checkout main)"
+        )
 
 
 def _current_branch() -> str:
@@ -144,7 +187,7 @@ def _check_no_existing_vcpkg_pr(version: str) -> None:
     """
     Raise RuntimeError if an open PR for this version already exists in
     microsoft/vcpkg.  Uses the public GitHub search API (no auth required).
-    Prints a warning and continues if the API call fails.
+    Raises RuntimeError if the API call fails — caller should retry later.
     """
     query = "repo:microsoft/vcpkg is:pr is:open [ta-lib] in:title"
     url = "https://api.github.com/search/issues?" + urlencode({"q": query, "per_page": "10"})
@@ -153,20 +196,20 @@ def _check_no_existing_vcpkg_pr(version: str) -> None:
     version_re = re.compile(r"\b" + re.escape(version) + r"\b")
     try:
         data = fetch_json(url)
-        for item in data.get("items", []):
-            title = item.get("title", "")
-            if version_re.search(title):
-                pr_url = item.get("html_url", "")
-                raise RuntimeError(
-                    f"An open PR for ta-lib {version} already exists in microsoft/vcpkg:\n"
-                    f"  {pr_url}\n"
-                    "No new PR is needed. Run with --plan to review the current state."
-                )
-    except RuntimeError:
-        raise
     except Exception as e:
-        print(f"[warn] Could not check for existing vcpkg PRs: {e}")
-        print("[warn] Proceeding — verify manually that no duplicate PR exists.")
+        raise RuntimeError(
+            f"Could not verify existing vcpkg PRs: {e}\n"
+            "Cannot proceed without confirming no duplicate PR exists. Please retry later."
+        )
+    for item in data.get("items", []):
+        title = item.get("title", "")
+        if version_re.search(title):
+            pr_url = item.get("html_url", "")
+            raise RuntimeError(
+                f"An open PR for ta-lib {version} already exists in microsoft/vcpkg:\n"
+                f"  {pr_url}\n"
+                "No new PR is needed. Run with --plan to review the current state."
+            )
 
 
 def update_vcpkg_files(vcpkg_root: Path, version: str, sha512: str) -> None:
@@ -321,23 +364,18 @@ def main() -> int:
 
     # --- Step 1: resolve the authoritative version from the published release ---
     try:
-        release_version, tar_name, asset_url = read_latest_release_src_tarball()
+        release_version, tar_name, asset_url, tag_name = read_latest_release_src_tarball()
     except Exception as e:
         raise RuntimeError(
             f"Could not fetch latest TA-Lib release from GitHub: {e}\n"
             "Make sure the release has been published (not a draft) and you have internet access."
         )
 
-    # Cross-check with local VERSION — warn if they differ (main may be bumped ahead).
+    # Sanity-check: verify the local checkout is at the release tag (informational only).
     try:
-        local_version = read_local_version()
-        if local_version != release_version:
-            print(
-                f"[info] Local VERSION ({local_version}) differs from latest published release ({release_version}).\n"
-                f"[info] Using release version {release_version} for the vcpkg update."
-            )
+        _check_local_at_release_tag(tag_name, release_version)
     except Exception:
-        pass  # Not critical — use the release version regardless.
+        pass  # Never block on this check — the tarball is the authority.
 
     version = release_version
 
