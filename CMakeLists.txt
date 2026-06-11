@@ -578,7 +578,11 @@ if(BUILD_DEV_TOOLS)
 	set_target_properties(ta_bench PROPERTIES
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
 	)
-	target_compile_options(ta_bench PRIVATE -O3)
+	if(NOT MSVC)
+		# MSVC: Release config already uses /O2; forcing it here would
+		# conflict with /RTC1 in Debug builds.
+		target_compile_options(ta_bench PRIVATE -O3)
+	endif()
 
 	#####################
 	# ta_bench_direct #
@@ -598,7 +602,9 @@ if(BUILD_DEV_TOOLS)
 	set_target_properties(ta_bench_direct PROPERTIES
 		RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
 	)
-	target_compile_options(ta_bench_direct PRIVATE -O3)
+	if(NOT MSVC)
+		target_compile_options(ta_bench_direct PRIVATE -O3)
+	endif()
 
 	# Add a custom target to ensure ta_regtest is copied to ta-lib/bin directory
 	add_custom_target(ensure_ta_regtest_in_bin ALL

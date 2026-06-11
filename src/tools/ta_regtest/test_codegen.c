@@ -21,6 +21,9 @@ int g_hideUnguarded = 0;
 #ifdef __APPLE__
 #include <mach/mach_time.h>
 #endif
+#if defined(WIN32) || defined(_WIN32)
+#include <windows.h>
+#endif
 
 #include "ta_libc.h"
 #include "ta_abstract.h"
@@ -32,6 +35,13 @@ static long long get_nanotime(void) {
     if( info.denom == 0 ) mach_timebase_info(&info);
     uint64_t t = mach_absolute_time();
     return (long long)(t * info.numer / info.denom);
+#elif defined(WIN32) || defined(_WIN32)
+    static LARGE_INTEGER freq = {0};
+    LARGE_INTEGER t;
+    if( freq.QuadPart == 0 ) QueryPerformanceFrequency(&freq);
+    QueryPerformanceCounter(&t);
+    return (t.QuadPart / freq.QuadPart) * 1000000000LL
+         + (t.QuadPart % freq.QuadPart) * 1000000000LL / freq.QuadPart;
 #else
     struct timespec ts;
     if( clock_gettime(CLOCK_MONOTONIC, &ts) == 0 )

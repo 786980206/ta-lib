@@ -3,6 +3,43 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(WIN32) || defined(_WIN32)
+
+/* Subprocess JSON-RPC pipes are not implemented for Windows yet.
+ * These stubs keep ta_regtest building; codegen verification reports
+ * servers as unavailable and the C reference tests run unaffected.
+ */
+ErrorNumber codegen_pipe_open(CodegenPipe *cp, const char *const argv[])
+{
+    (void)argv;
+    cp->to_child_fd = -1;
+    cp->from_child_fd = -1;
+    cp->child_pid = -1;
+    return TA_CODEGEN_PIPE_OPEN_FAILED;
+}
+
+ErrorNumber codegen_pipe_call(CodegenPipe *cp,
+                              const char *request,
+                              char *response,
+                              int response_size)
+{
+    (void)cp;
+    (void)request;
+    if( response_size > 0 )
+        response[0] = '\0';
+    return TA_CODEGEN_PIPE_WRITE_FAILED;
+}
+
+void codegen_pipe_close(CodegenPipe *cp)
+{
+    cp->to_child_fd = -1;
+    cp->from_child_fd = -1;
+    cp->child_pid = -1;
+}
+
+#else /* POSIX implementation */
+
 #include <unistd.h>
 #include <signal.h>
 #include <sys/wait.h>
@@ -149,3 +186,5 @@ void codegen_pipe_close(CodegenPipe *cp)
         cp->child_pid = -1;
     }
 }
+
+#endif /* WIN32 / POSIX */
