@@ -4,12 +4,15 @@
 # No PAT or secret is required — the script only reads public GitHub APIs and
 # computes the SHA512 of the release tarball.
 #
-# After this workflow runs, a maintainer can copy the SHA512 from the summary
-# and submit the microsoft/vcpkg PR with one local command:
+# The workflow checks out the release tag so the VERSION file always matches
+# the published release (main may be bumped ahead).
 #
-#   cd scripts && python post-release-vcpkg.py --perform-local-changes --create-pr
+# After this workflow runs, a maintainer can submit the microsoft/vcpkg PR
+# with one command (no flags needed):
 #
-# (Requires 'gh auth login' and a fork of microsoft/vcpkg.)
+#   cd scripts && python post-release-vcpkg.py
+#
+# (Requires 'gh auth login'; the script clones microsoft/vcpkg automatically.)
 #
 # More info: scripts/post-release-vcpkg.py
 
@@ -28,10 +31,12 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout repository
+      - name: Checkout release tag
         uses: actions/checkout@v6
         with:
-          ref: main
+          # Use the release tag so VERSION matches the published release,
+          # even if main has been bumped ahead.
+          ref: ${{ github.event.release.tag_name }}
 
       - name: Set up Python
         uses: actions/setup-python@v6
@@ -44,6 +49,7 @@ jobs:
         run: |
           set -o pipefail
           python $GITHUB_WORKSPACE/scripts/post-release-vcpkg.py \
+            --plan \
             --out-dir /tmp/post-release-vcpkg \
             2>&1 | tee /tmp/vcpkg_plan.txt
 
@@ -61,10 +67,9 @@ jobs:
             echo "_No output captured._" >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "### Next Steps" >> "$GITHUB_STEP_SUMMARY"
-          echo "Run locally to prepare and submit the microsoft/vcpkg PR:" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Next Step" >> "$GITHUB_STEP_SUMMARY"
+          echo "Run on the main branch of the original ta-lib repo (needs \`gh auth login\`):" >> "$GITHUB_STEP_SUMMARY"
           echo '```bash' >> "$GITHUB_STEP_SUMMARY"
-          echo "cd scripts && python post-release-vcpkg.py --perform-local-changes --create-pr" >> "$GITHUB_STEP_SUMMARY"
+          echo "cd scripts && python post-release-vcpkg.py" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Prerequisites: \`gh auth login\` + a fork of microsoft/vcpkg (the script clones it automatically)." >> "$GITHUB_STEP_SUMMARY"
+
