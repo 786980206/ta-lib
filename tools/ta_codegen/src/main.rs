@@ -268,6 +268,11 @@ fn generate(func_filter: Option<&str>, backend_filter: Option<&str>) {
     backends::func_list::generate(all_funcs, &root.join("ta_func_list.txt"));
     backends::func_api_xml::generate(all_funcs, &root.join("ta_func_api.xml"));
 
+    // Generate the Rust abstract/introspection registry from the full function set.
+    if backends_to_run.contains(&"rust") {
+        backends::rust_abstract::generate(all_funcs, &enums, &out_base);
+    }
+
     // Generate Makefile.am and copy C library files when C is one of the backends
     if backends_to_run.contains(&"c") {
         backends::makefile_am::generate(all_funcs, &root.join("src/ta_func/Makefile.am"));
@@ -1019,6 +1024,7 @@ rustflags = ["-C", "target-cpu=native"]
     // --- src/lib.rs ---
     let lib_rs = r#"#![allow(non_snake_case, unused_variables, unused_assignments, unused_mut, unused_parens, arithmetic_overflow)]
 pub mod ta_func;
+pub mod abstract_api;
 pub use ta_func::*;
 "#;
     let lib_path = src_dir.join("lib.rs");

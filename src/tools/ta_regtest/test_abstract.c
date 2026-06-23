@@ -436,26 +436,76 @@ static ErrorNumber abstract_verify_func_metadata(
                 return TA_ABSTRACT_CALL_MISMATCH;
             }
         }
-        /* Compare range bounds if available */
+        /* Compare opt-input flags (IS_PERCENT/IS_DEGREE/IS_CURRENCY/ADVANCED) */
+        {
+            int srvOptFlags = abstract_json_get_int(g_abstractRespBuf, "flags");
+            if( srvOptFlags != (int)crefOpt->flags ) {
+                printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] flags c-ref=%d server=%d\n",
+                       funcName, i, (int)crefOpt->flags, srvOptFlags);
+                return TA_ABSTRACT_CALL_MISMATCH;
+            }
+        }
+        /* Compare range/list extended data if available (min/max, precision,
+         * suggested optimization values, and enum value lists). */
         if( crefOpt->dataSet ) {
             if( crefOpt->type == TA_OptInput_IntegerRange ) {
                 const TA_IntegerRange *r = (const TA_IntegerRange *)crefOpt->dataSet;
                 int srvMin = abstract_json_get_int(g_abstractRespBuf, "min");
                 int srvMax = abstract_json_get_int(g_abstractRespBuf, "max");
+                int srvSugSt = abstract_json_get_int(g_abstractRespBuf, "suggestedStart");
+                int srvSugEn = abstract_json_get_int(g_abstractRespBuf, "suggestedEnd");
+                int srvSugIn = abstract_json_get_int(g_abstractRespBuf, "suggestedIncrement");
                 if( srvMin != (int)r->min || srvMax != (int)r->max ) {
                     printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] range c-ref=[%d,%d] server=[%d,%d]\n",
                            funcName, i, (int)r->min, (int)r->max, srvMin, srvMax);
+                    return TA_ABSTRACT_CALL_MISMATCH;
+                }
+                if( srvSugSt != (int)r->suggested_start || srvSugEn != (int)r->suggested_end || srvSugIn != (int)r->suggested_increment ) {
+                    printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] suggested c-ref=[%d,%d,%d] server=[%d,%d,%d]\n",
+                           funcName, i, (int)r->suggested_start, (int)r->suggested_end, (int)r->suggested_increment, srvSugSt, srvSugEn, srvSugIn);
                     return TA_ABSTRACT_CALL_MISMATCH;
                 }
             } else if( crefOpt->type == TA_OptInput_RealRange ) {
                 const TA_RealRange *r = (const TA_RealRange *)crefOpt->dataSet;
                 double srvMin = abstract_json_get_double(g_abstractRespBuf, "min");
                 double srvMax = abstract_json_get_double(g_abstractRespBuf, "max");
+                int    srvPrec = abstract_json_get_int(g_abstractRespBuf, "precision");
+                double srvSugSt = abstract_json_get_double(g_abstractRespBuf, "suggestedStart");
+                double srvSugEn = abstract_json_get_double(g_abstractRespBuf, "suggestedEnd");
+                double srvSugIn = abstract_json_get_double(g_abstractRespBuf, "suggestedIncrement");
                 double diffMin = srvMin - r->min; if(diffMin<0) diffMin=-diffMin;
                 double diffMax = srvMax - r->max; if(diffMax<0) diffMax=-diffMax;
+                double dSt = srvSugSt - r->suggested_start; if(dSt<0) dSt=-dSt;
+                double dEn = srvSugEn - r->suggested_end; if(dEn<0) dEn=-dEn;
+                double dIn = srvSugIn - r->suggested_increment; if(dIn<0) dIn=-dIn;
                 if( diffMin > CODEGEN_EPSILON || diffMax > CODEGEN_EPSILON ) {
                     printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] range c-ref=[%.6g,%.6g] server=[%.6g,%.6g]\n",
                            funcName, i, r->min, r->max, srvMin, srvMax);
+                    return TA_ABSTRACT_CALL_MISMATCH;
+                }
+                if( srvPrec != (int)r->precision ) {
+                    printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] precision c-ref=%d server=%d\n",
+                           funcName, i, (int)r->precision, srvPrec);
+                    return TA_ABSTRACT_CALL_MISMATCH;
+                }
+                if( dSt > CODEGEN_EPSILON || dEn > CODEGEN_EPSILON || dIn > CODEGEN_EPSILON ) {
+                    printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] suggested c-ref=[%.6g,%.6g,%.6g] server=[%.6g,%.6g,%.6g]\n",
+                           funcName, i, r->suggested_start, r->suggested_end, r->suggested_increment, srvSugSt, srvSugEn, srvSugIn);
+                    return TA_ABSTRACT_CALL_MISMATCH;
+                }
+            } else if( crefOpt->type == TA_OptInput_IntegerList ) {
+                const TA_IntegerList *l = (const TA_IntegerList *)crefOpt->dataSet;
+                char crefList[1024]; int p = 0; unsigned int vi;
+                char srvList[1024] = {0};
+                for( vi = 0; vi < l->nbElement; vi++ ) {
+                    p += snprintf(crefList + p, (int)sizeof(crefList) - p, "%s%d=%s",
+                                  vi ? ";" : "", (int)l->data[vi].value,
+                                  l->data[vi].string ? l->data[vi].string : "");
+                }
+                abstract_json_get_string(g_abstractRespBuf, "valueList", srvList, sizeof(srvList));
+                if( strcmp(srvList, crefList) != 0 ) {
+                    printf("  ABSTRACT ERROR [%s]: TA_GetOptInputParameterInfo[%u] valueList c-ref=[%s] server=[%s]\n",
+                           funcName, i, crefList, srvList);
                     return TA_ABSTRACT_CALL_MISMATCH;
                 }
             }
@@ -502,6 +552,78 @@ static ErrorNumber abstract_verify_func_metadata(
     }
 
     return TA_TEST_PASS;
+}
+
+/* ---------------------------------------------------------------------------
+ * Metadata-only abstract parity for a language server.
+ *
+ * Runs TA_GetFuncInfo / TA_Get{Input,OptInput,Output}ParameterInfo against the
+ * server set via test_abstract_set_server() for EVERY function and compares to
+ * the C reference, WITHOUT the heavier abstract_call (dynamic-dispatch) path.
+ * Used to lock cross-language introspection metadata parity in CI (e.g. the Rust
+ * abstract_api registry).
+ * --------------------------------------------------------------------------- */
+typedef struct { ErrorNumber firstErr; int checked; int failed; const char *filter; } MetaParityCtx;
+
+/* Comma-separated substring match against the function name (matches the
+ * --function filter semantics used by test_codegen). NULL filter = match all. */
+static int metaMatchesFilter( const char *filter, const char *name )
+{
+    char filterCopy[1024];
+    char *token;
+    if( filter == NULL ) return 1;
+    strncpy(filterCopy, filter, sizeof(filterCopy) - 1);
+    filterCopy[sizeof(filterCopy) - 1] = '\0';
+    token = strtok(filterCopy, ",");
+    while( token != NULL )
+    {
+        if( strstr(name, token) != NULL ) return 1;
+        token = strtok(NULL, ",");
+    }
+    return 0;
+}
+
+static void metaParityCb( const TA_FuncInfo *funcInfo, void *opaqueData )
+{
+    MetaParityCtx *ctx = (MetaParityCtx *)opaqueData;
+    ErrorNumber e;
+    if( !metaMatchesFilter( ctx->filter, funcInfo->name ) )
+        return;
+    ctx->checked++;
+    e = abstract_verify_func_metadata( funcInfo->name, funcInfo->handle, funcInfo );
+    if( e != TA_TEST_PASS )
+    {
+        ctx->failed++;
+        if( ctx->firstErr == TA_TEST_PASS )
+            ctx->firstErr = e;
+    }
+}
+
+ErrorNumber test_abstract_server_metadata( const char *functionFilter )
+{
+    ErrorNumber retValue;
+    MetaParityCtx ctx;
+
+    if( !g_abstractPipe )
+        return TA_TEST_PASS;
+
+    retValue = allocLib();
+    if( retValue != TA_TEST_PASS )
+        return retValue;
+
+    ctx.firstErr = TA_TEST_PASS;
+    ctx.checked  = 0;
+    ctx.failed   = 0;
+    ctx.filter   = functionFilter;
+    TA_ForEachFunc( metaParityCb, &ctx );
+
+    printf( "  Abstract metadata parity: %d functions checked, %d failed\n",
+            ctx.checked, ctx.failed );
+
+    retValue = freeLib();
+    if( ctx.firstErr != TA_TEST_PASS )
+        return ctx.firstErr;
+    return retValue;
 }
 
 /* Build and send an abstract_call request to the server, mirroring the

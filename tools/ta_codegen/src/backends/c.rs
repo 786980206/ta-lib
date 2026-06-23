@@ -26,7 +26,8 @@ pub fn generate(
     // For functions with explicit _private, emit Private and Logic BEFORE guarded
     // so the C compiler knows the signatures when the guarded body calls them.
     if func.has_explicit_private {
-        out.push_str(&gen_private(func, enums, registry, helpers)); // double-only private
+        out.push_str(&gen_private(func, false, enums, registry, helpers)); // double private
+        out.push_str(&gen_private(func, true, enums, registry, helpers)); // single-precision private
         out.push_str(&gen_func(func, false, true, enums, registry, helpers)); // double-precision logic
         out.push_str(&gen_func(func, false, false, enums, registry, helpers)); // double-precision guarded
         out.push_str(&gen_func(func, true, true, enums, registry, helpers)); // single-precision logic
@@ -136,16 +137,28 @@ fn gen_lookback(
     )
 }
 
-/// Generate the double-only `TA_{NAME}_Private` function variant.
-/// Same body and params as `gen_func(logic=true)` but with `_Private` naming.
+/// Generate a `TA_{NAME}_Private` (double) or `TA_S_{NAME}_Private` (single-precision)
+/// function variant. Same body/params as `gen_func(logic=true)` but with `_Private`
+/// naming and the extra private params (e.g. EMA's k factor).
+///
+/// The single-precision variant takes `const float` inputs (double intermediates/
+/// outputs, per the library convention). It exists so that single-precision callers
+/// which apply an indicator to the ORIGINAL float input with a precomputed param
+/// (e.g. `TA_S_MACD` -> `TA_S_EMA_Private(... inReal ...)`) resolve; calls that act on
+/// double intermediate buffers continue to use the double `TA_{NAME}_Private`.
 fn gen_private(
     func: &FuncDef,
+    single_precision: bool,
     enums: &HashMap<String, EnumDef>,
     registry: &Registry,
     helpers: &HelperRegistry,
 ) -> String {
-    let name_override = format!("TA_{}_Private", func.name);
-    gen_func_inner(func, false, true, Some(&name_override), enums, registry, helpers)
+    let name_override = if single_precision {
+        format!("TA_S_{}_Private", func.name)
+    } else {
+        format!("TA_{}_Private", func.name)
+    };
+    gen_func_inner(func, single_precision, true, Some(&name_override), enums, registry, helpers)
 }
 
 #[allow(clippy::too_many_lines)]

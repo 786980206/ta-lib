@@ -4,6 +4,7 @@ use serde_json::{self, Value};
 use std::io::{self, BufRead, Write};
 use std::time::Instant;
 use ta_lib::{Core, RetCode, FuncUnstId, Compatibility};
+use ta_lib::abstract_api::{self, InputType, OutputType, OptDomain};
 
 const MAX_ARRAY_SIZE: usize = 200000;
 
@@ -9880,6 +9881,114 @@ fn handle_request(core: &mut Core, ref_data: &mut RefData, line: &str) -> String
                 _ => Compatibility::Default,
             };
             "{\"status\":\"ok\"}".to_string()
+        }
+        "TA_GetFuncInfo" => {
+            let name = params["funcName"].as_str().unwrap_or("");
+            match abstract_api::get_func_handle(name) {
+                Some(id) => {
+                    let fi = id.info();
+                    serde_json::json!({
+                        "name": fi.name,
+                        "group": fi.group.as_str(),
+                        "hint": fi.hint,
+                        "camelCaseName": fi.camel_case_name,
+                        "flags": fi.flags.bits(),
+                        "nbInput": fi.nb_input(),
+                        "nbOptInput": fi.nb_opt_input(),
+                        "nbOutput": fi.nb_output(),
+                    }).to_string()
+                }
+                None => "{\"retCode\":2}".to_string(),
+            }
+        }
+        "TA_GetInputParameterInfo" => {
+            let name = params["funcName"].as_str().unwrap_or("");
+            let idx = params["paramIndex"].as_u64().unwrap_or(0) as usize;
+            match abstract_api::get_func_handle(name)
+                .and_then(|id| abstract_api::get_input_parameter_info(id, idx)) {
+                Some(ii) => {
+                    let ty = match ii.kind {
+                        InputType::Price => 0,
+                        InputType::Real => 1,
+                        InputType::Integer => 2,
+                    };
+                    serde_json::json!({
+                        "type": ty,
+                        "paramName": ii.param_name,
+                        "flags": ii.flags.bits(),
+                    }).to_string()
+                }
+                None => "{\"retCode\":2}".to_string(),
+            }
+        }
+        "TA_GetOptInputParameterInfo" => {
+            let name = params["funcName"].as_str().unwrap_or("");
+            let idx = params["paramIndex"].as_u64().unwrap_or(0) as usize;
+            match abstract_api::get_func_handle(name)
+                .and_then(|id| abstract_api::get_opt_input_parameter_info(id, idx)) {
+                Some(oi) => {
+                    let (ty, default): (i32, f64) = match oi.domain {
+                        OptDomain::RealRange { default, .. } => (0, default),
+                        OptDomain::RealList { default, .. } => (1, default),
+                        OptDomain::IntegerRange { default, .. } => (2, default as f64),
+                        OptDomain::IntegerList { default, .. } => (3, default as f64),
+                    };
+                    let mut resp = serde_json::json!({
+                        "type": ty,
+                        "paramName": oi.param_name,
+                        "flags": oi.flags.bits(),
+                        "displayName": oi.display_name,
+                        "defaultValue": default,
+                    });
+                    match oi.domain {
+                        OptDomain::RealRange { min, max, precision, suggested, .. } => {
+                            resp["min"] = serde_json::json!(min);
+                            resp["max"] = serde_json::json!(max);
+                            resp["precision"] = serde_json::json!(precision);
+                            resp["suggestedStart"] = serde_json::json!(suggested.0);
+                            resp["suggestedEnd"] = serde_json::json!(suggested.1);
+                            resp["suggestedIncrement"] = serde_json::json!(suggested.2);
+                        }
+                        OptDomain::IntegerRange { min, max, suggested, .. } => {
+                            resp["min"] = serde_json::json!(min);
+                            resp["max"] = serde_json::json!(max);
+                            resp["suggestedStart"] = serde_json::json!(suggested.0);
+                            resp["suggestedEnd"] = serde_json::json!(suggested.1);
+                            resp["suggestedIncrement"] = serde_json::json!(suggested.2);
+                        }
+                        OptDomain::IntegerList { values, .. } => {
+                            let mut vl = String::new();
+                            for (i, (v, label)) in values.iter().enumerate() {
+                                if i > 0 { vl.push(';'); }
+                                vl.push_str(&format!("{}={}", v, label));
+                            }
+                            resp["valueList"] = serde_json::json!(vl);
+                        }
+                        OptDomain::RealList { .. } => {}
+                    }
+                    resp.to_string()
+                }
+                None => "{\"retCode\":2}".to_string(),
+            }
+        }
+        "TA_GetOutputParameterInfo" => {
+            let name = params["funcName"].as_str().unwrap_or("");
+            let idx = params["paramIndex"].as_u64().unwrap_or(0) as usize;
+            match abstract_api::get_func_handle(name)
+                .and_then(|id| abstract_api::get_output_parameter_info(id, idx)) {
+                Some(oo) => {
+                    let ty = match oo.kind {
+                        OutputType::Real => 0,
+                        OutputType::Integer => 1,
+                    };
+                    serde_json::json!({
+                        "type": ty,
+                        "paramName": oo.param_name,
+                        "flags": oo.flags.bits(),
+                    }).to_string()
+                }
+                None => "{\"retCode\":2}".to_string(),
+            }
         }
         _ => {
             format!("{{\"error\":\"Unknown method: {}\"}}", method)

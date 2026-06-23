@@ -102,6 +102,66 @@ TA_LIB_API TA_RetCode TA_EMA_Private( int    startIdx,
    return TA_SUCCESS;
 }
 
+TA_RetCode TA_S_EMA_Private( int    startIdx,
+                             int    endIdx,
+                             const float inReal[],
+                             int optInTimePeriod,
+                             double optInK_1,
+                             int          *outBegIdx,
+                             int          *outNBElement,
+                             double        outReal[] )
+{
+   double tempReal;
+   double prevMA;
+   int i;
+   int today;
+   int outIdx;
+   int lookbackTotal;
+
+   lookbackTotal = TA_EMA_Lookback(optInTimePeriod);
+   if( (startIdx<lookbackTotal) )
+   {
+      startIdx = lookbackTotal;
+   }
+   if( (startIdx>endIdx) )
+   {
+      *outBegIdx= 0;
+      *outNBElement= 0;
+      return TA_SUCCESS;
+   }
+   *outBegIdx= startIdx;
+   if( (TA_GLOBALS_COMPATIBILITY==ENUM_VALUE(Compatibility,TA_COMPATIBILITY_DEFAULT,Default)) )
+   {
+      today = (startIdx-lookbackTotal);
+      i = optInTimePeriod;
+      tempReal = 0.0;
+      while( (i-->0) )
+      {
+         tempReal += inReal[today++];
+      }
+      prevMA = (tempReal/optInTimePeriod);
+   } else 
+   {
+      prevMA = inReal[0];
+      today = 1;
+   }
+   while( (today<=startIdx) )
+   {
+      prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+   }
+   outReal[0] = prevMA;
+   outIdx = 1;
+   while( (today<=endIdx) )
+   {
+      prevMA = (((inReal[today++]-prevMA)*optInK_1)+prevMA);
+      outReal[outIdx++] = prevMA;
+   }
+   *outNBElement= outIdx;
+   return TA_SUCCESS;
+
+   return TA_SUCCESS;
+}
+
 TA_LIB_API TA_RetCode TA_EMA_Unguarded( int    startIdx,
                                         int    endIdx,
                                         const double inReal[],

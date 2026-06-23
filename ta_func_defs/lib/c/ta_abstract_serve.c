@@ -385,18 +385,32 @@ static void handle_TA_GetOptInputParameterInfo(const char *json, char *resp, int
         info->displayName ? info->displayName : "",
         info->defaultValue);
 
-    /* Include range data if available */
+    /* Include range/list extended data if available */
     if( info->dataSet ) {
         if( info->type == TA_OptInput_RealRange ) {
             const TA_RealRange *r = (const TA_RealRange *)info->dataSet;
             pos += snprintf(resp + pos, resp_size - pos,
-                ",\"min\":%.15g,\"max\":%.15g",
-                r->min, r->max);
+                ",\"min\":%.15g,\"max\":%.15g,\"precision\":%d,"
+                "\"suggestedStart\":%.15g,\"suggestedEnd\":%.15g,\"suggestedIncrement\":%.15g",
+                r->min, r->max, (int)r->precision,
+                r->suggested_start, r->suggested_end, r->suggested_increment);
         } else if( info->type == TA_OptInput_IntegerRange ) {
             const TA_IntegerRange *r = (const TA_IntegerRange *)info->dataSet;
             pos += snprintf(resp + pos, resp_size - pos,
-                ",\"min\":%d,\"max\":%d",
-                (int)r->min, (int)r->max);
+                ",\"min\":%d,\"max\":%d,"
+                "\"suggestedStart\":%d,\"suggestedEnd\":%d,\"suggestedIncrement\":%d",
+                (int)r->min, (int)r->max,
+                (int)r->suggested_start, (int)r->suggested_end, (int)r->suggested_increment);
+        } else if( info->type == TA_OptInput_IntegerList ) {
+            const TA_IntegerList *l = (const TA_IntegerList *)info->dataSet;
+            unsigned int vi;
+            pos += snprintf(resp + pos, resp_size - pos, ",\"valueList\":\"");
+            for( vi = 0; vi < l->nbElement; vi++ ) {
+                pos += snprintf(resp + pos, resp_size - pos, "%s%d=%s",
+                    vi ? ";" : "", (int)l->data[vi].value,
+                    l->data[vi].string ? l->data[vi].string : "");
+            }
+            pos += snprintf(resp + pos, resp_size - pos, "\"");
         }
     }
 

@@ -16,6 +16,14 @@ const TA_REAL_MAX: f64 = 3e37;
 /// Sorts alphabetically by name, formats as XML matching the legacy
 /// `gen_code` layout, and writes only if content has changed.
 pub fn generate(funcs: &[FuncDef], out_path: &Path) {
+    let out = generate_string(funcs);
+    super::write_if_changed(out_path, &out, "ta_func_api.xml", funcs.len());
+}
+
+/// Build the `ta_func_api.xml` content as a string (sorted alphabetically by name).
+/// Exposed so other backends can embed the identical XML (e.g. the Rust
+/// `function_description_xml()` analog of C's `TA_FunctionDescriptionXML`).
+pub fn generate_string(funcs: &[FuncDef]) -> String {
     let mut sorted: Vec<&FuncDef> = funcs.iter().collect();
     sorted.sort_by(|a, b| a.name.cmp(&b.name));
 
@@ -28,8 +36,7 @@ pub fn generate(funcs: &[FuncDef], out_path: &Path) {
     }
 
     out.push_str("</FinancialFunctions>\n");
-
-    super::write_if_changed(out_path, &out, "ta_func_api.xml", sorted.len());
+    out
 }
 
 fn write_function(out: &mut String, func: &FuncDef) {

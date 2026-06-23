@@ -222,6 +222,48 @@ int main( int argc, char **argv )
       if( abstractPipeOpen )
          codegen_pipe_close(&abstractPipe);
    }
+
+   /* Cross-language introspection parity (dev / merge-loop gate via --codegen):
+    * run the abstract metadata checks (TA_GetFuncInfo + the param-info getters)
+    * against the Rust server, comparing to the C reference. Only the metadata RPCs
+    * are exercised (not the beta-scoped abstract_call dynamic dispatch).
+    * NOTE: the autotools dist nightly runs ta_regtest with no args, so this block
+    * only runs under --codegen/--codegen-only (build.py regtest / regtest.py),
+    * not the dist verification path. */
+   if( retValue == TA_TEST_PASS && doCodegenTest &&
+       ( codegenLanguageFilter == NULL || strstr(codegenLanguageFilter, "rust") != NULL ) )
+   {
+      CodegenPipe rustAbstractPipe;
+      char rustServerPath[1024];
+      const char *self = argv[0];
+      const char *lastSlash = strrchr(self, '/');
+      if( lastSlash ) {
+         int dirLen = (int)(lastSlash - self + 1);
+         snprintf(rustServerPath, sizeof(rustServerPath), "%.*sta_codegen_serve_rust",
+                  dirLen, self);
+      } else {
+         snprintf(rustServerPath, sizeof(rustServerPath), "./ta_codegen_serve_rust");
+      }
+      {
+         const char *const rustArgv[] = {rustServerPath, NULL};
+         if( codegen_pipe_open(&rustAbstractPipe, rustArgv) == TA_TEST_PASS )
+         {
+            ErrorNumber e;
+            printf( "Testing Abstract metadata parity (Rust server vs c-ref)\n" );
+            test_abstract_set_server(&rustAbstractPipe);
+            e = test_abstract_server_metadata(functionFilter);
+            test_abstract_set_server(NULL);
+            codegen_pipe_close(&rustAbstractPipe);
+            if( retValue == TA_TEST_PASS && e != TA_TEST_PASS )
+               retValue = e;
+         }
+         else
+         {
+            printf( "  (Rust server not available, skipping Rust abstract parity)\n" );
+         }
+      }
+   }
+
    if( retValue != TA_TEST_PASS )
    {
       printf( "Failed: Abstract interface Tests (error number = %d)\n", retValue );
