@@ -6,6 +6,16 @@ Tracking progress of TA-Lib's Rust code generation pipeline.
 
 ---
 
+## 2026-06-23 -- Rust abstract_call dynamic dispatch + aliasing/NaN codegen fixes
+
+`git diff e63db843^..e63db843` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/21294d4f...e63db843)
+
+* [e63db843](https://github.com/TA-Lib/ta-lib/commit/e63db843) Rust server: `abstract_call` (reroutes funcName → per-function dispatch, now emits the `lookback` field), `abstract_get_lookback` (generated `abstract_lookback()` dispatcher), `abstract_for_each_func`, and `TA_FunctionDescriptionXML` (byte-len + byte-sum of the embedded `ta_func_api.xml`, matches c-ref) — completes the Rust mirror of C's ta_abstract call path
+* [e63db843](https://github.com/TA-Lib/ta-lib/commit/e63db843) Fixed buffer-alias comparisons (BBANDS/DEMA/STOCH/STOCHF): C pointer-identity `inReal == outRealUpperBand` was codegen'd as Rust slice value-equality → false `BadParam` on all-zero input; `rust_lang.rs` now emits `.as_ptr()` pointer comparisons via `is_buffer_operand`
+* [e63db843](https://github.com/TA-Lib/ta-lib/commit/e63db843) Fixed NaN/Inf serialization: serde_json `null` stalled the harness's strtod array parser (count ballooned to 2000); per-function responses now built with `json_f64_array`/`json_i32_array` emitting `nan`/`-nan`/`inf`/`-inf` like the C `%.15g`
+* [e63db843](https://github.com/TA-Lib/ta-lib/commit/e63db843) `ta_regtest.c` runs the full `test_abstract()` against the Rust server (numeric output, not just metadata); relaxes output-value parity for the FP-order-sensitive `{HT_*, CCI}` on the two random-noise datasets only (structural parity strict everywhere; real-data value parity covered by `test_codegen`)
+* `./ta_regtest --codegen-only --language=rust` exits 0 (50/50 runs); cargo test 446 pass; only `rust/` generated output changed (C/Java/.NET untouched)
+
 ## 2026-03-08 -- Generic enum type support in ta_codegen
 
 `git diff d5c67b85^..d5c67b85` | [view on GitHub](https://github.com/TA-Lib/ta-lib/compare/92a3d581...d5c67b85)
